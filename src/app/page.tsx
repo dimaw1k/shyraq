@@ -12,7 +12,6 @@ import {
   Clock3,
   Flame,
   Layers3,
-  Play,
   Sparkles,
   Target,
   Trophy,
