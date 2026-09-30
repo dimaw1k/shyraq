@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
+import { AppShell, UserChip } from "@/components/app/AppNav";
 
 type Profile = {
   id: string;
@@ -56,55 +56,63 @@ export default function SettingsPage() {
       }),
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok) {
-      setProfile(data.profile);
-      setMessage("Профиль жаңартылды.");
-    } else {
-      setMessage(data.error ?? "Жаңарту кезінде қате.");
-    }
+    setMessage(response.ok ? "Профиль жаңартылды." : (data.error ?? "Жаңарту кезінде қате."));
+    if (response.ok) setProfile(data.profile);
     setLoading(false);
   }
 
+  const role = profile?.role ?? "STUDENT";
+
   return (
-    <main className="min-h-screen bg-[var(--background)] px-6 py-10">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/dashboard" className="text-sm font-semibold">← Dashboard</Link>
-        <h1 className="mt-6 text-3xl font-semibold">Профиль</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Аккаунттағы негізгі оқу деректерін басқарыңыз.</p>
-
-        <form onSubmit={submit} className="mt-8 space-y-5 rounded-2xl border border-[var(--border)] bg-white p-6">
-          <label className="block text-sm font-medium">Аты-жөні
-            <input required value={form.fullName} onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))} className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3" />
-          </label>
-          <label className="block text-sm font-medium">Телефон
-            <input required value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3" />
-          </label>
-          <label className="block text-sm font-medium">Жасы
-            <input required min="10" max="100" type="number" value={form.age} onChange={(e) => setForm((s) => ({ ...s, age: e.target.value }))} className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3" />
-          </label>
-          <label className="block text-sm font-medium">Оқу түрі
-            <select value={form.educationType} onChange={(e) => setForm((s) => ({ ...s, educationType: e.target.value }))} className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3">
-              <option value="SCHOOL">Мектеп</option>
-              <option value="COLLEGE">Колледж</option>
-              <option value="UNIVERSITY">Университет</option>
-              <option value="OTHER">Басқа</option>
-            </select>
-          </label>
-          <label className="block text-sm font-medium">Оқу орны
-            <input required value={form.educationPlace} onChange={(e) => setForm((s) => ({ ...s, educationPlace: e.target.value }))} className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3" />
-          </label>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl bg-zinc-50 p-4"><p className="text-xs text-[var(--muted)]">Email</p><p className="mt-1 font-medium">{profile?.email ?? "—"}</p></div>
-            <div className="rounded-xl bg-zinc-50 p-4"><p className="text-xs text-[var(--muted)]">Статус</p><p className="mt-1 font-medium">{profile?.status ?? "—"}</p></div>
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title="Баптаулар" description="Профильдегі негізгі оқу деректерін басқарыңыз." right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+      <main className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-7">
+        <form onSubmit={submit} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-gray-900">
+              Аты-жөні
+              <input required value={form.fullName} onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition-all duration-300 ease-in-out focus:border-[#C25100] focus:ring-4 focus:ring-[#C25100]/10 sm:col-span-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-900">
+              Телефон
+              <input required value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition-all duration-300 ease-in-out focus:border-[#C25100] focus:ring-4 focus:ring-[#C25100]/10" />
+            </label>
+            <label className="text-sm font-medium text-gray-900">
+              Жасы
+              <input required min="10" max="100" type="number" value={form.age} onChange={(e) => setForm((s) => ({ ...s, age: e.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition-all duration-300 ease-in-out focus:border-[#C25100] focus:ring-4 focus:ring-[#C25100]/10" />
+            </label>
+            <label className="text-sm font-medium text-gray-900">
+              Оқу түрі
+              <select value={form.educationType} onChange={(e) => setForm((s) => ({ ...s, educationType: e.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition-all duration-300 ease-in-out focus:border-[#C25100] focus:ring-4 focus:ring-[#C25100]/10">
+                <option value="SCHOOL">Мектеп</option>
+                <option value="COLLEGE">Колледж</option>
+                <option value="UNIVERSITY">Университет</option>
+                <option value="OTHER">Басқа</option>
+              </select>
+            </label>
+            <label className="text-sm font-medium text-gray-900 sm:col-span-2">
+              Оқу орны
+              <input required value={form.educationPlace} onChange={(e) => setForm((s) => ({ ...s, educationPlace: e.target.value }))} className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition-all duration-300 ease-in-out focus:border-[#C25100] focus:ring-4 focus:ring-[#C25100]/10" />
+            </label>
           </div>
 
-          {message ? <div className="rounded-xl bg-zinc-50 p-4 text-sm">{message}</div> : null}
-          <button disabled={loading} className="w-full rounded-xl bg-black px-4 py-3 font-semibold text-white disabled:opacity-50">
-            {loading ? "Сақталуда..." : "Сақтау"}
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-xl bg-[#FAFAFA] p-3.5">
+              <p className="text-[11px] text-gray-400">Email</p>
+              <p className="mt-1 text-sm font-medium text-gray-900">{profile?.email ?? "—"}</p>
+            </div>
+            <div className="rounded-xl bg-[#FAFAFA] p-3.5">
+              <p className="text-[11px] text-gray-400">Статус</p>
+              <p className="mt-1 text-sm font-medium text-gray-900">{profile?.status ?? "—"}</p>
+            </div>
+          </div>
+
+          {message ? <div className="mt-4 rounded-xl bg-[#FAFAFA] p-3.5 text-sm text-gray-700">{message}</div> : null}
+
+          <button disabled={loading} className="mt-4 w-full rounded-xl bg-[#C25100] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+            {loading ? "Сақталуда..." : "Өзгерістерді сақтау"}
           </button>
         </form>
-      </div>
-    </main>
+      </main>
+    </AppShell>
   );
 }
