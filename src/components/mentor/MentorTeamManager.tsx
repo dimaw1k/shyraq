@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 
-type Student = { id: string; full_name: string; phone: string; email: string; status: string };
+type Student = {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string;
+  status: string;
+  score: number;
+  reportCount: number;
+  taskSubmittedCount: number;
+  attendanceAverage: number;
+  videoAverage: number;
+  unlockedTests: number;
+};
 
 export function MentorTeamManager({ teamId, students }: { teamId: string; students: Student[] }) {
   const [phone, setPhone] = useState("");
@@ -14,7 +26,11 @@ export function MentorTeamManager({ teamId, students }: { teamId: string; studen
     setLoading(true);
     setMessage("");
     setFound(null);
-    const response = await fetch("/api/mentor/students/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
+    const response = await fetch("/api/mentor/students/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
     const data = await response.json().catch(() => ({}));
     setFound(data.student ?? null);
     setMessage(response.ok ? (data.student ? "Оқушы табылды." : "Оқушы табылмады.") : (data.error ?? "Қате"));
@@ -24,7 +40,11 @@ export function MentorTeamManager({ teamId, students }: { teamId: string; studen
   async function addStudent() {
     if (!found) return;
     setLoading(true);
-    const response = await fetch("/api/mentor/students/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studentId: found.id }) });
+    const response = await fetch("/api/mentor/students/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: found.id }),
+    });
     const data = await response.json().catch(() => ({}));
     setMessage(response.ok ? "Оқушы командаға қосылды." : (data.error ?? "Қосу кезінде қате"));
     setLoading(false);
@@ -33,9 +53,17 @@ export function MentorTeamManager({ teamId, students }: { teamId: string; studen
 
   async function syncMeet() {
     setLoading(true);
-    const response = await fetch("/api/mentor/meet/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teamId }) });
+    const response = await fetch("/api/mentor/meet/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId }),
+    });
     const data = await response.json().catch(() => ({}));
-    setMessage(response.ok ? "Meet sync: " + String(data.attendanceRows ?? 0) + " attendance rows." : (data.error ?? "Meet sync failed"));
+    setMessage(
+      response.ok
+        ? "Meet sync: " + String(data.attendanceRows ?? 0) + " attendance rows."
+        : (data.error ?? "Meet sync failed"),
+    );
     setLoading(false);
   }
 
@@ -45,22 +73,90 @@ export function MentorTeamManager({ teamId, students }: { teamId: string; studen
         <h2 className="text-xl font-semibold">Оқушы қосу</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">Студент тіркелген телефон нөмірін енгізіңіз.</p>
         <div className="mt-5 flex gap-2">
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7 700 000 00 00" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] px-4 py-3" />
-          <button type="button" disabled={loading} onClick={search} className="rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white">Іздеу</button>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+7 700 000 00 00"
+            className="min-w-0 flex-1 rounded-xl border border-[var(--border)] px-4 py-3"
+          />
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void search()}
+            className="rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            Іздеу
+          </button>
         </div>
-        {found ? <div className="mt-5 rounded-xl bg-zinc-50 p-4"><p className="font-semibold">{found.full_name}</p><p className="mt-1 text-sm text-[var(--muted)]">{found.phone} · {found.email}</p><button type="button" onClick={addStudent} disabled={loading} className="mt-4 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white">Командаға қосу</button></div> : null}
+
+        {found ? (
+          <div className="mt-5 rounded-xl bg-zinc-50 p-4">
+            <p className="font-semibold">{found.full_name}</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">{found.phone} · {found.email}</p>
+            <button
+              type="button"
+              onClick={() => void addStudent()}
+              disabled={loading}
+              className="mt-4 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              Командаға қосу
+            </button>
+          </div>
+        ) : null}
+
         {message ? <p className="mt-4 text-sm text-[var(--muted)]">{message}</p> : null}
-        <button type="button" onClick={syncMeet} disabled={loading} className="mt-6 w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm font-semibold">Google Meet sync</button>
-        <a href="/api/integrations/google/start" className="mt-3 block text-center text-sm font-semibold text-[var(--accent)]">Google аккаунтын қосу →</a>
+
+        <button
+          type="button"
+          onClick={() => void syncMeet()}
+          disabled={loading}
+          className="mt-6 w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm font-semibold disabled:opacity-50"
+        >
+          Google Meet sync
+        </button>
+        <a href="/api/integrations/google/start" className="mt-3 block text-center text-sm font-semibold text-[var(--accent)]">
+          Google аккаунтын қосу →
+        </a>
       </section>
 
       <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-        <h2 className="text-xl font-semibold">Команда оқушылары</h2>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Команда оқушылары</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Есеп, тапсырма, видео, attendance және ұпай көрсеткіштері.</p>
+          </div>
+          <span className="text-sm text-[var(--muted)]">{students.length} оқушы</span>
+        </div>
+
         <div className="mt-5 space-y-3">
           {students.map((student) => (
             <div key={student.id} className="rounded-xl border border-[var(--border)] p-4">
-              <div className="flex items-center justify-between gap-4"><p className="font-medium">{student.full_name}</p><span className="text-xs text-[var(--muted)]">{student.status}</span></div>
-              <p className="mt-1 text-sm text-[var(--muted)]">{student.phone} · {student.email}</p>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium">{student.full_name}</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">{student.phone} · {student.email}</p>
+                </div>
+                <span className="text-xs text-[var(--muted)]">{student.status}</span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {[
+                  ["Ұпай", String(student.score)],
+                  ["Reports", String(student.reportCount)],
+                  ["Tasks", String(student.taskSubmittedCount)],
+                  ["Meet", student.attendanceAverage.toFixed(1) + "%"],
+                  ["Video", student.videoAverage.toFixed(0) + "%"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg bg-zinc-50 p-3">
+                    <p className="text-[11px] text-[var(--muted)]">{label}</p>
+                    <p className="mt-1 font-semibold">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                Ашылған тесттер: {student.unlockedTests}
+              </p>
             </div>
           ))}
           {!students.length ? <p className="text-sm text-[var(--muted)]">Командада әзірге оқушы жоқ.</p> : null}
