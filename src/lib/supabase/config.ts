@@ -1,5 +1,5 @@
-const FALLBACK_SUPABASE_URL = "https://dujeagndgxlehxsvwrsq.supabase.co";
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_i7uhxzZL3xKMMOYWk4o7ew_NoXCx8ER";
+const FALLBACK_SUPABASE_URL = "https://sqjjqnisnndulkzcqfwb.supabase.co";
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_RIhsm71jlMzvsZ68K7gkSw_Hr-SuM9I";
 
 export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL;
