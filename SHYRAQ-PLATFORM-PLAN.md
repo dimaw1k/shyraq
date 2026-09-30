@@ -1014,11 +1014,11 @@ Keep business logic out of large page components.
 
 ## 52. Current Repository Status
 
-The GitHub repository was verified and is currently an empty repository with `main` as the default branch.
+The GitHub repository is active on `main`, with the v1 implementation and migrations committed.
 
 Next engineering action:
 
-**Initialize the codebase and commit the foundation before implementing product modules.**
+**Complete production configuration, smoke testing, and the remaining analytics/streak work before launch.**
 
 This document is the source of truth for the v1 implementation scope. Scope changes should be recorded explicitly rather than silently adding features during development.
 
@@ -1066,8 +1066,12 @@ The repository is no longer empty. The initial foundation is implemented.
 - Production Kinescope credentials and content import workflow.
 - Full attendance scheduling/background sync.
 - Final score weights and exact streak rules.
-- Complete admin mentor management UI.
+- Admin user management UI for student/mentor/admin role and status changes.
+- Mentor operational metrics for reports, tasks, video progress, attendance and score.
+- Server-only mutation hardening for integrity-sensitive records.
+- Student ranking UI with personal position.
 - Full automated end-to-end test suite.
 - Local build verification in this execution environment; GitHub Actions is configured to run typecheck, lint and build on push/PR.
+- Final score weights and formal streak rules remain product configuration decisions.
 
 This section is an implementation checkpoint and does not replace the original product scope.
