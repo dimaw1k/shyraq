@@ -44,6 +44,7 @@ export default async function AdminPage() {
           <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
             <h2 className="text-xl font-semibold">Операциялық басқару</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <a href="/admin/users" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Users</p><p className="mt-1 text-sm text-[var(--muted)]">Student, mentor және admin аккаунттары.</p></a>
               <a href="/admin/teams" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Teams</p><p className="mt-1 text-sm text-[var(--muted)]">Командалар мен mentor assignment.</p></a>
               <a href="/admin/lessons" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Lessons</p><p className="mt-1 text-sm text-[var(--muted)]">Kinescope сабақтарын басқару.</p></a>
               <a href="/admin/tasks" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Tasks</p><p className="mt-1 text-sm text-[var(--muted)]">Марафон тапсырмалары.</p></a>
