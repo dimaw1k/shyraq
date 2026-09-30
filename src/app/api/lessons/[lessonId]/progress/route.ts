@@ -28,7 +28,7 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   if (!lesson?.published) return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
 
   const { data: existing } = await supabase.from("video_progress")
-    .select("id,test_unlocked,watched_ranges").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
+    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
 
   const body = await request.json().catch(() => null);
   const rawRanges: unknown[] = Array.isArray(body?.ranges) ? body.ranges : [];
@@ -46,21 +46,48 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
       end: Math.max(0, Math.min(lesson.duration_seconds, raw.end)),
     };
 
-    if (range.end > range.start) incoming.push(range);
+    if (range.end > range.start && range.end - range.start <= 5) incoming.push(range);
   }
 
   if (!incoming.length && !existing) {
     return NextResponse.json({ error: "No valid watch ranges supplied" }, { status: 400 });
   }
 
-  const storedRanges = Array.isArray(existing?.watched_ranges)
-    ? (existing.watched_ranges as TimeRange[])
+  const storedRanges: TimeRange[] = Array.isArray(existing?.watched_ranges)
+    ? existing.watched_ranges
+        .filter((value: unknown): value is { start: number; end: number } => {
+          if (!value || typeof value !== "object") return false;
+          const raw = value as Record<string, unknown>;
+          return typeof raw.start === "number" && typeof raw.end === "number" &&
+            Number.isFinite(raw.start) && Number.isFinite(raw.end);
+        })
+        .map((value) => ({
+          start: Math.max(0, Math.min(lesson.duration_seconds, value.start)),
+          end: Math.max(0, Math.min(lesson.duration_seconds, value.end)),
+        }))
+        .filter((value) => value.end > value.start)
     : [];
+
   const ranges = mergeTimeRanges([...storedRanges, ...incoming]);
 
   const percent = watchedPercent(ranges, lesson.duration_seconds);
   const unlocked = hasReachedWatchGate(ranges, lesson.duration_seconds, lesson.required_watch_percent);
   const watchedSeconds = Math.floor((percent / 100) * lesson.duration_seconds);
+  const previousWatchedSeconds = Number(existing?.watched_seconds ?? Math.floor((watchedPercent(storedRanges, lesson.duration_seconds) / 100) * lesson.duration_seconds));
+  const newCoverageSeconds = Math.max(0, watchedSeconds - previousWatchedSeconds);
+
+  if (newCoverageSeconds > 0) {
+    const nowMs = Date.now();
+    const lastWatchedMs = existing?.last_watched_at ? Date.parse(existing.last_watched_at) : NaN;
+    const elapsedAllowance = Number.isFinite(lastWatchedMs)
+      ? Math.max(0, (nowMs - lastWatchedMs) / 1000) + 30
+      : 45;
+
+    if (newCoverageSeconds > elapsedAllowance) {
+      return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
+    }
+  }
+
   const maximumPosition = Math.floor(Math.max(0, ...ranges.map((r) => r.end)));
 
   const payload = {
