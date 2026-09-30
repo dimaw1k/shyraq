@@ -1,3 +1,5 @@
+"use client";
+
 import { FormEvent, useState } from "react";
 import { AppShell } from "@/components/app/AppNav";
 
