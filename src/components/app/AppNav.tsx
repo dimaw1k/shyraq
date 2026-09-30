@@ -6,6 +6,7 @@ const studentLinks = [
   ["Reports", "/reports"],
   ["Lessons", "/lessons"],
   ["Ranking", "/rankings"],
+  ["Settings", "/settings"],
 ];
 
 const operationsLinks = [
