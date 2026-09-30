@@ -11,6 +11,11 @@ export function TestClient({testId,questions}:{testId:string;questions:Question[
   const [loading,setLoading]=useState(false);
 
   async function submit(){
+    const missing=questions.filter((question)=>!answers[question.id]);
+    if(missing.length){
+      setResult("Барлық сұрақтарға жауап беріңіз.");
+      return;
+    }
     setLoading(true);setResult("");
     try{
       const response=await fetch("/api/tests/"+testId+"/attempts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers})});
