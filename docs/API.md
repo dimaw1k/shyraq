@@ -6,6 +6,7 @@
 - GET /api/student/profile — current student's profile.
 - PATCH /api/student/profile — update allowed profile fields.
 - GET /api/student/overview — own operational summary.
+- GET /api/rankings — student top-10 plus own position, or mentor/admin scoped ranking.
 
 ### Mentor
 - POST /api/mentor/students/search — search registered student by phone.
@@ -25,7 +26,6 @@
 - GET /api/lessons/:lessonId/progress — own lesson progress.
 - POST /api/lessons/:lessonId/progress — save merged watch coverage.
 - POST /api/tests/:testId/attempts — submit test attempt after the video gate.
-- GET /api/rankings — mentor/admin scoped ranking data.
 
 ### Admin
 - GET /api/admin/overview — global marathon metrics.
@@ -35,6 +35,8 @@
 - POST /api/admin/lessons — create Kinescope lesson.
 - POST /api/admin/tests — create test linked to lesson.
 - POST /api/admin/tests/questions — create test question and options.
+- GET /api/admin/users — admin-only user search/list.
+- PATCH /api/admin/users/:userId — admin-only role/status update.
 
 ### Scheduled Meet sync
 
@@ -107,8 +109,8 @@ Apply in order:
 8. 0008_storage_and_team_hardening.sql
 9. 0009_profile_privilege_hardening.sql
 10. 0010_profile_rpc_hardening.sql
-supabase/migrations/0010_profile_rpc_hardening.sql
-supabase/migrations/0009_profile_privilege_hardening.sql
+11. 0011_operational_hardening.sql
+12. 0012_server_only_writes.sql
 
 ## Security notes
 
@@ -120,6 +122,8 @@ supabase/migrations/0009_profile_privilege_hardening.sql
 - Google refresh tokens are encrypted before storage.
 - Service-role credentials are server-only.
 - Score events are idempotent by student + source code + source ID.
+- Integrity-sensitive task/report/video/test writes are server-only through RLS plus service-role route handlers.
+- Direct client inserts into team membership, attempts, reports, submissions and video progress are blocked by RLS.
 
 ## Known limitations
 
