@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Clock3,
   Flame,
-  Play,
   Sparkles,
   Target,
   Trophy,
@@ -30,13 +29,13 @@ const steps = [
   { n: "03", title: "Өс", text: "Прогресіңді, ұпайыңды және рейтингіңді бақыла." },
 ];
 
-function Logo() {
+function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <Link href="/" className="inline-flex items-center gap-2.5">
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ff7a00] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(255,122,0,.22)]">
         S
       </span>
-      <span className="text-[15px] font-extrabold tracking-[-0.02em] text-[#141414]">Shyraq</span>
+      <span className={`text-[15px] font-extrabold tracking-[-0.02em] ${dark ? "text-white" : "text-[#141414]"}`}>Shyraq</span>
     </Link>
   );
 }
@@ -391,7 +390,7 @@ export default function HomePage() {
 
       <footer className="bg-[#0d0d0d] text-white/45">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <Logo />
+          <Logo dark />
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px]">
             <Link href="#features" className="hover:text-white">Мүмкіндіктер</Link>
             <Link href="/login" className="hover:text-white">Кіру</Link>
