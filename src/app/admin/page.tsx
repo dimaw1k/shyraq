@@ -42,7 +42,7 @@ export default async function AdminPage() {
           <CompactStat label="Оқушылар" value={String(studentCount ?? 0)} hint="Барлық student" />
           <CompactStat label="Менторлар" value={String(mentorCount ?? 0)} hint="Барлық mentor" />
           <CompactStat label="Командалар" value={String(teamCount ?? 0)} hint="Active teams" />
-          <CompactStat label="Assignment" value={String(activeAssignments ?? 0)} hint="Белсенді мүшелік" />
+          <CompactStat label="Мүшелік" value={String(activeAssignments ?? 0)} hint="Белсенді team membership" />
           <CompactStat label="Attendance" value={averageAttendance.toFixed(1) + "%"} hint="Орташа қатысу" />
         </section>
 
