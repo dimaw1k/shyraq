@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasReachedWatchGate, watchedPercent, mergeTimeRanges, type TimeRange } from "@/lib/video/coverage";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
@@ -34,9 +35,16 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     ? body.ranges.filter((r: unknown): r is TimeRange => {
         if (!r || typeof r !== "object") return false;
         const value = r as Record<string, unknown>;
-        return typeof value.start === "number" && typeof value.end === "number";
-      })
+        return Number.isFinite(value.start) && Number.isFinite(value.end);
+      }).map((range) => ({
+        start: Math.max(0, Math.min(lesson.duration_seconds, range.start)),
+        end: Math.max(0, Math.min(lesson.duration_seconds, range.end)),
+      })).filter((range) => range.end > range.start)
     : [];
+
+  if (!incoming.length && !existing) {
+    return NextResponse.json({ error: "No valid watch ranges supplied" }, { status: 400 });
+  }
 
   const storedRanges = Array.isArray(existing?.watched_ranges)
     ? (existing.watched_ranges as TimeRange[])
@@ -61,7 +69,8 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     last_watched_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase.from("video_progress")
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.from("video_progress")
     .upsert(payload, { onConflict: "lesson_id,student_id" }).select("*").single();
   if (error) return NextResponse.json({ error: "Progress save failed" }, { status: 400 });
 
@@ -71,14 +80,18 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     const { data: membership } = await supabase.from("team_members")
       .select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
     if (rule?.active && Number(rule.weight) !== 0) {
-      await recordScoreEvent(supabase, {
-        studentId: user.id,
-        teamId: membership?.team_id ?? null,
-        sourceCode: "VIDEO",
-        sourceId: data.id,
-        points: Number(rule.weight),
-        metadata: { lessonId },
-      });
+      try {
+        await recordScoreEvent(supabase, {
+          studentId: user.id,
+          teamId: membership?.team_id ?? null,
+          sourceCode: "VIDEO",
+          sourceId: data.id,
+          points: Number(rule.weight),
+          metadata: { lessonId },
+        });
+      } catch (scoreError) {
+        console.error("Video score event failed", scoreError);
+      }
     }
   }
 
