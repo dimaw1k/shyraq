@@ -25,10 +25,15 @@ export async function POST(request: Request) {
 
   if (questionError) return NextResponse.json({ error: "Question creation failed" }, { status: 400 });
 
-  const options = Array.isArray(body.options)
-    ? body.options.filter((item: unknown): item is { text: string; correct?: boolean; sortOrder?: number } =>
-        Boolean(item && typeof item === "object" && typeof (item as { text?: unknown }).text === "string"))
-    : [];
+  const rawOptions = Array.isArray(body.options) ? body.options : [];
+  const options: Array<{ text: string; correct?: boolean; sortOrder?: number }> = rawOptions.filter(
+    (item: unknown): item is { text: string; correct?: boolean; sortOrder?: number } =>
+      Boolean(
+        item &&
+        typeof item === "object" &&
+        typeof (item as { text?: unknown }).text === "string",
+      ),
+  );
 
   if (options.length) {
     const { error: optionsError } = await admin.from("test_options").insert(
