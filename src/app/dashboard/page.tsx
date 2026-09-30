@@ -54,7 +54,7 @@ export default async function DashboardPage() {
           <CompactStat label="Ұпай" value={String(score)} hint="Жалпы нәтиже" />
           <CompactStat label="Команда" value={team ? String(team.name) : "Күтілуде"} hint="Белсенді команда" />
           <CompactStat label="Есептер" value={String(submittedReports)} hint="Жіберілген есеп" />
-          <CompactStat label="Сабақтар" value={String(progress?.length ?? 0)} hint="Қолжетімді прогресс" />
+          <CompactStat label="Оқу прогресі" value={String(progress?.length ?? 0)} hint="Басталған сабақ" />
         </section>
 
         <section className="mt-5 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
