@@ -76,9 +76,9 @@ export function StickyNav() {
         >
           <Link href="/#top" aria-label="Shyraq" className="shrink-0">
             <svg
-              width="128"
+              width="122"
               height="34"
-              viewBox="0 0 128 34"
+              viewBox="0 0 122 34"
               role="img"
               aria-label="SHYRAQ"
               className="block h-[30px] w-auto sm:h-[34px]"
@@ -95,7 +95,7 @@ export function StickyNav() {
                 SHYR
               </text>
 
-              <g transform="translate(-3 0)">
+              <g transform="translate(-5 0)">
                 <path
                   d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
                   fill="#FF6F2C"
@@ -108,7 +108,7 @@ export function StickyNav() {
               </g>
 
               <text
-                x="104"
+                x="99"
                 y="26"
                 fill="#172235"
                 fontSize="27"
