@@ -1,0 +1,9 @@
+project_id = "dujeagndgxlehxsvwrsq"
+
+[api]
+enabled = true
+schemas = ["public", "storage", "graphql_public"]
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
