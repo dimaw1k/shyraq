@@ -17,6 +17,10 @@ export async function GET(request: Request) {
   return NextResponse.json({ reports: data ?? [] });
 }
 
+function todayInUtc() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -26,6 +30,9 @@ export async function POST(request: Request) {
   const reportDate = typeof body?.reportDate === "string" ? body.reportDate : "";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
     return NextResponse.json({ error: "Invalid reportDate" }, { status: 400 });
+  }
+  if (reportDate > todayInUtc()) {
+    return NextResponse.json({ error: "A daily report cannot be submitted for a future date" }, { status: 409 });
   }
 
   const { data: existing } = await supabase.from("daily_reports")
@@ -53,15 +60,20 @@ export async function POST(request: Request) {
   if (existing?.status !== "SUBMITTED") {
     const { data: rule } = await supabase.from("score_rules").select("weight,active")
       .eq("code", "REPORTS").maybeSingle();
+
     if (rule?.active && Number(rule.weight) !== 0) {
-      await recordScoreEvent(supabase, {
-        studentId: user.id,
-        teamId: membership?.team_id ?? null,
-        sourceCode: "REPORTS",
-        sourceId: data.id,
-        points: Number(rule.weight),
-        metadata: { reportDate },
-      });
+      try {
+        await recordScoreEvent(supabase, {
+          studentId: user.id,
+          teamId: membership?.team_id ?? null,
+          sourceCode: "REPORTS",
+          sourceId: data.id,
+          points: Number(rule.weight),
+          metadata: { reportDate },
+        });
+      } catch (scoreError) {
+        console.error("Report score event failed", scoreError);
+      }
     }
   }
 
