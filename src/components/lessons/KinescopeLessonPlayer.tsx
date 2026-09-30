@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TimeRange } from "@/lib/video/coverage";
 import { mergeTimeRanges, watchedPercent } from "@/lib/video/coverage";
 
@@ -32,7 +32,7 @@ export function KinescopeLessonPlayer({
     rangesRef.current = ranges;
   }, [ranges]);
 
-  async function persist(nextRanges: TimeRange[]) {
+  const persist = useCallback(async (nextRanges: TimeRange[]) => {
     setSaving(true);
     try {
       const response = await fetch("/api/lessons/" + lessonId + "/progress", {
@@ -45,7 +45,7 @@ export function KinescopeLessonPlayer({
     } finally {
       setSaving(false);
     }
-  }
+  }, [lessonId]);
 
   function handleTimeUpdate(event: { currentTime: number }) {
     const current = Math.max(0, Math.min(durationSeconds, event.currentTime));
@@ -68,7 +68,7 @@ export function KinescopeLessonPlayer({
       void persist(rangesRef.current);
     }, 15000);
     return () => window.clearInterval(timer);
-  }, [lessonId]);
+  }, [persist]);
 
   useEffect(() => {
     const flush = () => void persist(rangesRef.current);
