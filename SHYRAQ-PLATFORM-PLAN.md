@@ -1028,6 +1028,8 @@ This document is the source of truth for the v1 implementation scope. Scope chan
 The repository is no longer empty. The initial foundation is implemented.
 
 ### Completed foundation
+- Mentor video-progress visibility hardening.
+- Server-side guardrails for Kinescope progress bursts.
 
 - Next.js / TypeScript / Tailwind project skeleton.
 - Supabase browser/server clients.
