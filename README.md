@@ -86,6 +86,7 @@ supabase/migrations/0004_score_events.sql
 supabase/migrations/0005_google_meet_integration.sql
 supabase/migrations/0006_meet_participant_sessions.sql
 supabase/migrations/0007_test_answer_privacy.sql
+supabase/migrations/0008_storage_and_team_hardening.sql
 ```
 
 ## Important product rules
