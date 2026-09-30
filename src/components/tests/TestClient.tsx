@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 type Option = { id:string; option_text:string; sort_order:number };
 type Question = { id:string; question_text:string; points:number; sort_order:number; test_options:Option[] };
@@ -23,7 +23,7 @@ export function TestClient({testId,questions}:{testId:string;questions:Question[
 
   return <div className="space-y-3">
     {questions.map((question,index)=>{
-      const options=useMemo(()=>[...question.test_options].sort((a,b)=>a.sort_order-b.sort_order),[question.test_options]);
+      const options=[...question.test_options].sort((a,b)=>a.sort_order-b.sort_order);
       return <section key={question.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-5">
         <div className="flex items-start gap-3">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#C25100]/10 text-[10px] font-semibold text-[#C25100]">{index+1}</span>
