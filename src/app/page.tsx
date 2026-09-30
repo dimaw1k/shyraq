@@ -8,8 +8,6 @@ import {
   ChevronRight,
   Clock3,
   Flame,
-  GraduationCap,
-  Play,
   Sparkles,
   Target,
   Trophy,
@@ -275,7 +273,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid gap-3">
-              {steps.map(([number, title, description], index) => (
+              {steps.map(([number, title, description]) => (
                 <div key={number} className="group flex gap-4 rounded-[22px] border border-gray-100 bg-[#fafafa] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_40px_rgba(17,24,39,0.06)] sm:p-6">
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#ff8000] text-xs font-bold text-white">{number}</div>
                   <div className="min-w-0">
