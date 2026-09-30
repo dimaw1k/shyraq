@@ -29,6 +29,11 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 
 ## Implemented foundation
 
+- Student-facing dashboard, tasks, task detail/submission, reports and lesson catalog UI
+- Mentor operational dashboard with phone-based student management and Meet sync controls
+- Admin operational dashboard with team, task, lesson and test creation UI
+- Scheduled Meet attendance sync endpoint and Vercel cron configuration
+
 - Student registration/login skeleton
 - Student-first role creation
 - Mentor phone lookup and team assignment backend
