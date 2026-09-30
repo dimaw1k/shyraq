@@ -54,7 +54,8 @@ const roleLabels: Record<string, string> = {
 };
 
 function isActive(pathname: string, href: string) {
-  return pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
+  const rootRoutes = new Set(["/dashboard", "/mentor", "/admin"]);
+  return pathname === href || (!rootRoutes.has(href) && pathname.startsWith(href + "/"));
 }
 
 function initials(name?: string) {
