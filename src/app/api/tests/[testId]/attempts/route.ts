@@ -28,52 +28,93 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   }
 
   const body = await request.json().catch(() => null);
-  const answers = body?.answers && typeof body.answers === "object"
-    ? (body.answers as Record<string, string>) : {};
+  const answersInput = body?.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
+    ? (body.answers as Record<string, unknown>)
+    : {};
 
   const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin.from("test_questions")
-    .select("id,points,test_options(id,is_correct)").eq("test_id", testId)
+    .select("id,points,test_options(id,is_correct)")
+    .eq("test_id", testId)
     .order("sort_order", { ascending: true });
 
   if (questionError) return NextResponse.json({ error: "Test data unavailable" }, { status: 500 });
 
-  let score = 0;
+  const questionMap = new Map<string, { id: string; points: number; correctOptionId: string | null; optionIds: Set<string> }>();
   for (const question of questions ?? []) {
-    const selected = answers[String(question.id)];
     const options = Array.isArray(question.test_options) ? question.test_options : [];
-    const correct = options.find((option: { id: string; is_correct: boolean }) => option.is_correct)?.id;
-    if (selected && correct && selected === correct) score += Number(question.points ?? 0);
+    const correct = options.find((option: { id: string; is_correct: boolean }) => option.is_correct)?.id ?? null;
+    questionMap.set(String(question.id), {
+      id: String(question.id),
+      points: Number(question.points ?? 0),
+      correctOptionId: correct ? String(correct) : null,
+      optionIds: new Set(options.map((option: { id: string }) => String(option.id))),
+    });
   }
 
-  const { data: attempt, error } = await supabase.from("test_attempts").insert({
-    test_id: testId, student_id: user.id, attempt_number: attemptNumber,
-    score, submitted_at: new Date().toISOString(),
+  const answers: Record<string, string> = {};
+  for (const [questionId, selectedOption] of Object.entries(answersInput)) {
+    if (typeof selectedOption !== "string") continue;
+    const question = questionMap.get(questionId);
+    if (!question) continue;
+    if (!question.optionIds.has(selectedOption)) continue;
+    answers[questionId] = selectedOption;
+  }
+
+  let score = 0;
+  for (const question of questionMap.values()) {
+    if (answers[question.id] && question.correctOptionId === answers[question.id]) {
+      score += question.points;
+    }
+  }
+
+  const { data: attempt, error } = await admin.from("test_attempts").insert({
+    test_id: testId,
+    student_id: user.id,
+    attempt_number: attemptNumber,
+    score,
+    submitted_at: new Date().toISOString(),
   }).select("*").single();
 
-  if (error) return NextResponse.json({ error: "Unable to save attempt" }, { status: 400 });
+  if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json({ error: "This test attempt was already submitted. Please submit again." }, { status: 409 });
+    }
+    return NextResponse.json({ error: "Unable to save attempt" }, { status: 400 });
+  }
 
-  const answerRows = Object.entries(answers)
-    .filter(([questionId, selected]) => Boolean(questionId && selected))
-    .map(([questionId, selected]) => ({
-      attempt_id: attempt.id, question_id: questionId, selected_option_id: selected,
-    }));
+  const answerRows = Object.entries(answers).map(([questionId, selected]) => ({
+    attempt_id: attempt.id,
+    question_id: questionId,
+    selected_option_id: selected,
+  }));
 
-  if (answerRows.length) await supabase.from("test_answers").insert(answerRows);
+  if (answerRows.length) {
+    const { error: answerError } = await admin.from("test_answers").insert(answerRows);
+    if (answerError) {
+      console.error("Test answers save failed", answerError);
+      return NextResponse.json({ error: "Attempt saved, but answers could not be stored" }, { status: 500 });
+    }
+  }
 
   const { data: membership } = await supabase.from("team_members")
     .select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
   const { data: rule } = await supabase.from("score_rules")
     .select("weight,active").eq("code", "TESTS").maybeSingle();
+
   if (rule?.active && Number(rule.weight) !== 0) {
-    await recordScoreEvent(supabase, {
-      studentId: user.id,
-      teamId: membership?.team_id ?? null,
-      sourceCode: "TESTS",
-      sourceId: attempt.id,
-      points: Number(rule.weight) * score,
-      metadata: { testId, score, attemptNumber },
-    });
+    try {
+      await recordScoreEvent(supabase, {
+        studentId: user.id,
+        teamId: membership?.team_id ?? null,
+        sourceCode: "TESTS",
+        sourceId: attempt.id,
+        points: Number(rule.weight) * score,
+        metadata: { testId, score, attemptNumber },
+      });
+    } catch (scoreError) {
+      console.error("Test score event failed", scoreError);
+    }
   }
 
   return NextResponse.json({ attempt });
