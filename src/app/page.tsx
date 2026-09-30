@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BarChart3,
   BookOpen,
-  CalendarCheck2,
   Check,
   ChevronRight,
   Clock3,
@@ -531,7 +530,7 @@ export default function HomePage() {
               <div className="mt-4 space-y-2.5 text-xs"><span className="block">Студенттер үшін</span><span className="block">Менторлар үшін</span><span className="block">Команда үшін</span></div>
             </div>
           </div>
-          <div className="mt-10 border-t border-white/8 pt-5 text-[10px] text-white/30">© {new Date().getFullYear()} Shyraq. Барлық құқықтар қорғалған.</div>
+          <div className="mt-10 border-t border-white/8 pt-5 text-[10px] text-white/30">© 2026 Shyraq. Барлық құқықтар қорғалған.</div>
         </div>
       </footer>
     </main>
