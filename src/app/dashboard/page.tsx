@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { AppNav } from "@/components/app/AppNav";
+import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -8,66 +8,146 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name,role")
+    .eq("id", user.id)
+    .maybeSingle();
+
   const role = profile?.role ?? "STUDENT";
   if (role === "MENTOR") redirect("/mentor");
   if (role === "ADMIN") redirect("/admin");
 
-  const [{ data: membership }, { data: tasks }, { data: progress }, { data: reports }, { data: scores }] = await Promise.all([
-    supabase.from("team_members").select("team_id,teams(id,name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
-    supabase.from("tasks").select("id,title,deadline,points").eq("active", true).order("deadline", { ascending: true, nullsFirst: false }).limit(3),
-    supabase.from("video_progress").select("watched_percent,test_unlocked").eq("student_id", user.id),
-    supabase.from("daily_reports").select("report_date,status").eq("student_id", user.id).order("report_date", { ascending: false }).limit(7),
-    supabase.from("score_events").select("points").eq("student_id", user.id),
-  ]);
+  const [{ data: membership }, { data: tasks }, { data: progress }, { data: reports }, { data: scores }] =
+    await Promise.all([
+      supabase
+        .from("team_members")
+        .select("team_id,teams(id,name)")
+        .eq("student_id", user.id)
+        .eq("status", "ACTIVE")
+        .maybeSingle(),
+      supabase
+        .from("tasks")
+        .select("id,title,deadline,points")
+        .eq("active", true)
+        .order("deadline", { ascending: true, nullsFirst: false })
+        .limit(3),
+      supabase
+        .from("video_progress")
+        .select("watched_percent,test_unlocked")
+        .eq("student_id", user.id),
+      supabase
+        .from("daily_reports")
+        .select("report_date,status")
+        .eq("student_id", user.id)
+        .order("report_date", { ascending: false })
+        .limit(7),
+      supabase.from("score_events").select("points").eq("student_id", user.id),
+    ]);
 
   const team = Array.isArray(membership?.teams) ? membership.teams[0] ?? null : membership?.teams;
   const score = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
   const submittedReports = (reports ?? []).filter((report) => report.status === "SUBMITTED").length;
 
-  return (
-    <main className="min-h-screen bg-[var(--background)]">
-      <AppNav role={role} />
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <p className="text-sm font-semibold text-[var(--accent)]">STUDENT DASHBOARD</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{profile?.full_name ?? "Қош келдіңіз"}</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">{team ? "Команда: " + String(team.name) : "Сіз әлі командаға қосылған жоқсыз."}</p>
+  const stats = [
+    { label: "Ұпай", value: String(score), hint: "Жалпы нәтиже" },
+    { label: "Команда", value: team ? String(team.name) : "Күтілуде", hint: "Белсенді команда" },
+    { label: "Есептер", value: String(submittedReports), hint: "Жіберілген есеп" },
+    { label: "Сабақтар", value: String(progress?.length ?? 0), hint: "Қолжетімді прогресс" },
+  ];
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[["Ұпай", String(score)],["Команда", team ? String(team.name) : "Күтілуде"],["Есептер", String(submittedReports)],["Сабақтар", String(progress?.length ?? 0)]].map(([label,value]) => (
-            <div key={label} className="rounded-2xl border border-[var(--border)] bg-white p-5">
-              <p className="text-sm text-[var(--muted)]">{label}</p>
-              <p className="mt-2 text-2xl font-semibold">{value}</p>
+  return (
+    <AppShell
+      role={role}
+      title="Басты бет"
+      right={
+        <div className="hidden rounded-full bg-[#FAFAFA] px-3 py-1.5 text-xs font-medium text-gray-500 sm:block">
+          {profile?.full_name ?? "Оқушы"}
+        </div>
+      }
+    >
+      <main className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+        <section className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C25100]">SHYRAQ</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
+            Қош келдіңіз, {profile?.full_name ?? "оқушы"}.
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Бүгінгі оқу прогресіңізді бір жерден бақылаңыз.
+          </p>
+        </section>
+
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(0,0,0,0.05)]"
+            >
+              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
+              <p className="mt-1.5 truncate text-lg font-semibold tracking-tight text-gray-900">{stat.value}</p>
+              <p className="mt-1 text-[11px] text-gray-400">{stat.hint}</p>
             </div>
           ))}
-        </div>
+        </section>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-            <div className="flex items-center justify-between">
-              <div><h2 className="text-xl font-semibold">Келесі тапсырмалар</h2><p className="mt-1 text-sm text-[var(--muted)]">Жақын deadline-дар.</p></div>
-              <Link href="/tasks" className="text-sm font-semibold">Барлығы →</Link>
+        <section className="mt-5 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold tracking-tight text-gray-900">Келесі тапсырмалар</h3>
+                <p className="mt-0.5 text-xs text-gray-500">Жақын deadline-дар.</p>
+              </div>
+              <Link
+                href="/tasks"
+                className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#C25100] transition-all duration-300 ease-in-out hover:bg-[#C25100]/10"
+              >
+                Барлығы
+              </Link>
             </div>
-            <div className="mt-6 space-y-3">
+
+            <div className="mt-4 space-y-2">
               {(tasks ?? []).map((task) => (
-                <Link key={task.id} href={"/tasks/" + task.id} className="block rounded-xl border border-[var(--border)] p-4 hover:bg-zinc-50">
-                  <p className="font-medium">{task.title}</p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">{task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ"} · {task.points} ұпай</p>
+                <Link
+                  key={task.id}
+                  href={"/tasks/" + task.id}
+                  className="flex items-center justify-between gap-4 rounded-xl bg-[#FAFAFA] p-3.5 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-white hover:shadow-soft"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-900">{task.title}</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>
                 </Link>
               ))}
-              {!tasks?.length ? <p className="text-sm text-[var(--muted)]">Белсенді тапсырма жоқ.</p> : null}
+              {!tasks?.length ? <p className="px-1 py-3 text-xs text-gray-500">Белсенді тапсырма жоқ.</p> : null}
             </div>
-          </section>
+          </div>
 
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-            <h2 className="text-xl font-semibold">Бүгін</h2>
-            <div className="mt-6 space-y-3">
-              <Link href="/reports" className="block rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Күнделікті есеп</p><p className="mt-1 text-sm text-[var(--muted)]">Бүгінгі прогресіңізді жіберіңіз.</p></Link>
-              <Link href="/lessons" className="block rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Сабақтар</p><p className="mt-1 text-sm text-[var(--muted)]">Kinescope сабақтарын жалғастырыңыз.</p></Link>
+          <div className="rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4 sm:p-5">
+            <h3 className="text-sm font-semibold tracking-tight text-gray-900">Бүгін</h3>
+            <p className="mt-0.5 text-xs text-gray-500">Ең маңызды екі әрекет.</p>
+
+            <div className="mt-4 space-y-2">
+              <Link
+                href="/reports"
+                className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              >
+                <p className="text-sm font-medium text-gray-900">Күнделікті есеп</p>
+                <p className="mt-1 text-xs text-gray-500">Бүгінгі прогресті жіберіңіз.</p>
+              </Link>
+              <Link
+                href="/lessons"
+                className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5"
+              >
+                <p className="text-sm font-medium text-gray-900">Сабақты жалғастыру</p>
+                <p className="mt-1 text-xs text-gray-500">Kinescope сабақтарын ашыңыз.</p>
+              </Link>
             </div>
-          </section>
-        </div>
-      </section>
-    </main>
+          </div>
+        </section>
+      </main>
+    </AppShell>
   );
 }
