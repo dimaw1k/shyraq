@@ -72,13 +72,14 @@ textarea::placeholder {
 
 .shrq-reveal {
   opacity: 0;
-  transform: translate3d(0, 28px, 0) scale(0.985);
-  filter: blur(2px);
+  transform: translate3d(0, 46px, 0) scale(0.975);
+  filter: blur(4px);
   transition:
-    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 800ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform, filter;
+  backface-visibility: hidden;
 }
 
 .shrq-reveal.is-visible {
@@ -89,6 +90,40 @@ textarea::placeholder {
 
 .shrq-reveal.is-visible .group {
   transition-duration: 500ms;
+}
+
+.shrq-hero-preview {
+  position: relative;
+  animation: shyraqHeroFloat 7s ease-in-out 900ms infinite;
+}
+
+@keyframes shyraqHeroFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+section {
+  scroll-margin-top: 20px;
+}
+
+.shrq-section-soft {
+  position: relative;
+}
+
+.shrq-section-soft::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(20, 20, 20, 0.08), transparent);
 }
 
 .shrq-grid {
@@ -148,11 +183,18 @@ textarea::placeholder {
 
 @media (max-width: 767px) {
   .shrq-reveal {
-    transform: translate3d(0, 18px, 0) scale(0.99);
+    transform: translate3d(0, 28px, 0) scale(0.985);
+  }
+
+  .shrq-hero-preview {
+    animation-duration: 8s;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .shrq-hero-preview {
+    animation: none !important;
+  }
   html {
     scroll-behavior: auto;
   }
