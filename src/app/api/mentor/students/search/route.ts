@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/phone";
 
 export async function POST(request: Request) {
@@ -14,7 +15,11 @@ export async function POST(request: Request) {
   const phone = typeof body?.phone === "string" ? normalizePhone(body.phone) : "";
   if (!phone) return NextResponse.json({ error: "Phone is required" }, { status: 400 });
 
-  const { data, error } = await supabase.rpc("mentor_find_student_by_phone", { target_phone: phone });
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.rpc("mentor_find_student_by_phone", {
+    target_phone: phone,
+    requesting_mentor_id: user.id,
+  });
   if (error) return NextResponse.json({ error: "Student lookup failed" }, { status: 400 });
 
   const student = Array.isArray(data) ? data[0] ?? null : data;
