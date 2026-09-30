@@ -17,7 +17,7 @@ type UserRow = {
 };
 
 const ROLES = ["STUDENT", "MENTOR", "ADMIN"];
-const STATUSES = ["WAITING_FOR_TEAM", "ACTIVE", "INACTIVE", "COMPLETED"];
+const STATUSES = ["REGISTERED", "WAITING_FOR_TEAM", "ACTIVE", "INACTIVE", "COMPLETED"];
 
 export default function AdminUsersPage() {
   const [users,setUsers]=useState<UserRow[]>([]);
@@ -77,7 +77,7 @@ export default function AdminUsersPage() {
                   <p className="mt-1">Оқу: <span className="font-medium text-gray-900">{user.education_type}</span></p>
                 </div>
                 <select value={user.role} onChange={e=>void updateUser(user,{role:e.target.value})} className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#C25100]">{ROLES.map(item=><option key={item}>{item}</option>)}</select>
-                <select value={user.status} onChange={e=>void updateUser(user,{status:e.target.value})} className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#C25100]">{["REGISTERED",...STATUSES].map(item=><option key={item}>{item}</option>)}</select>
+                <select value={user.status} onChange={e=>void updateUser(user,{status:e.target.value})} className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#C25100]">{STATUSES.map(item=><option key={item}>{item}</option>)}</select>
               </div>
             </article>
           ))}
