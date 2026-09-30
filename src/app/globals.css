@@ -70,6 +70,27 @@ textarea::placeholder {
   color: #141414;
 }
 
+.shrq-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.985);
+  filter: blur(2px);
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.shrq-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.shrq-reveal.is-visible .group {
+  transition-duration: 500ms;
+}
+
 .shrq-grid {
   background-image:
     linear-gradient(rgba(20, 20, 20, 0.035) 1px, transparent 1px),
@@ -118,6 +139,17 @@ textarea::placeholder {
 
 .shrq-pulse {
   animation: shyraqPulse 2.8s ease-in-out infinite;
+}
+
+.shrq-reveal.is-visible .shrq-stagger {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  .shrq-reveal {
+    transform: translate3d(0, 18px, 0) scale(0.99);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
