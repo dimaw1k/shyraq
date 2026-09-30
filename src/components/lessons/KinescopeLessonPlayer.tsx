@@ -74,7 +74,7 @@ export function KinescopeLessonPlayer({
     const flush = () => void persist(rangesRef.current);
     window.addEventListener("beforeunload", flush);
     return () => window.removeEventListener("beforeunload", flush);
-  }, [lessonId]);
+  }, [persist]);
 
   const unlocked = percent >= requiredWatchPercent;
 
