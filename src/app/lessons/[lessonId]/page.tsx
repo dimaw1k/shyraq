@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppShell, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
