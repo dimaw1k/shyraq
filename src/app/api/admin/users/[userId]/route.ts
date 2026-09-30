@@ -16,18 +16,18 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
   const body = await request.json().catch(() => null);
 
   if (typeof body?.role === "string" && ROLES.has(body.role)) {
-    const { error } = await supabase.rpc("admin_set_profile_role", {
-      target_user_id: userId,
-      target_role: body.role,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role: body.role })
+      .eq("id", userId);
     if (error) return NextResponse.json({ error: "Role update failed" }, { status: 400 });
   }
 
   if (typeof body?.status === "string" && STATUSES.has(body.status)) {
-    const { error } = await supabase.rpc("admin_set_profile_status", {
-      target_student_id: userId,
-      target_status: body.status,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .update({ status: body.status })
+      .eq("id", userId);
     if (error) return NextResponse.json({ error: "Status update failed" }, { status: 400 });
   }
 
