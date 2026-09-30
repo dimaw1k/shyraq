@@ -9,13 +9,22 @@ export default function AdminScoreRulesPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [message, setMessage] = useState("");
 
-  async function load() {
-    const response = await fetch("/api/admin/score-rules");
-    const data = await response.json();
-    if (response.ok) setRules(data.rules ?? []);
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { void load(); }, []);
+    void fetch("/api/admin/score-rules")
+      .then((response) => response.json())
+      .then((data: { rules?: Rule[] }) => {
+        if (!cancelled) setRules(data.rules ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setMessage("Rules жүктелмеді.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function save(rule: Rule) {
     const response = await fetch("/api/admin/score-rules", {
@@ -25,7 +34,12 @@ export default function AdminScoreRulesPage() {
     });
     const data = await response.json().catch(() => ({}));
     setMessage(response.ok ? "Сақталды." : (data.error ?? "Қате"));
-    if (response.ok) await load();
+
+    if (response.ok) {
+      const reload = await fetch("/api/admin/score-rules");
+      const reloadData = await reload.json().catch(() => ({}));
+      if (reload.ok) setRules(reloadData.rules ?? []);
+    }
   }
 
   return (
