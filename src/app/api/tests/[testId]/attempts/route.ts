@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function POST(request: Request, context: { params: Promise<{ testId: string }> }) {
   const supabase = await createServerSupabaseClient();
@@ -59,5 +60,21 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     }));
 
   if (answerRows.length) await supabase.from("test_answers").insert(answerRows);
+
+  const { data: membership } = await supabase.from("team_members")
+    .select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
+  const { data: rule } = await supabase.from("score_rules")
+    .select("weight,active").eq("code", "TESTS").maybeSingle();
+  if (rule?.active && Number(rule.weight) !== 0) {
+    await recordScoreEvent(supabase, {
+      studentId: user.id,
+      teamId: membership?.team_id ?? null,
+      sourceCode: "TESTS",
+      sourceId: attempt.id,
+      points: Number(rule.weight) * score,
+      metadata: { testId, score, attemptNumber },
+    });
+  }
+
   return NextResponse.json({ attempt });
 }
