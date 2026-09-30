@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function GET(request: Request) {
@@ -53,7 +54,8 @@ export async function POST(request: Request) {
     submitted_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase.from("daily_reports")
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.from("daily_reports")
     .upsert(payload, { onConflict: "student_id,report_date" }).select("*").single();
   if (error) return NextResponse.json({ error: "Report submission failed" }, { status: 400 });
 
