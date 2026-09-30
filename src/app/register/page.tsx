@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 
 export default function RegisterPage(){
   const router=useRouter();
@@ -14,11 +15,47 @@ export default function RegisterPage(){
 
   async function handleSubmit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();setLoading(true);setError("");
+
+    const normalizedPhone=normalizePhone(form.phone);
+    if(!isValidKzPhone(form.phone)){
+      setError("Телефон нөмірін дұрыс енгізіңіз: +7 700 000 00 00");
+      setLoading(false);
+      return;
+    }
+
     const supabase=createBrowserSupabaseClient();
-    const {data,error:signUpError}=await supabase.auth.signUp({email:form.email,password:form.password,options:{data:{role:"STUDENT",phone:form.phone,full_name:form.fullName,age:Number(form.age),education_type:form.educationType,education_place:form.educationPlace}}});
-    if(signUpError){setError(signUpError.message);setLoading(false);return;}
-    if(!data.session){router.push("/login");return;}
-    router.push("/dashboard");router.refresh();
+    const {data,error:signUpError}=await supabase.auth.signUp({
+      email:form.email.trim(),
+      password:form.password,
+      options:{
+        data:{
+          phone:normalizedPhone,
+          full_name:form.fullName.trim(),
+          age:Number(form.age),
+          education_type:form.educationType,
+          education_place:form.educationPlace.trim()
+        }
+      }
+    });
+
+    if(signUpError){
+      const message=signUpError.message.toLowerCase();
+      if(message.includes("database error saving new user")){
+        setError("Тіркелу орындалмады. Енгізілген деректерді, әсіресе телефон нөмірін, тексеріңіз.");
+      }else{
+        setError(signUpError.message);
+      }
+      setLoading(false);
+      return;
+    }
+
+    if(!data.session){
+      router.push("/login");
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return <main className="min-h-screen bg-[#FAFAFA] px-4 py-8 sm:px-6">
