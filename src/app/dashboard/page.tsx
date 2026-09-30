@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { AppShell } from "@/components/app/AppNav";
+import { redirect } from "next/navigation";
+import { AppShell, CompactStat, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -20,28 +20,10 @@ export default async function DashboardPage() {
 
   const [{ data: membership }, { data: tasks }, { data: progress }, { data: reports }, { data: scores }] =
     await Promise.all([
-      supabase
-        .from("team_members")
-        .select("team_id,teams(id,name)")
-        .eq("student_id", user.id)
-        .eq("status", "ACTIVE")
-        .maybeSingle(),
-      supabase
-        .from("tasks")
-        .select("id,title,deadline,points")
-        .eq("active", true)
-        .order("deadline", { ascending: true, nullsFirst: false })
-        .limit(3),
-      supabase
-        .from("video_progress")
-        .select("watched_percent,test_unlocked")
-        .eq("student_id", user.id),
-      supabase
-        .from("daily_reports")
-        .select("report_date,status")
-        .eq("student_id", user.id)
-        .order("report_date", { ascending: false })
-        .limit(7),
+      supabase.from("team_members").select("team_id,teams(id,name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
+      supabase.from("tasks").select("id,title,deadline,points").eq("active", true).order("deadline", { ascending: true, nullsFirst: false }).limit(3),
+      supabase.from("video_progress").select("watched_percent,test_unlocked").eq("student_id", user.id),
+      supabase.from("daily_reports").select("report_date,status").eq("student_id", user.id).order("report_date", { ascending: false }).limit(7),
       supabase.from("score_events").select("points").eq("student_id", user.id),
     ]);
 
@@ -49,22 +31,13 @@ export default async function DashboardPage() {
   const score = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
   const submittedReports = (reports ?? []).filter((report) => report.status === "SUBMITTED").length;
 
-  const stats = [
-    { label: "Ұпай", value: String(score), hint: "Жалпы нәтиже" },
-    { label: "Команда", value: team ? String(team.name) : "Күтілуде", hint: "Белсенді команда" },
-    { label: "Есептер", value: String(submittedReports), hint: "Жіберілген есеп" },
-    { label: "Сабақтар", value: String(progress?.length ?? 0), hint: "Қолжетімді прогресс" },
-  ];
-
   return (
     <AppShell
       role={role}
+      userName={profile?.full_name ?? undefined}
       title="Басты бет"
-      right={
-        <div className="hidden rounded-full bg-[#FAFAFA] px-3 py-1.5 text-xs font-medium text-gray-500 sm:block">
-          {profile?.full_name ?? "Оқушы"}
-        </div>
-      }
+      description="Оқу прогресіңізді бір жерден бақылаңыз."
+      right={<UserChip name={profile?.full_name ?? undefined} role={role} />}
     >
       <main className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
         <section className="mb-5">
@@ -73,38 +46,28 @@ export default async function DashboardPage() {
             Қош келдіңіз, {profile?.full_name ?? "оқушы"}.
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Бүгінгі оқу прогресіңізді бір жерден бақылаңыз.
+            {team ? `Команда: ${String(team.name)}` : "Ментор сізді командаға қосқанын күтіңіз."}
           </p>
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(0,0,0,0.05)]"
-            >
-              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-              <p className="mt-1.5 truncate text-lg font-semibold tracking-tight text-gray-900">{stat.value}</p>
-              <p className="mt-1 text-[11px] text-gray-400">{stat.hint}</p>
-            </div>
-          ))}
+          <CompactStat label="Ұпай" value={String(score)} hint="Жалпы нәтиже" />
+          <CompactStat label="Команда" value={team ? String(team.name) : "Күтілуде"} hint="Белсенді команда" />
+          <CompactStat label="Есептер" value={String(submittedReports)} hint="Жіберілген есеп" />
+          <CompactStat label="Сабақтар" value={String(progress?.length ?? 0)} hint="Қолжетімді прогресс" />
         </section>
 
         <section className="mt-5 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-5">
+          <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold tracking-tight text-gray-900">Келесі тапсырмалар</h3>
                 <p className="mt-0.5 text-xs text-gray-500">Жақын deadline-дар.</p>
               </div>
-              <Link
-                href="/tasks"
-                className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#C25100] transition-all duration-300 ease-in-out hover:bg-[#C25100]/10"
-              >
+              <Link href="/tasks" className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#C25100] transition-all duration-300 ease-in-out hover:bg-[#C25100]/10">
                 Барлығы
               </Link>
             </div>
-
             <div className="mt-4 space-y-2">
               {(tasks ?? []).map((task) => (
                 <Link
@@ -123,29 +86,22 @@ export default async function DashboardPage() {
               ))}
               {!tasks?.length ? <p className="px-1 py-3 text-xs text-gray-500">Белсенді тапсырма жоқ.</p> : null}
             </div>
-          </div>
+          </section>
 
-          <div className="rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4 sm:p-5">
+          <section className="rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4 sm:p-5">
             <h3 className="text-sm font-semibold tracking-tight text-gray-900">Бүгін</h3>
             <p className="mt-0.5 text-xs text-gray-500">Ең маңызды екі әрекет.</p>
-
             <div className="mt-4 space-y-2">
-              <Link
-                href="/reports"
-                className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5"
-              >
+              <Link href="/reports" className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5">
                 <p className="text-sm font-medium text-gray-900">Күнделікті есеп</p>
                 <p className="mt-1 text-xs text-gray-500">Бүгінгі прогресті жіберіңіз.</p>
               </Link>
-              <Link
-                href="/lessons"
-                className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5"
-              >
+              <Link href="/lessons" className="block rounded-xl bg-white p-3.5 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5">
                 <p className="text-sm font-medium text-gray-900">Сабақты жалғастыру</p>
                 <p className="mt-1 text-xs text-gray-500">Kinescope сабақтарын ашыңыз.</p>
               </Link>
             </div>
-          </div>
+          </section>
         </section>
       </main>
     </AppShell>
