@@ -7,8 +7,8 @@
   --muted: #6b7280;
   --card: #ffffff;
   --border: #eeeeee;
-  --accent: #c25100;
-  --accent-soft: #fff4ec;
+  --accent: #ff8000;
+  --accent-soft: #fff2e6;
   --surface: #fafafa;
 }
 
@@ -53,8 +53,23 @@ textarea::placeholder {
 }
 
 ::selection {
-  background: rgba(194, 81, 0, 0.14);
+  background: rgba(255, 128, 0, 0.16);
   color: #111827;
+}
+
+@keyframes shyraqFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.shrq-float {
+  animation: shyraqFloat 6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
