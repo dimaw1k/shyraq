@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geologica, Manrope } from "next/font/google";
 import "./globals.css";
+import { SmoothScroll } from "@/components/ui/SmoothScroll";
 
 const manrope = Manrope({
   subsets: ["cyrillic", "cyrillic-ext", "latin"],
@@ -24,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="kk" className={`${manrope.variable} ${geologica.variable}`}>
-      <body>{children}</body>
+      <body><SmoothScroll>{children}</SmoothScroll></body>
     </html>
   );
 }
