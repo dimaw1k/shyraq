@@ -111,6 +111,7 @@ Apply in order:
 10. 0010_profile_rpc_hardening.sql
 11. 0011_operational_hardening.sql
 12. 0012_server_only_writes.sql
+13. 0013_mentor_progress_visibility.sql
 
 ## Security notes
 
