@@ -41,7 +41,7 @@ Configure:
 
 The production project is `Shyraq` with project ref `dujeagndgxlehxsvwrsq`.
 
-All repository migrations through `0018_performance_hardening` must exist in production. The current production database has migrations `0001` through `0018` applied.
+All repository migrations through `0019_split_admin_policies` must exist in production. The current production database has migrations `0001` through `0019` applied.
 
 For hosted Auth, set the production Site URL in Supabase Dashboard to:
 
