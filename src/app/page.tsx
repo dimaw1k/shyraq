@@ -61,13 +61,15 @@ const sampleQuotes = [
   "«21 күнде бастысы — бір күнді өткізіп алмау. Жүйе соны ұстап тұруға көмектеседі.»",
 ];
 
-function Logo() {
+function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <Link href="/" className="inline-flex items-center gap-2.5">
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ff6f2c] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.2)]">
         S
       </span>
-      <span className="text-[15px] font-extrabold tracking-[-.02em] text-[#172235]">Shyraq</span>
+      <span className={`text-[15px] font-extrabold tracking-[-.02em] ${dark ? "text-white" : "text-[#172235]"}`}>
+        Shyraq
+      </span>
     </Link>
   );
 }
@@ -544,7 +546,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8">
           <div className="grid gap-10 md:grid-cols-[1.35fr_1fr_1fr]">
             <div>
-              <Logo />
+              <Logo dark />
               <p className="mt-4 max-w-sm text-xs leading-6 text-white/40">
                 21 күн бойы оқуды жүйеге келтіріп, күн сайын алға жылжуға арналған оқу марафоны.
               </p>
