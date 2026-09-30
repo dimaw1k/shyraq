@@ -48,6 +48,7 @@ export default async function AdminPage() {
               <a href="/admin/lessons" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Lessons</p><p className="mt-1 text-sm text-[var(--muted)]">Kinescope сабақтарын басқару.</p></a>
               <a href="/admin/tasks" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Tasks</p><p className="mt-1 text-sm text-[var(--muted)]">Марафон тапсырмалары.</p></a>
               <a href="/admin/tests" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Tests</p><p className="mt-1 text-sm text-[var(--muted)]">Сабақ тесттері.</p></a>
+              <a href="/admin/score-rules" className="rounded-xl bg-zinc-50 p-4 hover:bg-zinc-100"><p className="font-medium">Score rules</p><p className="mt-1 text-sm text-[var(--muted)]">Ұпай ережелерін басқару.</p></a>
             </div>
           </section>
           <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
