@@ -7,7 +7,6 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const supabase = createBrowserSupabaseClient();
   const [form, setForm] = useState({
     phone: "",
     email: "",
@@ -29,6 +28,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
+    const supabase = createBrowserSupabaseClient();
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
