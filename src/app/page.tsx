@@ -61,15 +61,49 @@ const sampleQuotes = [
   "«21 күнде бастысы — бір күнді өткізіп алмау. Жүйе соны ұстап тұруға көмектеседі.»",
 ];
 
-function Logo({ dark = false }: { dark?: boolean }) {
+function Logo() {
   return (
-    <Link href="/" className="inline-flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ff6f2c] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.2)]">
-        S
-      </span>
-      <span className={`text-[15px] font-extrabold tracking-[-.02em] ${dark ? "text-white" : "text-[#172235]"}`}>
-        Shyraq
-      </span>
+    <Link href="/" className="inline-flex shrink-0 items-center" aria-label="Shyraq">
+      <svg
+        width="152"
+        height="38"
+        viewBox="0 0 152 38"
+        role="img"
+        aria-label="SHYRAQ"
+        className="block"
+      >
+        <text
+          x="0"
+          y="29"
+          fill="#172235"
+          fontSize="30"
+          fontWeight="800"
+          letterSpacing="-1.2"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          SHYR
+        </text>
+        <path
+          d="M112 28.5c-4.2-5.3-7.6-9.1-7.6-14.2 0-4.6 3.3-8.3 7.6-8.3s7.6 3.7 7.6 8.3c0 5.1-3.4 8.9-7.6 14.2Z"
+          fill="#FF6F2C"
+        />
+        <path
+          d="M112 22.3c-1.9-2.6-3.3-4.8-3.3-7.3 0-1.9 1.4-3.4 3.3-3.4s3.3 1.5 3.3 3.4c0 2.5-1.4 4.7-3.3 7.3Z"
+          fill="#FFF6EF"
+        />
+        <circle cx="112" cy="27.8" r="1.5" fill="#FF6F2C" />
+        <text
+          x="123"
+          y="29"
+          fill="#172235"
+          fontSize="30"
+          fontWeight="800"
+          letterSpacing="-1.2"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          Q
+        </text>
+      </svg>
     </Link>
   );
 }
