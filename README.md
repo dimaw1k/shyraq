@@ -96,6 +96,7 @@ supabase/migrations/0009_profile_privilege_hardening.sql
 supabase/migrations/0010_profile_rpc_hardening.sql
 supabase/migrations/0011_operational_hardening.sql
 supabase/migrations/0012_server_only_writes.sql
+supabase/migrations/0013_mentor_progress_visibility.sql
 ```
 
 ## Important product rules
