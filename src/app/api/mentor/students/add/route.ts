@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -13,7 +14,11 @@ export async function POST(request: Request) {
   const studentId = typeof body?.studentId === "string" ? body.studentId : "";
   if (!studentId) return NextResponse.json({ error: "studentId is required" }, { status: 400 });
 
-  const { data, error } = await supabase.rpc("mentor_add_student_to_team", { target_student_id: studentId });
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.rpc("mentor_add_student_to_team", {
+    target_student_id: studentId,
+    requesting_mentor_id: user.id,
+  });
   if (error) {
     const code = error.message.includes("student_already_assigned") ? 409 : 400;
     return NextResponse.json({ error: error.message }, { status: code });
