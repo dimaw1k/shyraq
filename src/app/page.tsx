@@ -64,9 +64,9 @@ function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <Link href="/" aria-label="Shyraq" className="shrink-0">
       <svg
-        width="122"
+        width="116"
         height="34"
-        viewBox="0 0 122 34"
+        viewBox="0 0 116 34"
         role="img"
         aria-label="SHYRAQ"
         className="block h-[30px] w-auto sm:h-[34px]"
@@ -82,7 +82,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
         >
           SHYR
         </text>
-        <g transform="translate(-5 0)">
+        <g transform="translate(-12 0)">
           <path
             d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
             fill="#FF6F2C"
@@ -94,7 +94,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
           <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
         </g>
         <text
-          x="99"
+          x="94"
           y="26"
           fill={dark ? "#ffffff" : "#172235"}
           fontSize="27"
