@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { encryptGoogleToken } from "@/lib/google-token";
@@ -87,5 +88,5 @@ export async function GET(request: Request) {
 function cryptoSafeEqual(a: string, b: string) {
   const left = Buffer.from(a);
   const right = Buffer.from(b);
-  return left.length === right.length && require("node:crypto").timingSafeEqual(left, right);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
