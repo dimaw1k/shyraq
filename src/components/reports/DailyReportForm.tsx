@@ -3,7 +3,13 @@
 import { FormEvent, useMemo, useState } from "react";
 
 export function DailyReportForm() {
-  const today=useMemo(()=>new Date().toISOString().slice(0,10),[]);
+  const today=useMemo(()=>{
+    const date=new Date();
+    const year=date.getFullYear();
+    const month=String(date.getMonth()+1).padStart(2,"0");
+    const day=String(date.getDate()).padStart(2,"0");
+    return year+"-"+month+"-"+day;
+  },[]);
   const [form,setForm]=useState({reportDate:today,studyMinutes:"",completedTaskCount:"",reflection:"",difficulties:"",nextDayGoal:""});
   const [message,setMessage]=useState(""); const [loading,setLoading]=useState(false);
   const update=(key:keyof typeof form,value:string)=>setForm(current=>({...current,[key]:value}));
