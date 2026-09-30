@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
@@ -170,10 +171,10 @@ export function AppShell({
   role,
   userName,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   title: string;
   description?: string;
-  right?: React.ReactNode;
+  right?: ReactNode;
   role: string;
   userName?: string;
 }) {
