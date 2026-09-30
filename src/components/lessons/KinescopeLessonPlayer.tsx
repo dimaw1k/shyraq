@@ -2,14 +2,31 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import type { TimeRange } from "@/lib/video/coverage";
 import { mergeTimeRanges, watchedPercent } from "@/lib/video/coverage";
 
 const KinescopePlayer=dynamic(()=>import("@kinescope/react-kinescope-player"),{ssr:false});
 
-type Props={lessonId:string;videoId:string;durationSeconds:number;requiredWatchPercent:number;initialRanges?:TimeRange[]};
+type Props={
+  lessonId:string;
+  videoId:string;
+  durationSeconds:number;
+  requiredWatchPercent:number;
+  initialRanges?:TimeRange[];
+  testHref?:string;
+  initialTestUnlocked?:boolean;
+};
 
-export function KinescopeLessonPlayer({lessonId,videoId,durationSeconds,requiredWatchPercent,initialRanges=[]}:Props){
+export function KinescopeLessonPlayer({
+  lessonId,
+  videoId,
+  durationSeconds,
+  requiredWatchPercent,
+  initialRanges=[],
+  testHref,
+  initialTestUnlocked=false,
+}:Props){
   const [ranges,setRanges]=useState<TimeRange[]>(initialRanges);
   const [percent,setPercent]=useState(()=>watchedPercent(initialRanges,durationSeconds));
   const [saving,setSaving]=useState(false);
@@ -36,7 +53,7 @@ export function KinescopeLessonPlayer({lessonId,videoId,durationSeconds,required
   useEffect(()=>{const timer=window.setInterval(()=>{void persist(rangesRef.current);},15000);return()=>window.clearInterval(timer);},[persist]);
   useEffect(()=>{const flush=()=>void persist(rangesRef.current);window.addEventListener("beforeunload",flush);return()=>window.removeEventListener("beforeunload",flush);},[persist]);
 
-  const unlocked=percent>=requiredWatchPercent;
+  const unlocked=initialTestUnlocked || percent>=requiredWatchPercent;
 
   return <div className="space-y-3">
     <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
@@ -54,6 +71,14 @@ export function KinescopeLessonPlayer({lessonId,videoId,durationSeconds,required
         <p className="text-[10px] text-gray-400">{unlocked?"Тест ашылды.":"Тестті ашу үшін кемінде "+requiredWatchPercent+"% көру керек."}</p>
         {saving?<span className="text-[10px] text-gray-400">Сақталуда...</span>:null}
       </div>
+      {unlocked && testHref ? (
+        <Link
+          href={testHref}
+          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
+        >
+          Тестке өту
+        </Link>
+      ) : null}
     </div>
   </div>;
 }
