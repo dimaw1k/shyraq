@@ -31,15 +31,16 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     .select("id,test_unlocked,watched_ranges").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
 
   const body = await request.json().catch(() => null);
-  const incoming = Array.isArray(body?.ranges)
-    ? body.ranges.filter((r: unknown): r is TimeRange => {
-        if (!r || typeof r !== "object") return false;
-        const value = r as Record<string, unknown>;
-        return Number.isFinite(value.start) && Number.isFinite(value.end);
-      }).map((range) => ({
-        start: Math.max(0, Math.min(lesson.duration_seconds, range.start)),
-        end: Math.max(0, Math.min(lesson.duration_seconds, range.end)),
-      })).filter((range) => range.end > range.start)
+  const incoming: TimeRange[] = Array.isArray(body?.ranges)
+    ? body.ranges
+        .filter((value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
+        .filter((value) => typeof value.start === "number" && typeof value.end === "number")
+        .filter((value) => Number.isFinite(value.start) && Number.isFinite(value.end))
+        .map((value) => ({
+          start: Math.max(0, Math.min(lesson.duration_seconds, value.start as number)),
+          end: Math.max(0, Math.min(lesson.duration_seconds, value.end as number)),
+        }))
+        .filter((range: TimeRange) => range.end > range.start)
     : [];
 
   if (!incoming.length && !existing) {
