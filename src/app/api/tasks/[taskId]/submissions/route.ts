@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function POST(request: Request, context: { params: Promise<{ taskId: string }> }) {
@@ -61,8 +62,9 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
 
   const nextStatus = finalize ? "SUBMITTED" : "DRAFT";
   const submittedAt = finalize ? new Date().toISOString() : (existing?.status === "SUBMITTED" ? new Date().toISOString() : null);
+  const admin = createAdminSupabaseClient();
 
-  const { data, error } = await supabase.from("task_submissions").upsert({
+  const { data, error } = await admin.from("task_submissions").upsert({
     task_id: taskId,
     student_id: user.id,
     status: nextStatus,
