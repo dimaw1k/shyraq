@@ -98,6 +98,11 @@ supabase/migrations/0011_operational_hardening.sql
 supabase/migrations/0012_server_only_writes.sql
 supabase/migrations/0013_mentor_progress_visibility.sql
 supabase/migrations/0014_lock_score_rpc.sql
+supabase/migrations/0015_security_hardening.sql
+supabase/migrations/0016_private_rls_helpers.sql
+supabase/migrations/0017_server_only_mentor_rpcs.sql
+supabase/migrations/0018_performance_hardening.sql
+supabase/migrations/0019_split_admin_policies.sql
 ```
 
 ## Important product rules
@@ -124,6 +129,16 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 - `docs/ARCHITECTURE.md` — architecture boundaries.
 - `docs/DECISIONS.md` — important implementation decisions.
 - `docs/API.md` — API routes, environment and integration notes.
+
+## Production deployment
+
+See `docs/DEPLOYMENT.md` for the Vercel Production environment variables and final Supabase/Auth/Google setup checks.
+
+```text
+https://shyraq-nu.vercel.app/api/health
+```
+
+The health endpoint intentionally returns HTTP 503 until required production environment variables are present and the deployed server can reach Supabase.
 
 ## Verification
 
