@@ -241,6 +241,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[#172235]">
       <ScrollProgress />
+      <StickyNav />
 
       {/* HERO */}
       <section id="top" className="relative isolate min-h-[calc(100svh-1px)] overflow-hidden bg-gradient-to-br from-[#fff0e8] via-[#ffd7ca] to-[#ff8c5f]">
@@ -249,8 +250,6 @@ export default function HomePage() {
         <div className="absolute right-[-80px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#ff6f2c]/18 blur-3xl" />
 
         <div className="relative mx-auto flex min-h-[calc(100svh-1px)] max-w-7xl flex-col px-5 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
-          <StickyNav />
-
           <div className="grid flex-1 items-center gap-10 pb-2 pt-10 lg:grid-cols-[.88fr_1.12fr] lg:pt-7">
             <Reveal className="relative z-10 max-w-2xl" delay={70}>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-[#6f625a] shadow-sm backdrop-blur">
