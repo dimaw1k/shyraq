@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppNav } from "@/components/app/AppNav";
+import { AppShell, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function TasksPage() {
@@ -8,30 +8,49 @@ export default async function TasksPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  const { data: tasks } = await supabase.from("tasks")
+  const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
+  const { data: tasks } = await supabase
+    .from("tasks")
     .select("id,title,description,deadline,points")
-    .eq("active", true).order("deadline", { ascending: true, nullsFirst: false });
+    .eq("active", true)
+    .order("deadline", { ascending: true, nullsFirst: false });
+
+  const role = profile?.role ?? "STUDENT";
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
-      <AppNav role={profile?.role ?? "STUDENT"} />
-      <section className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="text-3xl font-semibold">Тапсырмалар</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Өзіңізге қолжетімді тапсырмалар.</p>
-        <div className="mt-8 space-y-4">
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырмалар" description="Белсенді тапсырмалар және deadline-дар." right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+      <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
+        <div className="mb-5 rounded-2xl bg-[#FAFAFA] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C25100]">TASKS</p>
+          <p className="mt-1 text-sm text-gray-500">Тапсырманы ашып, жауап пен қажет дәлел файлын жіберіңіз.</p>
+        </div>
+
+        <div className="space-y-2.5">
           {(tasks ?? []).map((task) => (
-            <Link key={task.id} href={"/tasks/" + task.id} className="block rounded-2xl border border-[var(--border)] bg-white p-6 hover:bg-zinc-50">
+            <Link
+              key={task.id}
+              href={"/tasks/" + task.id}
+              className="block rounded-2xl border border-gray-100 bg-white p-4 shadow-soft transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(0,0,0,0.05)] sm:p-5"
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div><h2 className="text-xl font-semibold">{task.title}</h2><p className="mt-2 text-sm leading-6 text-[var(--muted)]">{task.description}</p></div>
-                <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-semibold text-[var(--accent)]">{task.points} ұпай</span>
+                <div className="min-w-0">
+                  <h2 className="truncate text-sm font-semibold tracking-tight text-gray-900 sm:text-base">{task.title}</h2>
+                  <p className="mt-1 text-sm leading-6 text-gray-500">{task.description}</p>
+                </div>
+                <span className="shrink-0 rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>
               </div>
-              <p className="mt-4 text-xs text-[var(--muted)]">{task.deadline ? "Deadline: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline белгіленбеген"}</p>
+              <p className="mt-4 text-xs text-gray-400">
+                {task.deadline ? "Deadline: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline белгіленбеген"}
+              </p>
             </Link>
           ))}
-          {!tasks?.length ? <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white p-10 text-center text-sm text-[var(--muted)]">Қазір тапсырма жоқ.</div> : null}
+          {!tasks?.length ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-[#FAFAFA] p-10 text-center text-sm text-gray-500">
+              Қазір тапсырма жоқ.
+            </div>
+          ) : null}
         </div>
-      </section>
-    </main>
+      </main>
+    </AppShell>
   );
 }
