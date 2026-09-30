@@ -4,12 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
   BookOpen,
   ClipboardList,
   FileText,
   LayoutDashboard,
-  Medal,
   Menu,
   Settings,
   ShieldCheck,
