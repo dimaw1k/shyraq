@@ -36,6 +36,11 @@
 - POST /api/admin/tests — create test linked to lesson.
 - POST /api/admin/tests/questions — create test question and options.
 
+### Scheduled Meet sync
+
+- `GET /api/cron/meet-sync` — imports the last 24 hours of active team Meet attendance using the server cron secret.
+- `CRON_SECRET` — required for scheduled sync requests.
+
 ### Google OAuth
 - GET /api/integrations/google/start — start mentor/admin Google authorization.
 - GET /api/integrations/google/callback — OAuth callback.
