@@ -60,49 +60,29 @@ const sampleQuotes = [
   "«21 күнде бастысы — бір күнді өткізіп алмау. Жүйе соны ұстап тұруға көмектеседі.»",
 ];
 
-function Logo() {
+function Logo({ dark = false }: { dark?: boolean }) {
   return (
-    <Link href="/" className="inline-flex shrink-0 items-center" aria-label="Shyraq">
+    <Link
+      href="/"
+      className="group flex items-center transition-transform duration-300 hover:scale-[1.02]"
+    >
+      <span className={`text-[28px] font-black tracking-tight ${dark ? "text-white" : "text-[#151b29]"}`}>
+        SHYR
+      </span>
+
       <svg
-        width="152"
-        height="38"
-        viewBox="0 0 152 38"
-        role="img"
-        aria-label="SHYRAQ"
-        className="block"
+        className="mx-[2px] h-[28px] w-auto -translate-y-[1px] text-[#ff7a00]"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
       >
-        <text
-          x="0"
-          y="29"
-          fill="#172235"
-          fontSize="30"
-          fontWeight="800"
-          letterSpacing="-1.2"
-          fontFamily="Arial, Helvetica, sans-serif"
-        >
-          SHYR
-        </text>
-        <path
-          d="M112 28.5c-4.2-5.3-7.6-9.1-7.6-14.2 0-4.6 3.3-8.3 7.6-8.3s7.6 3.7 7.6 8.3c0 5.1-3.4 8.9-7.6 14.2Z"
-          fill="#FF6F2C"
-        />
-        <path
-          d="M112 22.3c-1.9-2.6-3.3-4.8-3.3-7.3 0-1.9 1.4-3.4 3.3-3.4s3.3 1.5 3.3 3.4c0 2.5-1.4 4.7-3.3 7.3Z"
-          fill="#FFF6EF"
-        />
-        <circle cx="112" cy="27.8" r="1.5" fill="#FF6F2C" />
-        <text
-          x="123"
-          y="29"
-          fill="#172235"
-          fontSize="30"
-          fontWeight="800"
-          letterSpacing="-1.2"
-          fontFamily="Arial, Helvetica, sans-serif"
-        >
-          Q
-        </text>
+        <path d="M12 1.5C7.58 1.5 4 5.08 4 9.5c0 5.5 8 13 8 13s8-7.5 8-13c0-4.42-3.58-8-8-8zm0 11.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 6 12 6s3.5 1.57 3.5 3.5S13.93 13 12 13z" />
       </svg>
+
+      <span className={`text-[28px] font-black tracking-tight ${dark ? "text-white" : "text-[#151b29]"}`}>
+        Q
+      </span>
     </Link>
   );
 }
