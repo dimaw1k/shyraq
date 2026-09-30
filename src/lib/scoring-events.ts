@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export async function recordScoreEvent(
   supabase: SupabaseClient,
@@ -12,14 +13,31 @@ export async function recordScoreEvent(
   },
 ) {
   if (!Number.isFinite(input.points) || input.points === 0) return null;
-  const { data, error } = await supabase.rpc("record_score_event", {
-    target_student: input.studentId,
-    target_team: input.teamId,
-    target_source_code: input.sourceCode,
-    target_source_id: input.sourceId,
-    target_points: input.points,
-    target_metadata: input.metadata ?? {},
-  });
-  if (error) throw new Error("Unable to record score event");
-  return data as string | null;
+  if (input.points < 0) throw new Error("Negative score event is not allowed");
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== input.studentId) {
+    throw new Error("Score event actor mismatch");
+  }
+
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
+    .from("score_events")
+    .insert({
+      student_id: input.studentId,
+      team_id: input.teamId,
+      source_code: input.sourceCode,
+      source_id: input.sourceId,
+      points: input.points,
+      metadata: input.metadata ?? {},
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === "23505") return null;
+    throw new Error("Unable to record score event");
+  }
+
+  return (data?.id ?? null) as string | null;
 }
