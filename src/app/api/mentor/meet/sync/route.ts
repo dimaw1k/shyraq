@@ -11,10 +11,10 @@ import {
 
 function normalizeName(value: string) {
   return value
+    .normalize("NFKC")
     .toLocaleLowerCase("kk-KZ")
-    .replace(/[^p{L}p{N}]+/gu, " ")
-    .trim()
-    .replace(/s+/g, " ");
+    .replace(/[\\s_]+/gu, " ")
+    .trim();
 }
 
 function conferenceDurationSeconds(start?: string, end?: string) {
@@ -93,7 +93,11 @@ export async function POST(request: Request) {
   }
 
   const { data: mappings } = await admin.from("meet_participant_mappings").select("google_user_id,student_id");
-  const mappingMap = new Map((mappings ?? []).map((mapping) => [mapping.google_user_id, mapping.student_id]));
+  const mappingMap = new Map(
+    (mappings ?? [])
+      .filter((mapping) => students.some((student) => student.id === mapping.student_id))
+      .map((mapping) => [mapping.google_user_id, mapping.student_id]),
+  );
 
   let importedConferences = 0;
   let importedParticipants = 0;
