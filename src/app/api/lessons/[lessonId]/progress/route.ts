@@ -31,17 +31,23 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     .select("id,test_unlocked,watched_ranges").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
 
   const body = await request.json().catch(() => null);
-  const incoming: TimeRange[] = Array.isArray(body?.ranges)
-    ? body.ranges
-        .filter((value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
-        .filter((value) => typeof value.start === "number" && typeof value.end === "number")
-        .filter((value) => Number.isFinite(value.start) && Number.isFinite(value.end))
-        .map((value) => ({
-          start: Math.max(0, Math.min(lesson.duration_seconds, value.start as number)),
-          end: Math.max(0, Math.min(lesson.duration_seconds, value.end as number)),
-        }))
-        .filter((range: TimeRange) => range.end > range.start)
-    : [];
+  const rawRanges: unknown[] = Array.isArray(body?.ranges) ? body.ranges : [];
+  const incoming: TimeRange[] = [];
+
+  for (const value of rawRanges) {
+    if (!value || typeof value !== "object") continue;
+
+    const raw = value as Record<string, unknown>;
+    if (typeof raw.start !== "number" || typeof raw.end !== "number") continue;
+    if (!Number.isFinite(raw.start) || !Number.isFinite(raw.end)) continue;
+
+    const range = {
+      start: Math.max(0, Math.min(lesson.duration_seconds, raw.start)),
+      end: Math.max(0, Math.min(lesson.duration_seconds, raw.end)),
+    };
+
+    if (range.end > range.start) incoming.push(range);
+  }
 
   if (!incoming.length && !existing) {
     return NextResponse.json({ error: "No valid watch ranges supplied" }, { status: 400 });
