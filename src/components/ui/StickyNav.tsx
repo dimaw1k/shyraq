@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 const items = [
@@ -12,36 +12,19 @@ const items = [
 ];
 
 export function StickyNav() {
-  const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState("top");
   const [scrolled, setScrolled] = useState(false);
-  const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const updateScrollState = () => setScrolled(window.scrollY > 20);
-    updateScrollState();
-
-    window.addEventListener("scroll", updateScrollState, { passive: true });
-    return () => window.removeEventListener("scroll", updateScrollState);
-  }, []);
-
-  useEffect(() => {
-    const sections = items
-      .map((item) => document.getElementById(item.target))
-      .filter((element): element is HTMLElement => Boolean(element));
-
     const updateActive = () => {
       const offset = 140;
       let current = "top";
 
-      for (const section of sections) {
-        if (section.getBoundingClientRect().top <= offset) {
-          current = section.id;
+      for (const item of items) {
+        const section = document.getElementById(item.target);
+        if (section && section.getBoundingClientRect().top <= offset) {
+          current = item.target;
         }
       }
 
@@ -49,25 +32,24 @@ export function StickyNav() {
       setActive(current);
     };
 
+    updateScrollState();
     updateActive();
+
+    window.addEventListener("scroll", updateScrollState, { passive: true });
     window.addEventListener("scroll", updateActive, { passive: true });
     window.addEventListener("resize", updateActive);
 
     return () => {
+      window.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("scroll", updateActive);
       window.removeEventListener("resize", updateActive);
     };
   }, []);
 
-  useEffect(() => {
-    const node = itemRefs.current[active];
-    if (!node) return;
-
-    setIndicator({
-      left: node.offsetLeft,
-      width: node.offsetWidth,
-    });
-  }, [active]);
+  const activeIndex = Math.max(
+    0,
+    items.findIndex((item) => item.target === active),
+  );
 
   const scrollTo = (target: string) => {
     if (target === "top") {
@@ -80,8 +62,6 @@ export function StickyNav() {
       block: "start",
     });
   };
-
-  if (!mounted) return null;
 
   return (
     <header className="fixed inset-x-0 top-0 z-[9999] isolate px-3 pt-3 sm:px-5">
@@ -114,15 +94,19 @@ export function StickyNav() {
               >
                 SHYR
               </text>
-              <path
-                d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
-                fill="#FF6F2C"
-              />
-              <path
-                d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
-                fill="#FFF7F1"
-              />
-              <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
+
+              <g transform="translate(-3 0)">
+                <path
+                  d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
+                  fill="#FF6F2C"
+                />
+                <path
+                  d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
+                  fill="#FFF7F1"
+                />
+                <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
+              </g>
+
               <text
                 x="104"
                 y="26"
@@ -140,24 +124,26 @@ export function StickyNav() {
           <nav className="relative hidden overflow-hidden rounded-full bg-[#172235] p-1 sm:flex">
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-1 top-1 rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,.14)] transition-[left,width] duration-500 ease-[cubic-bezier(.22,1,.36,1)]"
-              style={{ left: indicator.left, width: indicator.width }}
+              className="pointer-events-none absolute bottom-1 left-1 top-1 rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,.14)] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]"
+              style={{
+                width: "calc((100% - 8px) / 4)",
+                transform: `translateX(calc(${activeIndex} * 100%))`,
+              }}
             />
 
             {items.map((item) => (
               <a
                 key={item.target}
-                ref={(node) => {
-                  itemRefs.current[item.target] = node;
-                }}
                 href={item.href}
                 onClick={(event) => {
                   event.preventDefault();
                   scrollTo(item.target);
                 }}
                 className={[
-                  "relative z-10 shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[11px] font-semibold transition-colors duration-300 sm:px-4 sm:text-xs",
-                  active === item.target ? "text-[#172235]" : "text-white/72 hover:text-white",
+                  "relative z-10 flex min-w-[92px] flex-1 items-center justify-center rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-xs",
+                  active === item.target
+                    ? "text-[#172235]"
+                    : "text-white/72 hover:text-white",
                 ].join(" ")}
               >
                 {item.label}
