@@ -275,18 +275,20 @@ export default function HomePage() {
           <div className="space-y-3">
             {steps.map((step, index) => (
               <Reveal key={step.n} delay={index * 90}>
-              <div className="group rounded-[24px] border border-black/7 bg-[#f7f5f0] p-5 transition-all duration-300 hover:bg-white hover:shadow-[0_18px_45px_rgba(20,20,20,.07)] sm:p-6">
-                <div className="flex items-start gap-4">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#141414] text-[10px] font-extrabold text-white">
-                    {step.n}
+              <Reveal key={step.n} delay={index * 90}>
+                <div className="group rounded-[24px] border border-black/7 bg-[#f7f5f0] p-5 transition-all duration-300 hover:bg-white hover:shadow-[0_18px_45px_rgba(20,20,20,.07)] sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#141414] text-[10px] font-extrabold text-white">
+                      {step.n}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold">{step.title}</h3>
+                      <p className="mt-1.5 text-sm leading-6 text-[#747067]">{step.text}</p>
+                    </div>
+                    <ChevronRight size={17} className="ml-auto mt-1 shrink-0 text-[#b6b0a8] transition-transform group-hover:translate-x-1 group-hover:text-[#ff7a00]" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold">{step.title}</h3>
-                    <p className="mt-1.5 text-sm leading-6 text-[#747067]">{step.text}</p>
-                  </div>
-                  <ChevronRight size={17} className="ml-auto mt-1 shrink-0 text-[#b6b0a8] transition-transform group-hover:translate-x-1 group-hover:text-[#ff7a00]" />
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -319,6 +321,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
+            </div>
             </Reveal>
 
             <Reveal delay={120}>
