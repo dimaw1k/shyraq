@@ -1021,3 +1021,53 @@ Next engineering action:
 **Initialize the codebase and commit the foundation before implementing product modules.**
 
 This document is the source of truth for the v1 implementation scope. Scope changes should be recorded explicitly rather than silently adding features during development.
+
+
+## 53. Implementation Status — 2026-09-30
+
+The repository is no longer empty. The initial foundation is implemented.
+
+### Completed foundation
+
+- Next.js / TypeScript / Tailwind project skeleton.
+- Supabase browser/server clients.
+- Supabase Auth registration and login skeleton.
+- Secure student-first registration trigger.
+- Student waiting-for-team lifecycle.
+- Phone normalization for Kazakhstan numbers.
+- Mentor phone-based student lookup API.
+- Mentor student-to-team assignment API and database function.
+- Teams, students, mentors and core role RLS.
+- Tasks and task submissions.
+- Private file upload path through Supabase Storage.
+- Daily reports.
+- Kinescope lesson entity and React player integration.
+- Unique video watch coverage calculation.
+- 85% test unlock gate.
+- Lesson tests and server-side scoring.
+- Idempotent score events.
+- Student, mentor and admin overview APIs.
+- Role-scoped ranking API.
+- Google OAuth connection flow.
+- Encrypted Google refresh-token storage.
+- Team Google Meet space connection.
+- Google Meet conference/participant/session sync.
+- Raw participant/session persistence.
+- Manual Google participant-to-student mapping.
+- Attendance duration and attendance percentage calculation.
+- Admin APIs for teams, tasks, lessons and tests.
+- GitHub Actions quality pipeline.
+- API/setup documentation.
+
+### Not yet production-complete
+
+- Final student/mentor/admin UI defined by the product owner.
+- Production Google Cloud OAuth configuration.
+- Production Kinescope credentials and content import workflow.
+- Full attendance scheduling/background sync.
+- Final score weights and exact streak rules.
+- Complete admin mentor management UI.
+- Full automated end-to-end test suite.
+- Local build verification in this execution environment; GitHub Actions is configured to run typecheck, lint and build on push/PR.
+
+This section is an implementation checkpoint and does not replace the original product scope.
