@@ -11,89 +11,63 @@ import {
   ChevronRight,
   Clock3,
   Flame,
-  Layers3,
+  Play,
   Sparkles,
   Target,
   Trophy,
-  Users,
 } from "lucide-react";
 
-const stats = [
-  ["1", "платформа", "Сабақ, тапсырма және прогресс бір жерде"],
-  ["3", "рөл", "Оқушы, ментор және админ"],
-  ["Күн сайын", "қолжетімді", "Оқу процесін өзіңе ыңғайлы уақытта жалғастыр"],
-  ["85%", "оқу шегі", "Видеоның қажетті бөлігін көрсең, тест ашылады"],
-];
-
-const learningCards = [
-  {
-    icon: BookOpen,
-    tag: "САБАҚ",
-    title: "Сабақты көр — прогресті жоғалтпа",
-    text: "Қай жерге дейін көргенің сақталады. Қайта кіргенде сол жерден жалғастырасың.",
-    className: "from-[#fff0e3] to-[#ffd5bb]",
-  },
+const benefits = [
   {
     icon: Target,
-    tag: "ТАПСЫРМА",
-    title: "Бүгін не істеу керек екенін біл",
-    text: "Тапсырмалар мен deadline бір экранда тұрады. Ең маңызды жұмысты бірінші көресің.",
-    className: "from-[#eeeaff] to-[#dce7ff]",
+    eyebrow: "01",
+    title: "Күн сайын не істеу керегін білесің",
+    text: "Бүгінгі сабақ, тапсырма және күндік жоспар бір экранда тұрады.",
+    tone: "bg-[#fff2e8]",
+  },
+  {
+    icon: BookOpen,
+    eyebrow: "02",
+    title: "Сабақ пен тапсырма қатар жүреді",
+    text: "Видео көресің, прогресті жинайсың, қажет кезде тестке бірден өтесің.",
+    tone: "bg-[#eef0ff]",
   },
   {
     icon: BarChart3,
-    tag: "ПРОГРЕСС",
-    title: "Нәтижеңді өз көзіңмен көр",
-    text: "Ұпай, сабақтағы прогресс, есептер және қатысу көрсеткіші бір жерге жиналады.",
-    className: "from-[#e3faf2] to-[#d7f1f4]",
+    eyebrow: "03",
+    title: "Өз нәтижеңді көресің",
+    text: "Прогресс, ұпай, streak және рейтинг оқу қарқыныңды түсінуге көмектеседі.",
+    tone: "bg-[#e9faf4]",
+  },
+  {
+    icon: Trophy,
+    eyebrow: "04",
+    title: "21 күнді бос өткізбей өтесің",
+    text: "Күн сайын кішкентай қадам жасап, марафон соңына дейін ритмді ұстайсың.",
+    tone: "bg-[#fff7dc]",
   },
 ];
 
-const roleCards = [
-  {
-    icon: Target,
-    title: "Оқушы үшін",
-    text: "Күннің жоспары, сабақтары, тапсырмалары және нәтижесі бір жерден көрінеді.",
-    points: ["Бүгінгі міндет", "Сабақ прогресі", "Ұпай мен рейтинг"],
-  },
-  {
-    icon: Users,
-    title: "Ментор үшін",
-    text: "Командадағы әр оқушының белсенділігін, тапсырмаларын және сабаққа қатысуын бақылауға болады.",
-    points: ["Команда көрінісі", "Attendance", "Оқушы прогресі"],
-  },
-  {
-    icon: Layers3,
-    title: "Админ үшін",
-    text: "Сабақ, тест, команда және ұпай жүйесін бір жерден басқаруға болады.",
-    points: ["Контент", "Командалар", "Scoring"],
-  },
+const days = [
+  ["01", "Бастау", "Мақсат қою, профильді толтыру және алғашқы тапсырманы алу."],
+  ["07", "Ритм", "Күнделікті оқу дағдысы қалыптасып, тапсырмаларды уақытында орындау жеңілдейді."],
+  ["14", "Қарқын", "Прогрессіңді қарап, әлсіз жерлерге қайта көңіл бөлесің."],
+  ["21", "Нәтиже", "Марафон қорытындысын көріп, келесі оқу кезеңіне нақты жоспар құрамыз."],
 ];
 
-const demoQuotes = [
-  {
-    text: "«Қай тапсырманы қашан орындау керегін іздеп отырмайсың. Бәрі бір жерде тұрғаны ыңғайлы.»",
-    role: "Үлгі пікір · 11-сынып оқушысы",
-  },
-  {
-    text: "«Ментор ретінде кім белсенді, кімнің тапсырмасы қалып қойғанын бір экраннан көру әлдеқайда түсінікті.»",
-    role: "Үлгі пікір · ментор",
-  },
-  {
-    text: "«Маған ең ұнағаны — күн сайын не істеу керегінің анық болуы. Жоспарды ойлап әуре болмайсың.»",
-    role: "Үлгі пікір · студент",
-  },
+const sampleQuotes = [
+  "«Күнде қай жерден бастау керегін ойламайсың. Бүгінгі міндет дайын тұрады.»",
+  "«Прогресті көріп отырған кезде оқу да қызығырақ болып кетеді.»",
+  "«21 күнде бастысы — бір күнді өткізіп алмау. Жүйе соны ұстап тұруға көмектеседі.»",
 ];
 
-function Logo({ dark = false }: { dark?: boolean }) {
+function Logo() {
   return (
     <Link href="/" className="inline-flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ff6f2c] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.18)]">
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#ff6f2c] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.2)]">
         S
       </span>
-      <span className={`text-[15px] font-extrabold tracking-[-.02em] ${dark ? "text-white" : "text-[#172235]"}`}>
-        Shyraq
-      </span>
+      <span className="text-[15px] font-extrabold tracking-[-.02em] text-[#172235]">Shyraq</span>
     </Link>
   );
 }
@@ -101,38 +75,33 @@ function Logo({ dark = false }: { dark?: boolean }) {
 function DashboardMockup() {
   return (
     <div className="relative mx-auto w-full max-w-[940px]">
-      <div className="absolute -inset-10 rounded-[55px] bg-[radial-gradient(circle_at_50%_0%,rgba(255,111,44,.32),transparent_60%)] blur-2xl" />
-      <div className="relative rounded-[34px] border-[10px] border-[#15233a] bg-[#e8e3db] p-2 shadow-[0_45px_110px_rgba(11,22,38,.22)] sm:border-[12px] sm:p-3">
-        <div className="rounded-[24px] bg-white p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#fff0e2] text-[#ff6f2c]">
-                <Sparkles size={17} />
-              </div>
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9c948b]">SHYRAQ · ОҚУШЫ</p>
-                <p className="mt-0.5 text-sm font-extrabold text-[#172235]">Бүгінгі оқу</p>
-              </div>
+      <div className="absolute -inset-10 rounded-[56px] bg-[radial-gradient(circle_at_50%_20%,rgba(255,111,44,.35),transparent_62%)] blur-2xl" />
+
+      <div className="relative rounded-[34px] border-[10px] border-[#17253a] bg-[#e7e1d8] p-2 shadow-[0_45px_120px_rgba(48,23,12,.22)] sm:border-[12px] sm:p-3">
+        <div className="rounded-[23px] bg-white p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-[#a39a91]">SHYRAQ · ОҚУШЫ</p>
+              <p className="mt-1 text-sm font-extrabold text-[#172235]">Бүгінгі оқу</p>
             </div>
-            <div className="hidden items-center gap-2 rounded-full border border-[#e9e5df] px-3 py-1.5 text-[10px] font-semibold text-[#81786f] sm:flex">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ece7df] px-3 py-1.5 text-[10px] font-bold text-[#7e756d]">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Белсенді
-            </div>
+            </span>
           </div>
 
           <div className="mt-5 grid gap-3 lg:grid-cols-[1.35fr_.65fr]">
-            <div className="rounded-[22px] bg-gradient-to-br from-[#ff8b16] via-[#ff6f2c] to-[#ec5c00] p-5 text-white">
+            <div className="rounded-[22px] bg-gradient-to-br from-[#ff8b16] via-[#ff6f2c] to-[#ed5d00] p-5 text-white">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs text-white/70">Аптадағы ұпай</p>
-                  <p className="mt-1 text-4xl font-extrabold tracking-[-.05em]">
-                    45 <span className="text-lg font-semibold text-white/55">ұпай</span>
-                  </p>
+                  <p className="mt-1 text-4xl font-extrabold tracking-[-.05em]">45</p>
                 </div>
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/15">
                   <Flame size={18} />
                 </div>
               </div>
+
               <div className="mt-5 flex items-center justify-between text-[10px] font-semibold text-white/80">
                 <span>Апталық мақсат</span>
                 <span>72%</span>
@@ -140,9 +109,10 @@ function DashboardMockup() {
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/20">
                 <div className="h-full w-[72%] rounded-full bg-white" />
               </div>
+
               <div className="mt-4 inline-flex items-center gap-2 text-[10px] text-white/75">
                 <Check size={12} />
-                Бүгінгі 3 негізгі қадам дайын
+                Бүгінгі негізгі қадамдар орындалды
               </div>
             </div>
 
@@ -152,7 +122,7 @@ function DashboardMockup() {
                   <span>Сабақ прогресі</span>
                   <span className="font-bold text-[#ff6f2c]">Тест ашық</span>
                 </div>
-                <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#172235]">91.7%</p>
+                <p className="mt-2 text-3xl font-extrabold text-[#172235]">91.7%</p>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#e9e5df]">
                   <div className="h-full w-[92%] rounded-full bg-[#ff6f2c]" />
                 </div>
@@ -161,10 +131,10 @@ function DashboardMockup() {
               <div className="rounded-[22px] border border-[#ece7df] bg-[#faf8f4] p-4">
                 <div className="flex items-center justify-between text-[10px] text-[#9c948b]">
                   <span>Рейтинг</span>
-                  <span className="font-bold text-[#172235]">Команда</span>
+                  <span className="font-bold text-[#172235]">Апта</span>
                 </div>
-                <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#172235]">#04</p>
-                <p className="mt-2 text-[10px] text-[#9b938a]">Апта бойынша</p>
+                <p className="mt-2 text-3xl font-extrabold text-[#172235]">#04</p>
+                <p className="mt-2 text-[10px] text-[#9b938a]">Команда ішіндегі орын</p>
               </div>
             </div>
           </div>
@@ -199,34 +169,34 @@ function DashboardMockup() {
   );
 }
 
-function LearningCard({
+function BenefitCard({
   icon: Icon,
-  tag,
+  eyebrow,
   title,
   text,
-  className,
+  tone,
 }: {
-  icon: typeof BookOpen;
-  tag: string;
+  icon: typeof Target;
+  eyebrow: string;
   title: string;
   text: string;
-  className: string;
+  tone: string;
 }) {
   return (
-    <div className={`group rounded-[28px] bg-gradient-to-br ${className} p-3 shadow-[0_18px_45px_rgba(20,20,20,.06)] transition-transform duration-300 hover:-translate-y-1`}>
-      <div className="rounded-[23px] bg-white/90 p-5 backdrop-blur">
-        <div className="flex items-center justify-between">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#172235] text-white">
-            <Icon size={19} />
-          </div>
-          <span className="text-[9px] font-extrabold tracking-[.18em] text-[#a09a92]">{tag}</span>
+    <div className={`group h-full rounded-[28px] border border-[#ebe6df] ${tone} p-5 shadow-[0_14px_38px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(20,20,20,.08)] sm:p-6`}>
+      <div className="flex items-center justify-between">
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#172235] text-white transition-transform duration-300 group-hover:scale-105">
+          <Icon size={20} />
         </div>
-        <h3 className="mt-5 text-lg font-extrabold leading-tight text-[#172235]">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-[#776f67]">{text}</p>
-        <div className="mt-5 inline-flex items-center gap-2 text-xs font-extrabold text-[#172235]">
-          Толығырақ
-          <ArrowRight size={14} className="text-[#ff6f2c]" />
-        </div>
+        <span className="text-[10px] font-extrabold tracking-[.18em] text-[#a49b92]">{eyebrow}</span>
+      </div>
+
+      <h3 className="mt-6 max-w-xs text-lg font-extrabold leading-tight tracking-[-.03em] text-[#172235]">{title}</h3>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-[#756d65]">{text}</p>
+
+      <div className="mt-5 inline-flex items-center gap-2 text-xs font-extrabold text-[#172235]">
+        Толығырақ
+        <ArrowRight size={14} className="text-[#ff6f2c] transition-transform group-hover:translate-x-0.5" />
       </div>
     </div>
   );
@@ -237,24 +207,27 @@ export default function HomePage() {
     <main className="min-h-screen overflow-hidden bg-white text-[#172235]">
       <ScrollProgress />
 
-      <section className="relative overflow-hidden bg-white">
-        <div className="absolute inset-x-0 top-0 h-[580px] bg-[radial-gradient(circle_at_50%_28%,rgba(255,174,129,.24),transparent_55%)]" />
+      {/* HERO */}
+      <section className="relative isolate min-h-[calc(100svh-1px)] overflow-hidden bg-gradient-to-br from-[#fff0e8] via-[#ffd7ca] to-[#ff8c5f]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,.45),transparent_28%),radial-gradient(circle_at_85%_38%,rgba(255,255,255,.12),transparent_30%)]" />
+        <div className="absolute -left-32 bottom-[-180px] h-[420px] w-[420px] rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute right-[-80px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#ff6f2c]/18 blur-3xl" />
 
-        <div className="relative mx-auto max-w-6xl px-5 pb-12 pt-5 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex min-h-[calc(100svh-1px)] max-w-7xl flex-col px-5 pb-12 pt-5 sm:px-6 lg:px-8">
           <nav className="flex items-center justify-between gap-4">
             <Logo />
 
-            <div className="hidden items-center rounded-full border border-[#e8e4dc] bg-[#162235] p-1 shadow-sm sm:flex">
+            <div className="hidden items-center rounded-full border border-[#172235]/10 bg-[#172235] p-1 shadow-lg sm:flex">
               {[
                 ["Басты бет", "#"],
                 ["Мүмкіндіктер", "#features"],
-                ["Қалай жұмыс істейді", "#how"],
-                ["Артықшылықтар", "#roles"],
+                ["21 күн", "#marathon"],
+                ["Пікірлер", "#reviews"],
               ].map(([label, href], index) => (
                 <a
                   key={label}
                   href={href}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${index === 0 ? "bg-white text-[#172235] shadow-sm" : "text-white/70 hover:text-white"}`}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${index === 0 ? "bg-white text-[#172235] shadow-sm" : "text-white/72 hover:text-white"}`}
                 >
                   {label}
                 </a>
@@ -263,49 +236,48 @@ export default function HomePage() {
 
             <Link
               href="/register"
-              className="rounded-full bg-[#ff6f2c] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_10px_25px_rgba(255,111,44,.22)] transition hover:-translate-y-0.5"
+              className="rounded-full bg-[#ff6f2c] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(125,49,17,.18)] transition hover:-translate-y-0.5"
             >
-              Тегін бастау
+              Марафонға қосылу
               <Sparkles size={13} className="ml-1 inline" />
             </Link>
           </nav>
 
-          <div className="mt-7 rounded-[36px] bg-gradient-to-br from-[#ffe7d9] via-[#ffd7ca] to-[#fff0e7] px-5 pb-10 pt-12 sm:px-10 sm:pt-14 lg:px-16 lg:pt-16">
-            <Reveal className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/75 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[.18em] text-[#6f625a] shadow-sm">
+          <div className="grid flex-1 items-center gap-10 pb-2 pt-10 lg:grid-cols-[.88fr_1.12fr] lg:pt-7">
+            <Reveal className="relative z-10 max-w-2xl" delay={70}>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-[#6f625a] shadow-sm backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff6f2c]" />
-                Оқу процесін бір жерге жина
+                21 күндік оқу марафоны
               </div>
 
-              <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-extrabold leading-[.98] tracking-[-.06em] text-[#152032] sm:text-6xl lg:text-[78px]">
-                Оқуыңды ретте.
-                <span className="block">
-                  Нәтижеңді <span className="text-[#ff6f2c]">өсір.</span>
-                </span>
+              <h1 className="mt-5 max-w-2xl text-[48px] font-extrabold leading-[.96] tracking-[-.065em] text-[#172235] sm:text-6xl lg:text-[78px]">
+                Күнде аздап.
+                <span className="block">21 күнде <span className="text-[#ff6f2c]">үлкен өзгеріс.</span></span>
               </h1>
 
-              <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#756a63] sm:text-base">
-                Сабақ, тапсырма, күндік есеп, прогресс және рейтинг — бәрі бір жерде. Бүгін не істеу керегін аш та, оқуды бастап кет.
+              <p className="mt-5 max-w-xl text-base leading-7 text-[#675d56] sm:text-lg">
+                Shyraq — оқуды кейінге қалдырмай, күн сайын жоспармен жүруге көмектесетін марафон. Сабақ, тапсырма және прогресс — бір жерде.
               </p>
 
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <div className="mt-7 flex flex-wrap gap-3">
                 <Link
                   href="/register"
-                  className="rounded-full bg-[#ff6f2c] px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_14px_34px_rgba(255,111,44,.22)] transition hover:-translate-y-0.5"
+                  className="rounded-full bg-[#ff6f2c] px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_16px_34px_rgba(131,48,12,.22)] transition hover:-translate-y-0.5"
                 >
-                  Тегін бастау
+                  Марафонға қосылу
                   <ArrowRight size={16} className="ml-1 inline" />
                 </Link>
+
                 <Link
-                  href="#features"
+                  href="#marathon"
                   className="rounded-full bg-white px-6 py-3.5 text-sm font-extrabold text-[#172235] shadow-sm transition hover:-translate-y-0.5"
                 >
-                  Платформа қалай жұмыс істейді?
+                  Қалай өтетінін көру
                 </Link>
               </div>
 
-              <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-semibold text-[#877970]">
-                {["Сабақтар", "Тапсырмалар", "Күндік есеп", "Рейтинг"].map((item) => (
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-[#756b63]">
+                {["Күнделікті тапсырмалар", "Сабақтар", "Прогресс", "Рейтинг"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-1.5">
                     <Check size={12} className="text-[#ff6f2c]" />
                     {item}
@@ -314,82 +286,115 @@ export default function HomePage() {
               </div>
             </Reveal>
 
-            <Reveal className="relative mx-auto mt-10 max-w-5xl" delay={180}>
+            <Reveal className="relative z-10 lg:mt-3" delay={170}>
               <DashboardMockup />
             </Reveal>
           </div>
         </div>
       </section>
 
-      <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+      {/* BENEFIT BENTO */}
+      <section id="features" className="bg-white">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
-            <div className="grid gap-px overflow-hidden rounded-[28px] border border-[#ebe7e0] bg-[#ebe7e0] sm:grid-cols-2 lg:grid-cols-4">
-              {stats.map(([value, title, text]) => (
-                <div key={title} className="bg-white p-6 sm:p-7">
-                  <p className="text-3xl font-extrabold tracking-[-.04em] text-[#172235]">{value}</p>
-                  <p className="mt-1 text-xs font-extrabold text-[#ff6f2c]">{title}</p>
-                  <p className="mt-2 text-xs leading-5 text-[#81786f]">{text}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section id="features" className="bg-[#fbfaf7]">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ОҚУ ЖҮЙЕСІ</p>
-              <h2 className="mt-3 text-4xl font-extrabold tracking-[-.05em] text-[#152032] sm:text-5xl">
-                Оқу барысы бір жерге жиналады.
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">МАРАФОНДА НЕ БОЛАДЫ?</p>
+              <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
+                Оқу да, тәртіп те
+                <span className="block text-[#9b9289]">бірге жүреді.</span>
               </h2>
-              <p className="mt-4 text-sm leading-6 text-[#7b756e] sm:text-base">
-                Әр бөлімнің өз міндеті бар: сабақты көресің, тапсырманы орындайсың, нәтижені бақылайсың.
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
+                Күн сайын саған нақты міндет беріледі. Сен орындаған сайын жүйе прогресті жинап отырады. Осылайша оқу «кейін бастаймын» деген жоспардан күнделікті әдетке айналады.
               </p>
             </div>
           </Reveal>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {learningCards.map((item, index) => (
-              <Reveal key={item.title} delay={index * 100}>
-                <LearningCard {...item} />
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {benefits.map((item, index) => (
+              <Reveal key={item.title} delay={index * 90}>
+                <BenefitCard {...item} />
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="how" className="bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+      {/* 21 DAY JOURNEY */}
+      <section id="marathon" className="bg-[#fbfaf7]">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+          <Reveal>
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">21 КҮН ҚАЛАЙ ӨТЕДІ?</p>
+              <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
+                Бір күннен бастайсың.
+                <span className="block text-[#9b9289]">Соңында өз прогресіңді көресің.</span>
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
+                Алғашқы күннен бастап бәрі түсінікті: не істеу керек, қашан аяқтау керек және қанша жол жүргенің.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="relative mt-12">
+            <div className="absolute left-6 top-8 hidden h-[calc(100%-64px)] w-px bg-gradient-to-b from-[#ff6f2c] via-[#ffd1b8] to-transparent sm:block" />
+
+            <div className="space-y-4">
+              {days.map(([number, title, text], index) => (
+                <Reveal key={number} delay={index * 100}>
+                  <div className="group relative grid gap-5 rounded-[28px] border border-[#ebe5dd] bg-white p-5 shadow-[0_12px_34px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
+                    <div className="relative z-10 grid h-14 w-14 place-items-center rounded-2xl bg-[#172235] text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(20,20,20,.12)]">
+                      {number}
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[.17em] text-[#ff6f2c]">КЕЗЕҢ</p>
+                      <p className="mt-1 text-lg font-extrabold text-[#172235]">{title}</p>
+                    </div>
+
+                    <p className="max-w-2xl text-sm leading-6 text-[#766e66]">{text}</p>
+
+                    <span className="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full bg-[#faf7f2] text-[#a79e95] transition-all group-hover:bg-[#fff0e2] group-hover:text-[#ff6f2c]">
+                      <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRODUCT / DAILY ROUTINE */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
             <Reveal>
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ҚАЛАЙ ЖҰМЫС ІСТЕЙДІ</p>
-                <h2 className="mt-3 text-4xl font-extrabold leading-[1.03] tracking-[-.05em] text-[#152032] sm:text-5xl">
-                  Бүгінгі тапсырмаңды көр.
-                  <span className="block text-[#8e877f]">Орында. Келесі қадамға өт.</span>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">КҮНДЕЛІКТІ ОҚУ</p>
+                <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
+                  Кірдің.
+                  <span className="block text-[#9b9289]">Бүгінгі жұмысың дайын.</span>
                 </h2>
-                <p className="mt-5 max-w-lg text-sm leading-7 text-[#726b64] sm:text-base">
-                  Платформа саған артық ақпарат көрсетпейді. Кірген кезде ең маңызды нәрсе — бүгін не істеу керегі — бірінші орында тұрады.
+                <p className="mt-5 max-w-lg text-sm leading-7 text-[#746c64] sm:text-base">
+                  Саған он бет ақпарат көрсетудің қажеті жоқ. Бүгінгі сабақ, келесі тапсырма және күндік есеп — бірінші орында.
                 </p>
 
                 <div className="mt-7 space-y-3">
                   {[
-                    ["01", "Сабақты көр", "Видео прогресі автоматты түрде сақталады."],
-                    ["02", "Тапсырманы орында", "Тапсырма мен deadline бір жерде тұрады."],
-                    ["03", "Нәтижеңді тексер", "Ұпайың мен рейтингің арқылы прогресіңді көресің."],
-                  ].map(([n, title, text], index) => (
-                    <Reveal key={n} delay={index * 80}>
-                      <div className="rounded-[22px] border border-[#ece7df] bg-[#faf9f6] p-4 transition hover:bg-white hover:shadow-[0_16px_40px_rgba(20,20,20,.06)] sm:p-5">
-                        <div className="flex items-start gap-4">
-                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#172235] text-[10px] font-extrabold text-white">{n}</span>
-                          <div>
-                            <p className="text-sm font-extrabold text-[#172235]">{title}</p>
-                            <p className="mt-1 text-xs leading-5 text-[#81786f]">{text}</p>
-                          </div>
+                    ["01", "Сабақ", "Видеоның қажетті бөлігін көр."],
+                    ["02", "Тапсырма", "Берілген жұмысты deadline-ға дейін аяқта."],
+                    ["03", "Есеп", "Күнің қалай өткенін қысқаша белгіле."],
+                  ].map(([number, title, text], index) => (
+                    <Reveal key={number} delay={index * 80}>
+                      <div className="group flex items-center gap-4 rounded-[22px] border border-[#ece6de] bg-[#faf9f6] p-4 transition hover:bg-white hover:shadow-[0_16px_40px_rgba(20,20,20,.06)]">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#172235] text-[10px] font-extrabold text-white">
+                          {number}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-extrabold text-[#172235]">{title}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#80776f]">{text}</p>
                         </div>
+                        <ChevronRight size={16} className="ml-auto shrink-0 text-[#b0a79f] transition-transform group-hover:translate-x-1 group-hover:text-[#ff6f2c]" />
                       </div>
                     </Reveal>
                   ))}
@@ -397,14 +402,14 @@ export default function HomePage() {
               </div>
             </Reveal>
 
-            <Reveal delay={120}>
-              <div className="relative mx-auto w-full max-w-[520px]">
-                <div className="absolute -inset-8 rounded-full bg-[#ff6f2c]/12 blur-3xl" />
-                <div className="relative rounded-[34px] bg-[#152032] p-4 shadow-[0_30px_85px_rgba(11,22,38,.22)]">
+            <Reveal delay={130}>
+              <div className="relative mx-auto w-full max-w-[560px]">
+                <div className="absolute -inset-8 rounded-full bg-[#ff6f2c]/10 blur-3xl" />
+                <div className="relative rounded-[34px] bg-[#172235] p-4 shadow-[0_30px_85px_rgba(11,22,38,.2)]">
                   <div className="rounded-[25px] bg-[#f8f6f1] p-5">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-[#9c948b]">БҮГІН</p>
+                        <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-[#9d958c]">БҮГІН</p>
                         <p className="mt-1 text-xl font-extrabold text-[#172235]">Оқу жоспары</p>
                       </div>
                       <span className="rounded-full bg-[#fff0e2] px-3 py-1.5 text-[10px] font-extrabold text-[#ff6f2c]">72%</span>
@@ -412,10 +417,10 @@ export default function HomePage() {
 
                     <div className="mt-5 space-y-3">
                       {[
-                        ["Математика практикасы", "Дайын"],
-                        ["Видео: Фокус және тәртіп", "92%"],
-                        ["Күндік есеп", "Ашық"],
-                      ].map(([title, state], index) => (
+                        ["Математика практикасы", "Дайын", "25 ұпай"],
+                        ["Видео: Фокус және тәртіп", "92%", "Сабақ"],
+                        ["Күндік есеп", "Ашық", "1 минут"],
+                      ].map(([title, state, meta], index) => (
                         <div key={title} className="rounded-2xl border border-[#eae5df] bg-white p-4">
                           <div className="flex items-center justify-between gap-3">
                             <div>
@@ -424,13 +429,14 @@ export default function HomePage() {
                             </div>
                             <span className="rounded-full bg-[#f5f1eb] px-2.5 py-1 text-[9px] font-bold text-[#746c64]">{state}</span>
                           </div>
+                          <p className="mt-3 text-[10px] text-[#a09991]">{meta}</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="mt-4 rounded-2xl bg-[#172235] p-4 text-white">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-white/50">Апта мақсаты</span>
+                        <span className="text-white/50">Осы аптадағы прогресс</span>
                         <span className="font-extrabold">72%</span>
                       </div>
                       <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
@@ -445,72 +451,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="roles" className="bg-[#101b2c] text-white">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
+      {/* SOCIAL PROOF / DEMO */}
+      <section id="reviews" className="bg-[#fbfaf7]">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
-            <div className="max-w-2xl">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff9b3b]">БІР ПЛАТФОРМА — ҮШ РӨЛ</p>
-              <h2 className="mt-3 text-4xl font-extrabold tracking-[-.05em] sm:text-5xl">
-                Әр адам өзіне керек нәрсені көреді.
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ОҚУШЫ КӨЗҚАРАСЫ</p>
+              <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
+                Қарапайым нәрсе — ең пайдалы нәрсе.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-white/50 sm:text-base">
-                Оқушыға — оқу. Менторға — бақылау. Админге — басқару. Үшеуі бір жүйеде жұмыс істейді.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {roleCards.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <Reveal key={item.title} delay={index * 90}>
-                  <article className="h-full rounded-[26px] border border-white/10 bg-white/[.045] p-6 transition hover:-translate-y-1 hover:bg-white/[.06]">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-[#172235]">
-                      <Icon size={20} />
-                    </div>
-                    <h3 className="mt-5 text-lg font-extrabold">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-white/50">{item.text}</p>
-                    <div className="mt-5 space-y-2">
-                      {item.points.map((point) => (
-                        <div key={point} className="inline-flex w-full items-center gap-2 text-xs font-semibold text-white/75">
-                          <Check size={13} className="text-[#ff9b3b]" />
-                          {point}
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-[#fbfaf7]">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="text-center">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">НЕГЕ SHYRAQ?</p>
-              <h2 className="mt-3 text-4xl font-extrabold tracking-[-.05em] text-[#172235] sm:text-5xl">
-                Оқуды бастау оңай. Жалғастыру одан да оңай.
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[#7b756e]">
-                Платформа оқу процесін ұсақ қадамдарға бөліп, әр күнді түсінікті етеді.
+              <p className="mt-4 text-sm leading-6 text-[#7b756e]">
+                Төмендегілер — сайттың визуалын көрсетуге арналған демо пікірлер.
               </p>
             </div>
           </Reveal>
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {demoQuotes.map((quote, index) => (
-              <Reveal key={quote.role} delay={index * 90}>
-                <article className="h-full rounded-[26px] border border-[#e9e4dc] bg-white p-6 shadow-[0_12px_35px_rgba(20,20,20,.04)]">
+            {sampleQuotes.map((quote, index) => (
+              <Reveal key={quote} delay={index * 90}>
+                <article className="h-full rounded-[28px] border border-[#e9e4dc] bg-white p-6 shadow-[0_14px_38px_rgba(20,20,20,.04)]">
                   <div className="flex gap-1 text-[#ff6f2c]">
-                    {"★★★★★".split("").map((star, starIndex) => (
-                      <span key={starIndex} className="text-sm">{star}</span>
+                    {Array.from({ length: 5 }).map((_, starIndex) => (
+                      <span key={starIndex} className="text-sm">★</span>
                     ))}
                   </div>
-                  <p className="mt-5 text-sm font-semibold leading-7 text-[#394153]">{quote.text}</p>
-                  <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.15em] text-[#a29a91]">{quote.role}</p>
+                  <p className="mt-5 text-sm font-semibold leading-7 text-[#3c4452]">{quote}</p>
+                  <div className="mt-6 flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#a29a91]">Демо пікір</span>
+                  </div>
                 </article>
               </Reveal>
             ))}
@@ -518,42 +489,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FINAL CTA */}
       <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
-            <div className="rounded-[34px] bg-gradient-to-br from-[#ffe0cd] via-[#fff0e6] to-[#eee8ff] p-6 sm:p-8 lg:p-10">
-              <div className="grid gap-10 lg:grid-cols-[1fr_.9fr] lg:items-center">
+            <div className="relative overflow-hidden rounded-[38px] bg-gradient-to-br from-[#ffe0cf] via-[#fff0e7] to-[#f0e9ff] p-6 sm:p-9 lg:p-12">
+              <div className="absolute right-[-80px] top-[-120px] h-[300px] w-[300px] rounded-full bg-white/40 blur-3xl" />
+
+              <div className="relative grid gap-10 lg:grid-cols-[1fr_.85fr] lg:items-center">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">БІРІНШІ ҚАДАМ — БҮГІН</p>
-                  <h2 className="mt-3 max-w-xl text-4xl font-extrabold leading-[1.02] tracking-[-.05em] text-[#172235] sm:text-5xl">
-                    Оқу жоспарың дайын.
-                    <span className="text-[#ff6f2c]"> Енді бастау ғана қалды.</span>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">БІРІНШІ КҮНДЕН БАСТА</p>
+                  <h2 className="mt-3 max-w-xl text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
+                    Оқуды ертеңге қалдырма.
+                    <span className="text-[#ff6f2c]"> Бүгін баста.</span>
                   </h2>
                   <p className="mt-4 max-w-lg text-sm leading-6 text-[#736a62]">
-                    Тіркел. Командаңа қосыл. Ал бүгінгі алғашқы тапсырмаңды орындап көр.
+                    Тіркел. Марафонға қосыл. Бүгінгі алғашқы тапсырмаңды орындап көр.
                   </p>
+
                   <Link
                     href="/register"
                     className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#ff6f2c] px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(255,111,44,.22)] transition hover:-translate-y-0.5"
                   >
-                    Тегін тіркелу
+                    Марафонға қосылу
                     <ArrowRight size={16} />
                   </Link>
                 </div>
 
-                <div className="mx-auto w-full max-w-[430px] rounded-[28px] border border-white/70 bg-white/65 p-4 shadow-[0_25px_70px_rgba(40,30,20,.1)] backdrop-blur">
-                  <div className="rounded-[22px] bg-[#172235] p-5 text-white">
-                    <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІН</p>
-                    <p className="mt-1 text-2xl font-extrabold">Алғашқы үш қадам</p>
-                    <div className="mt-5 space-y-2.5">
-                      {["Профильді толтыру", "Бір тапсырманы орындау", "Сабақтың алғашқы бөлігін көру"].map((item, index) => (
-                        <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/[.06] px-3 py-3">
-                          <span className="grid h-7 w-7 place-items-center rounded-xl bg-[#ff6f2c] text-[9px] font-extrabold">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <span className="text-xs font-semibold text-white/75">{item}</span>
-                        </div>
-                      ))}
+                <div className="mx-auto w-full max-w-[430px]">
+                  <div className="rounded-[28px] border border-white/70 bg-white/70 p-4 shadow-[0_25px_70px_rgba(40,30,20,.1)] backdrop-blur">
+                    <div className="rounded-[22px] bg-[#172235] p-5 text-white">
+                      <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІНГІ МІНДЕТ</p>
+                      <p className="mt-1 text-2xl font-extrabold">Алғашқы 3 қадам</p>
+                      <div className="mt-5 space-y-2.5">
+                        {["Профильді толтыру", "Бір тапсырманы орындау", "Сабақтың алғашқы бөлігін көру"].map((item, index) => (
+                          <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/[.06] px-3 py-3">
+                            <span className="grid h-7 w-7 place-items-center rounded-xl bg-[#ff6f2c] text-[9px] font-extrabold">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span className="text-xs font-semibold text-white/75">{item}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -564,21 +541,21 @@ export default function HomePage() {
       </section>
 
       <footer className="bg-[#0b1423] text-white/55">
-        <div className="mx-auto max-w-6xl px-5 py-12 sm:px-6 lg:px-8">
-          <div className="grid gap-10 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8">
+          <div className="grid gap-10 md:grid-cols-[1.35fr_1fr_1fr]">
             <div>
-              <Logo dark />
-              <p className="mt-4 max-w-xs text-xs leading-6 text-white/40">
-                Оқу процесін бір жерге жинап, күнделікті қадамды анық көрсететін платформа.
+              <Logo />
+              <p className="mt-4 max-w-sm text-xs leading-6 text-white/40">
+                21 күн бойы оқуды жүйеге келтіріп, күн сайын алға жылжуға арналған оқу марафоны.
               </p>
             </div>
 
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Платформа</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Марафон</p>
               <div className="mt-4 space-y-2.5 text-xs">
                 <a href="#features" className="block hover:text-white">Мүмкіндіктер</a>
-                <a href="#how" className="block hover:text-white">Қалай жұмыс істейді</a>
-                <a href="#roles" className="block hover:text-white">Кім үшін?</a>
+                <a href="#marathon" className="block hover:text-white">21 күн</a>
+                <a href="#reviews" className="block hover:text-white">Пікірлер</a>
               </div>
             </div>
 
@@ -587,15 +564,6 @@ export default function HomePage() {
               <div className="mt-4 space-y-2.5 text-xs">
                 <Link href="/login" className="block hover:text-white">Кіру</Link>
                 <Link href="/register" className="block hover:text-white">Тіркелу</Link>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Shyraq</p>
-              <div className="mt-4 space-y-2.5 text-xs">
-                <span className="block">Оқушылар үшін</span>
-                <span className="block">Менторлар үшін</span>
-                <span className="block">Командалар үшін</span>
               </div>
             </div>
           </div>
