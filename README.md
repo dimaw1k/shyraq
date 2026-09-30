@@ -29,9 +29,9 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 
 ## Implemented foundation
 
-- Student-facing dashboard, tasks, task detail/submission, reports and lesson catalog UI
-- Mentor operational dashboard with phone-based student management and Meet sync controls
-- Admin operational dashboard with team, task, lesson and test creation UI
+- Student-facing dashboard, tasks, task detail/submission, reports, lesson catalog, profile settings and ranking UI
+- Mentor operational dashboard with phone-based student management, student progress metrics and Meet sync controls
+- Admin operational dashboard with user, team, task, lesson, test and score-rule management UI
 - Scheduled Meet attendance sync endpoint and Vercel cron configuration
 
 - Student registration/login skeleton
@@ -44,7 +44,7 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - Test submission and hidden correct answers
 - Idempotent score events
 - Student/mentor/admin overview APIs
-- Role-scoped ranking API
+- Role-scoped ranking API (student top-10 + own position, mentor team, admin global)
 - Google OAuth connection
 - Encrypted Google refresh-token storage
 - Team Meet-space connection
@@ -94,6 +94,8 @@ supabase/migrations/0007_test_answer_privacy.sql
 supabase/migrations/0008_storage_and_team_hardening.sql
 supabase/migrations/0009_profile_privilege_hardening.sql
 supabase/migrations/0010_profile_rpc_hardening.sql
+supabase/migrations/0011_operational_hardening.sql
+supabase/migrations/0012_server_only_writes.sql
 ```
 
 ## Important product rules
