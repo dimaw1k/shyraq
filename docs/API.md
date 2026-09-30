@@ -112,6 +112,7 @@ Apply in order:
 11. 0011_operational_hardening.sql
 12. 0012_server_only_writes.sql
 13. 0013_mentor_progress_visibility.sql
+14. 0014_lock_score_rpc.sql
 
 ## Security notes
 
