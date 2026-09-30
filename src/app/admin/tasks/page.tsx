@@ -1,0 +1,10 @@
+"use client";
+import { FormEvent, useState } from "react";
+import Link from "next/link";
+export default function AdminTasksPage(){
+ const [message,setMessage]=useState(""); const [loading,setLoading]=useState(false);
+ async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setLoading(true);const f=new FormData(event.currentTarget);
+ const response=await fetch("/api/admin/tasks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:f.get("title"),description:f.get("description"),instructions:f.get("instructions"),deadline:f.get("deadline"),points:Number(f.get("points")||0),attachmentRequired:f.get("attachmentRequired")==="on"})});
+ const data=await response.json().catch(()=>({}));setMessage(response.ok?"Тапсырма жасалды.":(data.error??"Қате"));setLoading(false);if(response.ok) event.currentTarget.reset();}
+ return <main className="min-h-screen bg-[var(--background)] px-6 py-10"><div className="mx-auto max-w-3xl"><Link href="/admin" className="text-sm font-semibold">← Admin</Link><h1 className="mt-6 text-3xl font-semibold">Жаңа тапсырма</h1><form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-[var(--border)] bg-white p-6"><input name="title" required placeholder="Тақырып" className="w-full rounded-xl border p-3"/><textarea name="description" required placeholder="Сипаттама" rows={4} className="w-full rounded-xl border p-3"/><textarea name="instructions" placeholder="Нұсқаулық" rows={3} className="w-full rounded-xl border p-3"/><div className="grid gap-4 sm:grid-cols-2"><input name="deadline" type="datetime-local" className="w-full rounded-xl border p-3"/><input name="points" type="number" min="0" placeholder="Ұпай" className="w-full rounded-xl border p-3"/></div><label className="flex items-center gap-2 text-sm"><input name="attachmentRequired" type="checkbox"/> Файл міндетті</label>{message?<div className="rounded-xl bg-zinc-50 p-3 text-sm">{message}</div>:null}<button disabled={loading} className="w-full rounded-xl bg-black p-3 font-semibold text-white disabled:opacity-50">{loading?"Сақталуда...":"Жасау"}</button></form></div></main>;
+}
