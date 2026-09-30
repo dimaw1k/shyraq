@@ -1,0 +1,53 @@
+import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { hasReachedWatchGate, watchedPercent, type TimeRange } from "@/lib/video/coverage";
+
+export async function GET(_request: Request, context: { params: Promise<{ lessonId: string }> }) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { lessonId } = await context.params;
+  const { data, error } = await supabase.from("video_progress").select("lesson_id,watched_seconds,watched_percent,maximum_position_seconds,watched_ranges,completed,test_unlocked,first_started_at,last_watched_at").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
+  if (error) return NextResponse.json({ error: "Unable to load progress" }, { status: 400 });
+  return NextResponse.json({ progress: data });
+}
+
+export async function POST(request: Request, context: { params: Promise<{ lessonId: string }> }) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { lessonId } = await context.params;
+  const { data: lesson } = await supabase.from("lessons").select("id,duration_seconds,required_watch_percent,published").eq("id", lessonId).maybeSingle();
+  if (!lesson?.published) return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+
+  const body = await request.json().catch(() => null);
+  const ranges = Array.isArray(body?.ranges) ? body.ranges.filter((r: unknown): r is TimeRange => {
+    if (!r || typeof r !== "object") return false;
+    const value = r as Record<string, unknown>;
+    return typeof value.start === "number" && typeof value.end === "number";
+  }) : [];
+
+  const percent = watchedPercent(ranges, lesson.duration_seconds);
+  const unlocked = hasReachedWatchGate(ranges, lesson.duration_seconds, lesson.required_watch_percent);
+  const watchedSeconds = Math.floor((percent / 100) * lesson.duration_seconds);
+  const maximumPosition = Math.floor(Math.max(0, ...ranges.map((r) => r.end)));
+
+  const payload = {
+    lesson_id: lessonId,
+    student_id: user.id,
+    watched_seconds: watchedSeconds,
+    watched_percent: Number(percent.toFixed(2)),
+    maximum_position_seconds: maximumPosition,
+    watched_ranges: ranges,
+    completed: percent >= 100,
+    test_unlocked: unlocked,
+    first_started_at: new Date().toISOString(),
+    last_watched_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase.from("video_progress").upsert(payload, { onConflict: "lesson_id,student_id" }).select("*").single();
+  if (error) return NextResponse.json({ error: "Progress save failed" }, { status: 400 });
+  return NextResponse.json({ progress: data });
+}
