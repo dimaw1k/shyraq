@@ -100,6 +100,8 @@ Apply in order:
 6. 0006_meet_participant_sessions.sql
 7. 0007_test_answer_privacy.sql
 8. 0008_storage_and_team_hardening.sql
+9. 0009_profile_privilege_hardening.sql
+supabase/migrations/0009_profile_privilege_hardening.sql
 
 ## Security notes
 
