@@ -28,9 +28,9 @@ export type MeetConference = {
 
 export type MeetParticipant = {
   name: string;
-  signedinUser?: { user?: string };
-  anonymousUser?: unknown;
-  phoneUser?: unknown;
+  signedinUser?: { user?: string; displayName?: string };
+  anonymousUser?: { displayName?: string };
+  phoneUser?: { displayName?: string };
   earliestStartTime?: string;
   latestEndTime?: string;
 };
