@@ -12,10 +12,15 @@ const items = [
 ];
 
 export function StickyNav() {
+  const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState("top");
   const [scrolled, setScrolled] = useState(false);
   const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateScrollState = () => setScrolled(window.scrollY > 20);
@@ -76,6 +81,8 @@ export function StickyNav() {
     });
   };
 
+  if (!mounted) return null;
+
   return (
     <header className="fixed inset-x-0 top-0 z-[9999] isolate px-3 pt-3 sm:px-5">
       <div className="mx-auto flex max-w-7xl items-center justify-center">
@@ -89,9 +96,9 @@ export function StickyNav() {
         >
           <Link href="/#top" aria-label="Shyraq" className="shrink-0">
             <svg
-              width="132"
+              width="128"
               height="34"
-              viewBox="0 0 132 34"
+              viewBox="0 0 128 34"
               role="img"
               aria-label="SHYRAQ"
               className="block h-[30px] w-auto sm:h-[34px]"
@@ -117,7 +124,7 @@ export function StickyNav() {
               />
               <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
               <text
-                x="108"
+                x="104"
                 y="26"
                 fill="#172235"
                 fontSize="27"
