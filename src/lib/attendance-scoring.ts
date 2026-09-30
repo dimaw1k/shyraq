@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function recordAttendanceScore(
   supabase: SupabaseClient,
@@ -22,19 +21,19 @@ export async function recordAttendanceScore(
   if (!rule?.active || Number(rule.weight) === 0) return;
 
   const percent = Math.min(100, Math.max(0, Number(input.attendancePercent) || 0));
-  const points = Number(rule.weight) * (percent / 100);
+  const points = Number((Number(rule.weight) * (percent / 100)).toFixed(2));
   if (points === 0) return;
 
-  try {
-    await recordScoreEvent(supabase, {
-      studentId: input.studentId,
-      teamId: input.teamId,
-      sourceCode: "ATTENDANCE",
-      sourceId: input.attendanceId,
-      points: Number(points.toFixed(2)),
-      metadata: { attendancePercent: Number(percent.toFixed(2)) },
-    });
-  } catch (error) {
+  const { error } = await supabase.from("score_events").upsert({
+    student_id: input.studentId,
+    team_id: input.teamId,
+    source_code: "ATTENDANCE",
+    source_id: input.attendanceId,
+    points,
+    metadata: { attendancePercent: Number(percent.toFixed(2)) },
+  }, { onConflict: "student_id,source_code,source_id", ignoreDuplicates: true });
+
+  if (error) {
     console.error("Attendance score event failed", error);
   }
 }
