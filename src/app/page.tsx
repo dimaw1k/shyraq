@@ -219,7 +219,7 @@ export default function HomePage() {
           <nav className="flex items-center justify-between gap-4">
             <Logo />
 
-            <div className="hidden items-center rounded-full border border-[#172235]/10 bg-[#172235] p-1 shadow-lg sm:flex">
+            <div className="hidden min-w-0 items-center rounded-full border border-white/10 bg-[#172235] p-1 shadow-lg sm:flex">
               {[
                 ["Басты бет", "#"],
                 ["Мүмкіндіктер", "#features"],
@@ -229,7 +229,7 @@ export default function HomePage() {
                 <a
                   key={label}
                   href={href}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${index === 0 ? "bg-white text-[#172235] shadow-sm" : "text-white/72 hover:text-white"}`}
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-white/10 sm:px-4 sm:text-xs ${index === 0 ? "bg-white !text-[#172235] shadow-sm hover:bg-white" : ""}`}
                 >
                   {label}
                 </a>
@@ -238,7 +238,7 @@ export default function HomePage() {
 
             <Link
               href="/register"
-              className="rounded-full bg-[#ff6f2c] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(125,49,17,.18)] transition hover:-translate-y-0.5"
+              className="shrink-0 whitespace-nowrap rounded-full bg-[#ff6f2c] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(125,49,17,.18)] transition hover:-translate-y-0.5"
             >
               Марафонға қосылу
               <Sparkles size={13} className="ml-1 inline" />
