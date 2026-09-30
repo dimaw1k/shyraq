@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { AppNav } from "@/components/app/AppNav";
+import { AppShell, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
@@ -16,7 +16,7 @@ export default async function RankingsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
   if (!profile?.role || !["MENTOR", "ADMIN", "STUDENT"].includes(profile.role)) redirect("/dashboard");
 
   const admin = createAdminSupabaseClient();
@@ -27,14 +27,14 @@ export default async function RankingsPage() {
     const { data: team } = await admin.from("teams").select("id,name").eq("mentor_id", user.id).eq("status", "ACTIVE").maybeSingle();
     if (!team) {
       return (
-        <main className="min-h-screen bg-[var(--background)]">
-          <AppNav role="MENTOR" />
-          <section className="mx-auto max-w-5xl px-6 py-10">
-            <p className="text-sm font-semibold text-[var(--accent)]">RANKING</p>
-            <h1 className="mt-2 text-3xl font-semibold">Рейтинг</h1>
-            <p className="mt-2 text-sm text-[var(--muted)]">Сізге active team бекітілмеген.</p>
-          </section>
-        </main>
+        <AppShell role="MENTOR" title="Рейтинг" description="Командаңыздың нәтижесі." right={<UserChip name={profile.full_name} role="MENTOR" />}>
+          <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-[#FAFAFA] p-8 text-center">
+              <p className="text-sm font-semibold text-gray-900">Белсенді команда бекітілмеген.</p>
+              <p className="mt-1 text-xs text-gray-500">Рейтинг команда тағайындалғаннан кейін көрсетіледі.</p>
+            </div>
+          </main>
+        </AppShell>
       );
     }
     title = team.name;
@@ -47,9 +47,7 @@ export default async function RankingsPage() {
     .eq("role", "STUDENT")
     .in("status", ["WAITING_FOR_TEAM", "ACTIVE", "COMPLETED"]);
 
-  if (allowedIds) {
-    studentsQuery = studentsQuery.in("id", allowedIds);
-  }
+  if (allowedIds) studentsQuery = studentsQuery.in("id", allowedIds);
 
   const { data: students } = await studentsQuery;
   const ids = (students ?? []).map((student) => student.id);
@@ -58,9 +56,7 @@ export default async function RankingsPage() {
     : { data: [] as Array<{ student_id: string; points: number }> };
 
   const scores = new Map<string, number>();
-  for (const event of events ?? []) {
-    scores.set(event.student_id, (scores.get(event.student_id) ?? 0) + Number(event.points ?? 0));
-  }
+  for (const event of events ?? []) scores.set(event.student_id, (scores.get(event.student_id) ?? 0) + Number(event.points ?? 0));
 
   const rows: RankingRow[] = (students ?? [])
     .map((student) => ({ ...student, score: scores.get(student.id) ?? 0 }))
@@ -76,45 +72,29 @@ export default async function RankingsPage() {
     : rows;
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
-      <AppNav role={profile.role} />
-      <section className="mx-auto max-w-5xl px-6 py-10">
-        <p className="text-sm font-semibold text-[var(--accent)]">RANKING</p>
-        <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
-        {profile.role === "STUDENT" ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Алғашқы 10 орын және өз позицияңыз көрсетіледі.
-          </p>
-        ) : null}
-
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-          <div className="grid grid-cols-[72px_1fr_120px] border-b border-[var(--border)] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+    <AppShell role={profile.role} userName={profile.full_name} title={title} description="Ұпайлар бойынша марафон позициясы." right={<UserChip name={profile.full_name} role={profile.role} />}>
+      <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
+        {profile.role === "STUDENT" ? <p className="mb-4 text-xs text-gray-500">Алғашқы 10 орын және өз позицияңыз көрсетіледі.</p> : null}
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-soft">
+          <div className="grid grid-cols-[56px_1fr_90px] border-b border-gray-100 bg-[#FAFAFA] px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 sm:grid-cols-[72px_1fr_120px]">
             <span>#</span><span>Оқушы</span><span>Ұпай</span>
           </div>
           {visibleRows.map((row) => (
             <div
               key={row.id}
-              className={
-                "grid grid-cols-[72px_1fr_120px] items-center border-b border-[var(--border)] px-5 py-4 last:border-b-0 " +
-                (row.id === user.id ? "bg-orange-50/60" : "")
-              }
+              className={"grid grid-cols-[56px_1fr_90px] items-center border-b border-gray-100 px-4 py-3.5 last:border-b-0 sm:grid-cols-[72px_1fr_120px] " + (row.id === user.id ? "bg-[#C25100]/5" : "")}
             >
-              <span className="font-semibold">{row.rank}</span>
-              <div>
-                <p className="font-medium">
-                  {row.full_name}
-                  {row.id === user.id ? " (сіз)" : ""}
-                </p>
-                <p className="text-xs text-[var(--muted)]">{row.status}</p>
+              <span className="text-sm font-semibold text-gray-900">{row.rank}</span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-gray-900">{row.full_name}{row.id === user.id ? " · сіз" : ""}</p>
+                <p className="mt-0.5 text-[10px] text-gray-400">{row.status}</p>
               </div>
-              <span className="font-semibold">{row.score}</span>
+              <span className="text-sm font-semibold text-gray-900">{row.score}</span>
             </div>
           ))}
-          {!visibleRows.length ? (
-            <div className="p-8 text-center text-sm text-[var(--muted)]">Рейтингке әзірге оқушы жоқ.</div>
-          ) : null}
+          {!visibleRows.length ? <div className="p-8 text-center text-sm text-gray-500">Рейтингке әзірге оқушы жоқ.</div> : null}
         </div>
-      </section>
-    </main>
+      </main>
+    </AppShell>
   );
 }
