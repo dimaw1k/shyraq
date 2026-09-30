@@ -36,6 +36,7 @@ export function KinescopeLessonPlayer({
   useEffect(()=>{rangesRef.current=ranges;},[ranges]);
 
   const persist=useCallback(async(nextRanges:TimeRange[])=>{
+    if(!nextRanges.length) return;
     setSaving(true);
     try{
       const response=await fetch("/api/lessons/"+lessonId+"/progress",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({ranges:nextRanges})});
