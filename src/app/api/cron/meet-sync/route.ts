@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getGoogleAccessToken } from "@/lib/google-oauth";
 import { listConferences, listParticipants, listParticipantSessions, sessionDurationSeconds } from "@/lib/google-meet";
+import { recordAttendanceScore } from "@/lib/attendance-scoring";
 
 function authorized(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -42,7 +43,11 @@ export async function GET(request: Request) {
         .select("student_id").eq("team_id", team.id).eq("status", "ACTIVE");
       const studentIds = new Set((members ?? []).map((member) => member.student_id));
       const { data: mappings } = await admin.from("meet_participant_mappings").select("google_user_id,student_id");
-      const mapping = new Map((mappings ?? []).filter((item) => studentIds.has(item.student_id)).map((item) => [item.google_user_id, item.student_id]));
+      const mapping = new Map(
+        (mappings ?? [])
+          .filter((item) => studentIds.has(item.student_id))
+          .map((item) => [item.google_user_id, item.student_id]),
+      );
 
       for (const conference of conferences) {
         const { data: conferenceRow } = await admin.from("meet_conferences").upsert({
@@ -56,6 +61,7 @@ export async function GET(request: Request) {
         if (!conferenceRow) continue;
 
         const meetingDuration = durationSeconds(conference.startTime, conference.endTime);
+        const conferenceEnded = Boolean(conference.endTime && Date.parse(conference.endTime) <= Date.now());
         const participants = await listParticipants(accessToken, conference.name);
 
         for (const participant of participants) {
@@ -93,7 +99,7 @@ export async function GET(request: Request) {
           const attendedSeconds = sessions.reduce((sum, session) => sum + sessionDurationSeconds(session), 0);
           const percent = meetingDuration ? Math.min(100, Math.max(0, (attendedSeconds / meetingDuration) * 100)) : 0;
 
-          const { error } = await admin.from("attendance_records").upsert({
+          const { data: attendanceRow, error } = await admin.from("attendance_records").upsert({
             team_id: team.id,
             student_id: studentId,
             external_conference_id: conference.name,
@@ -105,9 +111,18 @@ export async function GET(request: Request) {
             started_at: conference.startTime ?? null,
             ended_at: conference.endTime ?? null,
             imported_at: new Date().toISOString(),
-          }, { onConflict: "external_conference_id,student_id" });
+          }, { onConflict: "external_conference_id,student_id" }).select("id").single();
 
-          if (!error) attendanceRows += 1;
+          if (!error && attendanceRow) {
+            attendanceRows += 1;
+            await recordAttendanceScore(admin, {
+              attendanceId: attendanceRow.id,
+              studentId,
+              teamId: team.id,
+              attendancePercent: percent,
+              conferenceEnded,
+            });
+          }
         }
       }
 
