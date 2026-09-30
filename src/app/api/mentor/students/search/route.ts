@@ -8,9 +8,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (me?.role !== "MENTOR" && me?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
-  }
+  if (me?.role !== "MENTOR") return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
 
   const body = await request.json().catch(() => null);
   const phone = typeof body?.phone === "string" ? normalizePhone(body.phone) : "";
