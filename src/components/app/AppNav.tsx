@@ -43,15 +43,11 @@ function isActive(pathname: string, href: string) {
 export function AppNav({ role }: { role: string }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const links = role === "STUDENT" ? studentLinks : operationsLinks;
-
-  if (role === "MENTOR") {
-    links.push({ label: "Ментор", href: "/mentor", icon: Users });
-  }
-
-  if (role === "ADMIN") {
-    links.push({ label: "Админ", href: "/admin", icon: Users });
-  }
+  const links: NavItem[] = [
+    ...(role === "STUDENT" ? studentLinks : operationsLinks),
+    ...(role === "MENTOR" ? [{ label: "Ментор", href: "/mentor", icon: Users }] : []),
+    ...(role === "ADMIN" ? [{ label: "Админ", href: "/admin", icon: Users }] : []),
+  ];
 
   return (
     <>
