@@ -17,7 +17,8 @@ export function Reveal({ children, className = "", delay = 0, once = true }: Rev
     const node = ref.current;
     if (!node) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
       setVisible(true);
       return;
     }
@@ -26,12 +27,11 @@ export function Reveal({ children, className = "", delay = 0, once = true }: Rev
       ([entry]) => {
         if (!entry.isIntersecting) return;
         setVisible(true);
-
         if (once) observer.unobserve(node);
       },
       {
-        threshold: 0.12,
-        rootMargin: "0px 0px -50px 0px",
+        threshold: 0.08,
+        rootMargin: "0px 0px -70px 0px",
       },
     );
 
