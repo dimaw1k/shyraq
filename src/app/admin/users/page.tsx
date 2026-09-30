@@ -46,7 +46,22 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+
+    void fetch("/api/admin/users")
+      .then((response) => response.json())
+      .then((data: { users?: UserRow[]; error?: string }) => {
+        if (cancelled) return;
+        if (data.users) setUsers(data.users);
+        else setMessage(data.error ?? "Пайдаланушылар жүктелмеді.");
+      })
+      .catch(() => {
+        if (!cancelled) setMessage("Пайдаланушылар жүктелмеді.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function updateUser(user: UserRow, patch: { role?: string; status?: string }) {
