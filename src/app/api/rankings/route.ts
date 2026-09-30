@@ -39,16 +39,17 @@ export async function GET() {
     }
   }
 
-  const { data: students } = await admin
+  let studentsQuery = admin
     .from("profiles")
     .select("id,full_name,status")
     .eq("role", "STUDENT")
-    .in("status", ["WAITING_FOR_TEAM", "ACTIVE", "COMPLETED"])
-    .modify((query) => {
-      if (allowedStudentIds) return query.in("id", allowedStudentIds);
-      return query;
-    });
+    .in("status", ["WAITING_FOR_TEAM", "ACTIVE", "COMPLETED"]);
 
+  if (allowedStudentIds) {
+    studentsQuery = studentsQuery.in("id", allowedStudentIds);
+  }
+
+  const { data: students } = await studentsQuery;
   const studentRows = students ?? [];
   const ids = studentRows.map((student) => student.id);
   const { data: events } = ids.length
