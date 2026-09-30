@@ -2,14 +2,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
-  --muted: #6b7280;
+  --background: #f7f5f0;
+  --foreground: #141414;
+  --muted: #73706a;
   --card: #ffffff;
-  --border: #eeeeee;
-  --accent: #ff8000;
-  --accent-soft: #fff2e6;
-  --surface: #fafafa;
+  --border: rgba(20, 20, 20, 0.08);
+  --accent: #ff7a00;
+  --accent-dark: #e96800;
+  --accent-soft: #fff0e2;
+  --surface: #f0eee8;
+  --ink-soft: #242321;
 }
 
 * {
@@ -25,10 +27,21 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 122, 0, 0.07), transparent 30%),
+    var(--background);
   color: var(--foreground);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-geologica), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  text-wrap: balance;
 }
 
 a {
@@ -49,12 +62,32 @@ button {
 
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af;
+  color: #9a9790;
 }
 
 ::selection {
-  background: rgba(255, 128, 0, 0.16);
-  color: #111827;
+  background: rgba(255, 122, 0, 0.2);
+  color: #141414;
+}
+
+.shrq-grid {
+  background-image:
+    linear-gradient(rgba(20, 20, 20, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 20, 20, 0.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.shrq-noise {
+  position: relative;
+}
+
+.shrq-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
 }
 
 @keyframes shyraqFloat {
@@ -64,12 +97,27 @@ textarea::placeholder {
   }
 
   50% {
-    transform: translateY(-7px);
+    transform: translateY(-6px);
   }
 }
 
 .shrq-float {
   animation: shyraqFloat 6s ease-in-out infinite;
+}
+
+@keyframes shyraqPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.18);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 122, 0, 0);
+  }
+}
+
+.shrq-pulse {
+  animation: shyraqPulse 2.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
