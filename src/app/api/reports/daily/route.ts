@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -8,7 +9,8 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const date = url.searchParams.get("date");
-  let query = supabase.from("daily_reports").select("*").eq("student_id", user.id).order("report_date", { ascending: false }).limit(30);
+  let query = supabase.from("daily_reports").select("*").eq("student_id", user.id)
+    .order("report_date", { ascending: false }).limit(30);
   if (date) query = query.eq("report_date", date);
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: "Unable to load reports" }, { status: 400 });
@@ -22,7 +24,15 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const reportDate = typeof body?.reportDate === "string" ? body.reportDate : "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) return NextResponse.json({ error: "Invalid reportDate" }, { status: 400 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
+    return NextResponse.json({ error: "Invalid reportDate" }, { status: 400 });
+  }
+
+  const { data: existing } = await supabase.from("daily_reports")
+    .select("id,status").eq("student_id", user.id).eq("report_date", reportDate).maybeSingle();
+
+  const { data: membership } = await supabase.from("team_members")
+    .select("team_id,status").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
 
   const payload = {
     student_id: user.id,
@@ -36,7 +46,24 @@ export async function POST(request: Request) {
     submitted_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase.from("daily_reports").upsert(payload, { onConflict: "student_id,report_date" }).select("*").single();
+  const { data, error } = await supabase.from("daily_reports")
+    .upsert(payload, { onConflict: "student_id,report_date" }).select("*").single();
   if (error) return NextResponse.json({ error: "Report submission failed" }, { status: 400 });
+
+  if (existing?.status !== "SUBMITTED") {
+    const { data: rule } = await supabase.from("score_rules").select("weight,active")
+      .eq("code", "REPORTS").maybeSingle();
+    if (rule?.active && Number(rule.weight) !== 0) {
+      await recordScoreEvent(supabase, {
+        studentId: user.id,
+        teamId: membership?.team_id ?? null,
+        sourceCode: "REPORTS",
+        sourceId: data.id,
+        points: Number(rule.weight),
+        metadata: { reportDate },
+      });
+    }
+  }
+
   return NextResponse.json({ report: data });
 }
