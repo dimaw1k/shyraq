@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { StickyNav } from "@/components/ui/StickyNav";
 import {
   ArrowRight,
   BarChart3,
@@ -242,40 +243,13 @@ export default function HomePage() {
       <ScrollProgress />
 
       {/* HERO */}
-      <section className="relative isolate min-h-[calc(100svh-1px)] overflow-hidden bg-gradient-to-br from-[#fff0e8] via-[#ffd7ca] to-[#ff8c5f]">
+      <section id="top" className="relative isolate min-h-[calc(100svh-1px)] overflow-hidden bg-gradient-to-br from-[#fff0e8] via-[#ffd7ca] to-[#ff8c5f]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,.45),transparent_28%),radial-gradient(circle_at_85%_38%,rgba(255,255,255,.12),transparent_30%)]" />
         <div className="absolute -left-32 bottom-[-180px] h-[420px] w-[420px] rounded-full bg-white/10 blur-3xl" />
         <div className="absolute right-[-80px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#ff6f2c]/18 blur-3xl" />
 
-        <div className="relative mx-auto flex min-h-[calc(100svh-1px)] max-w-7xl flex-col px-5 pb-12 pt-5 sm:px-6 lg:px-8">
-          <nav className="flex items-center justify-between gap-4">
-            <Logo />
-
-            <div className="hidden min-w-0 items-center rounded-full border border-white/10 bg-[#172235] p-1 shadow-lg sm:flex">
-              {[
-                ["Басты бет", "#"],
-                ["Мүмкіндіктер", "#features"],
-                ["21 күн", "#marathon"],
-                ["Пікірлер", "#reviews"],
-              ].map(([label, href], index) => (
-                <a
-                  key={label}
-                  href={href}
-                  className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-white/10 sm:px-4 sm:text-xs ${index === 0 ? "bg-white !text-[#172235] shadow-sm hover:bg-white" : ""}`}
-                >
-                  {label}
-                </a>
-              ))}
-            </div>
-
-            <Link
-              href="/register"
-              className="shrink-0 whitespace-nowrap rounded-full bg-[#ff6f2c] px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(125,49,17,.18)] transition hover:-translate-y-0.5"
-            >
-              Марафонға қосылу
-              <Sparkles size={13} className="ml-1 inline" />
-            </Link>
-          </nav>
+        <div className="relative mx-auto flex min-h-[calc(100svh-1px)] max-w-7xl flex-col px-5 pb-12 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+          <StickyNav />
 
           <div className="grid flex-1 items-center gap-10 pb-2 pt-10 lg:grid-cols-[.88fr_1.12fr] lg:pt-7">
             <Reveal className="relative z-10 max-w-2xl" delay={70}>
