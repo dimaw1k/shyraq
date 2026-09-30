@@ -77,14 +77,14 @@ export function StickyNav() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[90] px-3 pt-3 sm:px-5">
+    <header className="fixed inset-x-0 top-0 z-[9999] isolate px-3 pt-3 sm:px-5">
       <div className="mx-auto flex max-w-7xl items-center justify-center">
         <div
           className={[
-            "flex w-full items-center justify-between gap-3 rounded-[18px] border px-3 py-2 transition-all duration-500 sm:rounded-[20px] sm:px-4",
+            "relative z-[10000] flex w-full items-center justify-between gap-3 rounded-[18px] border px-3 py-2 transition-all duration-500 sm:rounded-[20px] sm:px-4",
             scrolled
-              ? "border-black/8 bg-white/88 shadow-[0_12px_40px_rgba(20,20,20,.10)] backdrop-blur-xl"
-              : "border-white/45 bg-white/42 shadow-[0_10px_30px_rgba(20,20,20,.05)] backdrop-blur-md",
+              ? "border-black/8 bg-white/95 shadow-[0_12px_40px_rgba(20,20,20,.10)] backdrop-blur-xl"
+              : "border-white/55 bg-white/78 shadow-[0_10px_30px_rgba(20,20,20,.06)] backdrop-blur-xl",
           ].join(" ")}
         >
           <Link href="/#top" aria-label="Shyraq" className="shrink-0">
