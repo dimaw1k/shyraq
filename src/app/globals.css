@@ -1,3 +1,4 @@
+@config "../../tailwind.config.js";
 @import "tailwindcss";
 
 :root {
@@ -18,6 +19,7 @@
 html {
   min-height: 100%;
   background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -45,7 +47,26 @@ button {
   cursor: pointer;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
+
 ::selection {
   background: rgba(194, 81, 0, 0.14);
   color: #111827;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
