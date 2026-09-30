@@ -127,9 +127,11 @@ export async function POST(request: Request) {
 
     for (const participant of participants) {
       const googleUserId = participant.signedinUser?.user ?? null;
-      const displayName = typeof participant.name === "string"
-        ? participant.name
-        : null;
+      const displayName =
+        participant.signedinUser?.displayName ??
+        participant.anonymousUser?.displayName ??
+        participant.phoneUser?.displayName ??
+        null;
 
       let studentId = googleUserId ? mappingMap.get(googleUserId) ?? null : null;
       let matchStatus = studentId ? "MANUALLY_MATCHED" : "UNMATCHED";
