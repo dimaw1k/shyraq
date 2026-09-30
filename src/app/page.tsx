@@ -205,8 +205,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-black/6 bg-white py-3 sm:py-5">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-black/6 sm:grid-cols-4 sm:divide-y-0">
+      <section className="relative bg-[#f7f5f0] py-5 sm:py-7">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <div className="grid overflow-hidden rounded-[28px] border border-black/6 bg-white/75 shadow-[0_18px_50px_rgba(20,20,20,.045)] backdrop-blur sm:grid-cols-4">
           {[
             ["01", "Бәрі бір жерде", "Сабақтан нәтижеге дейін"],
             ["02", "Әр қадам көрінеді", "Прогресс жасырын қалмайды"],
@@ -221,10 +222,11 @@ export default function HomePage() {
               </div>
             </Reveal>
           ))}
+          </div>
         </div>
       </section>
 
-      <section id="features" className="border-b border-black/5 bg-[#f7f5f0]">
+      <section id="features" className="relative bg-[#f7f5f0]">
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-6 sm:py-28 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Мүмкіндіктер</p>
@@ -259,7 +261,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-black/5 bg-white">
+      <section className="relative bg-[#f7f5f0]">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-6 sm:py-28 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:px-8">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Қалай жұмыс істейді</p>
@@ -297,9 +299,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative bg-[#141414] py-2 text-white">
-        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-6 sm:py-28 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+      <section className="relative bg-[#f7f5f0] px-3 py-8 sm:px-5 sm:py-10">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[40px] bg-[#141414] text-white shadow-[0_30px_90px_rgba(20,20,20,.14)]">
+          <div className="px-5 py-24 sm:px-6 sm:py-28 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
             <Reveal>
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff9b3b]">Өнімнің ішінде</p>
@@ -378,12 +381,13 @@ export default function HomePage() {
               </div>
             </div>
             </Reveal>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-[#c95e00] bg-[#ff7a00]">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+      <section className="bg-[#f7f5f0] px-3 py-8 sm:px-5 sm:py-10">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[40px] bg-[#ff7a00] px-5 py-20 shadow-[0_30px_80px_rgba(255,122,0,.16)] sm:px-6 sm:py-24 lg:px-8">
           <Reveal className="w-full">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
@@ -405,7 +409,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="bg-[#0d0d0d] text-white/45">
+      <footer className="mt-3 bg-[#0d0d0d] text-white/45">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <Logo dark />
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px]">
