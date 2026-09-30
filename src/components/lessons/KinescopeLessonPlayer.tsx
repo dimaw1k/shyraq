@@ -1,9 +1,11 @@
 "use client";
 
-import KinescopePlayer from "@kinescope/react-kinescope-player";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import type { TimeRange } from "@/lib/video/coverage";
 import { mergeTimeRanges, watchedPercent } from "@/lib/video/coverage";
+
+const KinescopePlayer = dynamic(() => import("@kinescope/react-kinescope-player"), { ssr: false });
 
 type Props = {
   lessonId: string;
@@ -35,6 +37,7 @@ export function KinescopeLessonPlayer({
     try {
       const response = await fetch("/api/lessons/" + lessonId + "/progress", {
         method: "POST",
+        keepalive: true,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ranges: nextRanges }),
       });
