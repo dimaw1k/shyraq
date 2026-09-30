@@ -275,7 +275,6 @@ export default function HomePage() {
           <div className="space-y-3">
             {steps.map((step, index) => (
               <Reveal key={step.n} delay={index * 90}>
-              <Reveal key={step.n} delay={index * 90}>
                 <div className="group rounded-[24px] border border-black/7 bg-[#f7f5f0] p-5 transition-all duration-300 hover:bg-white hover:shadow-[0_18px_45px_rgba(20,20,20,.07)] sm:p-6">
                   <div className="flex items-start gap-4">
                     <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#141414] text-[10px] font-extrabold text-white">
