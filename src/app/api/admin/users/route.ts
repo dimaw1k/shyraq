@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     .limit(limit);
 
   if (search) {
-    const term = search.replace(/[%_]/g, "");
+    const term = search.replace(/[^\p{L}\p{N}@.+()_ -]/gu, "").replace(/[%_]/g, "");
     query = query.or("full_name.ilike.%" + term + "%,email.ilike.%" + term + "%,phone.ilike.%" + term + "%");
   }
 
