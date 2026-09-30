@@ -99,6 +99,7 @@ Apply in order:
 5. 0005_google_meet_integration.sql
 6. 0006_meet_participant_sessions.sql
 7. 0007_test_answer_privacy.sql
+8. 0008_storage_and_team_hardening.sql
 
 ## Security notes
 
