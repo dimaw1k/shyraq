@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 
+// Production health contract: deployment must prove real Supabase connectivity.
+
 export async function GET() {
   const publicEnvConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
