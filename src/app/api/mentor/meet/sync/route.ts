@@ -8,12 +8,13 @@ import {
   listParticipantSessions,
   sessionDurationSeconds,
 } from "@/lib/google-meet";
+import { recordAttendanceScore } from "@/lib/attendance-scoring";
 
 function normalizeName(value: string) {
   return value
     .normalize("NFKC")
     .toLocaleLowerCase("kk-KZ")
-    .replace(/[\\s_]+/gu, " ")
+    .replace(/[\s_]+/gu, " ")
     .trim();
 }
 
@@ -199,7 +200,7 @@ export async function POST(request: Request) {
           attendancePercent < 100 ? "ATTENDED" :
           "FULL";
 
-        const { error } = await admin.from("attendance_records").upsert({
+        const { data: attendanceRow, error } = await admin.from("attendance_records").upsert({
           team_id: teamId,
           student_id: studentId,
           external_conference_id: externalConferenceId,
@@ -211,9 +212,18 @@ export async function POST(request: Request) {
           started_at: conference.startTime ?? null,
           ended_at: conference.endTime ?? null,
           imported_at: new Date().toISOString(),
-        }, { onConflict: "external_conference_id,student_id" });
+        }, { onConflict: "external_conference_id,student_id" }).select("id").single();
 
-        if (!error) attendanceRows += 1;
+        if (!error && attendanceRow) {
+          attendanceRows += 1;
+          await recordAttendanceScore(admin, {
+            attendanceId: attendanceRow.id,
+            studentId,
+            teamId,
+            attendancePercent,
+            conferenceEnded: Boolean(conference.endTime && Date.parse(conference.endTime) <= Date.now()),
+          });
+        }
       }
     }
   }
