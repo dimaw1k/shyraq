@@ -5,6 +5,7 @@ const links = [
   ["Tasks", "/tasks"],
   ["Reports", "/reports"],
   ["Lessons", "/lessons"],
+  ["Ranking", "/rankings"],
 ];
 
 export function AppNav({ role }: { role: string }) {
