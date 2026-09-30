@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import {
   ArrowRight,
   BarChart3,
@@ -128,6 +129,7 @@ function DashboardPreview() {
 export default function HomePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f7f5f0] text-[#141414]">
+      <ScrollProgress />
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 shrq-grid opacity-40" />
         <div className="absolute -right-40 top-0 h-[520px] w-[520px] rounded-full bg-[#ff7a00]/8 blur-3xl" />
@@ -146,7 +148,7 @@ export default function HomePage() {
           </nav>
 
           <div className="grid gap-12 pt-10 lg:grid-cols-[.9fr_1.1fr] lg:items-start lg:gap-12 lg:pt-14">
-            <div className="relative z-10 max-w-2xl">
+            <Reveal className="relative z-10 max-w-2xl" delay={80}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/7 bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[.18em] text-[#6c6862] shadow-sm backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff7a00]" />
                 ОҚУҒА АРНАЛҒАН БІРТҰТАС ЖҮЙЕ
@@ -194,14 +196,16 @@ export default function HomePage() {
                   <p className="mt-0.5 text-[10px] text-[#8a857d]">Бір команда. Бір қарқын. Бір нәтиже.</p>
                 </div>
               </div>
-            </div>
+            </Reveal>
 
-            <DashboardPreview />
+            <Reveal className="shrq-hero-preview" delay={180}>
+              <DashboardPreview />
+            </Reveal>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-black/6 bg-white">
+      <section className="border-y border-black/6 bg-white py-3 sm:py-5">
         <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-black/6 sm:grid-cols-4 sm:divide-y-0">
           {[
             ["01", "Бәрі бір жерде", "Сабақтан нәтижеге дейін"],
@@ -220,8 +224,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="features" className="bg-[#f7f5f0]">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+      <section id="features" className="border-b border-black/5 bg-[#f7f5f0]">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-6 sm:py-28 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Мүмкіндіктер</p>
             <h2 className="mt-3 text-4xl font-extrabold leading-tight tracking-[-.05em] sm:text-5xl">
@@ -255,8 +259,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-6 sm:py-24 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:px-8">
+      <section className="border-b border-black/5 bg-white">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-6 sm:py-28 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:px-8">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Қалай жұмыс істейді</p>
             <h2 className="mt-3 text-4xl font-extrabold leading-tight tracking-[-.05em] sm:text-5xl">
@@ -293,8 +297,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#141414] text-white">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+      <section className="relative bg-[#141414] py-2 text-white">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-6 sm:py-28 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
             <Reveal>
             <div>
@@ -378,8 +382,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#ff7a00]">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <section className="border-t border-[#c95e00] bg-[#ff7a00]">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal className="w-full">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
