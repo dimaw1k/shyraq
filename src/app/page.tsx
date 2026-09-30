@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Reveal } from "@/components/ui/Reveal";
 import {
   ArrowRight,
   BarChart3,
@@ -15,18 +16,18 @@ import {
 } from "lucide-react";
 
 const features = [
-  { icon: Target, title: "Күнделікті тәртіп", text: "Тапсырма, deadline және күндік есеп бір жүйеге жиналады." },
-  { icon: BookOpen, title: "Сабақ + тест", text: "Видео прогресі сақталады, қажетті деңгейге жеткенде тест ашылады." },
-  { icon: BarChart3, title: "Прогресс", text: "Ұпай, completion және белсенділік бір экранда көрінеді." },
-  { icon: Users, title: "Ментор бақылауы", text: "Командадағы әр оқушының жағдайын жылдам түсінуге болады." },
-  { icon: Trophy, title: "Рейтинг", text: "Нәтижелерді ұпайлар арқылы көріп, өз позицияңызды бақылаңыз." },
-  { icon: CalendarCheck2, title: "Meet attendance", text: "Сабаққа қатысу да оқу прогресінің бір бөлігіне айналады." },
+  { icon: Target, title: "Күннің бағыты анық", text: "Тапсырма, deadline және күндік есеп — бәрі бір жерде. Келесі қадамды іздеп уақыт жоғалтпайсың." },
+  { icon: BookOpen, title: "Сабақ көр. Тестті аш.", text: "Видеоның нақты прогресі сақталады. Қажетті деңгейге жеткенде тест өзінен-өзі ашылады." },
+  { icon: BarChart3, title: "Өсуіңді көр", text: "Ұпайың, белсенділігің және сабақтағы прогресің бір экранда. Не алға жылжып жатыр — бірден көресің." },
+  { icon: Users, title: "Ментор бәрін көреді", text: "Қай оқушы алда, қайсысы тоқтап қалды, кімге назар керек — команда бір экранда." },
+  { icon: Trophy, title: "Нәтижеңді салыстыр", text: "Ұпай мен рейтинг прогресті көзге көрінетін етеді. Өзіңнің позицияңды күн сайын бақыла." },
+  { icon: CalendarCheck2, title: "Қатысу да есепте", text: "Google Meet-тегі қатысуың автоматты түрде есепке алынып, жалпы белсенділікке қосылады." },
 ];
 
 const steps = [
-  { n: "01", title: "Тіркел", text: "Профиль жасап, командаңмен бір кеңістікке кір." },
-  { n: "02", title: "Орында", text: "Сабақтарды көр, тапсырмаларды аяқта, күндік есепті толтыр." },
-  { n: "03", title: "Өс", text: "Прогресіңді, ұпайыңды және рейтингіңді бақыла." },
+  { n: "01", title: "Тіркел", text: "Профильіңді жаса да, өз командаңмен бір кеңістікке кір." },
+  { n: "02", title: "Орында", text: "Сабақты көр. Тапсырманы жап. Күндік есебіңді бір минутта жібер." },
+  { n: "03", title: "Өс", text: "Әр орындалған қадам ұпайға айналсын. Прогрессіңді көріп, келесі деңгейге өт." },
 ];
 
 function Logo({ dark = false }: { dark?: boolean }) {
@@ -42,7 +43,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
 
 function DashboardPreview() {
   return (
-    <div className="relative">
+    <div className="relative lg:mt-3">
       <div className="absolute -inset-10 rounded-[44px] bg-[#ff7a00]/10 blur-3xl" />
       <div className="relative rounded-[30px] border border-[#ffffff22] bg-[#131313] p-3 shadow-[0_35px_100px_rgba(20,20,20,.22)] sm:p-4">
         <div className="rounded-[24px] border border-white/10 bg-[#191919] p-4 sm:p-5">
@@ -144,29 +145,29 @@ export default function HomePage() {
             </div>
           </nav>
 
-          <div className="grid gap-14 pt-16 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:gap-12 lg:pt-24">
+          <div className="grid gap-12 pt-10 lg:grid-cols-[.9fr_1.1fr] lg:items-start lg:gap-12 lg:pt-14">
             <div className="relative z-10 max-w-2xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-black/7 bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[.18em] text-[#6c6862] shadow-sm backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#ff7a00]" />
-                Оқу процесіне арналған OS
+                ОҚУҒА АРНАЛҒАН БІРТҰТАС ЖҮЙЕ
               </div>
 
               <h1 className="mt-6 max-w-2xl text-[48px] font-extrabold leading-[.98] tracking-[-.06em] sm:text-6xl lg:text-[78px]">
                 Оқуды
-                <span className="block text-[#ff7a00]">жүйеге айналдыр.</span>
+                <span className="block text-[#ff7a00]">бақыла. Нәтижеңді өсір.</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-base leading-7 text-[#68645e] sm:text-lg">
-                Shyraq сабақ, тапсырма, күнделікті есеп, прогресс, ментор бақылауы және рейтингті бір қарапайым кеңістікке жинайды.
+                Сабақ қайда, тапсырма қайда, прогресім қанша — енді іздемейсің. Shyraq оқу процесін бір жерге жинап, әр күніңе нақты келесі қадам береді.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/register" className="group inline-flex items-center gap-2 rounded-2xl bg-[#ff7a00] px-5 py-3.5 text-sm font-bold text-white shadow-[0_14px_30px_rgba(255,122,0,.22)] transition-all hover:-translate-y-0.5 hover:bg-[#ec6d00]">
-                  Тегін бастау
+                  Қазір бастау
                   <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link href="#features" className="inline-flex items-center gap-2 rounded-2xl border border-black/8 bg-white px-5 py-3.5 text-sm font-bold text-[#2c2a27] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-                  Мүмкіндіктер
+                  Не бар екенін көру
                   <ChevronRight size={16} />
                 </Link>
               </div>
@@ -189,8 +190,8 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#2e2b28]">Оқушыға түсінікті. Менторға ыңғайлы.</p>
-                  <p className="mt-0.5 text-[10px] text-[#8a857d]">Бір командада бірдей жүйе.</p>
+                  <p className="text-xs font-bold text-[#2e2b28]">Оқушыға — анық бағыт. Менторға — толық көрініс.</p>
+                  <p className="mt-0.5 text-[10px] text-[#8a857d]">Бір команда. Бір қарқын. Бір нәтиже.</p>
                 </div>
               </div>
             </div>
@@ -203,16 +204,18 @@ export default function HomePage() {
       <section className="border-y border-black/6 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-black/6 sm:grid-cols-4 sm:divide-y-0">
           {[
-            ["01", "Бір платформа", "Сабақтан рейтингке дейін"],
-            ["02", "Нақты прогресс", "Әр әрекет көрінеді"],
-            ["03", "Командалық бақылау", "Ментор бәрін бірден түсінеді"],
-            ["04", "Тұрақты ритм", "Күн сайын келесі қадам анық"],
-          ].map(([n, title, text]) => (
-            <div key={n} className="px-5 py-7 sm:px-7 sm:py-8">
+            ["01", "Бәрі бір жерде", "Сабақтан нәтижеге дейін"],
+            ["02", "Әр қадам көрінеді", "Прогресс жасырын қалмайды"],
+            ["03", "Менторлық бақылау", "Команданың суреті бір экранда"],
+            ["04", "Күн сайынғы ритм", "Келесі қадам әрқашан анық"],
+          ].map(([n, title, text], index) => (
+            <Reveal key={n} delay={index * 70}>
+              <div className="px-5 py-7 sm:px-7 sm:py-8">
               <p className="text-[10px] font-extrabold tracking-[.18em] text-[#ff7a00]">{n}</p>
               <p className="mt-2 text-sm font-bold text-[#191817]">{title}</p>
               <p className="mt-1.5 text-[11px] leading-5 text-[#8a857d]">{text}</p>
-            </div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -222,11 +225,11 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Мүмкіндіктер</p>
             <h2 className="mt-3 text-4xl font-extrabold leading-tight tracking-[-.05em] sm:text-5xl">
-              Көп функция.
-              <span className="block text-[#8d887f]">Бір ғана логика.</span>
+              Көп мүмкіндік.
+              <span className="block text-[#8d887f]">Бір ғана мақсат — алға жылжу.</span>
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-[#6d6962] sm:text-base">
-              Оқу процесінің әр бөлігі келесі қадаммен байланысып тұрады. Соның арқасында платформа «көп бет» емес, біртұтас жүйе болып сезіледі.
+              Сенің уақытың интерфейсті түсінуге емес, оқуға жұмсалсын. Сондықтан Shyraq әр функцияны бір логикаға біріктіреді: көр → орында → белгіле → өс.
             </p>
           </div>
 
@@ -234,7 +237,8 @@ export default function HomePage() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <article key={feature.title} className="group rounded-[26px] border border-black/7 bg-white p-6 shadow-[0_12px_38px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(20,20,20,.08)]">
+                <Reveal key={feature.title} delay={index * 80}>
+                <article className="group rounded-[26px] border border-black/7 bg-white p-6 shadow-[0_12px_38px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(20,20,20,.08)]">
                   <div className="flex items-center justify-between">
                     <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#fff0e2] text-[#e96f00] transition-transform duration-300 group-hover:scale-105">
                       <Icon size={19} />
@@ -244,6 +248,7 @@ export default function HomePage() {
                   <h3 className="mt-5 text-base font-bold tracking-[-.02em]">{feature.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#737067]">{feature.text}</p>
                 </article>
+                </Reveal>
               );
             })}
           </div>
@@ -256,20 +261,21 @@ export default function HomePage() {
             <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff7a00]">Қалай жұмыс істейді</p>
             <h2 className="mt-3 text-4xl font-extrabold leading-tight tracking-[-.05em] sm:text-5xl">
               Күн сайын
-              <span className="block text-[#8d887f]">бір қадам алға.</span>
+              <span className="block text-[#8d887f]">өзіңнің жақсырақ нұсқаңа.</span>
             </h2>
             <p className="mt-4 max-w-md text-sm leading-7 text-[#6f6a63] sm:text-base">
-              Қолданушыға күрделі жүйені түсіндірудің қажеті жоқ. Қайда кіру керек, не істеу керек және келесі қадам қандай — бәрі анық.
+              Артық батырма, түсініксіз экран жоқ. Кіресің, бүгінгі міндетіңді көресің, орындайсың — жүйе қалған прогресті өзі жинайды.
             </p>
             <Link href="/register" className="group mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#1a1917]">
-              Shyraq-ты көру
+              Платформаны көру
               <ArrowRight size={16} className="text-[#ff7a00] transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
           <div className="space-y-3">
-            {steps.map((step) => (
-              <div key={step.n} className="group rounded-[24px] border border-black/7 bg-[#f7f5f0] p-5 transition-all duration-300 hover:bg-white hover:shadow-[0_18px_45px_rgba(20,20,20,.07)] sm:p-6">
+            {steps.map((step, index) => (
+              <Reveal key={step.n} delay={index * 90}>
+              <div className="group rounded-[24px] border border-black/7 bg-[#f7f5f0] p-5 transition-all duration-300 hover:bg-white hover:shadow-[0_18px_45px_rgba(20,20,20,.07)] sm:p-6">
                 <div className="flex items-start gap-4">
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#141414] text-[10px] font-extrabold text-white">
                     {step.n}
@@ -289,14 +295,15 @@ export default function HomePage() {
       <section className="bg-[#141414] text-white">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+            <Reveal>
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff9b3b]">Өнімнің ішінде</p>
               <h2 className="mt-3 max-w-2xl text-4xl font-extrabold leading-tight tracking-[-.05em] sm:text-5xl">
-                Оқушыға — мотивация.
-                <span className="block text-[#ff7a00]">Менторға — бақылау.</span>
+                Оқушыға — бағыт.
+                <span className="block text-[#ff7a00]">Менторға — толық картина.</span>
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-white/48 sm:text-base">
-                Бір жүйе екі түрлі қажеттілікті қатар жабады: оқушы не істеу керегін түсінеді, ментор команданың нақты жағдайын көреді.
+                Бір жүйе екі рөлді байланыстырады: оқушы бүгін не істейтінін нақты біледі, ментор команданың шынайы прогресін бірден көреді.
               </p>
 
               <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -312,8 +319,9 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Reveal>
 
+            <Reveal delay={120}>
             <div className="rounded-[30px] border border-white/10 bg-white/[.035] p-4 sm:p-5">
               <div className="rounded-[24px] bg-white p-5 text-[#141414] sm:p-6">
                 <div className="flex items-center justify-between">
@@ -363,21 +371,23 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <section className="bg-[#ff7a00]">
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <Reveal className="w-full">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-white/65">READY WHEN YOU ARE</p>
               <h2 className="mt-3 text-4xl font-extrabold leading-none tracking-[-.06em] text-white sm:text-6xl">
-                Оқуды
-                <span className="block text-white/70">бүгін баста.</span>
+                Бос күтпе.
+                <span className="block text-white/70">Бүгін баста.</span>
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-white/78 sm:text-base">
-                Бір аккаунт. Бір жүйе. Күн сайын анық келесі қадам.
+                Бір аккаунт. Бір жүйе. Әр күнге нақты бағыт.
               </p>
             </div>
             <Link href="/register" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-extrabold text-[#171513] shadow-[0_16px_40px_rgba(140,53,0,.2)] transition-all hover:-translate-y-0.5">
@@ -385,6 +395,7 @@ export default function HomePage() {
               <ArrowRight size={17} />
             </Link>
           </div>
+          </Reveal>
         </div>
       </section>
 
