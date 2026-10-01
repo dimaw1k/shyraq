@@ -1,5 +1,19 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
+type RawTestQuestion = {
+  id: string;
+  test_id: string;
+  question_text: string;
+  points: number | string;
+  sort_order: number;
+  test_options: Array<{
+    id: string;
+    option_text: string;
+    is_correct: boolean;
+    sort_order: number;
+  }> | null;
+};
+
 export type StaffTestData = {
   test: {
     id: string;
@@ -28,17 +42,20 @@ export async function getStaffTestData(lessonIds: string[]) {
     .in("lesson_id", lessonIds);
 
   const testIds = (tests ?? []).map((test) => test.id);
+  let questions: RawTestQuestion[] = [];
 
-  const { data: questions } = testIds.length
-    ? await admin
-        .from("test_questions")
-        .select("id,test_id,question_text,points,sort_order,test_options(id,option_text,is_correct,sort_order)")
-        .in("test_id", testIds)
-        .order("sort_order", { ascending: true })
-    : { data: [] };
+  if (testIds.length) {
+    const { data } = await admin
+      .from("test_questions")
+      .select("id,test_id,question_text,points,sort_order,test_options(id,option_text,is_correct,sort_order)")
+      .in("test_id", testIds)
+      .order("sort_order", { ascending: true });
 
-  const questionsByTest = new Map<string, NonNullable<typeof questions>>();
-  for (const question of questions ?? []) {
+    questions = (data ?? []) as RawTestQuestion[];
+  }
+
+  const questionsByTest = new Map<string, RawTestQuestion[]>();
+  for (const question of questions) {
     const list = questionsByTest.get(question.test_id) ?? [];
     list.push(question);
     questionsByTest.set(question.test_id, list);
@@ -65,6 +82,7 @@ export async function getStaffTestData(lessonIds: string[]) {
         text: question.question_text,
         points: Number(question.points),
         options: (question.test_options ?? [])
+          .slice()
           .sort((a, b) => a.sort_order - b.sort_order)
           .map((option) => ({
             text: option.option_text,
