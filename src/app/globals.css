@@ -88,13 +88,13 @@ textarea::placeholder {
 }
 
 .shrq-reveal {
-  opacity: 0;
-  transform: translate3d(0, 46px, 0) scale(0.975);
-  filter: blur(4px);
+  opacity: 0.16;
+  transform: translate3d(0, 22px, 0) scale(0.99);
+  filter: blur(1.5px);
   transition:
-    opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 800ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 620ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform, filter;
   backface-visibility: hidden;
 }
@@ -200,7 +200,7 @@ section {
 
 @media (max-width: 767px) {
   .shrq-reveal {
-    transform: translate3d(0, 28px, 0) scale(0.985);
+    transform: translate3d(0, 16px, 0) scale(0.99);
   }
 
   .shrq-hero-preview {
