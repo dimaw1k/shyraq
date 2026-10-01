@@ -48,7 +48,14 @@ export async function POST(request: Request) {
         .eq("phone", phone)
         .maybeSingle();
 
-      if (profileError) {\n        console.error("[auth/login] profiles phone lookup failed", {\n          code: profileError.code,\n          message: profileError.message,\n          details: profileError.details,\n          hint: profileError.hint,\n        });\n      }\n\n      if (profileError || !profile?.email) {
+      if (profileError) {
+        console.error("[auth/login] profiles phone lookup failed", {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+        });
+      }\n\n      if (profileError || !profile?.email) {
         return NextResponse.json(
           { error: "Көрсетілген деректер бойынша тіркелгі табылмады немесе құпиясөз қате." },
           { status: 401 },
