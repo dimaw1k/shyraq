@@ -218,7 +218,7 @@ $$;
 
 -- Storage policies live outside public, so migrate their legacy
 -- is_admin() dependency separately.
-do $
+do $storage_policy_migration$
 declare
   p record;
   using_expr text;
@@ -247,11 +247,11 @@ begin
     end if;
   end loop;
 end
-$;
+$storage_policy_migration$;
 
 -- Chief mentor can inspect managed submission files; destructive storage access
 -- remains leader-only.
-do $
+do $storage_select_policy_migration$
 declare
   q text;
 begin
@@ -270,7 +270,7 @@ begin
     );
   end if;
 end
-$;
+$storage_select_policy_migration$;
 
 -- Profiles are visible to the whole management layer, while direct role
 -- assignment remains leader-only.
