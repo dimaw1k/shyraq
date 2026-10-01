@@ -55,7 +55,9 @@ export async function POST(request: Request) {
           details: profileError.details,
           hint: profileError.hint,
         });
-      }\n\n      if (profileError || !profile?.email) {
+      }
+
+      if (profileError || !profile?.email) {
         return NextResponse.json(
           { error: "Көрсетілген деректер бойынша тіркелгі табылмады немесе құпиясөз қате." },
           { status: 401 },
@@ -72,6 +74,12 @@ export async function POST(request: Request) {
     });
 
     if (error) {
+      console.error("[auth/login] signInWithPassword failed", {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+      });
+
       return NextResponse.json(
         { error: "Көрсетілген деректер бойынша тіркелгі табылмады немесе құпиясөз қате." },
         { status: 401 },
