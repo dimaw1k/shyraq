@@ -28,8 +28,8 @@ export default async function LessonsPage() {
                 </div>
                 <h2 className="mt-4 text-[16px] font-extrabold tracking-[-.02em] text-[#172235]">{lesson.title}</h2>
                 {lesson.description ? <p className="mt-1.5 text-xs font-medium leading-5 text-[#766E66]">{lesson.description}</p> : null}
-                <div className="mt-5"><ProgressBar value={0} label={`Тест үшін ${lesson.required_watch_percent}% көру керек`} /></div>
-                <Link href={`/lessons/${lesson.id}`} className="mt-5 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#FF6F2C]">Сабақты ашу <ArrowRight size={14} /></Link>
+                <div className="mt-5 rounded-[14px] bg-[#F6F2ED] px-3.5 py-3 text-[10px] font-semibold text-[#7F756D]">Тестке өту үшін кемінде {lesson.required_watch_percent}% көру керек.</div>
+                <Link href={`/lessons/${lesson.id}` className="mt-5 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#FF6F2C]">Сабақты ашу <ArrowRight size={14} /></Link>
               </Card>
             ))}
             {!lessons?.length ? <div className="md:col-span-2"><EmptyState title="Жарияланған сабақ жоқ." /></div> : null}
