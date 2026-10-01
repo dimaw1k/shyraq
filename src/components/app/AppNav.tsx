@@ -35,7 +35,7 @@ const studentLinks: NavItem[] = [
 const mentorLinks: NavItem[] = [
   { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
   { label: "Менің командам", href: "/mentor#team", icon: Users },
-  { label: "Тапсырмаларды тексеру", href: "/mentor#tasks", icon: ClipboardCheck },
+  { label: "Тапсырмаларды тексеру", href: "/mentor/submissions", icon: ClipboardCheck },
   { label: "Есептер", href: "/mentor#reports", icon: FileText },
   { label: "Meet", href: "/mentor#meet", icon: Activity },
   { label: "Рейтинг", href: "/rankings", icon: Trophy },
@@ -47,6 +47,7 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Командалар", href: "/chief-mentor/teams", icon: Users },
   { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen },
   { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList },
+  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck },
   { label: "Есептер", href: "/chief-mentor/reports", icon: FileText },
   { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
 ];
@@ -57,6 +58,7 @@ const leaderLinks: NavItem[] = [
   { label: "Командалар", href: "/leader/teams", icon: Users },
   { label: "Оқушылар", href: "/leader/students", icon: ClipboardCheck },
   { label: "Контент", href: "/leader/content", icon: BookOpen },
+  { label: "Тапсырма тексеруі", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
