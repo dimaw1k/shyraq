@@ -98,9 +98,10 @@ GOOGLE_TOKEN_ENCRYPTION_KEY must be a base64-encoded 32-byte key.
 
 ## Supabase migrations
 
-Apply in order:
+Apply every migration in repository order, including both phone-normalization migrations.
 1. 0001_initial.sql
 2. 0002_security_and_storage.sql
+3. 0002_standardize_phone_format.sql
 3. 0003_test_answers.sql
 4. 0004_score_events.sql
 5. 0005_google_meet_integration.sql
