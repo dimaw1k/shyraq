@@ -310,7 +310,7 @@ export default function HomePage() {
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">МАРАФОННЫҢ МӘНІ</p>
               <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
                 Өзіңе берген уәдеңді орындауды үйрен.
-                <span className="block text-[#9b9289]">21 күн — соның бастамасы.</span>
+                <span className="block text-[#ff6f2c]">21 күн — соның бастамасы.</span>
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
                 Шырақ саған жай ғана тапсырма бермейді. Біз таңғы әдеттен бастап кешкі есепке дейінгі күнді бір жүйеге жинаймыз: оқу, жоспар, жауапкершілік, бақылау. Алдыңғы ағындарда 480+ жас осы форматта 21 күндік бағдарламадан өтті.
