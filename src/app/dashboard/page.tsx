@@ -9,7 +9,7 @@ import {
   Flame,
   Trophy,
 } from "lucide-react";
-import { AppShell, UserChip } from "@/components/app/AppNav";
+import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function formatDeadline(value?: string | null) {
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
       userName={profile?.full_name ?? undefined}
       title="Басты бет"
       description="Бүгінгі оқу жоспарыңыз."
-      right={<UserChip name={profile?.full_name ?? undefined} role={role} />}
+      hideHeader
     >
       <main className="mx-auto w-full max-w-[1320px] px-4 py-4 sm:px-6 lg:px-7">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
