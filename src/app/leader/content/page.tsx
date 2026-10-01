@@ -6,6 +6,8 @@ import { StaffCreateLessonForm } from "@/components/staff/StaffCreateLessonForm"
 import { StaffCreateTaskForm } from "@/components/staff/StaffCreateTaskForm";
 import { StaffTaskEditForm } from "@/components/staff/StaffTaskEditForm";
 import { StaffLessonEditForm } from "@/components/staff/StaffLessonEditForm";
+import { StaffTestEditor } from "@/components/staff/StaffTestEditor";
+import { getStaffTestData } from "@/lib/staff/test-data";
 
 export default async function LeaderContentPage() {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
@@ -23,6 +25,8 @@ export default async function LeaderContentPage() {
     supabase.from("teams").select("id,name").order("name"),
   ]);
 
+  const testData = await getStaffTestData((lessons ?? []).map((lesson) => lesson.id));
+
   return (
     <AppShell role="LEADER" userName={profile.full_name} title="Контент" description="Марафон сабақтары мен тапсырмаларының жалпы күйі.">
       <PageContainer>
@@ -30,7 +34,7 @@ export default async function LeaderContentPage() {
           <SectionHeader
             eyebrow="CONTENT"
             title="Контент"
-            description="Лидер сабақтарды, video gate параметрлерін және тапсырмаларды басқарады."
+            description="Лидер сабақтарды, video gate, lesson tests және тапсырмаларды басқарады."
           />
 
           <div className="space-y-3">
@@ -44,27 +48,37 @@ export default async function LeaderContentPage() {
                 <BookOpen size={17} className="text-[#FF6F2C]" />
                 <div>
                   <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF6F2C]">LESSONS</p>
-                  <h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Сабақтарды басқару</h2>
+                  <h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Сабақтар және тесттер</h2>
                 </div>
               </div>
 
               <div className="divide-y divide-[#EFE8E1]">
-                {(lessons ?? []).map((lesson) => (
-                  <div key={lesson.id} className="space-y-3 px-5 py-4">
-                    <div className="flex items-start gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[11px] font-extrabold text-[#354153]">{lesson.title}</p>
-                        <p className="mt-1 text-[9px] text-[#9A9189]">
-                          {Math.round(Number(lesson.duration_seconds) / 60)} мин · {lesson.required_watch_percent}% gate
-                        </p>
+                {(lessons ?? []).map((lesson) => {
+                  const lessonTest = testData.get(lesson.id) ?? { test: null, questions: [] };
+
+                  return (
+                    <div key={lesson.id} className="space-y-3 px-5 py-4">
+                      <div className="flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[11px] font-extrabold text-[#354153]">{lesson.title}</p>
+                          <p className="mt-1 text-[9px] text-[#9A9189]">
+                            {Math.round(Number(lesson.duration_seconds) / 60)} мин · {lesson.required_watch_percent}% gate
+                          </p>
+                        </div>
+                        <StatusPill tone={lesson.published ? "green" : "orange"}>
+                          {lesson.published ? "PUBLISHED" : "DRAFT"}
+                        </StatusPill>
                       </div>
-                      <StatusPill tone={lesson.published ? "green" : "orange"}>
-                        {lesson.published ? "PUBLISHED" : "DRAFT"}
-                      </StatusPill>
+
+                      <StaffLessonEditForm lesson={lesson} />
+                      <StaffTestEditor
+                        lessonId={lesson.id}
+                        test={lessonTest.test}
+                        questions={lessonTest.questions}
+                      />
                     </div>
-                    <StaffLessonEditForm lesson={lesson} />
-                  </div>
-                ))}
+                  );
+                })}
 
                 {!lessons?.length ? <div className="p-8"><EmptyState title="Сабақ жоқ." /></div> : null}
               </div>
