@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BarChart3,
   BookOpen,
-  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
@@ -153,7 +152,7 @@ function MentorWorkspace() {
               </div>
             ))}
           </div>
-        </Card>
+        </Card></div>
       </section>
 
       <section id="tasks" className="grid gap-5 xl:grid-cols-[1.25fr_.75fr]">
@@ -199,14 +198,14 @@ function MentorWorkspace() {
             </div>
           </Card>
 
-          <Card id="reports" className="p-5">
+          <div id="reports"><Card className="p-5">
             <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">REPORTS</p>
             <h2 className="mt-1.5 text-[17px] font-extrabold text-[#172235]">Күндік есептер</h2>
             <div className="mt-4 flex items-end justify-between gap-4">
               <div><p className="text-[30px] font-extrabold tracking-[-.06em] text-[#172235]">57/64</p><p className="mt-1 text-[9px] text-[#9A9189]">бүгін жіберілді</p></div>
               <div className="w-28"><ProgressBar value={89} /></div>
             </div>
-          </Card>
+          </Card></div>
         </div>
       </section>
     </>
@@ -272,7 +271,7 @@ function ChiefMentorWorkspace() {
           </div>
         </Card>
 
-        <Card id="lessons" className="p-5 sm:p-6">
+        <div id="lessons"><Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">КОНТЕНТ</p><h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Келесі жарияланым</h2></div>
             <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF0E8] text-[#FF6F2C]"><BookOpen size={16} /></span>
@@ -290,7 +289,7 @@ function ChiefMentorWorkspace() {
             <div className="rounded-[16px] bg-[#F6F2ED] p-3"><p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">ЖАРИЯЛАНДЫ</p><p className="mt-1.5 text-[18px] font-extrabold text-[#172235]">18</p></div>
             <div className="rounded-[16px] bg-[#F6F2ED] p-3"><p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">КҮТІЛУДЕ</p><p className="mt-1.5 text-[18px] font-extrabold text-[#172235]">3</p></div>
           </div>
-        </Card>
+        </Card></div>
       </section>
 
       <section id="reports" className="grid gap-5 lg:grid-cols-2">
@@ -312,7 +311,7 @@ function ChiefMentorWorkspace() {
           </div>
         </Card>
 
-        <Card id="analytics" dark className="p-5 sm:p-6">
+        <div id="analytics"><Card dark className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">АНАЛИТИКА</p>
           <h2 className="mt-1.5 text-[19px] font-extrabold">Оқушы нәтижесі өсіп келеді.</h2>
           <p className="mt-2 max-w-lg text-[10px] leading-5 text-white/55">Бұл экранда кейін нақты team-level және mentor-level деректер байланысады. Қазір макетте олардың иерархиясы көрсетілген.</p>
@@ -451,7 +450,7 @@ function LeaderWorkspace() {
           </div>
         </Card>
 
-        <Card id="settings" className="p-5 sm:p-6">
+        <div id="settings"><Card className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ЖЕДЕЛ БАСҚАРУ</p>
           <h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Лидер әрекеттері</h2>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
@@ -460,7 +459,7 @@ function LeaderWorkspace() {
             <SecondaryLink href="#content">Контент</SecondaryLink>
             <SecondaryLink href="#analytics">Аналитика</SecondaryLink>
           </div>
-        </Card>
+        </Card></div>
       </section>
     </>
   );
