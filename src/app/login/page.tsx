@@ -5,7 +5,6 @@ import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
-import { formatKzPhone } from "@/lib/phone";
 
 const montserrat = Montserrat({
   subsets: ["cyrillic", "latin"],
@@ -32,12 +31,52 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   function handleIdentifierChange(value: string) {
-    if (/^[+\d\s()\-]*$/.test(value) && /\d/.test(value)) {
-      setIdentifier(formatKzPhone(value));
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      setIdentifier("");
       return;
     }
 
-    setIdentifier(value);
+    if (!/^[+\d\s()\-]*$/.test(trimmed)) {
+      setIdentifier(value);
+      return;
+    }
+
+    const digits = trimmed.replace(/\D/g, "").slice(0, 11);
+
+    if (!digits) {
+      setIdentifier(trimmed);
+      return;
+    }
+
+    let subscriber = digits;
+
+    if (digits.startsWith("8")) {
+      subscriber = digits.slice(1);
+    } else if (digits.startsWith("7")) {
+      subscriber = digits.slice(1);
+    }
+
+    subscriber = subscriber.slice(0, 10);
+
+    if (!subscriber) {
+      setIdentifier("+7 (");
+      return;
+    }
+
+    const operator = subscriber.slice(0, 3);
+    const part1 = subscriber.slice(3, 6);
+    const part2 = subscriber.slice(6, 8);
+    const part3 = subscriber.slice(8, 10);
+
+    let formatted = `+7 (${operator}`;
+    if (operator.length === 3) formatted += ")";
+    if (part1) formatted += ` ${part1}`;
+    if (part2) formatted += ` ${part2}`;
+    if (part3) formatted += ` ${part3}`;
+
+    setIdentifier(formatted);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
