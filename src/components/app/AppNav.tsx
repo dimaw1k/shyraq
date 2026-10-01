@@ -5,11 +5,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowRight,
+  Bell,
   BookOpen,
   ClipboardList,
   FileText,
-  Flame,
   LayoutDashboard,
   Menu,
   Settings,
@@ -29,8 +28,8 @@ type NavItem = {
 const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
   { label: "Тапсырмалар", href: "/tasks", icon: ClipboardList },
-  { label: "Есептер", href: "/reports", icon: FileText },
   { label: "Сабақтар", href: "/lessons", icon: BookOpen },
+  { label: "Есептер", href: "/reports", icon: FileText },
   { label: "Рейтинг", href: "/rankings", icon: Trophy },
   { label: "Баптаулар", href: "/settings", icon: Settings },
 ];
@@ -73,52 +72,28 @@ function initials(name?: string) {
   );
 }
 
-function Wordmark() {
+function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center">
-      <svg
-        width="116"
-        height="34"
-        viewBox="0 0 116 34"
-        role="img"
-        aria-label="SHYRAQ"
-        className="block h-[32px] w-auto"
-      >
-        <text
-          x="0"
-          y="26"
-          fill="#172235"
-          fontSize="27"
-          fontWeight="800"
-          letterSpacing="-1.15"
-          fontFamily="Arial, Helvetica, sans-serif"
-        >
-          SHYR
-        </text>
-        <g transform="translate(-12 0)">
-          <path
-            d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
-            fill="#FF6F2C"
-          />
-          <path
-            d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
-            fill="#FFF7F1"
-          />
-          <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
-        </g>
-        <text
-          x="94"
-          y="26"
-          fill="#172235"
-          fontSize="27"
-          fontWeight="800"
-          letterSpacing="-1.15"
-          fontFamily="Arial, Helvetica, sans-serif"
-        >
-          Q
-        </text>
-      </svg>
-    </div>
+    <svg
+      width={compact ? 94 : 116}
+      height="34"
+      viewBox="0 0 116 34"
+      role="img"
+      aria-label="SHYRAQ"
+      className="block"
+    >
+      <text x="0" y="26" fill="#172235" fontSize="27" fontWeight="800" letterSpacing="-1.15" fontFamily="Arial, Helvetica, sans-serif">
+        SHYR
+      </text>
+      <g transform="translate(-12 0)">
+        <path d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z" fill="#FF6F2C" />
+        <path d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z" fill="#FFF7F1" />
+        <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
+      </g>
+      <text x="94" y="26" fill="#172235" fontSize="27" fontWeight="800" letterSpacing="-1.15" fontFamily="Arial, Helvetica, sans-serif">
+        Q
+      </text>
+    </svg>
   );
 }
 
@@ -134,44 +109,50 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
   return (
     <>
-      <button
-        type="button"
-        aria-label="Мәзірді ашу"
-        onClick={() => setMobileOpen((open) => !open)}
-        className="fixed left-4 top-4 z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#EAE4DC] bg-white text-[#172235] shadow-[0_12px_28px_rgba(35,23,15,.08)] transition hover:-translate-y-0.5 lg:hidden"
-      >
-        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
-
-      <aside
-        className={[
-          "fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col border-r border-[#EEE8E0] bg-[#FBFAF7] px-4 py-5 transition-transform duration-300 ease-in-out",
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        ].join(" ")}
-      >
-        <div className="px-2 pb-7">
+      <header className="sticky top-0 z-30 h-[72px] border-b border-[#E7EBF0] bg-white">
+        <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-7">
           <Link
             href={role === "ADMIN" ? "/admin" : role === "MENTOR" ? "/mentor" : "/dashboard"}
-            onClick={() => setMobileOpen(false)}
             aria-label="Shyraq"
+            className="inline-flex items-center"
           >
             <Wordmark />
           </Link>
-        </div>
 
-        <div className="mb-5 rounded-[22px] bg-gradient-to-br from-[#FFF0E8] to-[#FFE1D2] p-4">
-          <div className="flex items-center gap-2 text-[#7B5F52]">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/75 text-[#FF6F2C]">
-              <Flame size={15} />
-            </span>
-            <div>
-              <p className="text-[9px] font-extrabold uppercase tracking-[.18em]">ОҚУ РЕЖИМІ</p>
-              <p className="mt-0.5 text-xs font-bold text-[#172235]">{roleLabels[role] ?? role}</p>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Хабарландырулар"
+              className="grid h-10 w-10 place-items-center rounded-full text-[#6F7E95] transition hover:bg-[#F5F7FA] hover:text-[#172235]"
+            >
+              <Bell size={18} strokeWidth={1.9} />
+            </button>
+            <UserChip name={userName} role={role} />
+            <button
+              type="button"
+              aria-label="Мәзірді ашу"
+              onClick={() => setMobileOpen((open) => !open)}
+              className="ml-1 grid h-10 w-10 place-items-center rounded-full text-[#172235] lg:hidden"
+            >
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
         </div>
+      </header>
 
-        <nav className="space-y-1.5">
+      <aside
+        className={[
+          "fixed left-0 top-[72px] z-40 h-[calc(100vh-72px)] w-[232px] border-r border-[#E7EBF0] bg-[#FAFBFC] px-3 py-4",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "transition-transform duration-300 ease-out",
+        ].join(" ")}
+      >
+        <div className="mb-4 px-2">
+          <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#A0AABB]">Shyraq</p>
+          <p className="mt-1 text-xs font-semibold text-[#7A8699]">{roleLabels[role] ?? role}</p>
+        </div>
+
+        <nav className="space-y-1">
           {links.map((item) => {
             const Icon = item.icon;
             const active = isActive(pathname, item.href);
@@ -182,41 +163,22 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={[
-                  "group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all duration-300",
+                  "flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[13px] font-semibold transition-colors",
                   active
-                    ? "bg-[#172235] text-white shadow-[0_12px_28px_rgba(23,34,53,.12)]"
-                    : "text-[#746C63] hover:bg-white hover:text-[#172235] hover:shadow-[0_8px_22px_rgba(35,23,15,.05)]",
+                    ? "bg-[#FFF0E8] text-[#FF6F2C]"
+                    : "text-[#55647A] hover:bg-white hover:text-[#172235]",
                 ].join(" ")}
               >
-                <span
-                  className={[
-                    "grid h-8 w-8 place-items-center rounded-xl transition",
-                    active
-                      ? "bg-[#FF6F2C] text-white"
-                      : "bg-[#F2EDE7] text-[#8F867D] group-hover:bg-[#FFF0E8] group-hover:text-[#FF6F2C]",
-                  ].join(" ")}
-                >
-                  <Icon size={16} strokeWidth={active ? 2.3 : 1.9} />
-                </span>
+                <Icon size={17} strokeWidth={active ? 2.1 : 1.8} />
                 <span>{item.label}</span>
-                {active ? <ArrowRight className="ml-auto opacity-60" size={14} /> : null}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto">
-          <div className="rounded-[24px] border border-[#EEE8E0] bg-white p-3 shadow-[0_12px_30px_rgba(35,23,15,.05)]">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#172235] text-xs font-extrabold text-white">
-                {initials(userName)}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-extrabold text-[#172235]">{userName ?? "Shyraq user"}</p>
-                <p className="mt-0.5 truncate text-[10px] font-semibold text-[#AAA198]">{roleLabels[role] ?? role}</p>
-              </div>
-            </div>
-          </div>
+        <div className="absolute bottom-4 left-3 right-3 rounded-[14px] border border-[#E6EBF1] bg-white p-3">
+          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#9AA6B6]">Профиль</p>
+          <p className="mt-1 truncate text-xs font-bold text-[#172235]">{userName ?? "Shyraq қолданушысы"}</p>
         </div>
       </aside>
 
@@ -225,7 +187,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           type="button"
           aria-label="Мәзірді жабу"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-30 bg-[#172235]/20 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 top-[72px] z-30 bg-[#172235]/10 backdrop-blur-[1px] lg:hidden"
         />
       ) : null}
     </>
@@ -248,19 +210,18 @@ export function AppShell({
   userName?: string;
 }) {
   return (
-    <div className="min-h-screen bg-[#FBFAF7] lg:pl-[248px]">
+    <div className="min-h-screen bg-[#F5F7FA] text-[#172235]">
       <AppNav role={role} userName={userName} />
-      <div className="min-h-screen">
-        <header className="sticky top-0 z-20 border-b border-[#EEE8E0]/80 bg-[#FBFAF7]/90 backdrop-blur-xl">
-          <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-            <div className="pl-14 lg:pl-0">
-              <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-[#FF6F2C]">SHYRAQ</p>
-              <h1 className="mt-1 text-lg font-extrabold tracking-[-.04em] text-[#172235] sm:text-xl">{title}</h1>
-              {description ? <p className="mt-0.5 hidden max-w-xl text-xs font-medium leading-5 text-[#8A8178] sm:block">{description}</p> : null}
+      <div className="lg:pl-[232px]">
+        <div className="border-b border-[#E7EBF0] bg-white">
+          <div className="flex min-h-[70px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-7">
+            <div className="min-w-0">
+              <h1 className="truncate text-[18px] font-extrabold tracking-[-.02em] text-[#172235]">{title}</h1>
+              {description ? <p className="mt-0.5 truncate text-[11px] font-medium text-[#8995A7]">{description}</p> : null}
             </div>
-            <div className="flex items-center gap-2">{right}</div>
+            {right ? <div>{right}</div> : null}
           </div>
-        </header>
+        </div>
         {children}
       </div>
     </div>
@@ -269,32 +230,24 @@ export function AppShell({
 
 export function UserChip({ name, role }: { name?: string; role?: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-[#EEE8E0] bg-white/90 px-2.5 py-2 shadow-[0_8px_22px_rgba(35,23,15,.04)]">
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
+    <div className="flex items-center gap-2">
+      <span className="grid h-9 w-9 place-items-center rounded-full bg-[#FF6F2C] text-[11px] font-extrabold text-white">
         {initials(name)}
       </span>
-      <div className="hidden min-w-0 sm:block">
+      <div className="hidden sm:block">
         <p className="max-w-32 truncate text-[11px] font-extrabold text-[#172235]">{name ?? "Shyraq"}</p>
-        {role ? <p className="text-[9px] font-semibold text-[#AAA198]">{roleLabels[role] ?? role}</p> : null}
+        {role ? <p className="text-[9px] font-medium text-[#98A3B3]">{roleLabels[role] ?? role}</p> : null}
       </div>
     </div>
   );
 }
 
-export function CompactStat({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+export function CompactStat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-[24px] border border-[#EEE8E0] bg-white p-4 shadow-[0_12px_30px_rgba(35,23,15,.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(35,23,15,.07)]">
-      <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#AAA198]">{label}</p>
-      <p className="mt-2 text-xl font-extrabold tracking-[-.04em] text-[#172235]">{value}</p>
-      {hint ? <p className="mt-1 text-[10px] font-semibold text-[#8E857C]">{hint}</p> : null}
+    <div className="rounded-[14px] border border-[#E7EBF0] bg-white p-3.5">
+      <p className="text-[9px] font-bold uppercase tracking-[.12em] text-[#9BA7B7]">{label}</p>
+      <p className="mt-1.5 truncate text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">{value}</p>
+      {hint ? <p className="mt-0.5 text-[10px] font-medium text-[#8B97A7]">{hint}</p> : null}
     </div>
   );
 }
