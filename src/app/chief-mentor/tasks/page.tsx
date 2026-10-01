@@ -34,7 +34,7 @@ export default async function ChiefMentorTasksPage() {
             description="Active күйін, deadline, ұпайын және команда scope-ын басқару."
           />
 
-          <StaffCreateTaskForm />
+          <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
 
           <Card className="overflow-hidden">
             <div className="hidden grid-cols-[1.25fr_130px_110px_100px_420px] gap-3 border-b border-[#EFE8E1] bg-[#FCFAF8] px-6 py-3 text-[8px] font-extrabold uppercase tracking-[0.12em] text-[#9A9189] xl:grid">
