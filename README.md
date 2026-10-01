@@ -30,6 +30,7 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 ## Implemented foundation
 
 - Student-facing dashboard, tasks, task detail/submission, reports, lesson catalog, profile settings and ranking UI
+- Unified Shyraq UI system: Montserrat typography, warm neutral surfaces, orange accent, simplified navigation and student/mentor workspace
 - Mentor operational dashboard with phone-based student management, student progress metrics and Meet sync controls
 - Admin operational dashboard with user, team, task, lesson, test and score-rule management UI
 - Scheduled Meet attendance sync endpoint and Vercel cron configuration
