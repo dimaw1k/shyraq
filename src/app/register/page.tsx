@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
@@ -21,7 +21,6 @@ type FormState = {
   lastName: string;
   age: string;
   educationType: string;
-  educationPlace: string;
   password: string;
   confirmPassword: string;
 };
@@ -35,7 +34,6 @@ const initialForm: FormState = {
   lastName: "",
   age: "",
   educationType: "UNIVERSITY",
-  educationPlace: "",
   password: "",
   confirmPassword: "",
 };
@@ -55,6 +53,8 @@ export default function RegisterPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<ErrorState>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const updateField = (key: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -71,7 +71,6 @@ export default function RegisterPage() {
 
     const age = Number(form.age);
     if (!Number.isInteger(age) || age < 10 || age > 100) next.age = "Жасыңызды дұрыс енгізіңіз.";
-    if (!form.educationPlace.trim()) next.educationPlace = "Оқу орнын енгізіңіз.";
     if (form.password.length < 8) next.password = "Құпиясөз кемінде 8 таңба болуы керек.";
     if (form.password !== form.confirmPassword) next.confirmPassword = "Құпиясөздер сәйкес емес.";
 
@@ -101,7 +100,6 @@ export default function RegisterPage() {
           lastName: form.lastName,
           age: form.age,
           educationType: form.educationType,
-          educationPlace: form.educationPlace,
           password: form.password,
         }),
       });
@@ -176,7 +174,7 @@ export default function RegisterPage() {
                   <span className="block text-[#ff6f2c]">21 күнде өзгер.</span>
                 </h1>
                 <p className="mt-4 text-sm font-medium leading-6 text-white/65">
-                  Тіркеліп, күн сайынғы тапсырмаларды орында. Прогрессіңді бақыла. Жолдың соңына дейін өзіңмен бәсекелес.
+                  Тіркеліп, күнделікті тапсырмаларды орындаңыз және оқу барысын бақылаңыз. 21 күн бойы өз мақсатыңызға жүйелі түрде қадам жасаңыз.
                 </p>
 
                 <div className="mt-7 space-y-3">
@@ -196,13 +194,13 @@ export default function RegisterPage() {
 
                 <div className="mt-8 rounded-[22px] border border-white/8 bg-white/[.04] p-4">
                   <p className="text-[9px] font-extrabold uppercase tracking-[.17em] text-white/35">АККАУНТ</p>
-                  <p className="mt-2 text-sm font-semibold text-white/80">Тіркелгеннен кейін бірден платформаға өте аласың.</p>
+                  <p className="mt-2 text-sm font-semibold text-white/80">Тіркелу аяқталғаннан кейін платформаға бірден кіре аласыз.</p>
                 </div>
               </section>
 
               <section className="px-1 py-1 sm:px-2">
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ЖАҢА АККАУНТ</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Shyraq-қа тіркелу.</h2>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ТІРКЕЛУ</p>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
                   Бірнеше минутта тіркел де, оқу жолыңды бүгіннен баста.
                 </p>
@@ -244,7 +242,7 @@ export default function RegisterPage() {
                       autoComplete="given-name"
                       value={form.firstName}
                       onChange={(event) => updateField("firstName", event.target.value)}
-                      placeholder="Мысалы: Динислам"
+                      placeholder="Атыңызды енгізіңіз"
                       className={inputClass("firstName")}
                     />
                     {errorText("firstName")}
@@ -257,7 +255,7 @@ export default function RegisterPage() {
                       autoComplete="family-name"
                       value={form.lastName}
                       onChange={(event) => updateField("lastName", event.target.value)}
-                      placeholder="Мысалы: Жұмамұратов"
+                      placeholder="Тегіңізді енгізіңіз"
                       className={inputClass("lastName")}
                     />
                     {errorText("lastName")}
@@ -272,7 +270,7 @@ export default function RegisterPage() {
                       type="number"
                       value={form.age}
                       onChange={(event) => updateField("age", event.target.value)}
-                      placeholder="19"
+                      placeholder="Жасыңыз"
                       className={inputClass("age")}
                     />
                     {errorText("age")}
@@ -306,31 +304,51 @@ export default function RegisterPage() {
 
                   <label className="block text-xs font-extrabold text-[#3f3832]">
                     Құпиясөз
-                    <input
-                      required
-                      minLength={8}
-                      type="password"
-                      autoComplete="new-password"
-                      value={form.password}
-                      onChange={(event) => updateField("password", event.target.value)}
-                      placeholder="Кемінде 8 таңба"
-                      className={inputClass("password")}
-                    />
+                    <div className="relative mt-2">
+                      <input
+                        required
+                        minLength={8}
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={form.password}
+                        onChange={(event) => updateField("password", event.target.value)}
+                        placeholder="Кемінде 8 таңба"
+                        className={inputClass("password") + " pr-12"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] transition hover:bg-[#f4eee8] hover:text-[#172235]"
+                      >
+                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
+                    </div>
                     {errorText("password")}
                   </label>
 
                   <label className="block text-xs font-extrabold text-[#3f3832]">
                     Құпиясөзді қайталаңыз
-                    <input
-                      required
-                      minLength={8}
-                      type="password"
-                      autoComplete="new-password"
-                      value={form.confirmPassword}
-                      onChange={(event) => updateField("confirmPassword", event.target.value)}
-                      placeholder="Қайта енгізіңіз"
-                      className={inputClass("confirmPassword")}
-                    />
+                    <div className="relative mt-2">
+                      <input
+                        required
+                        minLength={8}
+                        type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={form.confirmPassword}
+                        onChange={(event) => updateField("confirmPassword", event.target.value)}
+                        placeholder="Қайта енгізіңіз"
+                        className={inputClass("confirmPassword") + " pr-12"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((value) => !value)}
+                        aria-label={showConfirmPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] transition hover:bg-[#f4eee8] hover:text-[#172235]"
+                      >
+                        {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
+                    </div>
                     {errorText("confirmPassword")}
                   </label>
 
