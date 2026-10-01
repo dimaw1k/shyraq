@@ -397,7 +397,7 @@ function LeaderWorkspace() {
           </div>
         </Card>
 
-        <Card id="students" dark className="p-5 sm:p-6">
+        <div id="students"><Card dark className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">ОҚУШЫЛАР</p>
           <h2 className="mt-1.5 text-[22px] font-extrabold">312</h2>
           <p className="mt-2 text-[10px] leading-5 text-white/55">Жалпы база, белсенділік, attendance, есептер және рейтинг кейін осы бөлімдерден жеке ашылады.</p>
@@ -405,7 +405,7 @@ function LeaderWorkspace() {
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] text-white/40">ACTIVE</p><p className="mt-1.5 text-[18px] font-extrabold">286</p></div>
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] text-white/40">WAITING</p><p className="mt-1.5 text-[18px] font-extrabold">26</p></div>
           </div>
-        </Card>
+        </Card></div>
       </section>
 
       <section id="content" className="grid gap-5 lg:grid-cols-2">
@@ -426,14 +426,14 @@ function LeaderWorkspace() {
           </div>
         </Card>
 
-        <Card id="analytics" className="p-5 sm:p-6">
+        <div id="analytics"><Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">АНАЛИТИКА</p><h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Марафонның жалпы ритмі</h2></div><BarChart3 size={17} className="text-[#FF6F2C]" /></div>
           <div className="mt-5 space-y-5">
             <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Оқушы белсенділігі</span><span>84%</span></div><ProgressBar value={84} /></div>
             <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Attendance</span><span>91%</span></div><ProgressBar value={91} /></div>
             <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Есептер</span><span>92%</span></div><ProgressBar value={92} /></div>
           </div>
-        </Card>
+        </Card></div>
       </section>
 
       <section id="audit" className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
