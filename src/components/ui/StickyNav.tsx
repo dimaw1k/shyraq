@@ -12,6 +12,7 @@ const items = [
 ];
 
 export function StickyNav() {
+  const lenis = useLenis();
   const [active, setActive] = useState("top");
   const [scrolled, setScrolled] = useState(false);
 
@@ -52,14 +53,13 @@ export function StickyNav() {
   );
 
   const scrollTo = (target: string) => {
-    if (target === "top") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
+    const section = target === "top" ? document.documentElement : document.getElementById(target);
+    if (!section) return;
 
-    document.getElementById(target)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
+    lenis?.scrollTo(target === "top" ? 0 : section, {
+      offset: -96,
+      duration: 1.15,
+      easing: (t: number) => 1 - Math.pow(1 - t, 4),
     });
   };
 
