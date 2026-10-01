@@ -1,5 +1,6 @@
 /* Shyraq landing production build marker */
 import Link from "next/link";
+import { Montserrat } from "next/font/google";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { StickyNav } from "@/components/ui/StickyNav";
@@ -15,6 +16,13 @@ import {
   Target,
   Trophy,
 } from "lucide-react";
+
+
+const montserrat = Montserrat({
+  subsets: ["cyrillic", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
 
 const benefits = [
   {
@@ -241,7 +249,7 @@ function BenefitCard({
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-white text-[#172235]">
+    <main className={`${montserrat.className} min-h-screen overflow-hidden bg-white text-[#172235]`}>
       <ScrollProgress />
       <StickyNav />
 
