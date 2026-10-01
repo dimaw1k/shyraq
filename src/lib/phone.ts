@@ -22,7 +22,7 @@ export function formatKzPhone(input: string): string {
 
   subscriber = subscriber.slice(0, 10);
 
-  if (!subscriber) return "+7 ";
+  if (!subscriber) return "";
 
   const operator = subscriber.slice(0, 3);
   const part1 = subscriber.slice(3, 6);
