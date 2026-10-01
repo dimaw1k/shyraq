@@ -75,16 +75,49 @@ function initials(name?: string) {
 
 function Wordmark() {
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#172235] text-white shadow-[0_10px_24px_rgba(23,34,53,.16)]">
-        <span className="text-sm font-extrabold tracking-[-.06em]">SHR</span>
-      </div>
-      <div>
-        <p className="text-[17px] font-extrabold tracking-[-.05em] text-[#172235]">
-          SHYR<span className="text-[#FF6F2C]">A</span>Q
-        </p>
-        <p className="mt-0.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-[#AAA198]">Оқу платформасы</p>
-      </div>
+    <div className="flex items-center">
+      <svg
+        width="116"
+        height="34"
+        viewBox="0 0 116 34"
+        role="img"
+        aria-label="SHYRAQ"
+        className="block h-[32px] w-auto"
+      >
+        <text
+          x="0"
+          y="26"
+          fill="#172235"
+          fontSize="27"
+          fontWeight="800"
+          letterSpacing="-1.15"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          SHYR
+        </text>
+        <g transform="translate(-12 0)">
+          <path
+            d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
+            fill="#FF6F2C"
+          />
+          <path
+            d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
+            fill="#FFF7F1"
+          />
+          <circle cx="100" cy="25.1" r="1.3" fill="#FF6F2C" />
+        </g>
+        <text
+          x="94"
+          y="26"
+          fill="#172235"
+          fontSize="27"
+          fontWeight="800"
+          letterSpacing="-1.15"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          Q
+        </text>
+      </svg>
     </div>
   );
 }
