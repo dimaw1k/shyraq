@@ -19,7 +19,7 @@ type FormState = {
   confirmPassword:string;
 };
 
-type ErrorState = Partial<Record<keyof FormState,"error">> & {form?:string};
+type ErrorState = Partial<Record<keyof FormState, string>> & {form?: string};
 
 const initialForm:FormState={
   phone:"",
