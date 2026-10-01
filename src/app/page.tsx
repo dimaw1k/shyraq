@@ -12,6 +12,9 @@ import {
   ChevronRight,
   Clock3,
   Flame,
+  Instagram,
+  Music2,
+  Send,
   Sparkles,
   Target,
   Trophy,
@@ -565,6 +568,41 @@ export default function HomePage() {
               <p className="mt-4 max-w-sm text-xs leading-6 text-white/40">
                 Шырақ — жастарға тәртіп, жауапкершілік және пайдалы әдеттерді күнделікті өмірге енгізуге көмектесетін 21 күндік марафон.
               </p>
+
+              <div className="mt-6">
+                <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Бізбен бірге</p>
+                <div className="mt-3 flex items-center gap-2.5">
+                  <a
+                    href="https://www.instagram.com/we.are.shyraq/"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Shyraq Instagram"
+                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                  >
+                    <Instagram size={19} strokeWidth={2.2} />
+                  </a>
+
+                  <a
+                    href="https://www.tiktok.com/@we.are.shyraq"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Shyraq TikTok"
+                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                  >
+                    <Music2 size={19} strokeWidth={2.2} />
+                  </a>
+
+                  <a
+                    href="https://t.me/we_are_shyraq"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Shyraq Telegram"
+                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                  >
+                    <Send size={18} strokeWidth={2.2} />
+                  </a>
+                </div>
+              </div>
             </div>
 
             <div>
