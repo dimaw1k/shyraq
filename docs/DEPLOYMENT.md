@@ -8,7 +8,7 @@ Configure these in the Vercel project **Production** environment:
   - `https://sqjjqnisnndulkzcqfwb.supabase.co`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
   - Use the current Shyraq publishable key from Supabase Dashboard → Project Settings → API.
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY`
   - Secret. Copy it only from Supabase Dashboard → Project Settings → API and keep it out of GitHub/chat.
 - `NEXT_PUBLIC_APP_URL`
   - `https://shyraq-nu.vercel.app`
@@ -61,4 +61,4 @@ A healthy response must report:
 - `appUrlConfigured: true`
 - `supabase.reachable: true`
 
-Do not place `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_SECRET`, `KINESCOPE_API_TOKEN`, or `GOOGLE_TOKEN_ENCRYPTION_KEY` in GitHub.
+Do not place `SUPABASE_SECRET_KEY`, `GOOGLE_CLIENT_SECRET`, `KINESCOPE_API_TOKEN`, or `GOOGLE_TOKEN_ENCRYPTION_KEY` in GitHub.
