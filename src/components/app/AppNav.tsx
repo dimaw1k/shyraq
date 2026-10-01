@@ -208,20 +208,23 @@ export function AppShell({
   right?: ReactNode;
   role: string;
   userName?: string;
+  hideHeader?: boolean;
 }) {
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-[#172235]">
       <AppNav role={role} userName={userName} />
       <div className="lg:pl-[232px]">
-        <div className="border-b border-[#E7EBF0] bg-white">
-          <div className="flex min-h-[70px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-7">
-            <div className="min-w-0">
-              <h1 className="truncate text-[18px] font-extrabold tracking-[-.02em] text-[#172235]">{title}</h1>
-              {description ? <p className="mt-0.5 truncate text-[11px] font-medium text-[#8995A7]">{description}</p> : null}
+        {hideHeader ? null : (
+          <div className="border-b border-[#E7EBF0] bg-white">
+            <div className="flex min-h-[70px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-7">
+              <div className="min-w-0">
+                <h1 className="truncate text-[18px] font-extrabold tracking-[-.02em] text-[#172235]">{title}</h1>
+                {description ? <p className="mt-0.5 truncate text-[11px] font-medium text-[#8995A7]">{description}</p> : null}
+              </div>
+              {right ? <div>{right}</div> : null}
             </div>
-            {right ? <div>{right}</div> : null}
           </div>
-        </div>
+        )}
         {children}
       </div>
     </div>
