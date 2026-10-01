@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (me?.role !== "MENTOR" && me?.role !== "ADMIN") {
+  if (me?.role !== "MENTOR") {
     return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
   }
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
-  if (me.role === "MENTOR" && team.mentor_id !== user.id) {
+  if (team.mentor_id !== user.id) {
     return NextResponse.json({ error: "You do not manage this team" }, { status: 403 });
   }
 
