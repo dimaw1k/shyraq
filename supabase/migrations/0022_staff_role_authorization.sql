@@ -365,6 +365,8 @@ begin
 end;
 $$;
 
+drop function if exists public.record_score_event(uuid,uuid,text,uuid,numeric,jsonb);
+
 create or replace function public.record_score_event(
   target_student uuid,
   target_team uuid,
