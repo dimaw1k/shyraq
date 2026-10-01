@@ -336,7 +336,7 @@ export default function HomePage() {
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">21 КҮНДЕ НЕ ӨЗГЕРЕДІ?</p>
               <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
                 Өзіңді қолға алып, күн сайын бір қадам алға жылжисың.
-                <span className="block text-[#9b9289]">21 күннен кейін бұл әдетке айнала бастайды.</span>
+                <span className="block text-[#ff6f2c]">21 күннен кейін бұл әдетке айнала бастайды.</span>
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
                 Мақсат, жоспар, таңғы әдет, оқу және кешкі қорытынды — бәрі алдын ала ойластырылған. 21 күннің соңында сен марафонды ғана аяқтамай, уақытыңды тиімді ұйымдастырудың өзіңе ыңғайлы тәсілін қалыптастырасың.
@@ -382,7 +382,7 @@ export default function HomePage() {
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ШЫРАҚТЫҢ КҮН ТӘРТІБІ</p>
                 <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
                   Күніңді жоспарламай, мақсатыңа жете алмайсың.
-                  <span className="block text-[#9b9289]">Сол үшін Шырақта әр күннің нақты жоспары алдын ала дайындалады.</span>
+                  <span className="block text-[#ff6f2c]">Сол үшін Шырақта әр күннің нақты жоспары алдын ала дайындалады.</span>
                 </h2>
                 <p className="mt-5 max-w-lg text-[15px] font-medium leading-7 text-[#5f574f] sm:text-base">
                   Шырақтағы күн 05:00-де басталады: таңғы әдет, алғашқы оқу, күндік жоспар және кешкі қорытынды. Әр кезеңнің өз уақыты бар, сондықтан бүгін не істеу керегін ойлап уақыт жоғалтпайсың.
