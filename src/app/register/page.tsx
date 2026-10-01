@@ -21,6 +21,7 @@ type FormState = {
   lastName: string;
   age: string;
   educationType: string;
+  educationPlace: string;
   password: string;
   confirmPassword: string;
 };
@@ -34,6 +35,7 @@ const initialForm: FormState = {
   lastName: "",
   age: "",
   educationType: "UNIVERSITY",
+  educationPlace: "",
   password: "",
   confirmPassword: "",
 };
@@ -71,6 +73,7 @@ export default function RegisterPage() {
 
     const age = Number(form.age);
     if (!Number.isInteger(age) || age < 10 || age > 100) next.age = "Жасыңызды дұрыс енгізіңіз.";
+    if (form.educationPlace.trim().length < 2) next.educationPlace = "Оқу орныңызды дұрыс енгізіңіз.";
     if (form.password.length < 8) next.password = "Құпиясөз кемінде 8 таңба болуы керек.";
     if (form.password !== form.confirmPassword) next.confirmPassword = "Құпиясөздер сәйкес емес.";
 
@@ -100,6 +103,7 @@ export default function RegisterPage() {
           lastName: form.lastName,
           age: form.age,
           educationType: form.educationType,
+          educationPlace: form.educationPlace,
           password: form.password,
         }),
       });
@@ -288,6 +292,19 @@ export default function RegisterPage() {
                       <option value="UNIVERSITY">Университет</option>
                       <option value="OTHER">Басқа</option>
                     </select>
+                  </label>
+
+                  <label className="block text-xs font-extrabold text-[#3f3832]">
+                    Оқу орны
+                    <input
+                      required
+                      autoComplete="organization"
+                      value={form.educationPlace}
+                      onChange={(event) => updateField("educationPlace", event.target.value)}
+                      placeholder="Оқу орныңыз"
+                      className={inputClass("educationPlace")}
+                    />
+                    {errorText("educationPlace")}
                   </label>
 
                   <label className="block text-xs font-extrabold text-[#3f3832]">
