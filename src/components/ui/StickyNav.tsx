@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 
 const items = [
   { label: "Басты бет", href: "#top", target: "top" },
@@ -153,15 +154,18 @@ export function StickyNav() {
           <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#ff6f2c] px-3.5 py-2.5 text-[11px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(255,111,44,.26)] sm:px-4 sm:text-xs"
+              className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-[#ff6f2c] px-3.5 py-2.5 text-[11px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(255,111,44,.26)] sm:px-4 sm:text-xs"
             >
               Кіру
+              <Sparkles size={13} className="ml-1.5" />
             </Link>
+
             <Link
               href="/register"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#ff6f2c] px-3.5 py-2.5 text-[11px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(255,111,44,.26)] sm:px-4 sm:text-xs"
+              className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-[#ff6f2c] px-3.5 py-2.5 text-[11px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(255,111,44,.26)] sm:px-4 sm:text-xs"
             >
               Тіркелу
+              <Sparkles size={13} className="ml-1.5" />
             </Link>
           </div>
         </div>
