@@ -81,11 +81,12 @@ npm run build
 
 ## Database
 
-Apply all migrations in order:
+Apply all migrations in repository order. Note that phone normalization is split into two migrations (`0002_standardize_phone_format.sql` and `0020_signup_phone_normalization.sql`), so do not omit either one.
 
 ```text
 supabase/migrations/0001_initial.sql
 supabase/migrations/0002_security_and_storage.sql
+supabase/migrations/0002_standardize_phone_format.sql
 supabase/migrations/0003_test_answers.sql
 supabase/migrations/0004_score_events.sql
 supabase/migrations/0005_google_meet_integration.sql
