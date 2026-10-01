@@ -216,6 +216,62 @@ begin
 end
 $$;
 
+-- Storage policies live outside public, so migrate their legacy
+-- is_admin() dependency separately.
+do $
+declare
+  p record;
+  using_expr text;
+  check_expr text;
+begin
+  for p in
+    select schemaname,tablename,policyname,qual,with_check
+    from pg_policies
+    where schemaname='storage'
+      and (coalesce(qual,'') like '%is_admin%' or coalesce(with_check,'') like '%is_admin%')
+  loop
+    if p.qual is not null then
+      using_expr := replace(p.qual,'is_admin','is_leader');
+      execute format(
+        'alter policy %I on %I.%I using (%s)',
+        p.policyname,p.schemaname,p.tablename,using_expr
+      );
+    end if;
+
+    if p.with_check is not null then
+      check_expr := replace(p.with_check,'is_admin','is_leader');
+      execute format(
+        'alter policy %I on %I.%I with check (%s)',
+        p.policyname,p.schemaname,p.tablename,check_expr
+      );
+    end if;
+  end loop;
+end
+$;
+
+-- Chief mentor can inspect managed submission files; destructive storage access
+-- remains leader-only.
+do $
+declare
+  q text;
+begin
+  select qual
+  into q
+  from pg_policies
+  where schemaname='storage'
+    and tablename='objects'
+    and policyname='submission_storage_select_v2';
+
+  if q is not null then
+    q := replace(q,'is_leader()','is_chief_mentor_or_above()');
+    execute format(
+      'alter policy %I on %I.%I using (%s)',
+      'submission_storage_select_v2','storage','objects',q
+    );
+  end if;
+end
+$;
+
 -- Profiles are visible to the whole management layer, while direct role
 -- assignment remains leader-only.
 alter policy profiles_select
