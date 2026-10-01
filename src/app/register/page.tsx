@@ -290,18 +290,6 @@ export default function RegisterPage() {
                     </select>
                   </label>
 
-                  <label className="block text-xs font-extrabold text-[#3f3832] sm:col-span-2">
-                    Оқу орны
-                    <input
-                      required
-                      value={form.educationPlace}
-                      onChange={(event) => updateField("educationPlace", event.target.value)}
-                      placeholder="Мектеп / колледж / университет"
-                      className={inputClass("educationPlace")}
-                    />
-                    {errorText("educationPlace")}
-                  </label>
-
                   <label className="block text-xs font-extrabold text-[#3f3832]">
                     Құпиясөз
                     <div className="relative mt-2">
