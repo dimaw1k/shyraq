@@ -38,7 +38,8 @@ export default async function DashboardPage() {
   const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
   const role = profile?.role ?? "STUDENT";
   if (role === "MENTOR") redirect("/mentor");
-  if (role === "ADMIN") redirect("/admin");
+  if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
+  if (role === "LEADER") redirect("/leader");
 
   const [{ data: membership }, { data: tasks }, { data: progress }, { data: reports }, { data: scores }] = await Promise.all([
     supabase.from("team_members").select("team_id,teams(id,name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
