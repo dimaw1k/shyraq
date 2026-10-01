@@ -70,11 +70,11 @@ function initials(name?: string) {
 
 function Wordmark() {
   return (
-    <Link href="/" aria-label="Shyraq" className="inline-flex items-center">
+    <span aria-label="Shyraq" className="inline-flex items-center">
       <span className="text-[25px] font-extrabold tracking-[-0.08em] text-[#172235]">
         SHYR<span className="text-[#FF6F2C]">A</span>Q
       </span>
-    </Link>
+    </span>
   );
 }
 
