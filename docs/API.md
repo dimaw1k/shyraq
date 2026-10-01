@@ -102,18 +102,24 @@ Apply every migration in repository order, including both phone-normalization mi
 1. 0001_initial.sql
 2. 0002_security_and_storage.sql
 3. 0002_standardize_phone_format.sql
-3. 0003_test_answers.sql
-4. 0004_score_events.sql
-5. 0005_google_meet_integration.sql
-6. 0006_meet_participant_sessions.sql
-7. 0007_test_answer_privacy.sql
-8. 0008_storage_and_team_hardening.sql
-9. 0009_profile_privilege_hardening.sql
-10. 0010_profile_rpc_hardening.sql
-11. 0011_operational_hardening.sql
-12. 0012_server_only_writes.sql
-13. 0013_mentor_progress_visibility.sql
-14. 0014_lock_score_rpc.sql
+4. 0003_test_answers.sql
+5. 0004_score_events.sql
+6. 0005_google_meet_integration.sql
+7. 0006_meet_participant_sessions.sql
+8. 0007_test_answer_privacy.sql
+9. 0008_storage_and_team_hardening.sql
+10. 0009_profile_privilege_hardening.sql
+11. 0010_profile_rpc_hardening.sql
+12. 0011_operational_hardening.sql
+13. 0012_server_only_writes.sql
+14. 0013_mentor_progress_visibility.sql
+15. 0014_lock_score_rpc.sql
+16. 0015_security_hardening.sql
+17. 0016_private_rls_helpers.sql
+18. 0017_server_only_mentor_rpcs.sql
+19. 0018_performance_hardening.sql
+20. 0019_split_admin_policies.sql
+21. 0020_signup_phone_normalization.sql
 
 ## Security notes
 
