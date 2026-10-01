@@ -13,6 +13,11 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
         syncTouch: true,
         touchMultiplier: 1.05,
         wheelMultiplier: 0.9,
+        anchors: {
+          offset: -96,
+          duration: 1.15,
+          easing: (t: number) => 1 - Math.pow(1 - t, 4),
+        },
       }}
     >
       {children}
