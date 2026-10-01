@@ -30,8 +30,8 @@ export function Reveal({ children, className = "", delay = 0, once = true }: Rev
         if (once) observer.unobserve(node);
       },
       {
-        threshold: 0.08,
-        rootMargin: "0px 0px -70px 0px",
+        threshold: 0.02,
+        rootMargin: "0px 0px -8% 0px",
       },
     );
 
