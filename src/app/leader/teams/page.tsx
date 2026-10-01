@@ -2,6 +2,7 @@ import { Users } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, ProgressBar, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { StaffCreateTeamForm } from "@/components/staff/StaffCreateTeamForm";
 
 export default async function LeaderTeamsPage() {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
@@ -25,7 +26,8 @@ export default async function LeaderTeamsPage() {
     <AppShell role="LEADER" userName={profile.full_name} title="Командалар" description="Барлық команда, mentor және capacity көрінісі.">
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader eyebrow="TEAMS" title="Командалар" description="Команда жүктемесін нақты membership деректерімен бақылау." />
+          <SectionHeader eyebrow="TEAMS" title="Командалар" description="Команда жүктемесін нақты membership деректерімен бақылау және жаңа команда құру." />
+          <StaffCreateTeamForm mentors={(mentors ?? []).map((mentor) => ({ id: mentor.id, full_name: mentor.full_name }))} />
           <Card className="overflow-hidden">
             <div className="hidden grid-cols-[1.1fr_1fr_1fr_140px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
               <span>Команда</span><span>Ментор</span><span>Жүктеме</span><span>Статус</span>
