@@ -37,6 +37,14 @@ export function getSubmittedReportDates(reports: ReportActivity[]) {
   )].sort();
 }
 
+export function getReviewedReportDates(reports: ReportActivity[]) {
+  return [...new Set(
+    reports
+      .filter((report) => report.status === "REVIEWED")
+      .map((report) => report.report_date),
+  )].sort();
+}
+
 export function calculateCurrentStreak(
   reportDates: string[],
   today = todayInTimezone(),
