@@ -125,7 +125,7 @@ export default function RegisterPage() {
       });
 
       if (signInError) {
-        setErrors({ form: "Аккаунт жасалды. Кіру беті арқылы аккаунтыңызға кіріп көріңіз." });
+        setErrors({ form: "Тіркелгі жасалды. Кіру беті арқылы тіркелгіңізге кіріп көріңіз." });
         setLoading(false);
         return;
       }
@@ -181,7 +181,7 @@ export default function RegisterPage() {
                   {[
                     "Күнделікті нақты тапсырмалар",
                     "Сабақтар және оқу жоспары",
-                    "Ұпай, streak және рейтинг",
+                    "Ұпай, серия және рейтинг",
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3 text-xs font-semibold text-white/75">
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff6f2c] text-white">
@@ -202,7 +202,7 @@ export default function RegisterPage() {
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ТІРКЕЛУ</p>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
-                  Бірнеше минутта тіркел де, оқу жолыңды бүгіннен баста.
+                  Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-3 sm:grid-cols-2">
