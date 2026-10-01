@@ -229,7 +229,7 @@ function BenefitCard({
       </div>
 
       <h3 className="mt-6 max-w-xs text-lg font-extrabold leading-tight tracking-[-.03em] text-[#172235]">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm leading-6 text-[#756d65]">{text}</p>
+      <p className="mt-2 max-w-sm text-[14px] font-medium leading-6 text-[#655c54]">{text}</p>
 
       <div className="mt-5 inline-flex items-center gap-2 text-xs font-extrabold text-[#172235]">
         Толығырақ
@@ -401,7 +401,7 @@ export default function HomePage() {
                         </span>
                         <div className="min-w-0">
                           <p className="text-sm font-extrabold text-[#172235]">{title}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#80776f]">{text}</p>
+                          <p className="mt-1 text-[13px] font-medium leading-6 text-[#625a52]">{text}</p>
                         </div>
                         <ChevronRight size={16} className="ml-auto shrink-0 text-[#b0a79f] transition-transform group-hover:translate-x-1 group-hover:text-[#ff6f2c]" />
                       </div>
