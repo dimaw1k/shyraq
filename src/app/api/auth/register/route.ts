@@ -9,7 +9,6 @@ type RegisterPayload = {
   lastName?: unknown;
   age?: unknown;
   educationType?: unknown;
-  educationPlace?: unknown;
   password?: unknown;
 };
 
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
     const educationType = text(body.educationType);
-      const password = typeof body.password === "string" ? body.password : "";
+    const password = typeof body.password === "string" ? body.password : "";
     const age = Number(body.age);
 
     if (!isValidKzPhone(phone)) {
@@ -99,7 +98,7 @@ export async function POST(request: Request) {
 
       if (message.includes("database error saving new user")) {
         return NextResponse.json(
-          { field: "form", error: "Аккаунтты сақтау кезінде қате болды. Деректерді тексеріп қайта көріңіз." },
+          { field: "form", error: "Тіркелгіні сақтау кезінде қате болды. Деректерді тексеріп қайта көріңіз." },
           { status: 400 },
         );
       }
