@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Clock3,
   Flame,
-  Play,
   Sparkles,
   Target,
   Trophy,
