@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { isValidKzPhone, normalizePhone } from "@/lib/phone";
+import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
 type RegisterPayload = {
   phone?: unknown;
@@ -28,8 +28,7 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
     const educationType = text(body.educationType);
-    const educationPlace = text(body.educationPlace);
-    const password = typeof body.password === "string" ? body.password : "";
+      const password = typeof body.password === "string" ? body.password : "";
     const age = Number(body.age);
 
     if (!isValidKzPhone(phone)) {
@@ -56,21 +55,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "educationType", error: "Оқу түрін таңдаңыз." }, { status: 400 });
     }
 
-    if (!educationPlace) {
-      return NextResponse.json({ field: "educationPlace", error: "Оқу орнын енгізіңіз." }, { status: 400 });
-    }
-
     if (password.length < 8) {
       return NextResponse.json({ field: "password", error: "Құпиясөз кемінде 8 таңба болуы керек." }, { status: 400 });
     }
 
-    const normalizedPhone = normalizePhone(phone);
+    const formattedPhone = formatKzPhone(phone);
     const admin = createAdminSupabaseClient();
 
     const { data: existingPhone } = await admin
       .from("profiles")
       .select("id")
-      .eq("phone", normalizedPhone)
+      .eq("phone", formattedPhone)
       .maybeSingle();
 
     if (existingPhone) {
@@ -85,11 +80,10 @@ export async function POST(request: Request) {
       password,
       email_confirm: true,
       user_metadata: {
-        phone: normalizedPhone,
+        phone: formattedPhone,
         full_name: [firstName, lastName].join(" "),
         age,
         education_type: educationType,
-        education_place: educationPlace,
       },
     });
 
