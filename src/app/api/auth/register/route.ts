@@ -74,6 +74,13 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (phoneLookupError) {
+      console.error("[auth/register] profiles phone lookup failed", {
+        code: phoneLookupError.code,
+        message: phoneLookupError.message,
+        details: phoneLookupError.details,
+        hint: phoneLookupError.hint,
+      });
+
       return NextResponse.json(
         { field: "form", error: "Тіркелу алдында деректер қорын тексеру мүмкін болмады." },
         { status: 503 },
