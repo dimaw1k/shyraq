@@ -5,13 +5,18 @@ import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { formatKzPhone } from "@/lib/phone";
 
 const montserrat = Montserrat({
   subsets: ["cyrillic", "latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
+
+
+function formatPhoneInput(value: string) {
+  return formatKzPhone(value);
+}
 
 function Brand() {
   return (
@@ -25,7 +30,7 @@ function Brand() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,20 +41,30 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const supabase = createBrowserSupabaseClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier,
+          password,
+        }),
+      });
 
-    if (signInError) {
-      setError("Email немесе құпиясөз қате. Деректеріңізді қайта тексеріңіз.");
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error ?? "Кіру кезінде қате болды.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Кіру кезінде байланыс қатесі болды. Қайта көріңіз.");
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
@@ -66,32 +81,8 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="grid min-h-[calc(100vh-104px)] items-center gap-10 py-10 lg:grid-cols-[1fr_520px] lg:gap-20">
-          <section className="hidden max-w-xl lg:block">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-[#6f625a] backdrop-blur">
-              <Sparkles size={13} className="text-[#ff6f2c]" />
-              21 күндік оқу марафоны
-            </div>
-            <h1 className="mt-6 text-6xl font-extrabold leading-[.98] tracking-[-.06em]">
-              Күнді жоспарла.
-              <span className="block text-[#ff6f2c]">Өзіңді өзгерт.</span>
-            </h1>
-            <p className="mt-5 max-w-lg text-base font-medium leading-7 text-[#655c54]">
-              Shyraq-та сабақ, тапсырма және прогресс бір жерде. Бүгін бастаған ісің ертеңгі нәтижеңе әсер етеді.
-            </p>
-            <div className="mt-7 space-y-3">
-              {["Күнделікті тапсырмалар", "Оқу жоспары", "Прогресс пен рейтинг"].map((item) => (
-                <div key={item} className="flex items-center gap-3 text-sm font-semibold text-[#4f4842]">
-                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#172235] text-white">
-                    <Check size={15} />
-                  </span>
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="relative">
+        <div className="grid min-h-[calc(100vh-104px)] items-center gap-8 py-10 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
+          <section className="relative order-1 lg:order-1">
             <div className="absolute -inset-5 rounded-[38px] bg-[#ff6f2c]/10 blur-2xl" />
             <div className="relative rounded-[32px] border border-[#ebe4dc] bg-white/95 p-6 shadow-[0_28px_90px_rgba(39,25,17,.14)] backdrop-blur-xl sm:p-8">
               <div className="mb-7 lg:hidden">
@@ -102,21 +93,23 @@ export default function LoginPage() {
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ЖЕКЕ ТІРКЕЛГІ</p>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em]">Жеке тіркелгіңізге кіріңіз.</h2>
                 <p className="mt-2 text-sm font-medium leading-6 text-[#766e66]">
-                  Жалғастыру үшін тіркелгі деректеріңізді енгізіңіз.
+                  Email немесе телефон нөмірі арқылы тіркелгіңізге кіріңіз.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="mt-7 space-y-4">
                 <label className="block">
-                  <span className="text-xs font-extrabold text-[#3f3832]">Email</span>
+                  <span className="text-xs font-extrabold text-[#3f3832]">Email немесе телефон нөмірі</span>
                   <input
                     required
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="username"
+                    value={identifier}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setIdentifier(/^[+\d\s()\-]*$/.test(value) ? value.replace(/\D/g, "").length > 0 ? formatPhoneInput(value) : value : value);
+                    }}
                     className="mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 placeholder:text-[#b1a79f] focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10"
-                    placeholder="Email мекенжайын енгізіңіз"
+                    placeholder="Email немесе +7 (700) 000 00 00"
                   />
                 </label>
 
