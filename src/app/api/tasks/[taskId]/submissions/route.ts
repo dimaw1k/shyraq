@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { recordScoreEvent } from "@/lib/scoring-events";
 
 export async function POST(request: Request, context: { params: Promise<{ taskId: string }> }) {
   const supabase = await createServerSupabaseClient();
@@ -75,20 +74,6 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
     .single();
 
   if (error) return NextResponse.json({ error: "Submission failed" }, { status: 400 });
-
-  if (finalize && existing?.status !== "SUBMITTED" && Number(task.points) !== 0) {
-    try {
-      await recordScoreEvent(supabase, {
-        studentId: user.id,
-        teamId: membership?.team_id ?? task.team_id,
-        sourceCode: "TASKS",
-        sourceId: taskId,
-        points: Number(task.points),
-      });
-    } catch (scoreError) {
-      console.error("Task score event failed", scoreError);
-    }
-  }
 
   return NextResponse.json({ submission: data });
 }
