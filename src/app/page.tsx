@@ -1,3 +1,4 @@
+/* Shyraq landing production build marker */
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
