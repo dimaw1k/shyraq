@@ -161,7 +161,7 @@ export default function LoginPage() {
               </form>
 
               <p className="mt-6 text-center text-xs font-medium text-[#837970]">
-                Аккаунтыңыз жоқ па?{" "}
+                Тіркелгіңіз жоқ па?{" "}
                 <Link href="/register" className="font-extrabold text-[#ff6f2c] hover:underline">
                   Тіркелу
                 </Link>
