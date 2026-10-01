@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 
 type RegisterPayload = {
   phone?: unknown;
@@ -64,13 +64,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "password", error: "Құпиясөз кемінде 8 таңба болуы керек." }, { status: 400 });
     }
 
-    const formattedPhone = formatKzPhone(phone);
+    const normalizedPhone = normalizePhone(phone);
     const admin = createAdminSupabaseClient();
 
     const { data: existingPhone, error: phoneLookupError } = await admin
       .from("profiles")
       .select("id")
-      .eq("phone", formattedPhone)
+      .eq("phone", normalizedPhone)
       .maybeSingle();
 
     if (phoneLookupError) {
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
       password,
       email_confirm: true,
       user_metadata: {
-        phone: formattedPhone,
+        phone: normalizedPhone,
         full_name: [firstName, lastName].join(" "),
         age,
         education_type: educationType,
