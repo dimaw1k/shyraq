@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpen, Clock3 } from "lucide-react";
+import { ArrowRight, Clock3 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
