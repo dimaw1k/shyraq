@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 const montserrat = Montserrat({
@@ -29,6 +29,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,14 +99,15 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ҚАЙТА ОРАЛУ</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em]">Аккаунтыңызға кіріңіз.</h2>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ЖЕКЕ ТІРКЕЛГІ</p>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em]">Жеке тіркелгіңізге кіріңіз.</h2>
                 <p className="mt-2 text-sm font-medium leading-6 text-[#766e66]">
                   Дайынсыз ба? Жалғастыру үшін аккаунтыңызға кіріңіз.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+                <div className="relative">
                 <label className="block">
                   <span className="text-xs font-extrabold text-[#3f3832]">Email</span>
                   <input
@@ -124,14 +126,23 @@ export default function LoginPage() {
                   <input
                     required
                     minLength={8}
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 placeholder:text-[#b1a79f] focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10"
-                    placeholder="Кемінде 8 таңба"
+                    className="mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 pr-12 text-sm font-medium outline-none transition-all duration-300 placeholder:text-[#b1a79f] focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10"
+                    placeholder="Құпиясөзді енгізіңіз"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    className="absolute right-3 top-[39px] rounded-xl p-2 text-[#887d73] transition hover:bg-[#f4eee8] hover:text-[#172235]"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
                 </label>
+                </div>
 
                 {error ? (
                   <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700">
