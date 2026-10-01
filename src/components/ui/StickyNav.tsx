@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useLenis } from "lenis/react";
 import { Sparkles } from "lucide-react";
 
 const items = [
