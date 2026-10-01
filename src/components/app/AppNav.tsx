@@ -43,7 +43,7 @@ const mentorLinks: NavItem[] = [
 
 const chiefMentorLinks: NavItem[] = [
   { label: "Басты бет", href: "/chief-mentor", icon: LayoutDashboard },
-  { label: "Менторлар", href: "/chief-mentor#mentors", icon: Users },
+  { label: "Менторлар", href: "/chief-mentor/mentors", icon: Users },
   { label: "Командалар", href: "/chief-mentor#teams", icon: Users },
   { label: "Сабақтар", href: "/chief-mentor#lessons", icon: BookOpen },
   { label: "Тапсырмалар", href: "/chief-mentor#tasks", icon: ClipboardList },
@@ -53,9 +53,9 @@ const chiefMentorLinks: NavItem[] = [
 
 const leaderLinks: NavItem[] = [
   { label: "Басқару орталығы", href: "/leader", icon: LayoutDashboard },
-  { label: "Қызметкерлер", href: "/leader#staff", icon: Users },
+  { label: "Қызметкерлер", href: "/leader/staff", icon: Users },
   { label: "Командалар", href: "/leader#teams", icon: Users },
-  { label: "Оқушылар", href: "/leader#students", icon: ClipboardCheck },
+  { label: "Оқушылар", href: "/leader/students", icon: ClipboardCheck },
   { label: "Контент", href: "/leader#content", icon: BookOpen },
   { label: "Аналитика", href: "/leader#analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader#audit", icon: FileText },
