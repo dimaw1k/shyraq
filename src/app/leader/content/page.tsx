@@ -39,7 +39,7 @@ export default async function LeaderContentPage() {
 
           <div className="space-y-3">
             <StaffCreateLessonForm />
-            <StaffCreateTaskForm />
+            <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
           </div>
 
           <section className="grid gap-5 xl:grid-cols-2">
