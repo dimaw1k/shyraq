@@ -30,9 +30,10 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 ## Implemented foundation
 
 - Student-facing dashboard, tasks, task detail/submission, reports, lesson catalog, profile settings and ranking UI
-- Unified Shyraq UI system: Montserrat typography, warm neutral surfaces, orange accent, simplified navigation and student/mentor workspace
-- Mentor operational dashboard with phone-based student management, student progress metrics and Meet sync controls
-- Admin operational dashboard with user, team, task, lesson, test and score-rule management UI
+- Unified Shyraq UI system: Montserrat typography, warm neutral surfaces, orange accent, simplified navigation and student/staff workspaces
+- Mentor operational dashboard with phone-based student management, student progress metrics, task-submission review and Meet sync controls
+- Chief Mentor operational workspace with mentor/team/lesson/task management, submission review, reports and analytics
+- Leader operational workspace with staff/student/team/content management, submission review, analytics, audit log and settings
 - Scheduled Meet attendance sync endpoint and Vercel cron configuration
 
 - Student registration/login skeleton
@@ -44,14 +45,14 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - 85% server-side test gate
 - Test submission and hidden correct answers
 - Idempotent score events
-- Student/mentor/admin overview APIs
-- Role-scoped ranking API (student top-10 + own position, mentor team, admin global)
+- Student/mentor/staff overview APIs
+- Role-scoped ranking API
 - Google OAuth connection
 - Encrypted Google refresh-token storage
 - Team Meet-space connection
 - Conference/participant/session attendance sync
 - Manual Google participant mapping
-- Admin APIs for teams, tasks, lessons and tests
+- Staff APIs for teams, tasks, lessons and tests
 - GitHub Actions CI
 
 ## Local setup
@@ -84,29 +85,6 @@ npm run build
 
 Apply all migrations in repository order. Note that phone normalization is split into two migrations (`0002_standardize_phone_format.sql` and `0020_signup_phone_normalization.sql`), so do not omit either one.
 
-```text
-supabase/migrations/0001_initial.sql
-supabase/migrations/0002_security_and_storage.sql
-supabase/migrations/0002_standardize_phone_format.sql
-supabase/migrations/0003_test_answers.sql
-supabase/migrations/0004_score_events.sql
-supabase/migrations/0005_google_meet_integration.sql
-supabase/migrations/0006_meet_participant_sessions.sql
-supabase/migrations/0007_test_answer_privacy.sql
-supabase/migrations/0008_storage_and_team_hardening.sql
-supabase/migrations/0009_profile_privilege_hardening.sql
-supabase/migrations/0010_profile_rpc_hardening.sql
-supabase/migrations/0011_operational_hardening.sql
-supabase/migrations/0012_server_only_writes.sql
-supabase/migrations/0013_mentor_progress_visibility.sql
-supabase/migrations/0014_lock_score_rpc.sql
-supabase/migrations/0015_security_hardening.sql
-supabase/migrations/0016_private_rls_helpers.sql
-supabase/migrations/0017_server_only_mentor_rpcs.sql
-supabase/migrations/0018_performance_hardening.sql
-supabase/migrations/0019_split_admin_policies.sql
-```
-
 ## Important product rules
 
 ### Team assignment
@@ -131,11 +109,18 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 - `docs/ARCHITECTURE.md` — architecture boundaries.
 - `docs/DECISIONS.md` — important implementation decisions.
 - `docs/API.md` — API routes, environment and integration notes.
+- `docs/DEPLOYMENT.md` — production deployment variables and setup checks.
 
 ## Production deployment
 
-See `docs/DEPLOYMENT.md` for the Vercel Production environment variables and final Supabase/Auth/Google setup checks.
+The `main` branch is connected to Vercel Production.
 
+Latest application baseline deployed from GitHub:
+```text
+cd731dc269f3d1179830c6b9d971398ed33b75e5
+```
+
+Health endpoint:
 ```text
 https://shyraq-nu.vercel.app/api/health
 ```
