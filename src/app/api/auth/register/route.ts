@@ -9,6 +9,7 @@ type RegisterPayload = {
   lastName?: unknown;
   age?: unknown;
   educationType?: unknown;
+  educationPlace?: unknown;
   password?: unknown;
 };
 
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
     const educationType = text(body.educationType);
+    const educationPlace = text(body.educationPlace);
     const password = typeof body.password === "string" ? body.password : "";
     const age = Number(body.age);
 
@@ -54,6 +56,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "educationType", error: "Оқу түрін таңдаңыз." }, { status: 400 });
     }
 
+    if (educationPlace.length < 2) {
+      return NextResponse.json({ field: "educationPlace", error: "Оқу орныңызды дұрыс енгізіңіз." }, { status: 400 });
+    }
+
     if (password.length < 8) {
       return NextResponse.json({ field: "password", error: "Құпиясөз кемінде 8 таңба болуы керек." }, { status: 400 });
     }
@@ -61,11 +67,18 @@ export async function POST(request: Request) {
     const formattedPhone = formatKzPhone(phone);
     const admin = createAdminSupabaseClient();
 
-    const { data: existingPhone } = await admin
+    const { data: existingPhone, error: phoneLookupError } = await admin
       .from("profiles")
       .select("id")
       .eq("phone", formattedPhone)
       .maybeSingle();
+
+    if (phoneLookupError) {
+      return NextResponse.json(
+        { field: "form", error: "Тіркелу алдында деректер қорын тексеру мүмкін болмады." },
+        { status: 503 },
+      );
+    }
 
     if (existingPhone) {
       return NextResponse.json(
@@ -83,6 +96,7 @@ export async function POST(request: Request) {
         full_name: [firstName, lastName].join(" "),
         age,
         education_type: educationType,
+        education_place: educationPlace,
       },
     });
 
@@ -92,6 +106,13 @@ export async function POST(request: Request) {
       if (message.includes("already registered") || message.includes("already been registered")) {
         return NextResponse.json(
           { field: "email", error: "Бұл email арқылы аккаунт бұрын тіркелген." },
+          { status: 409 },
+        );
+      }
+
+      if (message.includes("phone") && (message.includes("duplicate") || message.includes("unique"))) {
+        return NextResponse.json(
+          { field: "phone", error: "Бұл телефон нөмірімен аккаунт бұрын тіркелген." },
           { status: 409 },
         );
       }
