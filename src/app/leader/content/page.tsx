@@ -2,6 +2,8 @@ import { BookOpen, ClipboardList } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { StaffCreateLessonForm } from "@/components/staff/StaffCreateLessonForm";
+import { StaffCreateTaskForm } from "@/components/staff/StaffCreateTaskForm";
 
 export default async function LeaderContentPage() {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
@@ -14,7 +16,8 @@ export default async function LeaderContentPage() {
     <AppShell role="LEADER" userName={profile.full_name} title="Контент" description="Марафон сабақтары мен тапсырмаларының жалпы күйі.">
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader eyebrow="CONTENT" title="Контент" description="Лидер контенттің толық жағдайын көреді; редакциялау нақты бөлімдерде орындалады." />
+          <SectionHeader eyebrow="CONTENT" title="Контент" description="Лидер контенттің толық жағдайын көреді және жаңа материал қоса алады." />
+          <div className="space-y-3"><StaffCreateLessonForm /><StaffCreateTaskForm /></div>
           <section className="grid gap-5 xl:grid-cols-2">
             <Card className="overflow-hidden">
               <div className="flex items-center gap-3 border-b border-[#EFE8E1] px-5 py-4"><BookOpen size={17} className="text-[#FF6F2C]" /><div><p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF6F2C]">LESSONS</p><h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Соңғы сабақтар</h2></div></div>
