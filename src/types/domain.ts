@@ -1,4 +1,4 @@
-export type AppRole = "STUDENT" | "MENTOR" | "ADMIN";
+export type AppRole = "STUDENT" | "MENTOR" | "CHIEF_MENTOR" | "LEADER";
 export type ProfileStatus = "REGISTERED" | "WAITING_FOR_TEAM" | "ACTIVE" | "INACTIVE" | "COMPLETED";
 export type EducationType = "SCHOOL" | "COLLEGE" | "UNIVERSITY" | "OTHER";
 

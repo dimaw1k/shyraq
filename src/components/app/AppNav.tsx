@@ -5,14 +5,16 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
+  BarChart3,
   Bell,
   BookOpen,
+  ClipboardCheck,
   ClipboardList,
   FileText,
   LayoutDashboard,
   Menu,
   Settings,
-  ShieldCheck,
   Trophy,
   Users,
   X,
@@ -32,28 +34,52 @@ const studentLinks: NavItem[] = [
 
 const mentorLinks: NavItem[] = [
   { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
+  { label: "Менің командам", href: "/mentor#team", icon: Users },
+  { label: "Тапсырмаларды тексеру", href: "/mentor#tasks", icon: ClipboardCheck },
+  { label: "Есептер", href: "/mentor#reports", icon: FileText },
+  { label: "Meet", href: "/mentor#meet", icon: Activity },
   { label: "Рейтинг", href: "/rankings", icon: Trophy },
 ];
 
-const adminLinks: NavItem[] = [
-  { label: "Басқару панелі", href: "/admin", icon: LayoutDashboard },
-  { label: "Оқушылар", href: "/admin/users", icon: Users },
-  { label: "Командалар", href: "/admin/teams", icon: Users },
-  { label: "Сабақтар", href: "/admin/lessons", icon: BookOpen },
-  { label: "Тапсырмалар", href: "/admin/tasks", icon: ClipboardList },
-  { label: "Тесттер", href: "/admin/tests", icon: FileText },
-  { label: "Ұпай ережелері", href: "/admin/score-rules", icon: ShieldCheck },
+const chiefMentorLinks: NavItem[] = [
+  { label: "Басты бет", href: "/chief-mentor", icon: LayoutDashboard },
+  { label: "Менторлар", href: "/chief-mentor#mentors", icon: Users },
+  { label: "Командалар", href: "/chief-mentor#teams", icon: Users },
+  { label: "Сабақтар", href: "/chief-mentor#lessons", icon: BookOpen },
+  { label: "Тапсырмалар", href: "/chief-mentor#tasks", icon: ClipboardList },
+  { label: "Есептер", href: "/chief-mentor#reports", icon: FileText },
+  { label: "Аналитика", href: "/chief-mentor#analytics", icon: BarChart3 },
+];
+
+const leaderLinks: NavItem[] = [
+  { label: "Басқару орталығы", href: "/leader", icon: LayoutDashboard },
+  { label: "Қызметкерлер", href: "/leader#staff", icon: Users },
+  { label: "Командалар", href: "/leader#teams", icon: Users },
+  { label: "Оқушылар", href: "/leader#students", icon: ClipboardCheck },
+  { label: "Контент", href: "/leader#content", icon: BookOpen },
+  { label: "Аналитика", href: "/leader#analytics", icon: BarChart3 },
+  { label: "Журнал", href: "/leader#audit", icon: FileText },
+  { label: "Баптаулар", href: "/leader#settings", icon: Settings },
 ];
 
 const roleLabels: Record<string, string> = {
   STUDENT: "Оқушы",
   MENTOR: "Ментор",
-  ADMIN: "Админ",
+  CHIEF_MENTOR: "Главный ментор",
+  LEADER: "Лидер",
+};
+
+const roleHome: Record<string, string> = {
+  STUDENT: "/dashboard",
+  MENTOR: "/mentor",
+  CHIEF_MENTOR: "/chief-mentor",
+  LEADER: "/leader",
 };
 
 function isActive(pathname: string, href: string) {
-  const rootRoutes = new Set(["/dashboard", "/mentor", "/admin"]);
-  return pathname === href || (!rootRoutes.has(href) && pathname.startsWith(href + "/"));
+  const route = href.split("#")[0];
+  const rootRoutes = new Set(["/dashboard", "/mentor", "/chief-mentor", "/leader"]);
+  return pathname === route || (!rootRoutes.has(route) && pathname.startsWith(route + "/"));
 }
 
 function initials(name?: string) {
@@ -83,10 +109,13 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = useMemo(() => {
-    if (role === "ADMIN") return adminLinks;
+    if (role === "LEADER") return leaderLinks;
+    if (role === "CHIEF_MENTOR") return chiefMentorLinks;
     if (role === "MENTOR") return mentorLinks;
     return studentLinks;
   }, [role]);
+
+  const home = roleHome[role] ?? "/dashboard";
 
   return (
     <>
@@ -123,10 +152,10 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between px-2">
-            <Link href={role === "ADMIN" ? "/admin" : role === "MENTOR" ? "/mentor" : "/dashboard"} onClick={() => setMobileOpen(false)}>
+            <Link href={home} onClick={() => setMobileOpen(false)}>
               <Wordmark />
             </Link>
-            <span className="hidden rounded-full bg-[#FFF0E8] px-2 py-1 text-[8px] font-extrabold uppercase tracking-[.14em] text-[#D65E25] lg:inline-flex">
+            <span className="hidden max-w-[112px] rounded-full bg-[#FFF0E8] px-2 py-1 text-center text-[8px] font-extrabold uppercase tracking-[.10em] text-[#D65E25] lg:inline-flex">
               {roleLabels[role] ?? role}
             </span>
           </div>
