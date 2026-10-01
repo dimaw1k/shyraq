@@ -599,23 +599,26 @@ export default function HomePage() {
       </section>
 
       <footer className="bg-[#0b1423] text-white/55">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8">
-          <div className="grid gap-10 md:grid-cols-[1.35fr_1fr_1fr]">
+        <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-9 lg:px-8">
+          <div className="grid gap-7 md:grid-cols-[1.5fr_.8fr_.8fr] md:gap-10">
             <div>
-              <Logo dark />
-              <p className="mt-4 max-w-sm text-xs leading-6 text-white/40">
+              <div className="origin-left scale-[.88] sm:scale-[.92]">
+                <Logo dark />
+              </div>
+
+              <p className="mt-2.5 max-w-md text-[11px] leading-5 text-white/40">
                 Шырақ — жастарға тәртіп, жауапкершілік және пайдалы әдеттерді күнделікті өмірге енгізуге көмектесетін 21 күндік марафон.
               </p>
 
-              <div className="mt-6">
-                <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Бізбен бірге</p>
-                <div className="mt-3 flex items-center gap-2.5">
+              <div className="mt-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-white/30">Бізбен бірге</p>
+                <div className="mt-2.5 flex items-center gap-2">
                   <a
                     href="https://www.instagram.com/we.are.shyraq/"
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Shyraq Instagram"
-                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.035] text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_8px_20px_rgba(255,111,44,.20)]"
                   >
                     <SocialIcon type="instagram" />
                   </a>
@@ -625,7 +628,7 @@ export default function HomePage() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Shyraq TikTok"
-                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.035] text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_8px_20px_rgba(255,111,44,.20)]"
                   >
                     <SocialIcon type="tiktok" />
                   </a>
@@ -635,7 +638,7 @@ export default function HomePage() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Shyraq Telegram"
-                    className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[.035] text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_8px_20px_rgba(255,111,44,.20)]"
                   >
                     <SocialIcon type="telegram" />
                   </a>
@@ -643,26 +646,27 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Марафон</p>
-              <div className="mt-4 space-y-2.5 text-xs">
-                <a href="#features" className="block hover:text-white">Мүмкіндіктер</a>
-                <a href="#marathon" className="block hover:text-white">21 күн</a>
-                <a href="#reviews" className="block hover:text-white">Пікірлер</a>
+            <div className="md:pt-1">
+              <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-white/30">Марафон</p>
+              <div className="mt-2.5 space-y-1.5 text-[11px] text-white/55">
+                <a href="#features" className="block transition-colors hover:text-white">Мүмкіндіктер</a>
+                <a href="#marathon" className="block transition-colors hover:text-white">21 күн</a>
+                <a href="#reviews" className="block transition-colors hover:text-white">Пікірлер</a>
               </div>
             </div>
 
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/35">Аккаунт</p>
-              <div className="mt-4 space-y-2.5 text-xs">
-                <Link href="/login" className="block hover:text-white">Кіру</Link>
-                <Link href="/register" className="block hover:text-white">Тіркелу</Link>
+            <div className="md:pt-1">
+              <p className="text-[9px] font-extrabold uppercase tracking-[.18em] text-white/30">Аккаунт</p>
+              <div className="mt-2.5 space-y-1.5 text-[11px] text-white/55">
+                <Link href="/login" className="block transition-colors hover:text-white">Кіру</Link>
+                <Link href="/register" className="block transition-colors hover:text-white">Тіркелу</Link>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 border-t border-white/8 pt-5 text-[10px] text-white/30">
-            © 2026 Shyraq. Барлық құқықтар қорғалған.
+          <div className="mt-7 flex flex-col gap-2 border-t border-white/8 pt-4 text-[9px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
+            <span>© 2026 Shyraq. Барлық құқықтар қорғалған.</span>
+            <span className="hidden sm:block">21 күн. Бір шешім. Бір қадамнан баста.</span>
           </div>
         </div>
       </footer>
