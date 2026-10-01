@@ -4,30 +4,11 @@ import { ArrowRight, BookOpen, CheckCircle2, ChevronRight, Clock3, Flame, Trophy
 import { AppShell } from "@/components/app/AppNav";
 import { Card, MetricCard, PageContainer, PrimaryLink, ProgressBar, SectionHeader, SecondaryLink } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { calculateCurrentStreak, getSubmittedReportDates, shiftDate, todayInTimezone } from "@/lib/streak";
 
 function formatDeadline(value?: string | null) {
   if (!value) return "Мерзімі көрсетілмеген";
   return new Date(value).toLocaleString("kk-KZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-}
-
-function todayInAlmaty() {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Almaty", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-}
-
-function shiftDate(value: string, delta: number) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  date.setUTCDate(date.getUTCDate() + delta);
-  return date.toISOString().slice(0, 10);
-}
-
-function calculateStreak(reportDates: string[]) {
-  const dates = new Set(reportDates);
-  const today = todayInAlmaty();
-  if (!dates.has(today)) return 0;
-  let streak = 1;
-  while (dates.has(shiftDate(today, -streak))) streak += 1;
-  return streak;
 }
 
 export default async function DashboardPage() {
@@ -35,7 +16,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name,role")
+    .eq("id", user.id)
+    .maybeSingle();
+
   const role = profile?.role ?? "STUDENT";
   if (role === "MENTOR") redirect("/mentor");
   if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
@@ -45,16 +31,19 @@ export default async function DashboardPage() {
     supabase.from("team_members").select("team_id,teams(id,name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
     supabase.from("tasks").select("id,title,description,deadline,points").eq("active", true).order("deadline", { ascending: true, nullsFirst: false }).limit(5),
     supabase.from("video_progress").select("watched_percent").eq("student_id", user.id),
-    supabase.from("daily_reports").select("report_date,status").eq("student_id", user.id).order("report_date", { ascending: false }).limit(30),
+    supabase.from("daily_reports").select("report_date,status").eq("student_id", user.id).order("report_date", { ascending: false }).limit(370),
     supabase.from("score_events").select("points").eq("student_id", user.id),
   ]);
 
   const team = Array.isArray(membership?.teams) ? membership.teams[0] ?? null : membership?.teams;
   const totalScore = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
-  const lessonProgress = progress?.length ? Math.round(progress.reduce((sum, item) => sum + Number(item.watched_percent ?? 0), 0) / progress.length) : 0;
-  const today = todayInAlmaty();
-  const reportDates = (reports ?? []).map((item) => item.report_date);
-  const streak = calculateStreak(reportDates);
+  const lessonProgress = progress?.length
+    ? Math.round(progress.reduce((sum, item) => sum + Number(item.watched_percent ?? 0), 0) / progress.length)
+    : 0;
+
+  const today = todayInTimezone("Asia/Almaty");
+  const submittedReportDates = getSubmittedReportDates(reports ?? []);
+  const streak = calculateCurrentStreak(submittedReportDates, today);
   const todayReport = (reports ?? []).find((item) => item.report_date === today);
   const firstName = profile?.full_name?.split(" ")[0] ?? "досым";
 
@@ -92,12 +81,14 @@ export default async function DashboardPage() {
                   </div>
                   <span className="text-[10px] font-semibold text-[#9A9189]">Оқу ритмі</span>
                 </div>
+
                 <div className="mt-5 grid grid-cols-7 gap-2">
                   {Array.from({ length: 7 }).map((_, index) => {
                     const date = shiftDate(today, index - 6);
                     const report = (reports ?? []).find((item) => item.report_date === date);
-                    const submitted = report?.status === "SUBMITTED";
+                    const submitted = report && report.status !== "DRAFT";
                     const started = Boolean(report);
+
                     return (
                       <div key={date} className="flex flex-col items-center gap-1.5">
                         <span className={[`grid h-9 w-9 place-items-center rounded-[12px] text-[9px] font-extrabold sm:h-10 sm:w-10`, submitted ? "bg-[#FF6F2C] text-white" : started ? "bg-[#FFF0E8] text-[#FF6F2C]" : "bg-[#F6F2ED] text-[#A69C93]"].join(" ")}>
@@ -118,6 +109,7 @@ export default async function DashboardPage() {
                   </div>
                   <Link href="/tasks" className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#FF6F2C]">Барлығы <ChevronRight size={13} /></Link>
                 </div>
+
                 <div className="divide-y divide-[#EFE8E1]">
                   {(tasks ?? []).slice(0, 4).map((task) => (
                     <Link key={task.id} href={`/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-4 transition hover:bg-[#FFFCF9] sm:px-6">
