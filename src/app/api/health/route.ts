@@ -8,7 +8,7 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );
-  const adminEnvConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const adminEnvConfigured = Boolean(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
   let supabaseReachable = false;
 
   try {
