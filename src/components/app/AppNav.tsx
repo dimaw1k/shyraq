@@ -201,6 +201,7 @@ export function AppShell({
   right,
   role,
   userName,
+  hideHeader = false,
 }: {
   children: ReactNode;
   title: string;
