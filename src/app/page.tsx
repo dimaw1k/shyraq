@@ -49,7 +49,7 @@ const benefits = [
 
 const days = [
   ["01", "Бастау", "Мақсатыңды анықтап, күн тәртібіңді реттей бастайсың. Бірінші тапсырма — жай ғана бастау."],
-  ["07", "Режим", "Ұйқы, таңғы әдет, жоспар және оқу блоктары күнделікті өміріңнің бір бөлігіне айнала бастайды."],
+  ["07", "Әдет", "Ұйқы, таңғы әдет, жоспар және оқу біртіндеп күнделікті өміріңнің қалыпты бөлігіне айналады."],
   ["14", "Қарқын", "Телефон мен басқа алаңдататын нәрселерді азайтып, уақытыңды маңызды тақырыптарға қайта бөлесің."],
   ["21", "Нәтиже", "21 күннің соңында ең маңыздысы — рейтинг емес. Өзіңе берген уәдеңді өзің орындай алатыныңды сезіну."],
 ];
@@ -333,13 +333,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">21 КҮННІҢ СОҢЫНДА НЕ ӨЗГЕРЕДІ?</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">21 КҮНДЕ НЕ ӨЗГЕРЕДІ?</p>
               <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
-                Алғашқы күннен бастап өзіңді жинайсың.
-                <span className="block text-[#9b9289]">21 күннен кейін жаңа ритм қалады.</span>
+                Өзіңді қолға алып, күн сайын бір қадам алға жылжисың.
+                <span className="block text-[#9b9289]">21 күннен кейін бұл әдетке айнала бастайды.</span>
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
-                Мақсат, жоспар, таңғы әдет, оқу, кешкі есеп — бәрі бір ритмге түседі. Соңында сен тек 21 күнді аяқтап қоймай, өз уақытыңды басқарудың нақты тәсілін алып шығасың.
+                Мақсат, жоспар, таңғы әдет, оқу және кешкі қорытынды — бәрі алдын ала ойластырылған. 21 күннің соңында сен марафонды ғана аяқтамай, уақытыңды тиімді ұйымдастырудың өзіңе ыңғайлы тәсілін қалыптастырасың.
               </p>
             </div>
           </Reveal>
@@ -360,7 +360,7 @@ export default function HomePage() {
                       <p className="mt-1 text-lg font-extrabold text-[#172235]">{title}</p>
                     </div>
 
-                    <p className="max-w-2xl text-sm leading-6 text-[#766e66]">{text}</p>
+                    <p className="max-w-2xl text-[15px] font-medium leading-7 text-[#5f574f]">{text}</p>
 
                     <span className="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full bg-[#faf7f2] text-[#a79e95] transition-all group-hover:bg-[#fff0e2] group-hover:text-[#ff6f2c]">
                       <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
@@ -379,20 +379,20 @@ export default function HomePage() {
           <div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
             <Reveal>
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ШЫРАҚТЫҢ КҮНДЕЛІКТІ РИТМІ</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ШЫРАҚТЫҢ КҮН ТӘРТІБІ</p>
                 <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
                   Күніңді жоспарламай, мақсатыңа жете алмайсың.
-                  <span className="block text-[#9b9289]">Сондықтан біз ритмді алдын ала құрдық.</span>
+                  <span className="block text-[#9b9289]">Сол үшін Шырақта әр күннің нақты жоспары алдын ала дайындалады.</span>
                 </h2>
-                <p className="mt-5 max-w-lg text-sm leading-7 text-[#746c64] sm:text-base">
-                  Шырақтағы күн 05:00-де басталады: таңғы әдет, алғашқы оқу блогы, күндік жоспар және кешкі қорытынды. Күнің неге жұмсалғанын соңында өзің көріп отырасың.
+                <p className="mt-5 max-w-lg text-[15px] font-medium leading-7 text-[#5f574f] sm:text-base">
+                  Шырақтағы күн 05:00-де басталады: таңғы әдет, алғашқы оқу, күндік жоспар және кешкі қорытынды. Әр кезеңнің өз уақыты бар, сондықтан бүгін не істеу керегін ойлап уақыт жоғалтпайсың.
                 </p>
 
                 <div className="mt-7 space-y-3">
                   {[
-                    ["01", "Таңғы старт", "05:00 — ояну, таңғы әдеттер және 05:30–06:30 алғашқы оқу."],
-                    ["02", "Негізгі жұмыс", "06:30–08:00 — есеп пен жоспар; кешке 17:30–20:00 — екінші оқу блогы."],
-                    ["03", "Күнді жабу", "20:00–21:00 — жоспар, ашық чат, рейтинг. 22:00 — ұйқы."],
+                    ["01", "Таңғы бастау", "05:00 — ояну, таңғы әдеттер және 05:30–06:30 алғашқы оқу."],
+                    ["02", "Негізгі оқу", "06:30–08:00 — негізгі оқу мен жоспар; кешке 17:30–20:00 — екінші оқу уақыты."],
+                    ["03", "Күнді қорытындылау", "20:00–21:00 — күнді қорытындылау, ашық чат және рейтинг. 22:00 — ұйқы."],
                   ].map(([number, title, text], index) => (
                     <Reveal key={number} delay={index * 80}>
                       <div className="group flex items-center gap-4 rounded-[22px] border border-[#ece6de] bg-[#faf9f6] p-4 transition hover:bg-white hover:shadow-[0_16px_40px_rgba(20,20,20,.06)]">
@@ -465,12 +465,12 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ШЫРАҚТЫ ӨЗІ БАСЫНАН ӨТКЕНДЕР</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">МАРАФОННАН ӨТКЕНДЕР НЕ ДЕЙДІ?</p>
               <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
                 21 күннен кейінгі өзгерісті қатысушылар өздері айтады.
               </h2>
               <p className="mt-4 text-sm leading-6 text-[#7b756e]">
-                Төмендегі ойлар алдыңғы ағындардағы қатысушылардың пікірлерінен мағынасы сақталып қысқартылды.
+                Бұл бөлімде алдыңғы ағындардағы қатысушылардың тәжірибесі қысқаша берілген.
               </p>
             </div>
           </Reveal>
@@ -528,10 +528,10 @@ export default function HomePage() {
                 <div className="mx-auto w-full max-w-[430px]">
                   <div className="rounded-[28px] border border-white/70 bg-white/70 p-4 shadow-[0_25px_70px_rgba(40,30,20,.1)] backdrop-blur">
                     <div className="rounded-[22px] bg-[#172235] p-5 text-white">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІНГІ МІНДЕТ</p>
-                      <p className="mt-1 text-2xl font-extrabold">Алғашқы 3 қадам</p>
+                      <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІН ОСЫНЫ ІСТЕ</p>
+                      <p className="mt-1 text-2xl font-extrabold">Бастауға 3 қадам</p>
                       <div className="mt-5 space-y-2.5">
-                        {["Профильді толтыру", "Бір тапсырманы орындау", "Сабақтың алғашқы бөлігін көру"].map((item, index) => (
+                        {["Тіркеліп, профиліңді толтыр", "Бүгінгі алғашқы тапсырманы орында", "Бірінші сабақтың басталуын көр"].map((item, index) => (
                           <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/[.06] px-3 py-3">
                             <span className="grid h-7 w-7 place-items-center rounded-xl bg-[#ff6f2c] text-[9px] font-extrabold">
                               {String(index + 1).padStart(2, "0")}
