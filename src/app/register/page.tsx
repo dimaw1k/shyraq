@@ -163,18 +163,18 @@ export default function RegisterPage() {
 
         <div className="mx-auto mt-7 max-w-6xl">
           <div className="rounded-[36px] border border-white/75 bg-white/92 p-4 shadow-[0_30px_100px_rgba(39,25,17,.12)] backdrop-blur-xl sm:p-6 lg:p-8">
-            <div className="grid gap-8 lg:grid-cols-[.72fr_1.28fr] lg:gap-10">
-              <section className="rounded-[28px] bg-[#172235] p-6 text-white sm:p-7">
+            <div className="grid gap-8 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
+              <section className="order-2 rounded-[28px] bg-[#172235] p-6 text-white sm:order-2 sm:p-7 lg:order-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
                   <Sparkles size={12} className="text-[#ff8a52]" />
                   21 күндік оқу марафоны
                 </div>
                 <h1 className="mt-5 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
-                  Бүгін баста.
-                  <span className="block text-[#ff6f2c]">21 күнде өзіңді сына.</span>
+                  Күнде аздап.
+                  <span className="block text-[#ff6f2c]">21 күнде үлкен өзгеріс.</span>
                 </h1>
                 <p className="mt-4 text-sm font-medium leading-6 text-white/65">
-                  Тіркеліп, күнделікті тапсырмаларды орындаңыз және оқу барысын бақылаңыз. 21 күн бойы өз мақсатыңызға жүйелі түрде қадам жасаңыз.
+                  Shyraq — оқуды кейінге қалдырмай, күн сайын жоспармен жүруге көмектесетін марафон. Сабақ, тапсырма және прогресс — бір жерде.
                 </p>
 
                 <div className="mt-7 space-y-3">
@@ -198,7 +198,7 @@ export default function RegisterPage() {
                 </div>
               </section>
 
-              <section className="px-1 py-1 sm:px-2">
+              <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1">
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ТІРКЕЛУ</p>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
