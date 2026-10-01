@@ -12,9 +12,6 @@ import {
   ChevronRight,
   Clock3,
   Flame,
-  Instagram,
-  Music2,
-  Send,
   Sparkles,
   Target,
   Trophy,
@@ -70,6 +67,47 @@ const sampleQuotes = [
   "«Телефонға кететін уақытымды байқай бастадым. Ең ұнағаны — күн сайын өз нәтижемді көріп отыру.»",
   "«Мұнда тек оқу емес, тәртіп пен жауапкершілікке де көңіл бөлінеді. Қасымдағы адамдардың нәтижесін көріп, өзім де тоқтап қалмадым.»",
 ];
+
+function SocialIcon({ type }: { type: "instagram" | "tiktok" | "telegram" }) {
+  if (type === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+        <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" stroke="currentColor" strokeWidth="1.9" />
+        <circle cx="12" cy="12" r="4.1" stroke="currentColor" strokeWidth="1.9" />
+        <circle cx="17.55" cy="6.55" r="1.15" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "tiktok") {
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+        <path
+          d="M14.1 4.1v9.1a4.5 4.5 0 1 1-3.3-4.35"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14.1 4.1c.7 1.75 2.08 2.82 4.05 3.15"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+      <path
+        d="M21.25 4.5 18.05 19c-.24 1.03-.84 1.28-1.7.8l-4.67-3.45-2.25 2.16c-.25.25-.46.46-.94.46l.34-4.75 8.65-7.82c.38-.34-.08-.53-.59-.19L6.2 12.92 1.62 11.47c-1-.32-1.02-1.01.21-1.49L19.74 3.1c.84-.3 1.58.19 1.51 1.4Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
@@ -579,7 +617,7 @@ export default function HomePage() {
                     aria-label="Shyraq Instagram"
                     className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
                   >
-                    <Instagram size={19} strokeWidth={2.2} />
+                    <SocialIcon type="instagram" />
                   </a>
 
                   <a
@@ -589,7 +627,7 @@ export default function HomePage() {
                     aria-label="Shyraq TikTok"
                     className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
                   >
-                    <Music2 size={19} strokeWidth={2.2} />
+                    <SocialIcon type="tiktok" />
                   </a>
 
                   <a
@@ -599,7 +637,7 @@ export default function HomePage() {
                     aria-label="Shyraq Telegram"
                     className="group grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[.04] text-white/65 transition-all duration-300 hover:-translate-y-1 hover:border-[#ff6f2c]/40 hover:bg-[#ff6f2c] hover:text-white hover:shadow-[0_12px_28px_rgba(255,111,44,.24)]"
                   >
-                    <Send size={18} strokeWidth={2.2} />
+                    <SocialIcon type="telegram" />
                   </a>
                 </div>
               </div>
