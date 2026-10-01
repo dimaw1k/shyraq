@@ -171,7 +171,7 @@ export default function RegisterPage() {
                 </div>
                 <h1 className="mt-5 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
                   Бүгін баста.
-                  <span className="block text-[#ff6f2c]">21 күнде өзгер.</span>
+                  <span className="block text-[#ff6f2c]">21 күнде өзіңді сына.</span>
                 </h1>
                 <p className="mt-4 text-sm font-medium leading-6 text-white/65">
                   Тіркеліп, күнделікті тапсырмаларды орындаңыз және оқу барысын бақылаңыз. 21 күн бойы өз мақсатыңызға жүйелі түрде қадам жасаңыз.
@@ -277,7 +277,7 @@ export default function RegisterPage() {
                   </label>
 
                   <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Оқу түрі
+                    Білім алу деңгейі
                     <select
                       value={form.educationType}
                       onChange={(event) => updateField("educationType", event.target.value)}
