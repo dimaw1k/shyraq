@@ -152,7 +152,7 @@ function MentorWorkspace() {
               </div>
             ))}
           </div>
-        </Card></div>
+        </Card>
       </section>
 
       <section id="tasks" className="grid gap-5 xl:grid-cols-[1.25fr_.75fr]">
@@ -320,7 +320,7 @@ function ChiefMentorWorkspace() {
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ATTENDANCE</p><p className="mt-1.5 text-[22px] font-extrabold">91%</p></div>
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">REPORTS</p><p className="mt-1.5 text-[22px] font-extrabold">92%</p></div>
           </div>
-        </Card>
+        </Card></div>
       </section>
 
       <section id="tasks" className="grid gap-5 lg:grid-cols-2">
