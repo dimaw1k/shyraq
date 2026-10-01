@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { formatKzPhone } from "@/lib/phone";
+import { normalizePhone } from "@/lib/phone";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
@@ -32,9 +32,9 @@ export async function POST(request: Request) {
     let email = rawIdentifier.toLowerCase();
 
     if (looksLikePhone(rawIdentifier)) {
-      const phone = formatKzPhone(rawIdentifier);
+      const phone = normalizePhone(rawIdentifier);
 
-      if (!phone) {
+      if (!phone || !/^\+7\d{10}$/.test(phone)) {
         return NextResponse.json(
           { error: "Email немесе телефон нөмірін дұрыс енгізіңіз." },
           { status: 400 },
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         .eq("phone", phone)
         .maybeSingle();
 
-      if (profileError || !profile?.email) {
+      if (profileError) {\n        console.error("[auth/login] profiles phone lookup failed", {\n          code: profileError.code,\n          message: profileError.message,\n          details: profileError.details,\n          hint: profileError.hint,\n        });\n      }\n\n      if (profileError || !profile?.email) {
         return NextResponse.json(
           { error: "Көрсетілген деректер бойынша тіркелгі табылмады немесе құпиясөз қате." },
           { status: 401 },
