@@ -113,19 +113,24 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 
 ## Production deployment
 
-The `main` branch is connected to Vercel Production.
+The `main` branch is connected to the Shyraq Vercel project.
 
-Latest application baseline deployed from GitHub:
+Current GitHub main baseline:
 ```text
-cd731dc269f3d1179830c6b9d971398ed33b75e5
+25d743c4675d48e0ce87a467af096d51cfd1a749
 ```
 
-Health endpoint:
+Current Vercel Production deployment metadata still points to:
+```text
+1aeeed23d56f49e11ac9263a84fc0574bc333f55
+```
+
+Production health endpoint:
 ```text
 https://shyraq-nu.vercel.app/api/health
 ```
 
-The health endpoint intentionally returns HTTP 503 until required production environment variables are present and the deployed server can reach Supabase.
+The health endpoint currently returns HTTP 200 and confirms the deployed server can reach Supabase. A fresh production deployment is still required to move Vercel from the older commit to the current `main` baseline.
 
 ## Verification
 
