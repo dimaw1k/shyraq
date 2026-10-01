@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
-import { AppShell, CompactStat, UserChip } from "@/components/app/AppNav";
-import { MentorTeamManager } from "@/components/mentor/MentorTeamManager";
+import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { MentorTeamManager } from "@/components/mentor/MentorTeamManager";
+import { ArrowRight } from "lucide-react";
+import { Card, MetricCard, PageContainer, PrimaryLink, SectionHeader } from "@/components/ui/ShyraqUI";
 
 export default async function MentorPage() {
   const supabase = await createServerSupabaseClient();
@@ -11,22 +13,17 @@ export default async function MentorPage() {
   const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
   if (profile?.role !== "MENTOR") redirect("/dashboard");
 
-  const { data: team } = await supabase
-    .from("teams")
-    .select("id,name,capacity,status")
-    .eq("mentor_id", user.id)
-    .eq("status", "ACTIVE")
-    .maybeSingle();
+  const { data: team } = await supabase.from("teams").select("id,name,capacity,status").eq("mentor_id", user.id).eq("status", "ACTIVE").maybeSingle();
 
   if (!team) {
     return (
-      <AppShell role="MENTOR" userName={profile.full_name} title="Ментор панелі" description="Команда мен тағайындалған оқушыларды басқарыңыз." right={<UserChip name={profile.full_name} role="MENTOR" />}>
-        <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-[#FAFAFA] p-8 text-center">
-            <p className="text-sm font-semibold text-gray-900">Белсенді команда бекітілмеген.</p>
-            <p className="mt-1 text-xs text-gray-500">Админ сізге команда тағайындағаннан кейін оқушыларды басқара аласыз.</p>
-          </div>
-        </main>
+      <AppShell role="MENTOR" userName={profile.full_name} title="Ментор панелі" description="Командаңыз бен оқушыларды басқарыңыз.">
+        <PageContainer>
+          <Card className="p-10 text-center">
+            <p className="text-sm font-extrabold text-[#3F3832]">Белсенді команда бекітілмеген.</p>
+            <p className="mt-1.5 text-xs font-medium text-[#9A9189]">Админ команда тағайындағаннан кейін оқушылар осы жерде көрінеді.</p>
+          </Card>
+        </PageContainer>
       </AppShell>
     );
   }
@@ -38,12 +35,11 @@ export default async function MentorPage() {
   ]);
 
   const baseStudents = (members ?? []).map((row) => {
-    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-    return profile ? { ...profile, assigned_at: row.assigned_at } : null;
+    const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return p ? { ...p, assigned_at: row.assigned_at } : null;
   }).filter(Boolean) as Array<{ id:string; full_name:string; phone:string; email:string; status:string; assigned_at:string }>;
 
   const studentIds = baseStudents.map((student) => student.id);
-
   const [{ data: reports }, { data: taskSubmissions }, { data: videoProgress }, { data: scoreEvents }] = await Promise.all([
     studentIds.length ? supabase.from("daily_reports").select("student_id,status").in("student_id", studentIds) : Promise.resolve({ data: [] as Array<{ student_id:string; status:string }> }),
     studentIds.length ? supabase.from("task_submissions").select("student_id,status").in("student_id", studentIds) : Promise.resolve({ data: [] as Array<{ student_id:string; status:string }> }),
@@ -87,31 +83,28 @@ export default async function MentorPage() {
   });
 
   const averageAttendance = attendance?.length ? attendance.reduce((sum,row)=>sum+Number(row.attendance_percent ?? 0),0)/attendance.length : 0;
-  const activeStudents = students.filter((student)=>student.status === "ACTIVE").length;
-  const connectedMeet = Boolean(meetSpace?.active);
 
   return (
-    <AppShell role="MENTOR" userName={profile.full_name} title={team.name} description="Командаңыздың күнделікті операциялық көрсеткіштері." right={<UserChip name={profile.full_name} role="MENTOR" />}>
-      <main className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <CompactStat label="Оқушылар" value={String(activeStudents) + "/" + String(team.capacity ?? "—")} hint="Active / capacity" />
-          <CompactStat label="Attendance" value={averageAttendance.toFixed(1) + "%"} hint="Команда орташа" />
-          <CompactStat label="Reports" value={String(students.reduce((sum, student) => sum + student.reportCount, 0))} hint="Жіберілген есептер" />
-          <CompactStat label="Meet" value={connectedMeet ? "Қосылған" : "Қосу қажет"} hint="Team Meet space" />
-        </section>
-
-        {connectedMeet && meetSpace?.meeting_url ? (
-          <div className="mt-4">
-            <a href={meetSpace.meeting_url} target="_blank" rel="noreferrer" className="inline-flex rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90">
-              Meet-ке кіру
-            </a>
+    <AppShell role="MENTOR" userName={profile.full_name} title={team.name} description="Командаңыздың негізгі көрсеткіштері.">
+      <PageContainer>
+        <div className="space-y-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHeader eyebrow="МЕНТОР" title={team.name} description="Оқушылардың прогресін бір экраннан бақыла." />
+            {meetSpace?.meeting_url ? <PrimaryLink href={meetSpace.meeting_url}>Meet-ке кіру <ArrowRight size={14} /></PrimaryLink> : null}
           </div>
-        ) : null}
 
-        <div className="mt-5">
-          <MentorTeamManager teamId={team.id} students={students} />
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard label="ОҚУШЫЛАР" value={`${students.length}/${team.capacity ?? "—"}`} hint="команда құрамы" />
+            <MetricCard label="ATTENDANCE" value={averageAttendance.toFixed(1) + "%"} hint="команда орташа" />
+            <MetricCard label="REPORTS" value={String(students.reduce((sum, student) => sum + student.reportCount, 0))} hint="жіберілген есептер" />
+            <MetricCard label="MEET" value={meetSpace?.active ? "Қосылған" : "Қосу қажет"} hint="team Meet space" />
+          </section>
+
+          <Card className="p-4 sm:p-5">
+            <MentorTeamManager teamId={team.id} students={students} />
+          </Card>
         </div>
-      </main>
+      </PageContainer>
     </AppShell>
   );
 }
