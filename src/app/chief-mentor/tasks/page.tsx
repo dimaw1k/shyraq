@@ -33,7 +33,7 @@ export default async function ChiefMentorTasksPage() {
                     <p className="mt-1 text-[9px] text-[#9A9189]">
                       {task.marathon_day ? task.marathon_day + "-күн" : "Күн жоқ"} · {task.points} ұпай · {task.team_id ? teamMap.get(task.team_id) ?? "Команда" : "Барлық команда"}
                       {task.starts_at ? " · ашылу " + new Date(task.starts_at).toLocaleString("kk-KZ") : ""}
-                      {task.deadline ? " · дедлайн " + new Date(task.deadline).toLocaleString("kk-KZ") : ""}
+                      {task.deadline ? " · соңғы мерзім " + new Date(task.deadline).toLocaleString("kk-KZ") : ""}
                     </p>
                   </div>
                   <StatusPill tone={task.active ? "green" : "neutral"}>{task.active ? "Белсенді" : "Өшірулі"}</StatusPill>
