@@ -1,14 +1,16 @@
-function readRequiredPublicEnv(name: string) {
+function readRequiredPublicEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") {
   const value = process.env[name];
 
   if (!value || !value.trim()) {
-    throw new Error(`${name} is not configured`);
+    throw new Error(name + " is not configured");
   }
 
   return value.trim();
 }
 
-export const SUPABASE_URL = readRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL");
-export const SUPABASE_PUBLISHABLE_KEY = readRequiredPublicEnv(
-  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-);
+export function getSupabaseConfig() {
+  return {
+    url: readRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    publishableKey: readRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+  };
+}
