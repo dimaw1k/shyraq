@@ -13,7 +13,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
   const [{ data: profile }, { data: task }, { data: submission }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
     supabase.from("tasks").select("id,title,description,instructions,deadline,starts_at,points,attachment_required,max_files,team_id,marathon_day").eq("id", taskId).eq("active", true).maybeSingle(),
-    supabase.from("task_submissions").select("id,status,text_answer,submitted_at,submitted_late,review_comment,resubmission_deadline").eq("task_id", taskId).eq("student_id", user.id).maybeSingle(),
+    supabase.from("task_submissions").select("id,status,text_answer,submitted_at,submitted_late,link_url,review_comment,resubmission_deadline").eq("task_id", taskId).eq("student_id", user.id).maybeSingle(),
   ]);
   if (!task) notFound();
 
