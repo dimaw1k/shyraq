@@ -57,7 +57,7 @@ export default async function LeaderContentPage() {
                             {lesson.marathon_day ? lesson.marathon_day + "-күн · " : ""}
                             {Math.round(Number(lesson.duration_seconds) / 60)} мин
                             {lesson.starts_at ? " · ашылу " + new Date(lesson.starts_at).toLocaleString("kk-KZ") : ""}
-                            {lesson.deadline_at ? " · дедлайн " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
+                            {lesson.deadline_at ? " · соңғы мерзім " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
                           </p>
                         </div>
                         <StatusPill tone={lesson.published ? "green" : "orange"}>{lesson.published ? "Жарияланған" : "Жоба"}</StatusPill>
@@ -87,7 +87,7 @@ export default async function LeaderContentPage() {
                         <p className="mt-1 text-[9px] text-[#9A9189]">
                           {task.marathon_day ? task.marathon_day + "-күн" : "Күн жоқ"} · {task.points} ұпай
                           {task.team_id ? " · " + (teams?.find((team) => team.id === task.team_id)?.name ?? "Команда") : " · Барлық команда"}
-                          {task.deadline ? " · дедлайн " + new Date(task.deadline).toLocaleString("kk-KZ") : ""}
+                          {task.deadline ? " · соңғы мерзім " + new Date(task.deadline).toLocaleString("kk-KZ") : ""}
                         </p>
                       </div>
                       <StatusPill tone={task.active ? "green" : "neutral"}>{task.active ? "Белсенді" : "Өшірулі"}</StatusPill>
