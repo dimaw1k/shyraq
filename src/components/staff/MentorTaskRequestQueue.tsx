@@ -37,7 +37,7 @@ export function MentorTaskRequestQueue(){
 
  if(loading)return <Card className="p-4 text-[10px] font-semibold text-[#8F857D]">Жүктелуде...</Card>;
  return <Card className="overflow-hidden">
-  <div className="flex items-center justify-between border-b border-[#EEE8E1] px-4 py-3.5"><div><p className="text-[13px] font-extrabold text-[#172235]">Ментор сұраныстары</p><p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Approve / Reject / Edit</p></div><button type="button" onClick={()=>void load()} className="inline-flex items-center gap-1.5 text-[9px] font-extrabold text-[#FF8000]"><RefreshCw size={12}/> Жаңарту</button></div>
+  <div className="flex items-center justify-between border-b border-[#EEE8E1] px-4 py-3.5"><div><p className="text-[13px] font-extrabold text-[#172235]">Ментор сұраныстары</p><p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Бекіту / Қайтару / Өңдеу</p></div><button type="button" onClick={()=>void load()} className="inline-flex items-center gap-1.5 text-[9px] font-extrabold text-[#FF8000]"><RefreshCw size={12}/> Жаңарту</button></div>
   {error?<p className="border-b border-[#EEE8E1] px-4 py-3 text-[9px] font-semibold text-[#B54D2B]">{error}</p>:null}
   <div className="divide-y divide-[#F0EBE5]">
    {!requests.length?<div className="p-6 text-center text-[10px] font-extrabold text-[#3F3832]">Жаңа сұраныс жоқ</div>:requests.map(item=>{
