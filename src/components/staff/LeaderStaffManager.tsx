@@ -366,7 +366,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
       <div className="border-t border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3 sm:px-6">
         <div className="flex items-center gap-2 text-[9px] font-bold text-[#8B8179]">
           <span className="grid h-6 w-6 place-items-center rounded-full bg-[#EEF9F3] text-[#318562]"><Check size={12} /></span>
-          <span>{message || "Рөл мен статус өзгерісі бірден сақталады."}</span>
+          {message ? <span>{message}</span> : null}
           {savingId ? <StatusPill tone="orange">Сақталуда</StatusPill> : null}
         </div>
       </div>
