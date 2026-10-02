@@ -22,7 +22,7 @@ function statusLabel(status: string) {
   return status;
 }
 
-export function SupportTicketManager() {
+export function ҚолдауTicketManager() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<string | null>(null);
