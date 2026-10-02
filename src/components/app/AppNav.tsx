@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Activity, BarChart3, Bell, BookOpen, ClipboardCheck, ClipboardList, FileText, LayoutDashboard, Menu, Settings, Trophy, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { NotificationBell } from "@/components/student/NotificationBell";
 
 type NavItem = { label: string; href: string; icon: LucideIcon };
 
@@ -46,6 +47,7 @@ const leaderLinks: NavItem[] = [
   { label: "Тапсырма тексеруі", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
+  { label: "Support", href: "/leader/support", icon: Bell },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
 ];
 
@@ -101,7 +103,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Хабарландырулар" className="grid h-10 w-10 place-items-center rounded-[12px] text-[#81766D] transition hover:bg-[#F6F2ED] hover:text-[#172235]"><Bell size={17} strokeWidth={1.9} /></button>
+            <NotificationBell />
             <UserChip name={userName} role={role} />
           </div>
         </div>
