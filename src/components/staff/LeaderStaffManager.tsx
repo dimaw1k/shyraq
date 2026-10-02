@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, ChevronDown, Loader2, Search, UserPlus } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 import { StatusPill } from "@/components/ui/ShyraqUI";
+import { StaffModal } from "@/components/staff/StaffUI";
 
 type StaffRow = {
   id: string;
@@ -45,6 +46,13 @@ function statusLabel(status: string) {
   return statusOptions.find((item) => item.value === status)?.label ?? status;
 }
 
+function educationLabel(value: string | null | undefined) {
+  if (value === "SCHOOL") return "Мектеп";
+  if (value === "COLLEGE") return "Колледж";
+  if (value === "UNIVERSITY") return "Университет";
+  return "Басқа";
+}
+
 function ChoiceMenu({
   label,
   value,
@@ -61,7 +69,7 @@ function ChoiceMenu({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <button
         type="button"
         disabled={disabled}
@@ -70,7 +78,7 @@ function ChoiceMenu({
         aria-expanded={open}
       >
         <span className="min-w-0 truncate whitespace-nowrap">{label}</span>
-        <ChevronDown size={13} className={open ? "rotate-180 transition-transform" : "transition-transform"} />
+        <ChevronDown size={13} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
       </button>
 
       {open ? (
@@ -84,7 +92,7 @@ function ChoiceMenu({
                 setOpen(false);
               }}
               className={[
-                "flex w-full items-center justify-between rounded-[9px] px-3 py-2 text-left text-[10px] font-bold transition",
+                "flex w-full items-center justify-between rounded-[9px] px-3 py-2.5 text-left text-[10px] font-bold transition",
                 value === option.value ? "bg-[#FFF1E2] text-[#D95F00]" : "text-[#4B433C] hover:bg-[#FAF7F3]",
               ].join(" ")}
             >
@@ -98,17 +106,11 @@ function ChoiceMenu({
   );
 }
 
-function educationLabel(value: string | null | undefined) {
-  if (value === "SCHOOL") return "Мектеп";
-  if (value === "COLLEGE") return "Колледж";
-  if (value === "UNIVERSITY") return "Университет";
-  return "Басқа";
-}
-
 export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] }) {
   const [staff, setStaff] = useState(initialStaff);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [lookup, setLookup] = useState<LookupProfile | null>(null);
   const [lookupRegistered, setLookupRegistered] = useState<boolean | null>(null);
@@ -116,6 +118,20 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
   const [lookupLoading, setLookupLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [newRole, setNewRole] = useState("MENTOR");
+
+  function openAddModal() {
+    setModalOpen(true);
+    setLookup(null);
+    setLookupRegistered(null);
+    setLookupMessage("");
+    setPhone("");
+    setNewRole("MENTOR");
+  }
+
+  function closeAddModal() {
+    if (lookupLoading || addLoading) return;
+    setModalOpen(false);
+  }
 
   async function patch(id: string, patchBody: { role?: string; status?: string }) {
     setSavingId(id);
@@ -197,8 +213,8 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
           ? current.map((item) => item.id === data.profile.id ? data.profile : item)
           : [...current, data.profile];
       });
-      setLookup((current) => current ? { ...current, ...data.profile } : current);
-      setLookupMessage("Қызметкер сәтті қосылды.");
+      setMessage("Қызметкер қосылды.");
+      setModalOpen(false);
     } finally {
       setAddLoading(false);
     }
@@ -208,62 +224,64 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
 
   return (
     <div>
-      <div className="border-b border-[#EFE8E1] bg-[#FFFCF9] p-5 sm:p-6">
-        <div className="grid gap-5 lg:grid-cols-[.8fr_1.2fr]">
-          <div>
-            <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">ҚЫЗМЕТКЕР ҚОСУ</p>
-            <h2 className="mt-1.5 text-lg font-extrabold tracking-[-.02em] text-[#172235]">Телефон нөмірімен тексеру</h2>
-            <p className="mt-1.5 max-w-md text-[11px] leading-5 text-[#766E66]">
-              Нөмірді енгізіңіз. Тіркелгі болса, барлық негізгі дерек бірден көрінеді.
-            </p>
+      <div className="flex items-center justify-end border-b border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3 sm:px-6">
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="inline-flex min-h-10 items-center gap-2 rounded-[12px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white shadow-[0_10px_25px_rgba(255,128,0,.16)] transition hover:bg-[#E56F00]"
+        >
+          <UserPlus size={14} />
+          Қызметкер қосу
+        </button>
+      </div>
 
-            <div className="mt-4 flex gap-2">
-              <input
-                value={phone}
-                onChange={(event) => setPhone(formatKzPhone(event.target.value))}
-                placeholder="+7 (700) 000 00 00"
-                maxLength={18}
-                inputMode="tel"
-                className="min-w-0 flex-1 rounded-[13px] border border-[#E8E1DA] bg-white px-3.5 py-3 text-xs font-semibold outline-none transition focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
-              />
-              <button
-                type="button"
-                disabled={lookupLoading || !isValidKzPhone(phone)}
-                onClick={() => void searchStaff()}
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-[13px] bg-[#FF8000] text-white transition hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Қызметкерді іздеу"
-              >
-                {lookupLoading ? <Loader2 size={17} className="animate-spin" /> : <Search size={17} />}
-              </button>
-            </div>
-
-            {lookupRegistered === false ? (
-              <div className="mt-3 rounded-[14px] border border-[#F3D8C1] bg-[#FFF8F2] p-3.5">
-                <p className="text-[11px] font-extrabold text-[#8A4B1F]">Аккаунт табылмады</p>
-                <p className="mt-1 text-[10px] leading-5 text-[#7A685B]">
-                  Бұл нөмірмен Shyraq-та тіркелгі жоқ. Қызметкер ретінде қосу үшін алдымен платформаға тіркелуі керек.
-                </p>
-              </div>
-            ) : null}
-
-            {lookupMessage && lookupRegistered !== false ? (
-              <p className="mt-3 rounded-[13px] bg-white p-3 text-[10px] font-semibold leading-5 text-[#655B53]">{lookupMessage}</p>
-            ) : null}
+      <StaffModal
+        open={modalOpen}
+        onClose={closeAddModal}
+        title="Қызметкер қосу"
+        description="Телефон нөмірін тексеріп, рөлін таңдаңыз."
+      >
+        <div className="grid gap-4">
+          <div className="flex gap-2">
+            <input
+              value={phone}
+              onChange={(event) => setPhone(formatKzPhone(event.target.value))}
+              placeholder="+7 (700) 000 00 00"
+              maxLength={18}
+              inputMode="tel"
+              className="min-w-0 flex-1 rounded-[13px] border border-[#E8E1DA] bg-white px-3.5 py-3 text-xs font-semibold outline-none transition focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+            />
+            <button
+              type="button"
+              disabled={lookupLoading || !isValidKzPhone(phone)}
+              onClick={() => void searchStaff()}
+              className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-[13px] bg-[#FF8000] text-white disabled:opacity-50"
+              aria-label="Іздеу"
+            >
+              {lookupLoading ? <Loader2 size={17} className="animate-spin" /> : <Search size={17} />}
+            </button>
           </div>
 
+          {lookupRegistered === false ? (
+            <div className="rounded-[14px] border border-[#F3D8C1] bg-[#FFF8F2] p-3.5">
+              <p className="text-[11px] font-extrabold text-[#8A4B1F]">Аккаунт табылмады</p>
+              <p className="mt-1 text-[10px] leading-5 text-[#7A685B]">Бұл нөмірмен платформада тіркелгі жоқ. Алдымен тіркелу қажет.</p>
+            </div>
+          ) : null}
+
           {lookup ? (
-            <div className="rounded-[18px] border border-[#E8E1DA] bg-white p-4 sm:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="rounded-[16px] border border-[#E8E1DA] bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[13px] font-extrabold text-[#172235]">{lookup.full_name}</p>
-                  <p className="mt-1 text-[10px] font-medium text-[#8B8179]">{lookup.email}</p>
+                  <p className="mt-1 text-[10px] text-[#8B8179]">{lookup.email}</p>
                 </div>
                 <StatusPill tone={lookup.status === "ACTIVE" ? "green" : lookup.status === "INACTIVE" ? "red" : "orange"}>
                   {statusLabel(lookup.status)}
                 </StatusPill>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ["Телефон", lookup.phone],
                   ["Жасы", String(lookup.age ?? "—")],
@@ -272,64 +290,56 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
                   ["Команда", lookup.team_name ?? "Тағайындалмаған"],
                   ["Ментор", lookup.mentor_name ?? "Тағайындалмаған"],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-[12px] bg-[#FFFCF9] px-3 py-2.5">
+                  <div key={label} className="rounded-[11px] bg-[#FFFCF9] px-3 py-2.5">
                     <p className="text-[8px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">{label}</p>
                     <p className="mt-1 truncate text-[10px] font-bold text-[#172235]">{value}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4">
-                <p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">
-                  {roleIsStaff ? "Рөлді басқару" : "Қызметкер рөлін таңдаңыз"}
-                </p>
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {roleOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      disabled={addLoading}
-                      onClick={() => setNewRole(option.value)}
-                      className={[
-                        "rounded-[11px] border px-2 py-2.5 text-[9px] font-extrabold transition",
-                        newRole === option.value
-                          ? "border-[#FF8000] bg-[#FFF1E2] text-[#C95500]"
-                          : "border-[#E8E1DA] bg-white text-[#5A514A] hover:border-[#FFB067]",
-                      ].join(" ")}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+              <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">
+                {roleIsStaff ? "Рөлді басқару" : "Қызметкер рөлін таңдаңыз"}
+              </p>
+
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {roleOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    disabled={addLoading}
+                    onClick={() => setNewRole(option.value)}
+                    className={[
+                      "h-10 rounded-[11px] border px-2 text-[9px] font-extrabold transition",
+                      newRole === option.value ? "border-[#FF8000] bg-[#FFF1E2] text-[#C95500]" : "border-[#E8E1DA] bg-white text-[#5A514A] hover:border-[#FFB067]",
+                    ].join(" ")}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
 
               <button
                 type="button"
                 disabled={addLoading}
                 onClick={() => void addStaff()}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#172235] px-4 py-3 text-[10px] font-extrabold text-white transition hover:bg-[#0F1826] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#172235] px-4 py-3 text-[10px] font-extrabold text-white"
               >
                 {addLoading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
                 {roleIsStaff ? "Рөлді сақтау" : "Қызметкер ретінде қосу"}
               </button>
-
-              {lookupMessage ? (
-                <p className="mt-2 text-[9px] font-semibold text-[#6F655D]">{lookupMessage}</p>
-              ) : null}
             </div>
           ) : (
-            <div className="grid min-h-[250px] place-items-center rounded-[18px] border border-dashed border-[#E1D8CF] bg-white p-6 text-center">
-              <div>
-                <div className="mx-auto grid h-11 w-11 place-items-center rounded-[14px] bg-[#FFF1E2] text-[#FF8000]">
-                  <UserPlus size={18} />
-                </div>
-                <p className="mt-3 text-[11px] font-extrabold text-[#4B433C]">Қызметкерді телефон арқылы табыңыз</p>
-                <p className="mt-1 text-[10px] leading-5 text-[#9A9189]">Тіркелген пайдаланушының деректері осы жерде шығады.</p>
-              </div>
+            <div className="rounded-[16px] border border-dashed border-[#DED6CE] bg-[#FFFCF9] p-6 text-center">
+              <UserPlus size={20} className="mx-auto text-[#FF8000]" />
+              <p className="mt-2 text-[11px] font-extrabold text-[#4B433C]">Нөмір арқылы пайдаланушыны табыңыз</p>
             </div>
           )}
+
+          {lookupMessage && lookupRegistered !== false ? (
+            <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-semibold text-[#655B53]">{lookupMessage}</p>
+          ) : null}
         </div>
-      </div>
+      </StaffModal>
 
       <div className="divide-y divide-[#EFE8E1]">
         {staff.map((person) => {
@@ -340,26 +350,11 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
                 <p className="truncate text-[11px] font-extrabold text-[#354153]">{person.full_name}</p>
                 <p className="mt-1 truncate text-[9px] text-[#9A9189]">{person.email}</p>
               </div>
-
-              <ChoiceMenu
-                label={roleLabel(person.role)}
-                value={person.role}
-                options={roleOptions}
-                disabled={saving}
-                onChange={(value) => void patch(person.id, { role: value })}
-              />
-
+              <ChoiceMenu label={roleLabel(person.role)} value={person.role} options={roleOptions} disabled={saving} onChange={(value) => void patch(person.id, { role: value })} />
               <p className="truncate text-[9px] font-semibold text-[#8B8179]">{person.phone || "Телефон жоқ"}</p>
-
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <ChoiceMenu
-                    label={statusLabel(person.status)}
-                    value={person.status}
-                    options={statusOptions}
-                    disabled={saving}
-                    onChange={(value) => void patch(person.id, { status: value })}
-                  />
+                  <ChoiceMenu label={statusLabel(person.status)} value={person.status} options={statusOptions} disabled={saving} onChange={(value) => void patch(person.id, { status: value })} />
                 </div>
                 {saving ? <Loader2 size={13} className="shrink-0 animate-spin text-[#FF8000]" /> : null}
               </div>
