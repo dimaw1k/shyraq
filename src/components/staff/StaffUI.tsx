@@ -223,7 +223,7 @@ export function StaffModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-[10000] flex max-h-[calc(100vh-24px)] w-full max-w-[760px] flex-col overflow-hidden rounded-[24px] border border-white/80 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.25)] sm:max-h-[calc(100vh-48px)]"
+        className="relative z-[10000] w-full max-w-[760px] rounded-[24px] border border-white/80 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.25)] sm:max-h-[calc(100vh-48px)]"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7] px-5 py-4 sm:px-6">
           <div className="min-w-0">
@@ -240,7 +240,7 @@ export function StaffModal({
           </button>
         </div>
 
-        <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6">
+        <div className="p-5 sm:p-6">
           {children}
         </div>
       </div>
