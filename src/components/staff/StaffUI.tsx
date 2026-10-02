@@ -1,6 +1,7 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, X } from "lucide-react";
 
 export type MenuOption = { value: string; label: string };
@@ -79,14 +80,68 @@ export function formatKzDateTime(value: string) {
   );
 }
 
+function toDatetimeLocal(value: string) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.includes("T") ? value.slice(0, 19) : value;
+  }
+
+  const p = (n: number) => String(n).padStart(2, "0");
+  return (
+    date.getFullYear() +
+    "-" +
+    p(date.getMonth() + 1) +
+    "-" +
+    p(date.getDate()) +
+    "T" +
+    p(date.getHours()) +
+    ":" +
+    p(date.getMinutes()) +
+    ":" +
+    p(date.getSeconds())
+  );
+}
+
 export function parseKzDateTime(value: string): string | null | undefined {
   const raw = value.trim();
   if (!raw) return null;
 
-  const match = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
-  if (!match) return undefined;
+  const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (localMatch) {
+    const [, yyyy, mm, dd, hh, min, ss = "00"] = localMatch;
+    const year = Number(yyyy);
+    const month = Number(mm);
+    const day = Number(dd);
+    const hour = Number(hh);
+    const minute = Number(min);
+    const second = Number(ss);
 
-  const [, dd, mm, yyyy, hh, min, ss = "00"] = match;
+    const probe = new Date(year, month - 1, day, hour, minute, second);
+    if (
+      probe.getFullYear() !== year ||
+      probe.getMonth() !== month - 1 ||
+      probe.getDate() !== day ||
+      probe.getHours() !== hour ||
+      probe.getMinutes() !== minute ||
+      probe.getSeconds() !== second ||
+      month < 1 ||
+      month > 12 ||
+      hour > 23 ||
+      minute > 59 ||
+      second > 59
+    ) {
+      return undefined;
+    }
+
+    return probe.toISOString();
+  }
+
+  const legacyMatch = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!legacyMatch) return undefined;
+
+  const [, dd, mm, yyyy, hh, min, ss = "00"] = legacyMatch;
   const day = Number(dd);
   const month = Number(mm);
   const year = Number(yyyy);
@@ -94,14 +149,14 @@ export function parseKzDateTime(value: string): string | null | undefined {
   const minute = Number(min);
   const second = Number(ss);
 
-  const probe = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  const probe = new Date(year, month - 1, day, hour, minute, second);
   if (
-    probe.getUTCFullYear() !== year ||
-    probe.getUTCMonth() !== month - 1 ||
-    probe.getUTCDate() !== day ||
-    probe.getUTCHours() !== hour ||
-    probe.getUTCMinutes() !== minute ||
-    probe.getUTCSeconds() !== second ||
+    probe.getFullYear() !== year ||
+    probe.getMonth() !== month - 1 ||
+    probe.getDate() !== day ||
+    probe.getHours() !== hour ||
+    probe.getMinutes() !== minute ||
+    probe.getSeconds() !== second ||
     month < 1 ||
     month > 12 ||
     hour > 23 ||
@@ -111,8 +166,7 @@ export function parseKzDateTime(value: string): string | null | undefined {
     return undefined;
   }
 
-  const iso = new Date(`${yyyy}-${mm}-${dd}T${hh}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}+05:00`);
-  return iso.toISOString();
+  return probe.toISOString();
 }
 
 export function StaffDateTimeField({
@@ -124,18 +178,17 @@ export function StaffDateTimeField({
   onChange: (value: string) => void;
   label?: string;
 }) {
-  const shown = value && value.includes("T") ? formatKzDateTime(value) : value;
-
   return (
-    <input
-      type="text"
-      value={shown}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder="12.09.2026 15:00:00"
-      inputMode="numeric"
-      aria-label={label}
-      className="h-11 w-full rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition placeholder:text-[#AAA099] focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
-    />
+    <div className="relative">
+      <input
+        type="datetime-local"
+        step="1"
+        value={toDatetimeLocal(value)}
+        onChange={(event) => onChange(event.target.value)}
+        aria-label={label}
+        className="h-11 w-full rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+      />
+    </div>
   );
 }
 
@@ -155,22 +208,24 @@ export function StaffModal({
   useEffect(() => {
     if (typeof document === "undefined") return;
 
-    document.body.style.overflow = open ? "hidden" : "";
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = open ? "hidden" : previousOverflow;
+
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#172235]/25 p-3 backdrop-blur-[2px] sm:items-center sm:p-6">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/30 p-3 backdrop-blur-[3px] sm:p-6">
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-[760px] rounded-[24px] border border-white/70 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)]"
+        className="relative z-[10000] flex max-h-[calc(100vh-24px)] w-full max-w-[760px] flex-col overflow-hidden rounded-[24px] border border-white/80 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.25)] sm:max-h-[calc(100vh-48px)]"
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7]/95 px-5 py-4 backdrop-blur sm:px-6">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7] px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">{title}</h2>
             {description ? <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">{description}</p> : null}
@@ -184,9 +239,13 @@ export function StaffModal({
             <X size={16} />
           </button>
         </div>
-        <div className="p-5 sm:p-6">{children}</div>
+
+        <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6">
+          {children}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
