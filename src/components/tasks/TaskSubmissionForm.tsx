@@ -27,6 +27,7 @@ export function TaskSubmissionForm({
   existingFileCount: number;
 }) {
   const [answer, setAnswer] = useState(initialSubmission?.text_answer ?? "");
+  const [linkUrl, setLinkUrl] = useState((initialSubmission as { link_url?: string | null } | null)?.link_url ?? "");
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,7 +54,7 @@ export function TaskSubmissionForm({
       const draftResponse = await fetch("/api/tasks/" + taskId + "/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ textAnswer: answer, finalize: false }),
+        body: JSON.stringify({ textAnswer: answer, linkUrl, finalize: false }),
       });
       const draftData = await draftResponse.json().catch(() => ({}));
       if (!draftResponse.ok) throw new Error(draftData.error ?? "Draft сақталмады.");
@@ -71,7 +72,7 @@ export function TaskSubmissionForm({
       const finalResponse = await fetch("/api/tasks/" + taskId + "/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ textAnswer: answer, finalize: true }),
+        body: JSON.stringify({ textAnswer: answer, linkUrl, finalize: true }),
       });
       const finalData = await finalResponse.json().catch(() => ({}));
       if (!finalResponse.ok) throw new Error(finalData.error ?? "Тапсырма жіберілмеді.");
@@ -94,7 +95,7 @@ export function TaskSubmissionForm({
         <div><p className="text-sm font-extrabold text-[#172235]">Жауап</p><p className="mt-1 text-[10px] text-[#9A9189]">Мәтін және бірнеше файл.</p></div>
         <Paperclip size={17} className="text-[#9A9189]" />
       </div>
-      <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} disabled={locked} rows={6} placeholder="Жауабыңызды жазыңыз..." className="mt-4 w-full rounded-xl border border-[#EFE8E1] bg-[#FFFCF9] p-3 text-sm outline-none focus:border-[#C25100] disabled:opacity-60" />
+      <input type="url" value={linkUrl} onChange={e=>setLinkUrl(e.target.value)} disabled={locked} placeholder="Сілтеме (https://...)" className="mt-3 w-full rounded-xl border border-[#EFE8E1] bg-[#FFFCF9] p-3 text-sm outline-none focus:border-[#C25100] disabled:opacity-60"/><textarea value={answer} onChange={(event) => setAnswer(event.target.value)} disabled={locked} rows={6} placeholder="Жауабыңызды жазыңыз..." className="mt-4 w-full rounded-xl border border-[#EFE8E1] bg-[#FFFCF9] p-3 text-sm outline-none focus:border-[#C25100] disabled:opacity-60" />
       <div className="mt-3 rounded-xl border border-dashed border-[#DCCFC5] bg-[#FFFCF9] p-3.5">
         <label className="flex cursor-pointer items-center justify-between gap-3">
           <span><span className="block text-xs font-extrabold text-[#3F3832]">{displayedFiles}</span><span className="mt-1 block text-[10px] text-[#9A9189]">Қолда бар: {existingFileCount} / {maxFiles}</span></span>
