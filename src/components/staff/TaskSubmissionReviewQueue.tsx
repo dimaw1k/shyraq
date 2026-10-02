@@ -53,8 +53,7 @@ export function TaskSubmissionReviewQueue({ submissions }: { submissions: StaffT
             </div>
 
             <div className="text-[9px] font-semibold text-[#8B8179]">
-              {submission.file_count} файл
-              {submission.text_answer ? " · мәтін бар" : ""}
+              {submission.file_count} файл{submission.text_answer ? " · мәтін бар" : ""}{submission.link_url ? " · сілтеме бар" : ""}{submission.submitted_late ? " · кеш" : ""}
             </div>
 
             <StatusPill tone={statusTone(submission.status)}>
@@ -73,6 +72,13 @@ export function TaskSubmissionReviewQueue({ submissions }: { submissions: StaffT
               <div className="rounded-[12px] bg-[#FFFCF9] px-3 py-2.5 text-[9px] leading-5 text-[#655B53] lg:col-span-4">
                 <span className="font-extrabold text-[#4B433C]">Жауап: </span>
                 {submission.text_answer}
+              </div>
+            ) : null}
+
+            {submission.link_url ? (
+              <div className="rounded-[12px] bg-[#FFFCF9] px-3 py-2.5 text-[9px] leading-5 text-[#655B53] lg:col-span-4">
+                <span className="font-extrabold text-[#4B433C]">Сілтеме: </span>
+                <a href={submission.link_url} target="_blank" rel="noreferrer" className="underline">{submission.link_url}</a>
               </div>
             ) : null}
           </div>
