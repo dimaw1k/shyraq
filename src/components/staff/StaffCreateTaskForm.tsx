@@ -102,7 +102,7 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div><p className="text-[10px] font-extrabold text-[#5B534C]">Ашылу уақыты</p><div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div></div>
-            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Дедлайн</p><div className="mt-1.5"><StaffDateTimeField value={deadline} onChange={setDeadline} label="Дедлайнды таңдау" /></div></div>
+            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Соңғы мерзім</p><div className="mt-1.5"><StaffDateTimeField value={deadline} onChange={setDeadline} label="Соңғы мерзімді таңдау" /></div></div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
