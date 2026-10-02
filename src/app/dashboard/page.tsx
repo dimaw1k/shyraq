@@ -79,6 +79,8 @@ export default async function DashboardPage() {
             ))}
           </section>
 
+          <div className="flex justify-end"><Link href="/marathon/final" className="inline-flex items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-3 text-[10px] font-extrabold text-[#4B433C]">21 күндік нәтиже <ArrowRight size={13}/></Link></div>
+
           <section className="grid gap-3 sm:grid-cols-3">
             <MetricCard label="STREAK" value={streak + " күн"} hint="күндік белсенділік" icon={<Flame size={17} />} />
             <MetricCard label="ҰПАЙ" value={String(score)} hint="жиналған ұпай" icon={<Trophy size={17} />} />
