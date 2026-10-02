@@ -13,7 +13,7 @@ export default async function LeaderSubmissionsPage() {
       role="LEADER"
       userName={profile.full_name}
       title="Тапсырма тексеруі"
-      description="Барлық командалар бойынша тапсырма submission-дарының бақылау орталығы."
+      
     >
       <PageContainer>
         <div className="space-y-5">
