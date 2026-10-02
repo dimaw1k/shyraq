@@ -43,7 +43,7 @@ function whatsappUrl(phone: string, name: string) {
 
 function issueOf(student: MentorStudent) {
   if (student.overdueTaskCount > 0) return { title: "Дедлайннан кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
-  if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Daily report", tone: "orange" as const };
+  if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Күндік есеп", tone: "orange" as const };
   if (student.attendanceAverage > 0 && student.attendanceAverage < 80) return { title: "Қатысуы төмен", detail: student.attendanceAverage + "%", tone: "orange" as const };
   if (student.pendingReviewCount > 0) return { title: "Тапсырмасы тексерілуде", detail: student.pendingReviewCount + " жұмыс", tone: "orange" as const };
   return null;
@@ -354,7 +354,7 @@ function WorkspacePanel({
                     {report.next_day_goal ? <p><span className="font-extrabold">Келесі:</span> {report.next_day_goal}</p> : null}
                   </div>
                 ) : null}
-                {report.review_comment ? <p className="mt-2 text-[8px] font-semibold text-[#8F857D]">Комментарий: {report.review_comment}</p> : null}
+                {report.review_comment ? <p className="mt-2 text-[8px] font-semibold text-[#8F857D]">Пікір: {report.review_comment}</p> : null}
               </div>
               <MentorReportReviewActions reportId={report.id} status={report.status} reviewComment={report.review_comment} />
             </div>
@@ -363,7 +363,7 @@ function WorkspacePanel({
         </div>
       </div> : null}
 
-      {view === "meet" ? <div id="meet-panel" className="p-4 text-[10px] font-semibold text-[#6F665E]">Meet қатысуы автоматты түрде attendance тарихына түседі. Негізгі басқару жоғарыдағы Кездесу блогында.</div> : null}
+      {view === "meet" ? <div id="meet-panel" className="p-4 text-[10px] font-semibold text-[#6F665E]">Meet қатысуы автоматты түрде қатысу тарихына түседі. Негізгі басқару жоғарыдағы Кездесу блогында.</div> : null}
     </Card>
   );
 }
