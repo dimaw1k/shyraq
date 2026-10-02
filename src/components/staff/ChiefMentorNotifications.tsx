@@ -1,5 +1,5 @@
-import { formatKzDateTime } from "@/components/staff/StaffUI";
 "use client";
+import { formatKzDateTime } from "@/components/staff/StaffUI";
 import Link from "next/link";
 import { useEffect,useState } from "react";
 import { Bell } from "lucide-react";
