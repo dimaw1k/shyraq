@@ -33,7 +33,7 @@ export default async function ChiefMentorTeamsPage() {
       role="CHIEF_MENTOR"
       userName={profile.full_name}
       title="Командалар"
-      description="Барлық mentor team-дерінің операциялық күйі."
+      description="Барлық ментор командаларының операциялық күйі."
     >
       <PageContainer>
         <div className="space-y-5">
