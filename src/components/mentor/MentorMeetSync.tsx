@@ -17,7 +17,7 @@ export function MentorMeetSync({ teamId, googleConnected }: { teamId: string; go
         body: JSON.stringify({ teamId }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error ?? "Meet синхрондау сәтсіз аяқталды.");
+      if (!response.ok) throw new Error(data?.error ?? "Кездесуді жаңарту сәтсіз аяқталды.");
       setMessage("Жаңартылды: " + String(data.attendanceRows ?? 0) + " қатысу жазбасы.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Қате");
