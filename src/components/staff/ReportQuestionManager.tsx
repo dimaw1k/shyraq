@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { StaffSelectMenu } from "@/components/staff/StaffUI";
 
 type Question = {
   id: string;
@@ -99,11 +100,15 @@ export function ReportQuestionManager() {
         <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Сұрақ мәтіні" className={input} />
         <input value={fieldKey} onChange={(event) => setFieldKey(event.target.value)} placeholder="Өріс кілті" className={input} />
         <input value={day} onChange={(event) => setDay(event.target.value)} type="number" min="1" max="21" placeholder="Күн" className={input} />
-        <select value={fieldType} onChange={(event) => setFieldType(event.target.value)} className={input}>
-          <option value="LONG_TEXT">Ұзын мәтін</option>
-          <option value="SHORT_TEXT">Қысқа мәтін</option>
-          <option value="NUMBER">Сан</option>
-        </select>
+        <StaffSelectMenu
+          value={fieldType}
+          options={[
+            { value: "LONG_TEXT", label: "Ұзын мәтін" },
+            { value: "SHORT_TEXT", label: "Қысқа мәтін" },
+            { value: "NUMBER", label: "Сан" },
+          ]}
+          onChange={setFieldType}
+        />
         <button disabled={loading} onClick={() => void create()} className="rounded-[11px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white">
           {loading ? "..." : "Сұрақ қосу"}
         </button>
