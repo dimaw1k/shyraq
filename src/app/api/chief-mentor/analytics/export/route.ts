@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
-export async function GET(){
+export async function GET(request:Request){
  await getAuthenticatedStaff("CHIEF_MENTOR");
  const admin=createAdminSupabaseClient();
+ const days=new URL(request.url).searchParams.get("range")==="30"?30:7;
+ const start=new Date(Date.now()-days*86400000).toISOString();
+ const startDate=start.slice(0,10);
  const [{data:attendance},{data:reports},{data:subs},{data:video}]=await Promise.all([
-  admin.from("attendance_records").select("student_id,attendance_percent"),
-  admin.from("daily_reports").select("student_id,status"),
-  admin.from("task_submissions").select("student_id,status"),
-  admin.from("video_progress").select("student_id,watched_percent"),
+  admin.from("attendance_records").select("student_id,attendance_percent").gte("imported_at",start),
+  admin.from("daily_reports").select("student_id,status").gte("report_date",startDate),
+  admin.from("task_submissions").select("student_id,status").gte("submitted_at",start),
+  admin.from("video_progress").select("student_id,watched_percent").gte("updated_at",start),
  ]);
  const ids=[...new Set([...(attendance??[]).map(x=>x.student_id),...(reports??[]).map(x=>x.student_id),...(subs??[]).map(x=>x.student_id),...(video??[]).map(x=>x.student_id)])];
  const {data:students}=ids.length?await admin.from("profiles").select("id,full_name,email").in("id",ids):{data:[] as Array<{id:string;full_name:string;email:string}>};
