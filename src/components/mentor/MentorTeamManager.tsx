@@ -297,7 +297,7 @@ function WorkspacePanel({
 
       {view === "tasks" ? <div id="tasks" className="divide-y divide-[#F0EBE5]">
         {submissions.map((submission) => <div key={submission.id} className="grid gap-3 px-4 py-3.5 lg:grid-cols-[1fr_auto] lg:items-center">
-          <button type="button" onClick={() => onStudent(allStudents.find((student) => student.id === submission.student_id) ?? allStudents[0])} className="text-left"><p className="text-[10px] font-extrabold text-[#263247]">{submission.student_name}</p><p className="mt-0.5 text-[9px] font-semibold text-[#8F857D]">{submission.task_title} · +{submission.task_points}</p>{submission.submitted_late ? <p className="mt-1 text-[8px] font-extrabold text-[#BF514A]">Кеш тапсырылды</p> : null}</button>
+          <button type="button" onClick={() => { const student = allStudents.find((item) => item.id === submission.student_id); if (student) onStudent(student); }} className="text-left"><p className="text-[10px] font-extrabold text-[#263247]">{submission.student_name}</p><p className="mt-0.5 text-[9px] font-semibold text-[#8F857D]">{submission.task_title} · +{submission.task_points}</p>{submission.submitted_late ? <p className="mt-1 text-[8px] font-extrabold text-[#BF514A]">Кеш тапсырылды</p> : null}</button>
           <TaskSubmissionReviewActions submissionId={submission.id} status={submission.status} points={submission.task_points} />
         </div>)}
         {!submissions.length ? <p className="px-4 py-8 text-center text-[10px] font-semibold text-[#9A9189]">Тапсырма жоқ</p> : null}
