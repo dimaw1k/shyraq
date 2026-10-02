@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { todayInTimezone } from "@/lib/streak";
 
 export type MentorStudent = {
   id: string;
@@ -239,7 +240,7 @@ export async function getMentorWorkspaceData(
   }
 
   const now = Date.now();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInTimezone("Asia/Almaty");
   const submittedSet = new Set(
     (submissions ?? [])
       .filter((submission) => submission.status === "SUBMITTED" || submission.status === "REVIEWED")
