@@ -10,7 +10,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { data: current, error: currentError } = await admin
     .from("lessons")
-    .select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at,deadline_at,materials")
+    .select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,team_id,published,starts_at,deadline_at,materials")
     .eq("id", id)
     .maybeSingle();
 
@@ -57,6 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     sort_order: typeof body?.sortOrder === "number" ? Math.floor(body.sortOrder) : current.sort_order,
     lesson_order: typeof body?.lessonOrder === "number" ? Math.floor(body.lessonOrder) : current.lesson_order,
     marathon_day: nextDay,
+    team_id: nextTeamId,
     materials: nextMaterials,
     published: typeof body?.published === "boolean" ? body.published : current.published,
     starts_at: body?.startsAt === null || body?.startsAt === "" ? null : typeof body?.startsAt === "string" ? body.startsAt : current.starts_at,
@@ -67,7 +68,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .from("lessons")
     .update(updatedData)
     .eq("id", id)
-    .select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at,deadline_at,materials,updated_at")
+    .select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,team_id,published,starts_at,deadline_at,materials,updated_at")
     .single();
 
   if (updateError || !updated) return NextResponse.json({ error: "Сабақты жаңарту сәтсіз аяқталды." }, { status: 500 });
