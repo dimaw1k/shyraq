@@ -59,7 +59,7 @@ export function StaffSelectMenu({
   );
 }
 
-function formatKzDateTime(value: string) {
+export function formatKzDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
