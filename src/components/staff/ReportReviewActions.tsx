@@ -10,6 +10,7 @@ type ReportReviewActionsProps = {
 
 export function ReportReviewActions({ reportId, status }: ReportReviewActionsProps) {
   const [currentStatus, setCurrentStatus] = useState(status);
+  const [comment, setComment] = useState("");
   const [loading, setLoading] = useState<"REVIEWED" | "REJECTED" | null>(null);
   const [error, setError] = useState("");
 
@@ -21,7 +22,7 @@ export function ReportReviewActions({ reportId, status }: ReportReviewActionsPro
       const response = await fetch(`/api/chief-mentor/reports/${reportId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ status: nextStatus, reviewComment: comment }),
       });
 
       const data = await response.json().catch(() => null);
@@ -42,7 +43,14 @@ export function ReportReviewActions({ reportId, status }: ReportReviewActionsPro
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="flex w-full flex-col items-end gap-1.5">
+      <textarea
+        value={comment}
+        onChange={(event) => setComment(event.target.value)}
+        rows={2}
+        placeholder="Комментарий"
+        className="w-full rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-2 text-[9px] font-semibold outline-none focus:border-[#FF8000]"
+      />
       <div className="flex gap-2">
         <PrimaryButton
           type="button"
