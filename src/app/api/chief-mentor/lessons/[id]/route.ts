@@ -7,10 +7,11 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const admin = createAdminSupabaseClient();
-  const { data:current,error:currentError } = await admin.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at").eq("id",id).maybeSingle();
+  const { data:current,error:currentError } = await admin.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at,materials").eq("id",id).maybeSingle();
   if (currentError) return NextResponse.json({error:"Сабақты жүктеу сәтсіз аяқталды."},{status:500});
   if (!current) return NextResponse.json({error:"Сабақ табылмады."},{status:404});
 
+  const nextMaterials = Array.isArray(body?.materials) ? body.materials.filter((item: unknown) => item && typeof item === "object" && typeof (item as {label?:unknown}).label === "string" && typeof (item as {url?:unknown}).url === "string").slice(0, 20).map((item: {label:string;url:string;type?:string}) => ({ label:item.label.trim().slice(0,120), url:item.url.trim().slice(0,500), type:typeof item.type==="string"?item.type.slice(0,30):"LINK" })) : current.materials;
   const nextDay = body?.marathonDay===null || body?.marathonDay==="" ? null : typeof body?.marathonDay==="number" ? Math.floor(body.marathonDay) : current.marathon_day;
   if (nextDay!==null && (nextDay<1 || nextDay>21)) return NextResponse.json({error:"Марафон күні 1–21 аралығында болуы керек."},{status:400});
   const updatedData={
@@ -22,6 +23,7 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
     sort_order:typeof body?.sortOrder==="number"?Math.floor(body.sortOrder):current.sort_order,
     lesson_order:typeof body?.lessonOrder==="number"?Math.floor(body.lessonOrder):current.lesson_order,
     marathon_day:nextDay,
+    materials: nextMaterials,
     published:typeof body?.published==="boolean"?body.published:current.published,
     starts_at:body?.startsAt===null||body?.startsAt===""?null:typeof body?.startsAt==="string"?body.startsAt:current.starts_at,
   };
