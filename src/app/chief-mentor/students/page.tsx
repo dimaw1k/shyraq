@@ -21,7 +21,6 @@ export default async function ChiefMentorStudentsPage(){
     studentIds.length?supabase.from("task_submissions").select("student_id,id").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;id:string}>}),
     studentIds.length?supabase.from("video_progress").select("student_id,watched_percent").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;watched_percent:number|null}>}),
   ]);
-  const mentorIds=[...(teams??[]).map(t=>t.id)];
   const membershipMap=new Map((members??[]).map(x=>[x.student_id,x.team_id]));
   const teamMap=new Map((teams??[]).map(x=>[x.id,x]));
   const mentorByTeam=new Map<string,string>();
