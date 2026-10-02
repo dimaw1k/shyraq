@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
+import { uiLabel } from "@/lib/ui-labels";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { ReportReviewActions } from "@/components/staff/ReportReviewActions";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
