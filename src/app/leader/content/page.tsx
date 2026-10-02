@@ -30,7 +30,7 @@ export default async function LeaderContentPage() {
       <PageContainer>
         <div className="space-y-5">
           <section className="flex flex-wrap items-end justify-between gap-3">
-            <SectionHeader eyebrow="КОНТЕНТ" title="Марафон материалдары" description="Баннер, сабақ және тапсырманы бөлек батырмалар арқылы басқарыңыз." />
+            <SectionHeader eyebrow="КОНТЕНТ" title="Марафон материалдары" />
             <div className="flex flex-wrap gap-2">
               <StaffCreateLessonForm />
               <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
