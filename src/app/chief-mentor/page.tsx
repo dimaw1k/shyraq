@@ -6,16 +6,16 @@ import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 const modules = [
   ["Менторлар", "/chief-mentor/mentors", "Менторларды қосу, статусы және performance.", Users],
-  ["Командалар", "/chief-mentor/teams", "Команда, capacity және ментор байланысы.", UsersRound],
-  ["Оқушылар", "/chief-mentor/students", "Барлық оқушының progress және командасы.", Users],
-  ["Сабақтар", "/chief-mentor/lessons", "Сабақ, Kinescope және тест контенті.", BookOpen],
-  ["Тапсырмалар", "/chief-mentor/tasks", "Тапсырмалар және mentor request.", ClipboardCheck],
-  ["Есептер", "/chief-mentor/reports", "Daily report бақылауы.", FileText],
-  ["Кездесулер", "/chief-mentor/meet", "Google Meet және attendance.", CalendarCheck2],
+  ["Командалар", "/chief-mentor/teams", "Команда, сыйымдылық және ментор байланысы.", UsersRound],
+  ["Оқушылар", "/chief-mentor/students", "Барлық оқушының ілгерілеуі және командасы.", Users],
+  ["Сабақтар", "/chief-mentor/lessons", "Сабақ, бейне және тест материалдары.", BookOpen],
+  ["Тапсырмалар", "/chief-mentor/tasks", "Тапсырмалар және ментор сұраныстары.", ClipboardCheck],
+  ["Есептер", "/chief-mentor/reports", "Күндік есептерді бақылау.", FileText],
+  ["Кездесулер", "/chief-mentor/meet", "Google Meet және қатысу.", CalendarCheck2],
   ["Рейтинг", "/chief-mentor/rating", "Ментор, команда және оқушы нәтижесі.", Trophy],
-  ["Аналитика", "/chief-mentor/analytics", "KPI, графиктер және салыстыру.", BarChart3],
+  ["Аналитика", "/chief-mentor/analytics", "Негізгі көрсеткіштер, графиктер және салыстыру.", BarChart3],
   ["Хабарламалар", "/chief-mentor/messages", "Менторлармен ішкі байланыс.", Mail],
-  ["Журнал", "/chief-mentor/audit", "Толық before/after әрекет тарихы.", FileClock],
+  ["Журнал", "/chief-mentor/audit", "Өзгеріске дейінгі және кейінгі әрекет тарихы.", FileClock],
   ["Қолдау", "/chief-mentor/support", "Оқушы өтініштері.", FileText],
   ["Баптаулар", "/chief-mentor/settings", "Операциялық марафон баптаулары.", Settings],
 ] as const;
@@ -39,11 +39,11 @@ export default async function ChiefMentorPage() {
     : 0;
 
   return (
-    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Басты бет" description="Глав ментордың операциялық кабинеті.">
+    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Басты бет" description="Бас ментордың операциялық кабинеті.">
       <PageContainer>
         <div className="space-y-6">
           <SectionHeader
-            eyebrow="CHIEF MENTOR"
+            eyebrow="БАС МЕНТОР"
             title="Басқару"
             description="Менторлар, командалар және оқу процесінің негізгі көрсеткіштері."
           />
@@ -51,7 +51,7 @@ export default async function ChiefMentorPage() {
             <MetricCard label="МЕНТОР" value={String(mentorCount ?? 0)} hint="белсенді" icon={<Users size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint="белсенді" icon={<UsersRound size={17} />} />
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint="барлығы" icon={<Users size={17} />} />
-            <MetricCard label="ҚАТЫСУ" value={averageAttendance ? averageAttendance.toFixed(1) + "%" : "—"} hint="орташа attendance" icon={<BarChart3 size={17} />} />
+            <MetricCard label="ҚАТЫСУ" value={averageAttendance ? averageAttendance.toFixed(1) + "%" : "—"} hint="орташа қатысу" icon={<BarChart3 size={17} />} />
           </section>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {modules.map(([title, href, description, Icon]) => (
