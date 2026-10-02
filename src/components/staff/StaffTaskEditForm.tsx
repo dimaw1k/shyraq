@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { formatKzDateTime, parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
+import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
 
 export type StaffTaskEditProps = {
   task: {
@@ -26,7 +26,11 @@ export type StaffTaskEditProps = {
 };
 
 function toDatetimeLocal(value: string | null) {
-  return value ? formatKzDateTime(value) : "";
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes()) + ":" + p(date.getSeconds());
 }
 
 export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
