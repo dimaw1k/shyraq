@@ -3,6 +3,7 @@ import { Clock3, LockKeyhole } from "lucide-react";
 import { AppShell, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { KinescopeLessonPlayer } from "@/components/lessons/KinescopeLessonPlayer";
+import { formatKzDateTime } from "@/lib/datetime";
 
 export default async function LessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const supabase = await createServerSupabaseClient();
@@ -29,7 +30,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
             <h2 className="mt-4 text-xl font-extrabold text-[#172235]">{lesson.title}</h2>
             <p className="mt-2 text-sm text-[#8B8179]">Сабақ әлі ашылған жоқ.</p>
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF0E8] px-4 py-2 text-xs font-extrabold text-[#C85E2F]"><Clock3 size={14} />{new Date(lesson.starts_at!).toLocaleString("kk-KZ")}</p>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF0E8] px-4 py-2 text-xs font-extrabold text-[#C85E2F]"><Clock3 size={14} />{formatKzDateTime(lesson.starts_at!)}</p>
           </div>
         </main>
       </AppShell>
