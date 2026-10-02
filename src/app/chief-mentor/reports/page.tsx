@@ -26,16 +26,16 @@ export default async function ChiefMentorReportsPage() {
       role="CHIEF_MENTOR"
       userName={profile.full_name}
       title="Есептер"
-      description="Оқушылардың күнделікті есеп беру тәртібі."
+      
     >
       <PageContainer>
         <div className="space-y-5">
           <ReportQuestionManager />
 
           <SectionHeader
-            eyebrow="REPORTS"
+            eyebrow="ЕСЕПТЕР"
             title="Күнделікті есептер"
-            description="Главный ментор барлық командалардың есеп беру динамикасын бақылап, жіберілген есептерді тексереді."
+            description="Күнделікті есептерді бақылау және тексеру."
           />
 
           <Card className="overflow-hidden">
