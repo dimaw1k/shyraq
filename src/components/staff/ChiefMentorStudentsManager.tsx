@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowRightLeft, Search, UserRound } from "lucide-react";
 import { StatusPill } from "@/components/ui/ShyraqUI";
 
@@ -41,7 +42,7 @@ export function ChiefMentorStudentsManager({initialStudents,teams}:{initialStude
     {message?<p className="border-b border-[#EFE8E1] px-4 py-2.5 text-[9px] font-semibold text-[#B54D2B]">{message}</p>:null}
     <div className="divide-y divide-[#EFE8E1]">
       {filtered.map(row=><div key={row.id} className="grid gap-3 px-5 py-4 lg:grid-cols-[1.45fr_1fr_100px_100px_110px_190px] lg:items-center lg:px-6">
-        <div className="flex min-w-0 items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#FFF1E2] text-[var(--accent)]"><UserRound size={14}/></span><div className="min-w-0"><p className="truncate text-[11px] font-extrabold text-[#354153]">{row.full_name}</p><p className="mt-1 truncate text-[9px] text-[#9A9189]">{row.email} · {row.phone}</p></div></div>
+        <div className="flex min-w-0 items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#FFF1E2] text-[var(--accent)]"><UserRound size={14}/></span><div className="min-w-0"><Link href={"/chief-mentor/students/"+row.id} className="truncate text-[11px] font-extrabold text-[#354153] hover:text-[var(--accent)]">{row.full_name}</Link><p className="mt-1 truncate text-[9px] text-[#9A9189]">{row.email} · {row.phone}</p></div></div>
         <div className="min-w-0"><p className="truncate text-[10px] font-extrabold text-[#4B433C]">{row.team_name??"Команда жоқ"}</p><p className="mt-1 truncate text-[9px] text-[#9A9189]">{row.mentor_name??"Ментор жоқ"}</p></div>
         <p className="text-[10px] font-extrabold text-[#4B433C]">{row.score}</p><p className="text-[10px] font-extrabold text-[#4B433C]">{row.attendance?row.attendance.toFixed(0)+"%":"—"}</p><StatusPill tone={row.status==="ACTIVE"?"green":row.status==="INACTIVE"?"red":"orange"}>{row.status}</StatusPill>
         <div className="flex items-center justify-end gap-2"><select disabled={saving===row.id} value={row.team_id??""} onChange={e=>void move(row.id,e.target.value)} className="min-w-0 rounded-[10px] border border-[#E8E1DA] bg-white px-2.5 py-2 text-[9px] font-bold"><option value="">Командасыз</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name} ({t.count}/{t.capacity??"—"})</option>)}</select><ArrowRightLeft size={13} className={saving===row.id?"animate-pulse text-[var(--accent)]":"text-[#A19890]"}/></div>
