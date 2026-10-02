@@ -1,6 +1,6 @@
 import { ClipboardList } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { StaffCreateTaskForm } from "@/components/staff/StaffCreateTaskForm";
 import { StaffTaskEditForm } from "@/components/staff/StaffTaskEditForm";
@@ -18,7 +18,6 @@ export default async function ChiefMentorTasksPage() {
       <PageContainer>
         <div className="space-y-5">
           <section className="flex flex-wrap items-end justify-between gap-3">
-            <SectionHeader eyebrow="ТАПСЫРМАЛАР" title="Тапсырмалар" description="Қосу батырмасы арқылы шағын терезеден енгізіңіз." />
             <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
           </section>
 
