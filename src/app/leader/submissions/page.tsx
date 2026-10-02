@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/AppNav";
-import { PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
+import { PageContainer } from "@/components/ui/ShyraqUI";
 import { TaskSubmissionReviewQueue } from "@/components/staff/TaskSubmissionReviewQueue";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { getStaffTaskSubmissions } from "@/lib/staff/task-submissions";
@@ -17,11 +17,6 @@ export default async function LeaderSubmissionsPage() {
     >
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader
-            eyebrow="REVIEW"
-            title="Тапсырма тексеруі"
-            description="Лидер барлық submission нәтижесін көреді және қажет жағдайда review жасай алады."
-          />
           <TaskSubmissionReviewQueue submissions={submissions} />
         </div>
       </PageContainer>
