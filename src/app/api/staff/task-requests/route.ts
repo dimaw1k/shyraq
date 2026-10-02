@@ -42,6 +42,7 @@ export async function PATCH(request: Request) {
   const requestId = typeof body?.requestId === "string" ? body.requestId.trim() : "";
   const status = body?.status === "APPROVED" || body?.status === "REJECTED" ? body.status : null;
   const reviewComment = typeof body?.reviewComment === "string" ? body.reviewComment.trim().slice(0, 3000) : null;
+  const updates = body?.updates && typeof body.updates === "object" ? body.updates : null;
 
   if (!requestId || !status) {
     return NextResponse.json({ error: "requestId және status қажет." }, { status: 400 });
@@ -93,16 +94,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ request: updated });
   }
 
+  const nextTitle = typeof updates?.title === "string" && updates.title.trim() ? updates.title.trim() : current.title;
+  const nextDescription = typeof updates?.description === "string" ? updates.description.trim() : current.description;
+  const nextDeadline = updates?.deadline === null ? null : typeof updates?.deadline === "string" && updates.deadline ? updates.deadline : current.deadline;
+  const nextPoints = typeof updates?.points === "number" && Number.isFinite(updates.points) ? Math.max(0, updates.points) : Number(current.points ?? 0);
+
   const { data: task, error: taskError } = await admin
     .from("tasks")
     .insert({
-      title: current.title,
-      description: current.description,
+      title: nextTitle,
+      description: nextDescription,
       instructions: current.instructions,
       team_id: current.team_id,
       starts_at: current.starts_at,
-      deadline: current.deadline,
-      points: Number(current.points ?? 0),
+      deadline: nextDeadline,
+      points: nextPoints,
       attachment_required: Boolean(current.attachment_required),
       max_files: Number(current.max_files ?? 5),
       late_points_percent: Number(current.late_points_percent ?? 100),
@@ -142,7 +148,7 @@ export async function PATCH(request: Request) {
     action: "MENTOR_TASK_REQUEST_APPROVED",
     entity_type: "MENTOR_TASK_REQUEST",
     entity_id: requestId,
-    metadata: { task_id: task.id, mentor_id: current.mentor_id, team_id: current.team_id },
+    metadata: { task_id: task.id, mentor_id: current.mentor_id, team_id: current.team_id, edited: Boolean(updates), changes: updates },
   });
 
   await admin.from("audit_logs").insert({
