@@ -361,7 +361,7 @@ export default function HomePage() {
                 <span className="block text-[#FF8000]">21 күн — соның бастамасы.</span>
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
-                Шырақ саған жай ғана тапсырма бермейді. Біз таңғы әдеттен бастап кешкі есепке дейінгі күнді бір жүйеге жинаймыз: оқу, жоспар, жауапкершілік, бақылау. Алдыңғы ағындарда 480+ жас осы форматта 21 күндік бағдарламадан өтті.
+                Оқу, жоспар және күндік есеп — бір жүйеде.
               </p>
             </div>
           </Reveal>
@@ -383,11 +383,11 @@ export default function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">21 КҮНДЕ НЕ ӨЗГЕРЕДІ?</p>
               <h2 className="mt-3 text-4xl font-extrabold tracking-[-.055em] text-[#172235] sm:text-5xl">
-                Өзіңді қолға алып, күн сайын бір қадам алға жылжисың.
-                <span className="block text-[#FF8000]">21 күннен кейін бұл әдетке айнала бастайды.</span>
+                Күн сайын бір қадам.
+                <span className="block text-[#FF8000]">21 күнде тұрақты әдет.</span>
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
-                Мақсат, жоспар, таңғы әдет, оқу және кешкі қорытынды — бәрі алдын ала ойластырылған. 21 күннің соңында сен марафонды ғана аяқтамай, уақытыңды тиімді ұйымдастырудың өзіңе ыңғайлы тәсілін қалыптастырасың.
+                Әр күннің мақсаты, тапсырмасы және қорытындысы бар.
               </p>
             </div>
           </Reveal>
@@ -429,11 +429,11 @@ export default function HomePage() {
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">ШЫРАҚТЫҢ КҮН ТӘРТІБІ</p>
                 <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] text-[#172235] sm:text-5xl">
-                  Күніңді жоспарламай, мақсатыңа жете алмайсың.
-                  <span className="block text-[#FF8000]">Сол үшін Шырақта әр күннің нақты жоспары алдын ала дайындалады.</span>
+                  Күн жоспары дайын.
+                  <span className="block text-[#FF8000]">Саған орындау ғана қалады.</span>
                 </h2>
                 <p className="mt-5 max-w-lg text-[15px] font-medium leading-7 text-[#5f574f] sm:text-base">
-                  Шырақтағы күн 05:00-де басталады: таңғы әдет, алғашқы оқу, күндік жоспар және кешкі қорытынды. Әр кезеңнің өз уақыты бар, сондықтан бүгін не істеу керегін ойлап уақыт жоғалтпайсың.
+                  Күндік жоспар, оқу және есеп бір экранда.
                 </p>
 
                 <div className="mt-7 space-y-3">
@@ -509,7 +509,7 @@ export default function HomePage() {
       </section>
 
       {/* SOCIAL PROOF / DEMO */}
-      <section id="reviews" className="bg-[#fbfaf7]">
+      <section id="how-it-works" className="bg-[#fbfaf7]">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
@@ -518,7 +518,7 @@ export default function HomePage() {
                 Бір жүйе. Күн сайынғы нақты қадам.
               </h2>
               <p className="mt-4 text-sm leading-6 text-[#7b756e]">
-                Қысқа әрі нақты оқу процесі.
+                Сабақ → тапсырма → прогресс.
               </p>
             </div>
           </Reveal>
@@ -527,18 +527,9 @@ export default function HomePage() {
             {sampleQuotes.map((quote, index) => (
               <Reveal key={quote} delay={index * 90}>
                 <article className="h-full rounded-[28px] border border-[#e9e4dc] bg-white p-6 shadow-[0_14px_38px_rgba(20,20,20,.04)]">
-                  <div className="flex gap-1 text-[#FF8000]">
-                    {Array.from({ length: 5 }).map((_, starIndex) => (
-                      <span key={starIndex} className="text-sm">★</span>
-                    ))}
-                  </div>
-                  <p className="mt-5 text-sm font-semibold leading-7 text-[#3c4452]">{quote}</p>
-                  <div className="mt-6 flex items-center gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#a29a91]">Shyraq</span>
-                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFF1E2] text-[10px] font-extrabold text-[#FF8000]">{String(index + 1).padStart(2, "0")}</div>
+                  <p className="mt-5 text-lg font-extrabold tracking-[-.03em] text-[#172235]">{quote}</p>
+                  <p className="mt-2 text-xs font-medium text-[#8B8179]">Shyraq ішінде</p>
                 </article>
               </Reveal>
             ))}
@@ -576,7 +567,7 @@ export default function HomePage() {
                 <div className="mx-auto w-full max-w-[430px]">
                   <div className="rounded-[28px] border border-white/70 bg-white/70 p-4 shadow-[0_25px_70px_rgba(40,30,20,.1)] backdrop-blur">
                     <div className="rounded-[22px] bg-[#172235] p-5 text-white">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІН ОСЫНЫ ІСТЕ</p>
+                      <p className="text-[9px] font-extrabold uppercase tracking-[.2em] text-white/40">БҮГІН</p>
                       <p className="mt-1 text-2xl font-extrabold">Бастауға 3 қадам</p>
                       <div className="mt-5 space-y-2.5">
                         {["Тіркеліп, профиліңді толтыр", "Бүгінгі алғашқы тапсырманы орында", "Бірінші сабақтың басталуын көр"].map((item, index) => (
@@ -650,7 +641,7 @@ export default function HomePage() {
               <div className="mt-2.5 space-y-1.5 text-[11px] text-white/55">
                 <a href="#features" className="block transition-colors hover:text-white">Мүмкіндіктер</a>
                 <a href="#marathon" className="block transition-colors hover:text-white">21 күн</a>
-                <a href="#reviews" className="block transition-colors hover:text-white">Пікірлер</a>
+                <a href="#how-it-works" className="block transition-colors hover:text-white">Қалай жұмыс істейді</a>
               </div>
             </div>
 
