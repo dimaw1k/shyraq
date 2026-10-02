@@ -9,7 +9,6 @@ type RegisterPayload = {
   lastName?: unknown;
   age?: unknown;
   educationType?: unknown;
-  educationPlace?: unknown;
   password?: unknown;
 };
 
@@ -28,7 +27,6 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
     const educationType = text(body.educationType);
-    const educationPlace = text(body.educationPlace);
     const password = typeof body.password === "string" ? body.password : "";
     const age = Number(body.age);
 
@@ -56,9 +54,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "educationType", error: "Оқу түрін таңдаңыз." }, { status: 400 });
     }
 
-    if (educationPlace.length < 2) {
-      return NextResponse.json({ field: "educationPlace", error: "Оқу орныңызды дұрыс енгізіңіз." }, { status: 400 });
-    }
 
     if (password.length < 8) {
       return NextResponse.json({ field: "password", error: "Құпиясөз кемінде 8 таңба болуы керек." }, { status: 400 });
@@ -103,7 +98,6 @@ export async function POST(request: Request) {
         full_name: [firstName, lastName].join(" "),
         age,
         education_type: educationType,
-        education_place: educationPlace,
       },
     });
 
