@@ -41,7 +41,7 @@ const initialForm: FormState = {
 function Brand() {
   return (
     <Link href="/" aria-label="Shyraq" className="inline-flex items-center">
-      <span className="text-[28px] font-extrabold tracking-[-0.075em] text-[#172235]">
+      <span className="text-[26px] font-extrabold tracking-[-0.075em] text-[#172235]">
         SHYR<span className="text-[#ff8000]">A</span>Q
       </span>
     </Link>
@@ -139,9 +139,9 @@ export default function RegisterPage() {
   }
 
   const inputClass = (key: keyof FormState) =>
-    "mt-2 w-full rounded-2xl border " +
+    "mt-1.5 w-full rounded-[15px] border " +
     (errors[key] ? "border-red-300 bg-red-50/40" : "border-[#e7e0d8] bg-[#fcfbf9]") +
-    " px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 focus:border-[#ff8000] focus:bg-white focus:ring-4 focus:ring-[#ff8000]/10";
+    " px-4 py-3 text-sm font-medium outline-none transition-all duration-300 focus:border-[#ff8000] focus:bg-white focus:ring-4 focus:ring-[#ff8000]/10";
 
   const errorText = (key: keyof FormState) =>
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
@@ -150,7 +150,7 @@ export default function RegisterPage() {
     <main className={montserrat.className + " min-h-screen overflow-hidden bg-[#fbfaf7] text-[#172235]"}>
       <div className="absolute inset-x-0 top-0 h-[430px] bg-[radial-gradient(circle_at_14%_12%,rgba(255,255,255,.88),transparent_30%),linear-gradient(135deg,#fff0e8_0%,#ffd7ca_48%,#ffb18d_100%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-6 sm:px-7 lg:px-8">
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
         <div className="flex items-center justify-between">
           <Brand />
           <Link
@@ -161,51 +161,51 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <div className="mx-auto mt-7 max-w-6xl">
-          <div className="rounded-[36px] border border-white/75 bg-white/92 p-4 shadow-[0_30px_100px_rgba(39,25,17,.12)] backdrop-blur-xl sm:p-6 lg:p-8">
-            <div className="grid gap-8 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
-              <section className="order-2 rounded-[28px] bg-[#172235] p-6 text-white sm:order-2 sm:p-7 lg:order-2">
+        <div className="mx-auto flex w-full flex-1 items-center justify-center py-6"><div className="w-full max-w-4xl">
+          <div className="rounded-[30px] border border-white/75 bg-white/92 p-3 shadow-[0_24px_70px_rgba(39,25,17,.10)] backdrop-blur-xl sm:p-4 lg:p-5">
+            <div className="grid gap-5 lg:grid-cols-[1.12fr_.78fr] lg:gap-6">
+              <section className="order-2 rounded-[24px] bg-[#172235] p-5 text-white sm:order-2 sm:p-6 lg:order-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
                   <Sparkles size={12} className="text-[#ff9800]" />
                   21 күндік оқу марафоны
                 </div>
-                <h1 className="mt-5 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
+                <h1 className="mt-4 text-[34px] font-extrabold leading-[1.04] tracking-[-.05em] sm:text-[40px]">
                   Күнде аздап.
                   <span className="block text-[#ff8000]">21 күнде үлкен өзгеріс.</span>
                 </h1>
-                <p className="mt-4 text-sm font-medium leading-6 text-white/65">
+                <p className="mt-3 text-[13px] font-medium leading-5 text-white/65">
                   Сабақ, тапсырма және прогресс — бір жерде.
                 </p>
 
-                <div className="mt-7 space-y-3">
+                <div className="mt-5 space-y-2.5">
                   {[
                     "Күнделікті тапсырмалар",
                     "Сабақтар және оқу жоспары",
                     "Ұпай, серия және рейтинг",
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3 text-xs font-semibold text-white/75">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff8000] text-white">
-                        <Check size={15} />
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[10px] bg-[#ff8000] text-white">
+                        <Check size={14} />
                       </span>
                       {item}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-8 rounded-[22px] border border-white/8 bg-white/[.04] p-4">
+                <div className="mt-6 rounded-[18px] border border-white/8 bg-white/[.04] p-3.5">
                   <p className="text-[9px] font-extrabold uppercase tracking-[.17em] text-white/35">АККАУНТ</p>
-                  <p className="mt-2 text-sm font-semibold text-white/80">Тіркелу аяқталғаннан кейін платформаға бірден кіре аласыз.</p>
+                  <p className="mt-1.5 text-[13px] font-semibold leading-5 text-white/80">Тіркелу аяқталғаннан кейін платформаға бірден кіре аласыз.</p>
                 </div>
               </section>
 
-              <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1">
+              <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1 lg:py-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff8000]">ТІРКЕЛУ</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
+                <h2 className="mt-2 text-[28px] font-extrabold tracking-[-.045em] sm:text-3xl">Жеке тіркелгіңізді ашыңыз.</h2>
+                <p className="mt-2 max-w-xl text-[13px] font-medium leading-5 text-[#766e66]">
                   Негізгі деректерді енгізіп, Shyraq-қа қосылыңыз.
                 </p>
 
-                <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-3 sm:grid-cols-2">
+                <form onSubmit={handleSubmit} noValidate className="mt-5 grid gap-2.5 sm:grid-cols-2">
                   <label className="block text-xs font-extrabold text-[#3f3832]">
                     Телефон
                     <input
@@ -351,7 +351,7 @@ export default function RegisterPage() {
                   <button
                     disabled={loading}
                     type="submit"
-                    className="group mt-1 flex items-center justify-center gap-2 rounded-2xl bg-[#ff8000] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,128,0,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(255,128,0,.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+                    className="group mt-1 flex items-center justify-center gap-2 rounded-[15px] bg-[#ff8000] px-5 py-3 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(255,128,0,.18)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(255,128,0,.22)] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
                   >
                     {loading ? "Тіркелу..." : "Аккаунт ашу"}
                     {!loading ? <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /> : null}
@@ -367,7 +367,7 @@ export default function RegisterPage() {
               </section>
             </div>
           </div>
-        </div>
+        </div></div>
       </div>
     </main>
   );
