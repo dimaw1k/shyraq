@@ -1,5 +1,5 @@
-import { StaffWorkspaceMock } from "@/components/staff/StaffWorkspaceMock";
+import { redirect } from "next/navigation";
 
 export default function MentorDesignPage() {
-  return <StaffWorkspaceMock role="MENTOR" />;
+  redirect("/mentor");
 }
