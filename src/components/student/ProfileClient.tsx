@@ -14,6 +14,8 @@ type Profile = {
   status: string;
   role: string;
   avatar_url?: string | null;
+  team_name?: string | null;
+  mentor_name?: string | null;
 };
 
 const inputClass = "mt-2 w-full rounded-[14px] border border-[#E8E1DA] bg-[#FFFCF9] px-3.5 py-3 text-xs font-medium text-[#172235] outline-none transition focus:border-[#FF6F2C] focus:bg-white focus:ring-4 focus:ring-[#FF6F2C]/10";
@@ -119,7 +121,7 @@ export function ProfileClient() {
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF6F2C]">ПРОФИЛЬ</p>
           <h2 className="mt-1 text-xl font-extrabold text-[#172235]">{profile.full_name}</h2>
-          <p className="mt-1 text-xs text-[#8B8179]">{profile.email} · {profile.status}</p>
+          <p className="mt-1 text-xs text-[#8B8179]">{profile.email} · {profile.status}</p><p className="mt-1 text-[10px] font-semibold text-[#8B8179]">Команда: {profile.team_name ?? "Күтілуде"} · Ментор: {profile.mentor_name ?? "Тағайындалмаған"}</p>
         </div>
       </div>
 
