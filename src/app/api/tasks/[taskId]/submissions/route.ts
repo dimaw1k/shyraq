@@ -52,7 +52,8 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   if (existing?.status === "REVIEWED") {
     return NextResponse.json({ error: "Тексерілген тапсырманы өзгертуге болмайды." }, { status: 409 });
   }
-  if (existing?.status === "SUBMITTED" && finalize) {
+
+  if (existing?.status === "SUBMITTED") {
     return NextResponse.json({ error: "Тапсырма тексеруде. Қайта ашуды ментор жасайды." }, { status: 409 });
   }
 
