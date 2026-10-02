@@ -67,7 +67,6 @@ export function StaffLessonEditForm({ lesson, teams }: Props) {
           startsAt: startsAtIso,
           deadlineAt: deadlineAtIso,
           published,
-          materials: [],
         }),
       });
 
