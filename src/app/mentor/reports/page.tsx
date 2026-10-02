@@ -14,7 +14,7 @@ export default async function MentorReportsPage() {
           <Card className="overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4 sm:px-6">
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">DAILY REPORT</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">КҮНДЕЛІКТІ ЕСЕП</p>
                 <h2 className="mt-1 text-[18px] font-extrabold text-[#172235]">Оқушы есептері</h2>
               </div>
               <div className="flex items-center gap-2">
