@@ -60,7 +60,7 @@ function RolePreviewBadge({ role }: { role: StaffPreviewRole }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[#E8E1DA] bg-white px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.13em] text-[#766E66] shadow-[0_8px_24px_rgba(23,34,53,.04)]">
       <span className="h-1.5 w-1.5 rounded-full bg-[#FF6F2C]" />
-      {label} • DESIGN
+      {label} • ДИЗАЙН
     </span>
   );
 }
@@ -111,7 +111,7 @@ function MentorWorkspace() {
         role="MENTOR"
         eyebrow="МЕНІҢ КОМАНДАМ • КҮНДЕЛІКТІ БАСҚАРУ"
         title="Командаңның ритмі бір экранда."
-        description="Ментордың басты назары — өзіне бекітілген оқушылар, тапсырмаларды тексеру, күндік есептер, қатысу және Meet."
+        description="Ментордың басты назары — өзіне бекітілген оқушылар, тапсырмаларды тексеру, күндік есептер, қатысу және кездесулер."
       />
 
       <section id="team" className="scroll-mt-8 space-y-4">
@@ -124,14 +124,14 @@ function MentorWorkspace() {
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard label="ОҚУШЫ" value="64" hint="бекітілген" icon={<Users size={17} />} />
           <MetricCard label="БЕЛСЕНДІЛІК" value="91%" hint="соңғы 7 күн" icon={<Activity size={17} />} />
-          <MetricCard label="ATTENDANCE" value="93%" hint="орташа" icon={<Video size={17} />} />
+          <MetricCard label="ҚАТЫСУ" value="93%" hint="орташа" icon={<Video size={17} />} />
           <MetricCard label="КҮТІЛГЕН ЕСЕП" value="7" hint="бүгін тексеру" icon={<FileText size={17} />} />
         </section>
 
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4 sm:px-6">
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">TEAM PULSE</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">КОМАНДА ЖАҒДАЙЫ</p>
               <h2 className="mt-1 text-[17px] font-extrabold text-[#172235]">Оқушылар жағдайы</h2>
             </div>
             <span className="text-[9px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">64 оқушы</span>
@@ -159,7 +159,7 @@ function MentorWorkspace() {
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4 sm:px-6">
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">REVIEW QUEUE</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ТЕКСЕРУ КЕЗЕГІ</p>
               <h2 className="mt-1 text-[17px] font-extrabold text-[#172235]">Тапсырмаларды тексеру</h2>
             </div>
             <span className="rounded-full bg-[#FFF0E8] px-2.5 py-1 text-[9px] font-extrabold text-[#D65E25]">7 күтілуде</span>
@@ -279,7 +279,7 @@ function ChiefMentorWorkspace() {
           <div className="mt-5 rounded-[18px] border border-[#EFE8E1] bg-[#FFFCF9] p-4">
             <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#A19890]">САБАҚ 19</p>
             <h3 className="mt-1.5 text-[15px] font-extrabold text-[#172235]">Функция және график</h3>
-            <p className="mt-1.5 text-[10px] leading-5 text-[#8B8179]">Kinescope • 27 мин • тест тіркелген</p>
+            <p className="mt-1.5 text-[10px] leading-5 text-[#8B8179]">Бейне сабақ • 27 мин • тест тіркелген</p>
             <div className="mt-4 flex gap-2">
               <PrimaryLink href="#lessons"><Plus size={14} />Жаңа сабақ</PrimaryLink>
               <SecondaryLink href="#tasks">Тапсырмалар</SecondaryLink>
@@ -317,7 +317,7 @@ function ChiefMentorWorkspace() {
           <p className="mt-2 max-w-lg text-[10px] leading-5 text-white/55">Бұл экранда кейін нақты команда және ментор деңгейіндегі деректер байланысады. Қазір макетте олардың иерархиясы көрсетілген.</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">БЕЛСЕНДІЛІК</p><p className="mt-1.5 text-[22px] font-extrabold">88%</p></div>
-            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ATTENDANCE</p><p className="mt-1.5 text-[22px] font-extrabold">91%</p></div>
+            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ҚАТЫСУ</p><p className="mt-1.5 text-[22px] font-extrabold">91%</p></div>
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ЕСЕПТЕР</p><p className="mt-1.5 text-[22px] font-extrabold">92%</p></div>
           </div>
         </Card></div>
@@ -335,7 +335,7 @@ function ChiefMentorWorkspace() {
         <Card className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">БАҚЫЛАУ</p>
           <h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Назардағы ментор</h2>
-          <p className="mt-2 text-[11px] font-medium leading-5 text-[#7E756D]">Нұрбек Е. • 59 оқушы • белсенділік 78%. Главный ментор осы жерде әрекет жасай алады.</p>
+          <p className="mt-2 text-[11px] font-medium leading-5 text-[#7E756D]">Нұрбек Е. • 59 оқушы • белсенділік 78%. Бас ментор осы жерде әрекет жасай алады.</p>
           <SecondaryLink href="#mentors" className="mt-4">Менторды ашу <ArrowRight size={14} /></SecondaryLink>
         </Card>
       </section>
@@ -350,7 +350,7 @@ function LeaderWorkspace() {
         role="LEADER"
         eyebrow="МАРАФОННЫҢ ЖОҒАРҒЫ БАСҚАРУ ДЕҢГЕЙІ"
         title="Марафонның бүкіл ритмін бір орталықтан көр."
-        description="Лидердің кеңістігі — ең жоғары қызметкерлік кабинет. Мұнда главный ментор, менторлар, командалар, оқушылар, контент және жалпы нәтиже бөлек бөлімдерге бөлінеді."
+        description="Жетекшінің кабинеті — ең жоғары қызметкерлік кабинет. Мұнда главный ментор, менторлар, командалар, оқушылар, контент және жалпы нәтиже бөлек бөлімдерге бөлінеді."
       />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -361,7 +361,7 @@ function LeaderWorkspace() {
       </section>
 
       <section id="staff" className="space-y-4">
-        <SectionHeader eyebrow="ҚЫЗМЕТКЕРЛЕР" title="Штабтың қазіргі жағдайы" description="Лидер бірінші кезекте қызметкерлер мен олардың нәтижесін көреді." />
+        <SectionHeader eyebrow="ҚЫЗМЕТКЕРЛЕР" title="Штабтың қазіргі жағдайы" description="Жетекші бірінші кезекте қызметкерлер мен олардың нәтижесін көреді." />
         <Card className="overflow-hidden">
           <div className="hidden grid-cols-[1.25fr_1.1fr_1.2fr_100px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
             <span>Қызметкер</span><span>Рөл</span><span>Жұмыс көлемі</span><span>Статус</span>
@@ -452,7 +452,7 @@ function LeaderWorkspace() {
 
         <div id="settings"><Card className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ЖЕДЕЛ БАСҚАРУ</p>
-          <h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Лидер әрекеттері</h2>
+          <h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Жетекші әрекеттері</h2>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             <SecondaryLink href="#staff">Қызметкерлер</SecondaryLink>
             <SecondaryLink href="#teams">Командалар</SecondaryLink>
