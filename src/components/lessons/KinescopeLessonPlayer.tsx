@@ -40,7 +40,7 @@ export function KinescopeLessonPlayer({
     setSaving(true);
     try{
       const response=await fetch("/api/lessons/"+lessonId+"/progress",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({ranges:nextRanges})});
-      if(!response.ok)throw new Error("Progress save failed");
+      if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
     }finally{setSaving(false);}
   },[lessonId]);
 
