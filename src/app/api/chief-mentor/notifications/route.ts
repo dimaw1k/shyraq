@@ -17,9 +17,9 @@ export async function GET(){
  ]);
  const mentorMap=new Map((mentors??[]).map(x=>[x.id,x.full_name]));const studentMap=new Map((students??[]).map(x=>[x.id,x.full_name]));
  const items=[
-  ...(requests??[]).map(x=>({id:"task-"+x.id,type:"TASK_REQUEST",title:"Жаңа task request",message:(mentorMap.get(x.mentor_id)??"Ментор")+" · "+x.title,href:"/chief-mentor/tasks",created_at:x.created_at})),
-  ...(reports??[]).map(x=>({id:"report-"+x.id,type:"REPORT",title:"Жаңа daily report",message:(studentMap.get(x.student_id)??"Оқушы")+" · "+x.report_date,href:"/chief-mentor/reports",created_at:x.submitted_at??x.report_date})),
-  ...(support??[]).map(x=>({id:"support-"+x.id,type:"SUPPORT",title:"Жаңа support өтініші",message:x.subject,href:"/chief-mentor/support",created_at:x.created_at})),
+  ...(requests??[]).map(x=>({id:"task-"+x.id,type:"TASK_REQUEST",title:"Жаңа тапсырма сұранысы",message:(mentorMap.get(x.mentor_id)??"Ментор")+" · "+x.title,href:"/chief-mentor/tasks",created_at:x.created_at})),
+  ...(reports??[]).map(x=>({id:"report-"+x.id,type:"REPORT",title:"Жаңа күндік есеп",message:(studentMap.get(x.student_id)??"Оқушы")+" · "+x.report_date,href:"/chief-mentor/reports",created_at:x.submitted_at??x.report_date})),
+  ...(support??[]).map(x=>({id:"support-"+x.id,type:"SUPPORT",title:"Жаңа қолдау өтініші",message:x.subject,href:"/chief-mentor/support",created_at:x.created_at})),
  ].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,50);
  return NextResponse.json({notifications:items});
 }
