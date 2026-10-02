@@ -59,129 +59,83 @@ export function StaffSelectMenu({
   );
 }
 
-function parseDateTime(value: string) {
-  return {
-    date: value ? value.slice(0, 10) : "",
-    hour: value ? value.slice(11, 13) || "12" : "12",
-    minute: value ? value.slice(14, 16) || "00" : "00",
-  };
+function formatKzDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const p = (n: number) => String(n).padStart(2, "0");
+  return (
+    p(date.getDate()) +
+    "." +
+    p(date.getMonth() + 1) +
+    "." +
+    date.getFullYear() +
+    " " +
+    p(date.getHours()) +
+    ":" +
+    p(date.getMinutes()) +
+    ":" +
+    p(date.getSeconds())
+  );
+}
+
+export function parseKzDateTime(value: string): string | null | undefined {
+  const raw = value.trim();
+  if (!raw) return null;
+
+  const match = raw.match(/^(\\d{2})\\.(\\d{2})\\.(\\d{4})\\s+(\\d{2}):(\\d{2})(?::(\\d{2}))?$/);
+  if (!match) return undefined;
+
+  const [, dd, mm, yyyy, hh, min, ss = "00"] = match;
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = Number(yyyy);
+  const hour = Number(hh);
+  const minute = Number(min);
+  const second = Number(ss);
+
+  const probe = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  if (
+    probe.getUTCFullYear() !== year ||
+    probe.getUTCMonth() !== month - 1 ||
+    probe.getUTCDate() !== day ||
+    probe.getUTCHours() !== hour ||
+    probe.getUTCMinutes() !== minute ||
+    probe.getUTCSeconds() !== second ||
+    month < 1 ||
+    month > 12 ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59
+  ) {
+    return undefined;
+  }
+
+  const iso = new Date(\`${yyyy}-${mm}-${dd}T${hh}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}+05:00\`);
+  return iso.toISOString();
 }
 
 export function StaffDateTimeField({
   value,
   onChange,
-  label = "Уақыт",
+  label = "Күн мен уақыт",
 }: {
   value: string;
   onChange: (value: string) => void;
   label?: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(() => parseDateTime(value));
-
-  const shown = parseDateTime(value);
-
-  function commit(nextDate: string, nextHour: string, nextMinute: string) {
-    if (!nextDate) {
-      onChange("");
-      return;
-    }
-
-    onChange(nextDate + "T" + nextHour + ":" + nextMinute);
-  }
-
-  const labelText = value
-    ? new Date(value).toLocaleString("kk-KZ", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : label;
+  const shown = value && value.includes("T") ? formatKzDateTime(value) : value;
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => {
-          setDraft(shown);
-          setOpen((current) => !current);
-        }}
-        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-2.5 text-left text-[11px] font-semibold text-[#172235] transition hover:border-[#FFB067]"
-        aria-expanded={open}
-      >
-        <span className={value ? "truncate" : "truncate text-[#9A9189]"}>{labelText}</span>
-        <ChevronDown size={15} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
-      </button>
-
-      {open ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] rounded-[16px] border border-[#E8E1DA] bg-white p-3 shadow-[0_20px_50px_rgba(23,34,53,.14)]">
-          <div className="grid gap-3">
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Күн
-              <input
-                type="date"
-                value={draft.date}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setDraft((current) => ({ ...current, date: next }));
-                  commit(next, draft.hour, draft.minute);
-                }}
-                className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000]"
-              />
-            </label>
-
-            <div className="grid grid-cols-2 gap-2">
-              <label className="text-[10px] font-extrabold text-[#5B534C]">
-                Сағат
-                <span className="mt-1.5 block">
-                  <StaffSelectMenu
-                    value={draft.hour}
-                    options={Array.from({ length: 24 }, (_, index) => {
-                      const item = String(index).padStart(2, "0");
-                      return { value: item, label: item };
-                    })}
-                    onChange={(next) => {
-                      setDraft((current) => ({ ...current, hour: next }));
-                      commit(draft.date, next, draft.minute);
-                    }}
-                  />
-                </span>
-              </label>
-
-              <label className="text-[10px] font-extrabold text-[#5B534C]">
-                Минут
-                <span className="mt-1.5 block">
-                  <StaffSelectMenu
-                    value={draft.minute}
-                    options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(
-                      (item) => ({ value: item, label: item }),
-                    )}
-                    onChange={(next) => {
-                      setDraft((current) => ({ ...current, minute: next }));
-                      commit(draft.date, draft.hour, next);
-                    }}
-                  />
-                </span>
-              </label>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setDraft({ date: "", hour: "12", minute: "00" });
-                onChange("");
-                setOpen(false);
-              }}
-              className="h-10 rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-extrabold text-[#6B625B] transition hover:bg-[#FAF7F3]"
-            >
-              Тазарту
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    <input
+      type="text"
+      value={shown}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder="12.09.2026 15:00:00"
+      inputMode="numeric"
+      aria-label={label}
+      className="h-11 w-full rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition placeholder:text-[#AAA099] focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+    />
   );
 }
 
@@ -214,7 +168,7 @@ export function StaffModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[24px] border border-white/70 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)]"
+        className="w-full max-w-[760px] rounded-[24px] border border-white/70 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)]"
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7]/95 px-5 py-4 backdrop-blur sm:px-6">
           <div className="min-w-0">
