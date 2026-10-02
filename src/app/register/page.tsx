@@ -42,7 +42,7 @@ function Brand() {
   return (
     <Link href="/" aria-label="Shyraq" className="inline-flex items-center">
       <span className="text-[28px] font-extrabold tracking-[-0.075em] text-[#172235]">
-        SHYR<span className="text-[#ff6f2c]">A</span>Q
+        SHYR<span className="text-[#ff8000]">A</span>Q
       </span>
     </Link>
   );
@@ -141,7 +141,7 @@ export default function RegisterPage() {
   const inputClass = (key: keyof FormState) =>
     "mt-2 w-full rounded-2xl border " +
     (errors[key] ? "border-red-300 bg-red-50/40" : "border-[#e7e0d8] bg-[#fcfbf9]") +
-    " px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10";
+    " px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 focus:border-[#ff8000] focus:bg-white focus:ring-4 focus:ring-[#ff8000]/10";
 
   const errorText = (key: keyof FormState) =>
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
@@ -166,25 +166,25 @@ export default function RegisterPage() {
             <div className="grid gap-8 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
               <section className="order-2 rounded-[28px] bg-[#172235] p-6 text-white sm:order-2 sm:p-7 lg:order-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
-                  <Sparkles size={12} className="text-[#ff8a52]" />
+                  <Sparkles size={12} className="text-[#ff9800]" />
                   21 күндік оқу марафоны
                 </div>
                 <h1 className="mt-5 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
                   Күнде аздап.
-                  <span className="block text-[#ff6f2c]">21 күнде үлкен өзгеріс.</span>
+                  <span className="block text-[#ff8000]">21 күнде үлкен өзгеріс.</span>
                 </h1>
                 <p className="mt-4 text-sm font-medium leading-6 text-white/65">
-                  Shyraq — оқуды кейінге қалдырмай, күн сайын жоспармен жүруге көмектесетін марафон. Сабақ, тапсырма және прогресс — бір жерде.
+                  Сабақ, тапсырма және прогресс — бір жерде.
                 </p>
 
                 <div className="mt-7 space-y-3">
                   {[
-                    "Күнделікті нақты тапсырмалар",
+                    "Күнделікті тапсырмалар",
                     "Сабақтар және оқу жоспары",
                     "Ұпай, серия және рейтинг",
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3 text-xs font-semibold text-white/75">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff6f2c] text-white">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff8000] text-white">
                         <Check size={15} />
                       </span>
                       {item}
@@ -199,10 +199,10 @@ export default function RegisterPage() {
               </section>
 
               <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ТІРКЕЛУ</p>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff8000]">ТІРКЕЛУ</p>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
-                  Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
+                  Негізгі деректерді енгізіп, Shyraq-қа қосылыңыз.
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -351,7 +351,7 @@ export default function RegisterPage() {
                   <button
                     disabled={loading}
                     type="submit"
-                    className="group mt-1 flex items-center justify-center gap-2 rounded-2xl bg-[#ff6f2c] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(255,111,44,.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+                    className="group mt-1 flex items-center justify-center gap-2 rounded-2xl bg-[#ff8000] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,128,0,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(255,128,0,.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
                   >
                     {loading ? "Тіркелу..." : "Аккаунт ашу"}
                     {!loading ? <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /> : null}
@@ -360,7 +360,7 @@ export default function RegisterPage() {
 
                 <p className="mt-5 text-center text-xs font-medium text-[#837970]">
                   Аккаунтыңыз бар ма?{" "}
-                  <Link href="/login" className="font-extrabold text-[#ff6f2c] hover:underline">
+                  <Link href="/login" className="font-extrabold text-[#ff8000] hover:underline">
                     Кіру
                   </Link>
                 </p>
