@@ -18,7 +18,9 @@ function extractKinescopeId(value: string) {
   }
 }
 
-type TeamOption = { id: string; name: string };\n\nexport function StaffCreateLessonForm({ teams = [] }: { teams?: TeamOption[] }) {
+type TeamOption = { id: string; name: string };
+
+export function StaffCreateLessonForm({ teams = [] }: { teams?: TeamOption[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
