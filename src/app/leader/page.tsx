@@ -54,7 +54,7 @@ export default async function LeaderPage() {
     : 0;
 
   const modules = [
-    ["Қызметкерлер", "/leader/staff", "Менторлар мен главный менторларды басқару.", Users],
+    ["Қызметкерлер", "/leader/staff", "Менторлар мен бас менторларды басқару.", Users],
     ["Оқушылар", "/leader/students", "Барлық оқушыны, статусты және команданы бақылау.", GraduationCap],
     ["Командалар", "/leader/teams", "Командалар мен ментор бекітулерін басқару.", Users],
     ["Контент", "/leader/content", "Сабақтар мен тапсырмалардың жалпы күйі.", BookOpen],
@@ -73,7 +73,7 @@ export default async function LeaderPage() {
         <div className="space-y-6">
           <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader
-              eyebrow="LEADER"
+              eyebrow="ЖЕТЕКШІ"
               title="Марафонның толық көрінісі"
               description="Лидер — Главный ментордан жоғары деңгей. Мұнда барлық staff, команда, оқушы және контент деректері жинақталады."
             />
