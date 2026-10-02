@@ -44,7 +44,7 @@ export function TaskSubmissionForm({
     try{
       const draftResponse=await fetch("/api/tasks/"+taskId+"/submissions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({textAnswer:answer,linkUrl,finalize:false})});
       const draftData=await draftResponse.json().catch(()=>({}));
-      if(!draftResponse.ok)throw new Error(draftData.error??"Draft сақталмады.");
+      if(!draftResponse.ok)throw new Error(draftData.error??"Жоба сақталмады.");
       const submissionId=String(draftData.submission.id);
       for(const file of files){
         const fd=new FormData();fd.append("submissionId",submissionId);fd.append("file",file);
@@ -54,7 +54,7 @@ export function TaskSubmissionForm({
       const finalResponse=await fetch("/api/tasks/"+taskId+"/submissions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({textAnswer:answer,linkUrl,finalize:true})});
       const finalData=await finalResponse.json().catch(()=>({}));
       if(!finalResponse.ok)throw new Error(finalData.error??"Тапсырма жіберілмеді.");
-      setMessage(finalData.submission?.submitted_late?"Тапсырма жіберілді. Deadline өткендіктен «Кеш тапсырылды» белгісі қойылды.":"Тапсырма тексеруге жіберілді.");
+      setMessage(finalData.submission?.submitted_late?"Тапсырма жіберілді. Соңғы мерзімі өткендіктен «Кеш тапсырылды» белгісі қойылды.":"Тапсырма тексеруге жіберілді.");
       setFiles([]);window.setTimeout(()=>window.location.reload(),600);
     }catch(error){setMessage(error instanceof Error?error.message:"Белгісіз қате.");}finally{setLoading(false);}
   }
