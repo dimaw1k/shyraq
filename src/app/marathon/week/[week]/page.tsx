@@ -62,8 +62,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
               const lessonDone = dayLessons.length > 0 && dayLessons.every((lesson) => Boolean(progressByLesson.get(lesson.id)?.test_unlocked));
               const taskDone = dayTasks.length > 0 && dayTasks.every((task) => submissionByTask.get(task.id)?.status === "REVIEWED");
               const reportDone = report?.status === "REVIEWED";
-              const doneCount = [lessonDone, taskDone, reportDone].filter(Boolean).length;
-              const total = [dayLessons.length > 0, dayTasks.length > 0, true].filter(Boolean).length;
+              const weightedProgress = (lessonDone ? 25 : 0) + (taskDone ? 45 : 0) + (reportDone ? 30 : 0);
 
               return (
                 <Card key={day} className="overflow-hidden p-0">
@@ -72,7 +71,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
                       <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF6F2C]">ШЫРАҚ</p>
                       <h2 className="mt-1 text-xl font-extrabold tracking-[-.03em] text-[#172235]">{day}-күн</h2>
                     </div>
-                    <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]">{doneCount}/{total} блок аяқталды</span>
+                    <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]">{weightedProgress}% progress</span>
                   </div>
 
                   <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">
