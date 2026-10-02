@@ -90,19 +90,19 @@ export default function LoginPage() {
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ЖЕКЕ ТІРКЕЛГІ</p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізге кіріңіз.</h1>
               <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-[#766e66]">
-                Email немесе телефон нөмірі арқылы тіркелгіңізге кіріңіз.
+                Электрондық пошта немесе телефон нөмірі арқылы тіркелгіңізге кіріңіз.
               </p>
 
               <form onSubmit={handleSubmit} className="mt-7 space-y-4">
                 <label className="block">
-                  <span className="text-xs font-extrabold text-[#3f3832]">Email немесе телефон нөмірі</span>
+                  <span className="text-xs font-extrabold text-[#3f3832]">Электрондық пошта немесе телефон нөмірі</span>
                   <input
                     required
                     autoComplete="username"
                     value={identifier}
                     onChange={(event) => handleIdentifierChange(event.target.value)}
                     className="mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 placeholder:text-[#b1a79f] focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10"
-                    placeholder="Email немесе +7 (700) 000 00 00"
+                    placeholder="Электрондық пошта немесе +7 (700) 000 00 00"
                   />
                 </label>
 
