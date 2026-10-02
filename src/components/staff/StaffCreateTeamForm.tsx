@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Plus, Users } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
 import { StaffModal, staffInputClass } from "@/components/staff/StaffUI";
 
