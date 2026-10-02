@@ -12,7 +12,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
   const { taskId } = await params;
   const [{ data: profile }, { data: task }, { data: submission }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase.from("tasks").select("id,title,description,instructions,deadline,starts_at,points,attachment_required,max_files,team_id,marathon_day").eq("id", taskId).eq("active", true).maybeSingle(),
+    supabase.from("tasks").select("id,title,description,instructions,deadline,starts_at,points,late_points_percent,attachment_required,max_files,team_id,marathon_day").eq("id", taskId).eq("active", true).maybeSingle(),
     supabase.from("task_submissions").select("id,status,text_answer,submitted_at,submitted_late,link_url,review_comment,resubmission_deadline").eq("task_id", taskId).eq("student_id", user.id).maybeSingle(),
   ]);
   if (!task) notFound();
@@ -51,7 +51,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
           <p className="mt-3 text-sm leading-6 text-gray-500">{task.description}</p>
           {task.instructions ? <div className="mt-4 rounded-xl bg-[#FAFAFA] p-3.5 text-sm leading-6 text-gray-700"><p className="mb-1 text-xs font-semibold text-gray-900">Нұсқаулық</p>{task.instructions}</div> : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>
+            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>{late&&Number(task.late_points_percent)<100?<span className="rounded-lg bg-[#F6F2ED] px-2.5 py-1.5 text-xs font-semibold text-[#7C7168]">Late: {task.late_points_percent}%</span>:null}
             <span className={"rounded-lg px-2.5 py-1.5 text-xs font-medium " + (late ? "bg-[#FFF0E8] text-[#C85E2F]" : "bg-[#FAFAFA] text-gray-500")}>{late ? "Deadline өтті · тапсыруға болады" : task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ"}</span>
             {submission?.submitted_late ? <span className="rounded-lg bg-[#FFF0E8] px-2.5 py-1.5 text-xs font-semibold text-[#C85E2F]">Кеш тапсырылды</span> : null}
           </div>
