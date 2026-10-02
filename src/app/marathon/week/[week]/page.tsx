@@ -17,7 +17,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
   const week = getMarathonWeek(weekNumber);
   if (!week) notFound();
 
-  const [{ data: profile }, { data: lessons }, { data: tasks }, { data: ілгерілеу }, { data: submissions }, { data: reports }] = await Promise.all([
+  const [{ data: profile }, { data: lessons }, { data: tasks }, { data: videoProgress }, { data: submissions }, { data: reports }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
     supabase.from("lessons")
       .select("id,title,duration_seconds,required_watch_percent,starts_at,marathon_day,lesson_order,published")
@@ -33,13 +33,13 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
       .lte("marathon_day", week.endDay)
       .order("marathon_day")
       .order("task_order"),
-    supabase.from("video_ілгерілеу").select("lesson_id,watched_percent,test_unlocked").eq("student_id", user.id),
+    supabase.from("video_progress").select("lesson_id,watched_percent,test_unlocked").eq("student_id", user.id),
     supabase.from("task_submissions").select("task_id,status,submitted_late,submitted_at").eq("student_id", user.id),
     supabase.from("daily_reports").select("marathon_day,status,report_date").eq("student_id", user.id).gte("marathon_day", week.startDay).lte("marathon_day", week.endDay),
   ]);
 
   const now = new Date().getTime();
-  const ілгерілеуByLesson = new Map((ілгерілеу ?? []).map((item) => [item.lesson_id, item]));
+  const videoProgressByLesson = new Map((videoProgress ?? []).map((item) => [item.lesson_id, item]));
   const submissionByTask = new Map((submissions ?? []).map((item) => [item.task_id, item]));
   const reportByDay = new Map((reports ?? []).map((item) => [Number(item.marathon_day), item]));
   const role = profile?.role ?? "STUDENT";
@@ -51,7 +51,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
           <SectionHeader
             eyebrow="МАРАФОН"
             title={week.subtitle}
-            description="Күнді ашып, сабақтарды қарап, тесттерді орындап, тапсырма мен отчетты жібер."
+            description="Күнді ашып, сабақтарды қарап, тесттерді орындап, тапсырма мен есепті жібер."
           />
 
           <div className="grid gap-4">
@@ -59,7 +59,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
               const dayLessons = (lessons ?? []).filter((item) => Number(item.marathon_day) === day);
               const dayTasks = (tasks ?? []).filter((item) => Number(item.marathon_day) === day);
               const report = reportByDay.get(day);
-              const lessonDone = dayLessons.length > 0 && dayLessons.every((lesson) => Boolean(ілгерілеуByLesson.get(lesson.id)?.test_unlocked));
+              const lessonDone = dayLessons.length > 0 && dayLessons.every((lesson) => Boolean(videoProgressByLesson.get(lesson.id)?.test_unlocked));
               const taskDone = dayTasks.length > 0 && dayTasks.every((task) => submissionByTask.get(task.id)?.status === "REVIEWED");
               const reportDone = report?.status === "REVIEWED";
               const weightedProgress = (lessonDone ? 25 : 0) + (taskDone ? 45 : 0) + (reportDone ? 30 : 0);
@@ -77,7 +77,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
                   <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-5">
                     {dayLessons.map((lesson) => {
                       const locked = Boolean(lesson.starts_at && new Date(lesson.starts_at).getTime() > now);
-                      const itemProgress = ілгерілеуByLesson.get(lesson.id);
+                      const itemProgress = videoProgressByLesson.get(lesson.id);
                       return (
                         <Link key={lesson.id} href={locked ? "#" : "/lessons/" + lesson.id} aria-disabled={locked} className={locked ? "pointer-events-none" : "block"}>
                           <div className={"h-full rounded-[18px] border p-4 " + (locked ? "border-[#EEE7E1] bg-[#F8F5F1]" : "border-[#E8E1DA] bg-white transition hover:border-[#F3C7B0]")}>
@@ -103,7 +103,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
                               {locked ? <LockKeyhole size={15} className="text-[#9A9189]" /> : <StatusPill tone={submission?.status === "REVIEWED" ? "green" : submission?.submitted_late ? "orange" : "neutral"}>{submission?.status ?? "ТАПСЫРЫЛМАҒАН"}</StatusPill>}
                             </div>
                             <h3 className="mt-4 text-[13px] font-extrabold text-[#172235]">{task.title}</h3>
-                            <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">{locked ? "Ашылады: " + new Date(task.starts_at!).toLocaleString("kk-KZ") : (task.deadline ? "Соңғы мерзім: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ") + " · " + task.points + " ұпай"}</p>
+                            <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">{locked ? "Ашылады: " + new Date(task.starts_at!).toLocaleString("kk-KZ") : (task.deadline ? "Соңғы мерзім: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ") + " · " + task.points + " ұпай"}</p>
                           </div>
                         </Link>
                       );
