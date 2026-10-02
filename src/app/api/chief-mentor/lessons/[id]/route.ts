@@ -41,6 +41,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }))
     : current.materials;
 
+  const nextTeamId =
+    body?.teamId === null || body?.teamId === ""
+      ? null
+      : typeof body?.teamId === "string"
+        ? body.teamId
+        : current.team_id;
+
+  if (nextTeamId) {
+    const { data: team } = await admin.from("teams").select("id").eq("id", nextTeamId).maybeSingle();
+    if (!team) return NextResponse.json({ error: "Команда табылмады." }, { status: 400 });
+  }
+
   const nextDay = body?.marathonDay === null || body?.marathonDay === "" ? null : typeof body?.marathonDay === "number" ? Math.floor(body.marathonDay) : current.marathon_day;
   if (nextDay !== null && (nextDay < 1 || nextDay > 21)) {
     return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
