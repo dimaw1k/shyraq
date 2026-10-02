@@ -26,7 +26,10 @@ export async function POST(request: Request) {
     status: "ACTIVE",
   }).select("*").single();
 
-  if (error) return NextResponse.json({ error: "Команданы сақтау сәтсіз аяқталды." }, { status: 400 });
+  if (error) {
+    console.error("team create failed", { code: error.code, message: error.message, details: error.details, hint: error.hint });
+    return NextResponse.json({ error: error.message || "Команданы сақтау сәтсіз аяқталды." }, { status: 400 });
+  }
 
   await supabase.from("audit_logs").insert({
     actor_id: profile.id,
