@@ -233,7 +233,7 @@ export function MentorTeamManager({
         </section>
 
         {view !== "dashboard" ? (
-          <WorkspacePanel view={view} students={filteredStudents} allStudents={students} tasks={tasks} submissions={submissions} query={query} onQuery={setQuery} onStudent={setSelectedStudent} onClose={() => setView("dashboard")} />
+          <WorkspacePanel view={view} students={filteredStudents} allStudents={students} tasks={tasks} submissions={submissions} reports={reports} query={query} onQuery={setQuery} onStudent={setSelectedStudent} onClose={() => setView("dashboard")} />
         ) : null}
       </div>
 
@@ -256,6 +256,7 @@ function WorkspacePanel({
   allStudents,
   tasks,
   submissions,
+  reports,
   query,
   onQuery,
   onStudent,
@@ -266,6 +267,7 @@ function WorkspacePanel({
   allStudents: MentorStudent[];
   tasks: MentorTask[];
   submissions: MentorSubmission[];
+  reports: MentorReport[];
   query: string;
   onQuery: (value: string) => void;
   onStudent: (student: MentorStudent) => void;
