@@ -31,7 +31,14 @@ export function StaffSelectMenu({
         aria-expanded={open}
       >
         <span className="truncate">{label}</span>
-        <ChevronDown size={15} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
+        <ChevronDown
+          size={15}
+          className={
+            open
+              ? "shrink-0 rotate-180 transition-transform"
+              : "shrink-0 transition-transform"
+          }
+        />
       </button>
       {open ? (
         <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] rounded-[14px] border border-[#E8E1DA] bg-white p-1.5 shadow-[0_20px_50px_rgba(23,34,53,.14)]">
@@ -45,7 +52,9 @@ export function StaffSelectMenu({
               }}
               className={[
                 "flex w-full items-center justify-between rounded-[10px] px-3 py-2.5 text-left text-[11px] font-semibold transition",
-                value === option.value ? "bg-[#FFF1E2] text-[#C95500]" : "text-[#4B433C] hover:bg-[#FAF7F3]",
+                value === option.value
+                  ? "bg-[#FFF1E2] text-[#C95500]"
+                  : "text-[#4B433C] hover:bg-[#FAF7F3]",
               ].join(" ")}
             >
               <span>{option.label}</span>
@@ -68,25 +77,28 @@ export function StaffDateTimeField({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState(() => value ? value.slice(0, 10) : "");
-  const [hour, setHour] = useState(() => value ? value.slice(11, 13) : "12");
-  const [minute, setMinute] = useState(() => value ? value.slice(14, 16) : "00");
+  const [localDate, setLocalDate] = useState(() =>
+    value ? value.slice(0, 10) : "",
+  );
+  const [localHour, setLocalHour] = useState(() =>
+    value ? value.slice(11, 13) || "12" : "12",
+  );
+  const [localMinute, setLocalMinute] = useState(() =>
+    value ? value.slice(14, 16) || "00" : "00",
+  );
 
   useEffect(() => {
-    if (!value) {
-      setDate("");
-      return;
-    }
-    setDate(value.slice(0, 10));
-    setHour(value.slice(11, 13) || "12");
-    setMinute(value.slice(14, 16) || "00");
+    setLocalDate(value ? value.slice(0, 10) : "");
+    setLocalHour(value ? value.slice(11, 13) || "12" : "12");
+    setLocalMinute(value ? value.slice(14, 16) || "00" : "00");
   }, [value]);
 
-  function commit(nextDate = date, nextHour = hour, nextMinute = minute) {
+  function commit(nextDate: string, nextHour: string, nextMinute: string) {
     if (!nextDate) {
       onChange("");
       return;
     }
+
     onChange(nextDate + "T" + nextHour + ":" + nextMinute);
   }
 
@@ -108,8 +120,17 @@ export function StaffDateTimeField({
         className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-2.5 text-left text-[11px] font-semibold text-[#172235] transition hover:border-[#FFB067]"
         aria-expanded={open}
       >
-        <span className={value ? "truncate" : "truncate text-[#9A9189]"}>{labelText}</span>
-        <ChevronDown size={15} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
+        <span className={value ? "truncate" : "truncate text-[#9A9189]"}>
+          {labelText}
+        </span>
+        <ChevronDown
+          size={15}
+          className={
+            open
+              ? "shrink-0 rotate-180 transition-transform"
+              : "shrink-0 transition-transform"
+          }
+        />
       </button>
 
       {open ? (
@@ -119,28 +140,68 @@ export function StaffDateTimeField({
               Күн
               <input
                 type="date"
-                value={date}
+                value={localDate}
                 onChange={(event) => {
-                  setDate(event.target.value);
-                  commit(event.target.value, hour, minute);
+                  const next = event.target.value;
+                  setLocalDate(next);
+                  commit(next, localHour, localMinute);
                 }}
                 className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000]"
               />
             </label>
+
             <div className="grid grid-cols-2 gap-2">
               <label className="text-[10px] font-extrabold text-[#5B534C]">
                 Сағат
-                <span className="mt-1.5 block"><StaffSelectMenu value={hour} options={Array.from({ length: 24 }, (_, index) => { const item = String(index).padStart(2, "0"); return { value: item, label: item }; })} onChange={(value) => { setHour(value); commit(date, value, minute); }} /></span>
+                <span className="mt-1.5 block">
+                  <StaffSelectMenu
+                    value={localHour}
+                    options={Array.from({ length: 24 }, (_, index) => {
+                      const item = String(index).padStart(2, "0");
+                      return { value: item, label: item };
+                    })}
+                    onChange={(next) => {
+                      setLocalHour(next);
+                      commit(localDate, next, localMinute);
+                    }}
+                  />
+                </span>
               </label>
+
               <label className="text-[10px] font-extrabold text-[#5B534C]">
                 Минут
-                <span className="mt-1.5 block"><StaffSelectMenu value={minute} options={["00","05","10","15","20","25","30","35","40","45","50","55"].map((item) => ({ value: item, label: item }))} onChange={(value) => { setMinute(value); commit(date, hour, value); }} /></span>
+                <span className="mt-1.5 block">
+                  <StaffSelectMenu
+                    value={localMinute}
+                    options={[
+                      "00",
+                      "05",
+                      "10",
+                      "15",
+                      "20",
+                      "25",
+                      "30",
+                      "35",
+                      "40",
+                      "45",
+                      "50",
+                      "55",
+                    ].map((item) => ({ value: item, label: item }))}
+                    onChange={(next) => {
+                      setLocalMinute(next);
+                      commit(localDate, localHour, next);
+                    }}
+                  />
+                </span>
               </label>
             </div>
+
             <button
               type="button"
               onClick={() => {
-                setDate("");
+                setLocalDate("");
+                setLocalHour("12");
+                setLocalMinute("00");
                 onChange("");
                 setOpen(false);
               }}
@@ -170,8 +231,10 @@ export function StaffModal({
 }) {
   useEffect(() => {
     if (!open) return;
+
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = original;
     };
@@ -188,8 +251,14 @@ export function StaffModal({
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7]/95 px-5 py-4 backdrop-blur sm:px-6">
           <div className="min-w-0">
-            <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">{title}</h2>
-            {description ? <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">{description}</p> : null}
+            <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">
+              {title}
+            </h2>
+            {description ? (
+              <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">
+                {description}
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
