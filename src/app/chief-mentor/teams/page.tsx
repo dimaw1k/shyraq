@@ -1,6 +1,6 @@
 import { Users } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, EmptyState, PageContainer, ProgressBar, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { Card, EmptyState, PageContainer, ProgressBar, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { StaffCreateTeamForm } from "@/components/staff/StaffCreateTeamForm";
 import { StaffTeamEditForm } from "@/components/staff/StaffTeamEditForm";
@@ -36,12 +36,6 @@ export default async function ChiefMentorTeamsPage() {
     >
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader
-            eyebrow="TEAMS"
-            title="Командалар"
-            description="Ментор жүктемесі, capacity және команда параметрлерін басқару."
-          />
-
           <StaffCreateTeamForm />
 
           <Card className="overflow-visible">
