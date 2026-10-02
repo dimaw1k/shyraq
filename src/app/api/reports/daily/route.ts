@@ -1,29 +1,5 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { todayInTimezone } from "@/lib/streak";
-
-export async function GET(request: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const url = new URL(request.url);
-  const date = url.searchParams.get("date");
-  let query = supabase
-    .from("daily_reports")
-    .select("*")
-    .eq("student_id", user.id)
-    .order("report_date", { ascending: false })
-    .limit(30);
-
-  if (date) query = query.eq("report_date", date);
-
-  const { data, error } = await query;
-  if (error) return NextResponse.json({ error: "Unable to load reports" }, { status: 400 });
-
-  return NextResponse.json({ reports: data ?? [] });
-}
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -32,35 +8,27 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const reportDate = typeof body?.reportDate === "string" ? body.reportDate : "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
-    return NextResponse.json({ error: "Invalid reportDate" }, { status: 400 });
+  const marathonDay = typeof body?.marathonDay === "number" && Number.isInteger(body.marathonDay) ? body.marathonDay : null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) return NextResponse.json({ error: "Есеп күні дұрыс емес." }, { status: 400 });
+  if (marathonDay !== null && (marathonDay < 1 || marathonDay > 21)) return NextResponse.json({ error: "Марафон күні дұрыс емес." }, { status: 400 });
+
+  const answers = body?.answers && typeof body.answers === "object" && !Array.isArray(body.answers) ? body.answers as Record<string, unknown> : {};
+  if (marathonDay !== null) {
+    const { data: questions } = await supabase.from("daily_report_questions").select("field_key,required").eq("active",true).or("marathon_day.is.null,marathon_day.eq."+marathonDay);
+    const missing = (questions ?? []).filter((question) => question.required && (answers[question.field_key] === undefined || answers[question.field_key] === null || String(answers[question.field_key]).trim() === ""));
+    if (missing.length) return NextResponse.json({ error: "Міндетті есеп сұрақтарына толық жауап беріңіз." }, { status: 400 });
   }
 
-  const today = todayInTimezone("Asia/Almaty");
-  if (reportDate > today) {
-    return NextResponse.json({ error: "A daily report cannot be submitted for a future date" }, { status: 409 });
-  }
+  const { data, error } = await supabase.from("daily_reports").upsert({
+    student_id:user.id, report_date:reportDate, marathon_day:marathonDay,
+    study_minutes:Math.max(0, Number(body?.studyMinutes ?? 0)),
+    completed_task_count:Math.max(0, Number(body?.completedTaskCount ?? 0)),
+    reflection:typeof body?.reflection==="string"?body.reflection.trim()||null:null,
+    difficulties:typeof body?.difficulties==="string"?body.difficulties.trim()||null:null,
+    next_day_goal:typeof body?.nextDayGoal==="string"?body.nextDayGoal.trim()||null:null,
+    answers, status:"SUBMITTED", submitted_at:new Date().toISOString(),
+  }, { onConflict:"student_id,report_date" }).select("id,student_id,report_date,marathon_day,study_minutes,completed_task_count,reflection,difficulties,next_day_goal,answers,status,submitted_at").single();
 
-  const payload = {
-    student_id: user.id,
-    report_date: reportDate,
-    study_minutes: typeof body.studyMinutes === "number" ? Math.max(0, Math.floor(body.studyMinutes)) : null,
-    completed_task_count: typeof body.completedTaskCount === "number" ? Math.max(0, Math.floor(body.completedTaskCount)) : null,
-    reflection: typeof body.reflection === "string" ? body.reflection.trim() : null,
-    difficulties: typeof body.difficulties === "string" ? body.difficulties.trim() : null,
-    next_day_goal: typeof body.nextDayGoal === "string" ? body.nextDayGoal.trim() : null,
-    status: "SUBMITTED" as const,
-    submitted_at: new Date().toISOString(),
-  };
-
-  const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("daily_reports")
-    .upsert(payload, { onConflict: "student_id,report_date" })
-    .select("*")
-    .single();
-
-  if (error) return NextResponse.json({ error: "Report submission failed" }, { status: 400 });
-
-  return NextResponse.json({ report: data });
+  if (error) return NextResponse.json({ error: "Есепті сақтау мүмкін болмады." }, { status: 400 });
+  return NextResponse.json({ report:data });
 }

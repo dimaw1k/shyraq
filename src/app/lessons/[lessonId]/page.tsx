@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Clock3, LockKeyhole } from "lucide-react";
 import { AppShell, UserChip } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { KinescopeLessonPlayer } from "@/components/lessons/KinescopeLessonPlayer";
@@ -11,49 +12,49 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const { lessonId } = await params;
   const [{ data: profile }, { data: lesson }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published").eq("id", lessonId).eq("published", true).maybeSingle(),
+    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,marathon_day,materials").eq("id", lessonId).eq("published", true).maybeSingle(),
   ]);
 
   if (!lesson) notFound();
+  const role = profile?.role ?? "STUDENT";
+  const locked = Boolean(lesson.starts_at && new Date(lesson.starts_at).getTime() > new Date().getTime());
 
-  const { data: progress } = await supabase
-    .from("video_progress")
+  if (locked) {
+    return (
+      <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақ жабық" right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+        <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+          <div className="rounded-[24px] border border-[#E8E1DA] bg-white p-6 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
+            <h2 className="mt-4 text-xl font-extrabold text-[#172235]">{lesson.title}</h2>
+            <p className="mt-2 text-sm text-[#8B8179]">Сабақ әлі ашылған жоқ.</p>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF0E8] px-4 py-2 text-xs font-extrabold text-[#C85E2F]"><Clock3 size={14} />{new Date(lesson.starts_at!).toLocaleString("kk-KZ")}</p>
+          </div>
+        </main>
+      </AppShell>
+    );
+  }
+
+  const { data: progress } = await supabase.from("video_progress")
     .select("watched_ranges,watched_percent,test_unlocked")
     .eq("lesson_id", lessonId)
     .eq("student_id", user.id)
     .maybeSingle();
 
-  const initialRanges = Array.isArray(progress?.watched_ranges)
-    ? (progress.watched_ranges as { start: number; end: number }[])
-    : [];
-  const role = profile?.role ?? "STUDENT";
+  const initialRanges = Array.isArray(progress?.watched_ranges) ? (progress.watched_ranges as { start: number; end: number }[]) : [];
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description="Видео прогресін орындап, тестті ашыңыз." right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · видео → тест" : "Видео → тест"} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
       <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <section className="min-w-0">
             {lesson.description ? <p className="mb-4 text-sm leading-6 text-gray-500">{lesson.description}</p> : null}
-            <KinescopeLessonPlayer
-              lessonId={lesson.id}
-              videoId={lesson.kinescope_video_id}
-              durationSeconds={lesson.duration_seconds}
-              requiredWatchPercent={lesson.required_watch_percent}
-              initialRanges={initialRanges}
-              testHref={"/tests/lesson/" + lesson.id}
-              initialTestUnlocked={Boolean(progress?.test_unlocked)}
-            />
+            <KinescopeLessonPlayer lessonId={lesson.id} videoId={lesson.kinescope_video_id} durationSeconds={lesson.duration_seconds} requiredWatchPercent={lesson.required_watch_percent} initialRanges={initialRanges} testHref={"/tests/lesson/" + lesson.id} initialTestUnlocked={Boolean(progress?.test_unlocked)} />
           </section>
-
           <aside className="h-fit rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C25100]">NEXT STEP</p>
             <h2 className="mt-1.5 text-sm font-semibold text-gray-900">Тест</h2>
-            <p className="mt-1 text-xs leading-5 text-gray-500">
-              {lesson.required_watch_percent}% бірегей көру орындалғанда тест автоматты түрде ашылады.
-            </p>
-            <div className="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-gray-500 shadow-soft">
-              Тестке өту батырмасы видео прогресімен бірге плеердің астында көрсетіледі.
-            </div>
+            <p className="mt-1 text-xs leading-5 text-gray-500">{lesson.required_watch_percent}% бірегей көру орындалғанда тест автоматты түрде ашылады.</p>
+            <div className="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-gray-500 shadow-soft">Видео мен тест сабақтың completion логикасын құрайды.</div>
           </aside>
         </div>
       </main>

@@ -1,158 +1,91 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpen, CheckCircle2, ChevronRight, Clock3, Flame, Trophy } from "lucide-react";
+import { ArrowRight, Flame, Trophy } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, MetricCard, PageContainer, PrimaryLink, ProgressBar, SectionHeader, SecondaryLink } from "@/components/ui/ShyraqUI";
+import { Card, MetricCard, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { calculateCurrentStreak, getSubmittedReportDates, shiftDate, todayInTimezone } from "@/lib/streak";
-
-function formatDeadline(value?: string | null) {
-  if (!value) return "Мерзімі көрсетілмеген";
-  return new Date(value).toLocaleString("kk-KZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-}
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
+import { MARATHON_WEEKS } from "@/lib/marathon";
+import { DashboardBanner } from "@/components/student/DashboardBanner";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name,role")
-    .eq("id", user.id)
-    .maybeSingle();
-
+  const { data: profile } = await supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle();
   const role = profile?.role ?? "STUDENT";
   if (role === "MENTOR") redirect("/mentor");
   if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
   if (role === "LEADER") redirect("/leader");
 
-  const [{ data: membership }, { data: tasks }, { data: progress }, { data: reports }, { data: scores }] = await Promise.all([
-    supabase.from("team_members").select("team_id,teams(id,name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
-    supabase.from("tasks").select("id,title,description,deadline,points").eq("active", true).order("deadline", { ascending: true, nullsFirst: false }).limit(5),
-    supabase.from("video_progress").select("watched_percent").eq("student_id", user.id),
+  const [{ data: banners }, { data: reports }, { data: scores }, { data: membership }] = await Promise.all([
+    supabase.from("marathon_banners").select("id,title,description,image_path,href").eq("published", true).order("sort_order").limit(8),
     supabase.from("daily_reports").select("report_date,status").eq("student_id", user.id).order("report_date", { ascending: false }).limit(370),
     supabase.from("score_events").select("points").eq("student_id", user.id),
+    supabase.from("team_members").select("team_id,teams(name)").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
   ]);
 
-  const team = Array.isArray(membership?.teams) ? membership.teams[0] ?? null : membership?.teams;
-  const totalScore = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
-  const lessonProgress = progress?.length
-    ? Math.round(progress.reduce((sum, item) => sum + Number(item.watched_percent ?? 0), 0) / progress.length)
-    : 0;
+  const admin = createAdminSupabaseClient();
+  const bannerItems = (banners ?? []).map((banner) => ({
+    id: banner.id,
+    title: banner.title,
+    description: banner.description,
+    href: banner.href,
+    imageUrl: banner.image_path ? admin.storage.from("banners").getPublicUrl(banner.image_path).data.publicUrl : null,
+  }));
 
   const today = todayInTimezone("Asia/Almaty");
-  const submittedReportDates = getSubmittedReportDates(reports ?? []);
-  const streak = calculateCurrentStreak(submittedReportDates, today);
-  const todayReport = (reports ?? []).find((item) => item.report_date === today);
+  const streak = calculateCurrentStreak(getSubmittedReportDates(reports ?? []), today);
+  const score = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
+  const team = Array.isArray(membership?.teams) ? membership.teams[0] : membership?.teams;
   const firstName = profile?.full_name?.split(" ")[0] ?? "досым";
 
   return (
     <AppShell role={role} userName={profile?.full_name ?? undefined} title="Басты бет" hideHeader>
       <PageContainer>
-        <div className="space-y-5">
-          <Card className="overflow-hidden p-5 sm:p-7">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <SectionHeader
-                eyebrow="БҮГІН"
-                title={`Сәлем, ${firstName}`}
-                description="Бүгінгі ең маңызды істі аяқта. Қалғаны біртіндеп орындалады."
-              />
-              <div className="flex flex-wrap gap-2">
-                <PrimaryLink href="/tasks">Тапсырмалар <ArrowRight size={14} /></PrimaryLink>
-                <SecondaryLink href="/lessons">Сабақтар</SecondaryLink>
-              </div>
+        <div className="space-y-6">
+          <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#FF6F2C]">SHYRAQ MARATHON</p>
+              <h1 className="mt-2 text-3xl font-extrabold tracking-[-.05em] text-[#172235] sm:text-4xl">Сәлем, {firstName}</h1>
+              <p className="mt-2 text-sm text-[#8B8179]">Бүгінгі қадамыңды баста. Әр күн — нәтиже.</p>
             </div>
-          </Card>
-
-          <section className="grid gap-3 sm:grid-cols-3">
-            <MetricCard label="STREAK" value={`${streak} күн`} hint="күн сайынғы белсенділік" icon={<Flame size={17} />} />
-            <MetricCard label="САБАҚ" value={`${lessonProgress}%`} hint="орташа көру прогресі" icon={<BookOpen size={17} />} />
-            <MetricCard label="ҰПАЙ" value={String(totalScore)} hint="жиналған ұпай" icon={<Trophy size={17} />} />
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Flame size={12} className="mr-1 inline text-[#FF6F2C]" />{streak} күн streak</span>
+              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Trophy size={12} className="mr-1 inline text-[#FF6F2C]" />{score} ұпай</span>
+            </div>
           </section>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="space-y-5">
-              <Card className="p-5 sm:p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ТӘРТІП</p>
-                    <h2 className="mt-1.5 text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">Соңғы 7 күн</h2>
+          <DashboardBanner banners={bannerItems} />
+
+          <section className="grid gap-4 md:grid-cols-3">
+            {MARATHON_WEEKS.map((week) => (
+              <Link key={week.week} href={"/marathon/week/" + week.week} className="group">
+                <Card className="h-full overflow-hidden p-0 transition duration-200 group-hover:-translate-y-1 group-hover:border-[#F3C7B0] group-hover:shadow-[0_24px_70px_rgba(255,111,44,.10)]">
+                  <div className="relative min-h-[190px] p-5 sm:p-6">
+                    <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[#FFF0E8] blur-2xl transition group-hover:scale-125" />
+                    <div className="relative">
+                      <span className="inline-flex rounded-full bg-[#FFF0E8] px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#C85E2F]">21 КҮН</span>
+                      <p className="mt-10 text-[11px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">{week.title}</p>
+                      <h2 className="mt-1 text-2xl font-extrabold tracking-[-.04em] text-[#172235]">{week.subtitle}</h2>
+                      <p className="mt-4 text-xs leading-5 text-[#8B8179]">Аптаны ашып, сол кезеңнің сабақтарын, тесттерін, тапсырмаларын және күндік есептерін орында.</p>
+                      <span className="mt-5 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-[#FF6F2C]">Аптаны ашу <ArrowRight size={13} /></span>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-semibold text-[#9A9189]">Оқу ритмі</span>
-                </div>
+                </Card>
+              </Link>
+            ))}
+          </section>
 
-                <div className="mt-5 grid grid-cols-7 gap-2">
-                  {Array.from({ length: 7 }).map((_, index) => {
-                    const date = shiftDate(today, index - 6);
-                    const report = (reports ?? []).find((item) => item.report_date === date);
-                    const submitted = report && report.status !== "DRAFT";
-                    const started = Boolean(report);
+          <div className="flex justify-end"><Link href="/marathon/final" className="inline-flex items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-3 text-[10px] font-extrabold text-[#4B433C]">21 күндік нәтиже <ArrowRight size={13}/></Link></div>
 
-                    return (
-                      <div key={date} className="flex flex-col items-center gap-1.5">
-                        <span className={[`grid h-9 w-9 place-items-center rounded-[12px] text-[9px] font-extrabold sm:h-10 sm:w-10`, submitted ? "bg-[#FF6F2C] text-white" : started ? "bg-[#FFF0E8] text-[#FF6F2C]" : "bg-[#F6F2ED] text-[#A69C93]"].join(" ")}>
-                          {new Date(date + "T00:00:00").toLocaleDateString("kk-KZ", { weekday: "short" }).replace(".", "")}
-                        </span>
-                        <span className="text-[9px] font-semibold text-[#9A9189]">{new Date(date + "T00:00:00").getDate()}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              <Card className="overflow-hidden">
-                <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4 sm:px-6">
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">КЕЛЕСІ</p>
-                    <h2 className="mt-1 text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">Тапсырмалар</h2>
-                  </div>
-                  <Link href="/tasks" className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#FF6F2C]">Барлығы <ChevronRight size={13} /></Link>
-                </div>
-
-                <div className="divide-y divide-[#EFE8E1]">
-                  {(tasks ?? []).slice(0, 4).map((task) => (
-                    <Link key={task.id} href={`/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-4 transition hover:bg-[#FFFCF9] sm:px-6">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#F6F2ED] text-[#766E66]"><CheckCircle2 size={16} /></span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[12px] font-extrabold text-[#2D3848]">{task.title}</p>
-                        <p className="mt-1 truncate text-[10px] font-medium text-[#9A9189]">{formatDeadline(task.deadline)}</p>
-                      </div>
-                      <span className="shrink-0 text-[10px] font-extrabold text-[#FF6F2C]">{task.points} ұпай</span>
-                    </Link>
-                  ))}
-                  {!tasks?.length ? <div className="px-6 py-10 text-center"><p className="text-sm font-extrabold text-[#3F3832]">Қазір белсенді тапсырма жоқ.</p><p className="mt-1 text-xs text-[#9A9189]">Жаңа тапсырма шыққанда осы жерден көрінеді.</p></div> : null}
-                </div>
-              </Card>
-            </div>
-
-            <aside className="space-y-5">
-              <Card className="p-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-[15px] font-extrabold text-[#172235]">Бүгін</h2>
-                  <span className="text-[10px] font-semibold text-[#9A9189]">{todayReport ? "Дайын" : "Жіберілмеген"}</span>
-                </div>
-                <div className="mt-4 space-y-2.5">
-                  <Link href="/reports" className="flex items-center gap-3 rounded-[14px] bg-[#FFFCF9] p-3 transition hover:bg-[#F6F2ED]">
-                    <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#EEF9F3] text-[#318562]"><Clock3 size={15} /></span>
-                    <div><p className="text-[11px] font-extrabold text-[#354153]">Күндік есеп</p><p className="mt-0.5 text-[9px] text-[#9A9189]">{todayReport ? "Есеп жіберілді" : "Прогресті белгіле"}</p></div>
-                  </Link>
-                  <Link href="/lessons" className="flex items-center gap-3 rounded-[14px] bg-[#FFFCF9] p-3 transition hover:bg-[#F6F2ED]">
-                    <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF0E8] text-[#FF6F2C]"><BookOpen size={15} /></span>
-                    <div><p className="text-[11px] font-extrabold text-[#354153]">Сабақты жалғастыру</p><p className="mt-0.5 text-[9px] text-[#9A9189]">{lessonProgress}% прогресс</p></div>
-                  </Link>
-                </div>
-                <div className="mt-5"><ProgressBar value={lessonProgress} label="Сабақ прогресі" /></div>
-              </Card>
-
-              <Card dark className="p-5">
-                <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-white/45">КОМАНДА</p>
-                <h2 className="mt-2 text-[17px] font-extrabold">{team ? String(team.name) : "Команда күтілуде"}</h2>
-                <p className="mt-1.5 text-[10px] leading-5 text-white/55">{team ? "Командаңдағы нәтижені рейтингтен көр." : "Ментор командаға қосқанда осы жерде көрінеді."}</p>
-                <Link href="/rankings" className="mt-4 inline-flex items-center gap-1 text-[10px] font-extrabold text-[#FF9A72]">Рейтингті ашу <ArrowRight size={12} /></Link>
-              </Card>
-            </aside>
-          </div>
+          <section className="grid gap-3 sm:grid-cols-3">
+            <MetricCard label="STREAK" value={streak + " күн"} hint="күндік белсенділік" icon={<Flame size={17} />} />
+            <MetricCard label="ҰПАЙ" value={String(score)} hint="жиналған ұпай" icon={<Trophy size={17} />} />
+            <MetricCard label="КОМАНДА" value={team ? String(team.name) : "Күтілуде"} hint="қазіргі командаң" />
+          </section>
         </div>
       </PageContainer>
     </AppShell>

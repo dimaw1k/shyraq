@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { ReportReviewActions } from "@/components/staff/ReportReviewActions";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { ReportQuestionManager } from "@/components/staff/ReportQuestionManager";
 
 export default async function ChiefMentorReportsPage() {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
@@ -29,6 +30,8 @@ export default async function ChiefMentorReportsPage() {
     >
       <PageContainer>
         <div className="space-y-5">
+          <ReportQuestionManager />
+
           <SectionHeader
             eyebrow="REPORTS"
             title="Күнделікті есептер"
