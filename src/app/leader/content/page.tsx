@@ -13,7 +13,7 @@ import { BannerManager } from "@/components/staff/BannerManager";
 export default async function LeaderContentPage() {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
   const [{ data: lessons }, { data: tasks }, { data: teams }, { data: banners }] = await Promise.all([
-    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at,deadline_at,materials").order("marathon_day").order("lesson_order").limit(100),
+    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,team_id,published,starts_at,deadline_at,materials").order("marathon_day").order("lesson_order").limit(100),
     supabase.from("tasks").select("id,title,description,instructions,team_id,starts_at,deadline,points,attachment_required,max_files,late_points_percent,marathon_day,task_order,active").order("marathon_day").order("task_order").limit(150),
     supabase.from("teams").select("id,name").order("name"),
     supabase.from("marathon_banners").select("id,title,description,image_path,href,published,starts_at,ends_at,sort_order").order("sort_order").limit(30),
@@ -26,13 +26,13 @@ export default async function LeaderContentPage() {
   }));
 
   return (
-    <AppShell role="LEADER" userName={profile.full_name} title="Контент">
+    <AppShell role="LEADER" userName={profile.full_name} title="Сабақтар">
       <PageContainer>
         <div className="space-y-5">
           <section className="flex flex-wrap items-end justify-between gap-3">
-            <SectionHeader eyebrow="КОНТЕНТ" title="Марафон материалдары" />
+            <SectionHeader eyebrow="САБАҚТАР" title="Марафон сабақтары" />
             <div className="flex flex-wrap gap-2">
-              <StaffCreateLessonForm />
+              <StaffCreateLessonForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
               <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
             </div>
           </section>
@@ -55,7 +55,7 @@ export default async function LeaderContentPage() {
                           <p className="truncate text-[11px] font-extrabold text-[#354153]">{lesson.title}</p>
                           <p className="mt-1 text-[9px] text-[#9A9189]">
                             {lesson.marathon_day ? lesson.marathon_day + "-күн · " : ""}
-                            {Math.round(Number(lesson.duration_seconds) / 60)} мин
+                            {lesson.team_id ? (teams?.find((team) => team.id === lesson.team_id)?.name ?? "Команда") : "Барлық команда"}
                             {lesson.starts_at ? " · ашылу " + new Date(lesson.starts_at).toLocaleString("kk-KZ") : ""}
                             {lesson.deadline_at ? " · соңғы мерзім " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
                           </p>
@@ -63,7 +63,7 @@ export default async function LeaderContentPage() {
                         <StatusPill tone={lesson.published ? "green" : "orange"}>{lesson.published ? "Жарияланған" : "Жоба"}</StatusPill>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <StaffLessonEditForm lesson={lesson} />
+                        <StaffLessonEditForm lesson={lesson} teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
                         <StaffTestEditor lessonId={lesson.id} test={lessonTest.test} questions={lessonTest.questions} />
                       </div>
                     </div>
