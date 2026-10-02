@@ -5,7 +5,7 @@ import { ScoreRulesManager } from "@/components/staff/ScoreRulesManager";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 export default async function LeaderSettingsPage() {
-  const { supabase, profile } = await getAuthenticatedStaff("ЖЕТЕКШІ");
+  const { supabase, profile } = await getAuthenticatedStaff("LEADER");
   const [{ data: settings }, { data: scoreRules }] = await Promise.all([
     supabase
       .from("marathon_settings")
@@ -19,7 +19,7 @@ export default async function LeaderSettingsPage() {
   ]);
 
   return (
-    <AppShell role="ЖЕТЕКШІ" userName={profile.full_name} title="Баптаулар" >
+    <AppShell role="LEADER" userName={profile.full_name} title="Баптаулар" >
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
@@ -68,7 +68,7 @@ export default async function LeaderSettingsPage() {
               <span className="text-[#9A9189]">→</span>
               <StatusPill tone="orange">АҒА МЕНТОР</StatusPill>
               <span className="text-[#9A9189]">→</span>
-              <StatusPill tone="green">MENTOR</StatusPill>
+              <StatusPill tone="green">МЕНТОР</StatusPill>
               <span className="text-[#9A9189]">→</span>
               <StatusPill>ОҚУШЫ</StatusPill>
             </div>
