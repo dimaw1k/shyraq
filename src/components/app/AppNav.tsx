@@ -83,6 +83,7 @@ const roleHome: Record<string, string> = {
 
 function isActive(pathname: string, href: string) {
   const route = href.split("#")[0];
+  if (href.includes("#")) return false;
   const rootRoutes = new Set(["/dashboard", "/mentor", "/chief-mentor", "/leader"]);
   return pathname === route || (!rootRoutes.has(route) && pathname.startsWith(route + "/"));
 }
