@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/AppNav";
+import { uiLabel } from "@/lib/ui-labels";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { Crown, Medal, Trophy } from "lucide-react";
@@ -126,7 +127,7 @@ export default async function RankingsPage() {
                       {row.full_name}
                       {mine ? " · сіз" : ""}
                     </p>
-                    <p className="mt-0.5 text-[9px] font-medium text-[#9A9189]">{row.status}</p>
+                    <p className="mt-0.5 text-[9px] font-medium text-[#9A9189]">{uiLabel(row.status)}</p>
                   </div>
                   <span className="text-[12px] font-extrabold text-[#172235]">{row.score}</span>
                 </div>
