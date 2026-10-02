@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
+import { formatKzDateTime } from "@/lib/datetime";
 
 export default async function LessonsPage() {
   const supabase = await createServerSupabaseClient();
@@ -51,7 +52,7 @@ export default async function LessonsPage() {
                           </div>
                           <h3 className="mt-4 text-[14px] font-extrabold text-[#172235]">{lesson.title}</h3>
                           <p className="mt-1 text-xs font-medium leading-5 text-[#766E66]">{locked ? "Сабақ әлі ашылған жоқ." : (lesson.description ?? "Сабақты ашып, видеоны баста.")}</p>
-                          <p className="mt-4 inline-flex items-center gap-1 text-[10px] font-semibold text-[#9A9189]"><Clock3 size={12} />{locked ? "Ашылады: " + new Date(lesson.starts_at!).toLocaleString("kk-KZ") : Math.ceil(lesson.duration_seconds / 60) + " мин · " + lesson.required_watch_percent + "% қарау шегі"}</p>
+                          <p className="mt-4 inline-flex items-center gap-1 text-[10px] font-semibold text-[#9A9189]"><Clock3 size={12} />{locked ? "Ашылады: " + formatKzDateTime(lesson.starts_at!) : Math.ceil(lesson.duration_seconds / 60) + " мин · " + lesson.required_watch_percent + "% қарау шегі"}</p>
                         </Card>
                       </Link>
                     );
@@ -60,7 +61,7 @@ export default async function LessonsPage() {
               </section>
             );
           })}
-          {!lessons?.length ? <EmptyState title="Жарияланған сабақ жоқ." /> : null}
+          {!visibleLessons.length ? <EmptyState title="Жарияланған сабақ жоқ." /> : null}
         </div>
       </PageContainer>
     </AppShell>
