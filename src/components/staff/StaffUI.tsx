@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 
 export type MenuOption = { value: string; label: string };
@@ -198,14 +198,14 @@ export function StaffModal({
   onClose: () => void;
   children: ReactNode;
 }) {
-  const [scrollLocked, setScrollLocked] = useState(false);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
 
-  if (open !== scrollLocked) {
-    setScrollLocked(open);
-    if (typeof document !== "undefined") {
-      document.body.style.overflow = open ? "hidden" : "";
-    }
-  }
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   if (!open) return null;
 
