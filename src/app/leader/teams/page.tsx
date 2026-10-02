@@ -32,72 +32,58 @@ export default async function LeaderTeamsPage() {
       role="LEADER"
       userName={profile.full_name}
       title="Командалар"
+      description="Командаларды басқару және жүктемесін бақылау."
+      right={<StaffCreateTeamForm />}
     >
       <PageContainer>
-        <div className="space-y-5">
-          <StaffCreateTeamForm />
+        {(teams ?? []).length ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {(teams ?? []).map((team) => {
+              const count = memberCount.get(team.id) ?? 0;
+              const capacity = Number(team.capacity ?? 0);
+              const utilization = capacity ? Math.min(100, Math.round((count / capacity) * 100)) : 0;
 
-          <Card className="overflow-visible">
-            <div className="hidden grid-cols-[1.1fr_1fr_1fr_140px_330px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] lg:grid">
-              <span>Команда</span>
-              <span>Ментор</span>
-              <span>Жүктеме</span>
-              <span>Статус</span>
-              <span className="text-right">Басқару</span>
-            </div>
-
-            <div className="divide-y divide-[#EFE8E1]">
-              {(teams ?? []).map((team) => {
-                const count = memberCount.get(team.id) ?? 0;
-                const capacity = Number(team.capacity ?? 0);
-                const utilization = capacity ? Math.round((count / capacity) * 100) : 0;
-
-                return (
-                  <div
-                    key={team.id}
-                    className="grid gap-4 px-5 py-4 lg:grid-cols-[1.1fr_1fr_1fr_140px_330px] lg:items-center lg:px-6"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
-                        <Users size={14} />
+              return (
+                <Card key={team.id} className="p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F3C7B0]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]">
+                        <Users size={16} />
                       </span>
-                      <div>
-                        <p className="text-[11px] font-extrabold text-[#354153]">{team.name}</p>
-                        <p className="mt-1 text-[9px] text-[#9A9189]">
-                          {count} / {capacity || "—"} оқушы
+                      <div className="min-w-0">
+                        <h2 className="truncate text-[14px] font-extrabold text-[#172235]">{team.name}</h2>
+                        <p className="mt-1 truncate text-[10px] font-semibold text-[#91877F]">
+                          {team.mentor_id ? mentorMap.get(team.mentor_id) ?? "Ментор табылмады" : "Ментор жоқ"}
                         </p>
                       </div>
                     </div>
-
-                    <p className="text-[10px] font-bold text-[#4B433C]">
-                      {team.mentor_id ? mentorMap.get(team.mentor_id) ?? "Ментор табылмады" : "Ментор жоқ"}
-                    </p>
-
-                    <ProgressBar value={Math.min(utilization, 100)} label="Сыйымдылық" />
-
                     <StatusPill tone={team.status === "ACTIVE" ? "green" : "red"}>{team.status}</StatusPill>
-
-                    <div className="lg:justify-self-end">
-                      <StaffTeamEditForm
-                        team={team}
-                        mentors={(mentors ?? []).map((mentor) => ({
-                          id: mentor.id,
-                          full_name: mentor.full_name,
-                        }))}
-                      />
-                    </div>
                   </div>
-                );
-              })}
 
-              {!teams?.length ? (
-                <div className="p-8">
-                  <EmptyState title="Команда жоқ." />
-                </div>
-              ) : null}
-            </div>
-          </Card>
-        </div>
+                  <div className="mt-5 rounded-[14px] bg-[#FFFCF9] p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">ОҚУШЫЛАР</span>
+                      <span className="text-[11px] font-extrabold text-[#172235]">{count} / {capacity || "—"}</span>
+                    </div>
+                    <div className="mt-2"><ProgressBar value={utilization} /></div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <StaffTeamEditForm
+                      team={team}
+                      mentors={(mentors ?? []).map((mentor) => ({
+                        id: mentor.id,
+                        full_name: mentor.full_name,
+                      }))}
+                    />
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState title="Команда жоқ." description="«Команда қосу» батырмасы арқылы жаңа команда жасаңыз." />
+        )}
       </PageContainer>
     </AppShell>
   );
