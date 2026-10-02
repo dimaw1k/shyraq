@@ -10,14 +10,24 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
   if (!user) redirect("/login");
 
   const { lessonId } = await params;
-  const [{ data: profile }, { data: test }] = await Promise.all([
+  const [{ data: profile }, { data: lesson }, { data: test }, { data: membership }, { data: progress }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
+    supabase.from("lessons").select("id,published,starts_at,team_id").eq("id", lessonId).maybeSingle(),
     supabase.from("lesson_tests").select("id,title,instructions,max_attempts,active").eq("lesson_id", lessonId).eq("active", true).maybeSingle(),
+    supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
+    supabase.from("video_progress").select("test_unlocked").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle(),
   ]);
 
-  if (!test) notFound();
+  if (!lesson?.published || !test) notFound();
 
-  const { data: progress } = await supabase.from("video_progress").select("test_unlocked").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
+  if (lesson.starts_at && new Date(lesson.starts_at).getTime() > Date.now()) {
+    redirect("/lessons/" + lessonId);
+  }
+
+  if (lesson.team_id && lesson.team_id !== membership?.team_id) {
+    notFound();
+  }
+
   if (!progress?.test_unlocked) redirect("/lessons/" + lessonId);
 
   const admin = createAdminSupabaseClient();
