@@ -46,13 +46,13 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
     <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырма" description={task.marathon_day ? task.marathon_day + "-күн · жауапты аяқта" : "Жауапты аяқтап, қажет файлдарды тірке."} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
       <main className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-soft sm:p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C25100]">TASK</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C25100]">ТАПСЫРМА</p>
           <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">{task.title}</h2>
           <p className="mt-3 text-sm leading-6 text-gray-500">{task.description}</p>
           {task.instructions ? <div className="mt-4 rounded-xl bg-[#FAFAFA] p-3.5 text-sm leading-6 text-gray-700"><p className="mb-1 text-xs font-semibold text-gray-900">Нұсқаулық</p>{task.instructions}</div> : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>{late&&Number(task.late_points_percent)<100?<span className="rounded-lg bg-[#F6F2ED] px-2.5 py-1.5 text-xs font-semibold text-[#7C7168]">Late: {task.late_points_percent}%</span>:null}
-            <span className={"rounded-lg px-2.5 py-1.5 text-xs font-medium " + (late ? "bg-[#FFF0E8] text-[#C85E2F]" : "bg-[#FAFAFA] text-gray-500")}>{late ? "Deadline өтті · тапсыруға болады" : task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ"}</span>
+            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>{late&&Number(task.late_points_percent)<100?<span className="rounded-lg bg-[#F6F2ED] px-2.5 py-1.5 text-xs font-semibold text-[#7C7168]">Кешігу: {task.late_points_percent}%</span>:null}
+            <span className={"rounded-lg px-2.5 py-1.5 text-xs font-medium " + (late ? "bg-[#FFF0E8] text-[#C85E2F]" : "bg-[#FAFAFA] text-gray-500")}>{late ? "Соңғы мерзімі өтті · тапсыруға болады" : task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ"}</span>
             {submission?.submitted_late ? <span className="rounded-lg bg-[#FFF0E8] px-2.5 py-1.5 text-xs font-semibold text-[#C85E2F]">Кеш тапсырылды</span> : null}
           </div>
         </div>
