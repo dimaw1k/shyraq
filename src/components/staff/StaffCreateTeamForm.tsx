@@ -49,7 +49,7 @@ export function StaffCreateTeamForm() {
         min="1"
         value={capacity}
         onChange={(event) => setCapacity(event.target.value)}
-        aria-label="Команда capacity"
+        aria-label="Команда сыйымдылығы"
         className="rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
       />
       <PrimaryButton type="submit" disabled={loading}>
