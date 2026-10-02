@@ -11,28 +11,62 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   const body = await request.json().catch(() => null);
   const textAnswer = typeof body?.textAnswer === "string" ? body.textAnswer.trim() : null;
   const linkUrl = typeof body?.linkUrl === "string" ? body.linkUrl.trim() : null;
-  if (linkUrl) { try { const parsed = new URL(linkUrl); if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("protocol"); } catch { return NextResponse.json({ error: "Сілтеме жарамсыз." }, { status: 400 }); } }
-  const finalize = body?.finalize !== false;
 
-  const { data: task } = await supabase.from("tasks").select("id,team_id,active,starts_at,deadline,points,attachment_required,max_files").eq("id", taskId).maybeSingle();
+  if (linkUrl) {
+    try {
+      const url = new URL(linkUrl);
+      if (!["http:", "https:"].includes(url.protocol)) throw new Error("bad protocol");
+    } catch {
+      return NextResponse.json({ error: "Сілтеме дұрыс емес. http:// немесе https:// қолдан." }, { status: 400 });
+    }
+  }
+
+  const finalize = body?.finalize !== false;
+  const { data: task } = await supabase.from("tasks").select(
+    "id,team_id,active,starts_at,deadline,points,attachment_required,max_files",
+  ).eq("id", taskId).maybeSingle();
+
   if (!task?.active) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
   const now = new Date().getTime();
-  if (task.starts_at && new Date(task.starts_at).getTime() > now) return NextResponse.json({ error: "Task has not started yet" }, { status: 409 });
+  if (task.starts_at && new Date(task.starts_at).getTime() > now) {
+    return NextResponse.json({ error: "Task has not started yet" }, { status: 409 });
+  }
 
-  const { data: membership } = await supabase.from("team_members").select("team_id,status").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
-  if (task.team_id !== null && task.team_id !== membership?.team_id) return NextResponse.json({ error: "Task is not assigned to your team" }, { status: 403 });
+  const { data: membership } = await supabase.from("team_members")
+    .select("team_id,status")
+    .eq("student_id", user.id)
+    .eq("status", "ACTIVE")
+    .maybeSingle();
 
-  const { data: existing } = await supabase.from("task_submissions").select("id,status").eq("task_id", taskId).eq("student_id", user.id).maybeSingle();
-  if (existing?.status === "REVIEWED") return NextResponse.json({ error: "Тексерілген тапсырманы өзгертуге болмайды." }, { status: 409 });
-  if (existing?.status === "SUBMITTED" && finalize) return NextResponse.json({ error: "Тапсырма тексеруде. Қайта ашуды ментор жасайды." }, { status: 409 });
+  if (task.team_id !== null && task.team_id !== membership?.team_id) {
+    return NextResponse.json({ error: "Task is not assigned to your team" }, { status: 403 });
+  }
+
+  const { data: existing } = await supabase.from("task_submissions")
+    .select("id,status")
+    .eq("task_id", taskId)
+    .eq("student_id", user.id)
+    .maybeSingle();
+
+  if (existing?.status === "REVIEWED") {
+    return NextResponse.json({ error: "Тексерілген тапсырманы өзгертуге болмайды." }, { status: 409 });
+  }
+  if (existing?.status === "SUBMITTED" && finalize) {
+    return NextResponse.json({ error: "Тапсырма тексеруде. Қайта ашуды ментор жасайды." }, { status: 409 });
+  }
 
   let existingFileCount = 0;
   if (existing?.id) {
-    const { count } = await supabase.from("submission_files").select("id", { count: "exact", head: true }).eq("submission_id", existing.id);
+    const { count } = await supabase.from("submission_files")
+      .select("id", { count: "exact", head: true })
+      .eq("submission_id", existing.id);
     existingFileCount = count ?? 0;
   }
-  if (finalize && task.attachment_required && existingFileCount === 0) return NextResponse.json({ error: "Файл міндетті." }, { status: 409 });
+
+  if (finalize && task.attachment_required && existingFileCount === 0) {
+    return NextResponse.json({ error: "Файл міндетті." }, { status: 409 });
+  }
 
   const late = Boolean(task.deadline && new Date(task.deadline).getTime() < now);
   const admin = createAdminSupabaseClient();
@@ -44,7 +78,9 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
     link_url: linkUrl || null,
     submitted_at: finalize ? new Date().toISOString() : null,
     submitted_late: finalize ? late : false,
-  }, { onConflict: "task_id,student_id" }).select("id,task_id,student_id,status,text_answer,link_url,submitted_at,submitted_late,review_comment,resubmission_deadline").single();
+  }, { onConflict: "task_id,student_id" }).select(
+    "id,task_id,student_id,status,text_answer,link_url,submitted_at,submitted_late,review_comment,resubmission_deadline",
+  ).single();
 
   if (error) return NextResponse.json({ error: "Submission failed" }, { status: 400 });
   return NextResponse.json({ submission: data });
