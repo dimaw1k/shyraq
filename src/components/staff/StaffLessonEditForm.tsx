@@ -1,17 +1,119 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Pencil, X } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
+import { StaffDateTimeField, StaffModal, staffInputClass } from "@/components/staff/StaffUI";
 
-type Props={lesson:{materials:Array<{label:string;url:string;type?:string}>;id:string;title:string;description:string|null;kinescope_video_id:string;duration_seconds:number;required_watch_percent:number;sort_order:number;lesson_order:number;marathon_day:number|null;published:boolean;starts_at:string|null}};
+type Props = {
+  lesson: {
+    materials: Array<{ label: string; url: string; type?: string }>;
+    id: string;
+    title: string;
+    description: string | null;
+    kinescope_video_id: string;
+    duration_seconds: number;
+    required_watch_percent: number;
+    sort_order: number;
+    lesson_order: number;
+    marathon_day: number | null;
+    published: boolean;
+    starts_at: string | null;
+    deadline_at: string | null;
+  };
+};
 
-function toDatetimeLocal(value:string|null){if(!value)return "";const date=new Date(value);if(Number.isNaN(date.getTime()))return "";const p=(n:number)=>String(n).padStart(2,"0");return date.getFullYear()+"-"+p(date.getMonth()+1)+"-"+p(date.getDate())+"T"+p(date.getHours())+":"+p(date.getMinutes());}
+function toDatetimeLocal(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes());
+}
 
-export function StaffLessonEditForm({lesson}:Props){
- const [editing,setEditing]=useState(false);const [title,setTitle]=useState(lesson.title);const [description,setDescription]=useState(lesson.description??"");const [videoId,setVideoId]=useState(lesson.kinescope_video_id);const [duration,setDuration]=useState(String(lesson.duration_seconds));const [requiredWatch,setRequiredWatch]=useState(String(lesson.required_watch_percent));const [marathonDay,setMarathonDay]=useState(String(lesson.marathon_day??""));const [lessonOrder,setLessonOrder]=useState(String(lesson.lesson_order??0));const [startsAt,setStartsAt]=useState(toDatetimeLocal(lesson.starts_at));const [published,setPublished]=useState(lesson.published);const [materials,setMaterials]=useState(lesson.materials.map(item=>item.label+" | "+item.url).join("\n")); const [loading,setLoading]=useState(false);const [message,setMessage]=useState("");
- async function save(){setLoading(true);setMessage("");try{const response=await fetch("/api/chief-mentor/lessons/"+lesson.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,description,kinescopeVideoId:videoId,durationSeconds:Number(duration),requiredWatchPercent:Number(requiredWatch),marathonDay:marathonDay?Number(marathonDay):null,lessonOrder:Number(lessonOrder||0),startsAt:startsAt?new Date(startsAt).toISOString():null,published,materials:materials.split("\n").map(line=>{const [label,...rest]=line.split("|");return {label:label?.trim(),url:rest.join("|").trim(),type:"LINK"};}).filter(item=>item.label&&item.url)})});const data=await response.json().catch(()=>null);if(!response.ok){setMessage(data?.error??"Сабақты сақтау сәтсіз аяқталды.");return;}setEditing(false);setMessage("Сақталды.");}finally{setLoading(false);}}
- if(!editing)return <div className="flex flex-col items-end gap-1"><button type="button" onClick={()=>{setMessage("");setEditing(true);}} className="inline-flex min-h-8 items-center gap-1.5 rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-1.5 text-[9px] font-extrabold text-[#4B433C]"><Pencil size={12}/>Өңдеу</button>{message?<span className="text-[8px] font-semibold text-[#7F756D]">{message}</span>:null}</div>;
- const input="rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-2 text-[9px] font-semibold";
- return <div className="w-full rounded-[14px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 sm:w-[500px]"><div className="grid gap-2"><input value={title} onChange={e=>setTitle(e.target.value)} className={input}/><textarea value={description} onChange={e=>setDescription(e.target.value)} rows={2} className={input}/><textarea value={materials} onChange={e=>setMaterials(e.target.value)} rows={2} placeholder="Материал: Атауы | https://..." className={input}/><div className="grid grid-cols-3 gap-2"><input value={videoId} onChange={e=>setVideoId(e.target.value)} className={input} placeholder="Kinescope ID"/><input type="number" min="1" value={duration} onChange={e=>setDuration(e.target.value)} className={input} placeholder="Секунд"/><input type="number" min="0" max="100" value={requiredWatch} onChange={e=>setRequiredWatch(e.target.value)} className={input} placeholder="Watch %"/></div><div className="grid grid-cols-3 gap-2"><input type="number" min="1" max="21" value={marathonDay} onChange={e=>setMarathonDay(e.target.value)} className={input} placeholder="Күн"/><input type="number" min="0" value={lessonOrder} onChange={e=>setLessonOrder(e.target.value)} className={input} placeholder="Рет"/><input type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)} className={input}/></div><label className="flex items-center gap-2 text-[9px] font-bold text-[#5B534C]"><input type="checkbox" checked={published} onChange={e=>setPublished(e.target.checked)}/>PUBLISHED</label><div className="flex justify-end gap-2"><button type="button" onClick={()=>setEditing(false)} disabled={loading} className="inline-flex min-h-8 items-center gap-1.5 rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-1.5 text-[9px] font-extrabold text-[#6B625B]"><X size={12}/>Бас тарту</button><PrimaryButton type="button" onClick={()=>void save()} disabled={loading} className="!min-h-8 !rounded-[10px] !px-3 !py-1.5 !text-[9px]"><Check size={12}/>{loading?"...":"Сақтау"}</PrimaryButton></div>{message?<p className="text-right text-[8px] font-semibold text-[#7F756D]">{message}</p>:null}</div></div>;
+export function StaffLessonEditForm({ lesson }: Props) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(lesson.title);
+  const [description, setDescription] = useState(lesson.description ?? "");
+  const [video, setVideo] = useState("https://kinescope.io/" + lesson.kinescope_video_id);
+  const [duration, setDuration] = useState(String(lesson.duration_seconds));
+  const [requiredWatch, setRequiredWatch] = useState(String(lesson.required_watch_percent));
+  const [marathonDay, setMarathonDay] = useState(String(lesson.marathon_day ?? ""));
+  const [lessonOrder, setLessonOrder] = useState(String(lesson.lesson_order ?? 0));
+  const [startsAt, setStartsAt] = useState(toDatetimeLocal(lesson.starts_at));
+  const [deadlineAt, setDeadlineAt] = useState(toDatetimeLocal(lesson.deadline_at));
+  const [published, setPublished] = useState(lesson.published);
+  const [materials, setMaterials] = useState(lesson.materials.map((item) => item.label + " | " + item.url).join("\n"));
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function save() {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/chief-mentor/lessons/" + lesson.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          kinescopeVideo: video,
+          durationSeconds: Number(duration),
+          requiredWatchPercent: Number(requiredWatch),
+          marathonDay: marathonDay ? Number(marathonDay) : null,
+          lessonOrder: Number(lessonOrder || 0),
+          startsAt: startsAt ? new Date(startsAt).toISOString() : null,
+          deadlineAt: deadlineAt ? new Date(deadlineAt).toISOString() : null,
+          published,
+          materials: materials.split("\n").map((line) => {
+            const [label, ...rest] = line.split("|");
+            return { label: label?.trim(), url: rest.join("|").trim(), type: "LINK" };
+          }).filter((item) => item.label && item.url),
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setMessage(data?.error ?? "Сабақты сақтау сәтсіз аяқталды.");
+        return;
+      }
+
+      setOpen(false);
+      setMessage("Сақталды.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex min-h-9 items-center gap-1.5 rounded-[11px] border border-[#E8E1DA] bg-white px-3.5 py-2 text-[9px] font-extrabold text-[#4B433C] transition hover:border-[#FFB067]">
+        <Pencil size={12} />
+        Өңдеу
+      </button>
+
+      <StaffModal open={open} onClose={() => { if (!loading) setOpen(false); }} title="Сабақты өңдеу">
+        <div className="grid gap-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Сабақ атауы<input value={title} onChange={(event) => setTitle(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Kinescope сілтемесі<input value={video} onChange={(event) => setVideo(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C]">Ұзақтығы<input type="number" min="1" value={duration} onChange={(event) => setDuration(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C]">Көру талабы, %<input type="number" min="0" max="100" value={requiredWatch} onChange={(event) => setRequiredWatch(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C]">Марафон күні<input type="number" min="1" max="21" value={marathonDay} onChange={(event) => setMarathonDay(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C]">Реті<input type="number" min="0" value={lessonOrder} onChange={(event) => setLessonOrder(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Ашылу уақыты</p><div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div></div>
+            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Дедлайн</p><div className="mt-1.5"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Дедлайнды таңдау" /></div></div>
+          </div>
+          <label className="text-[10px] font-extrabold text-[#5B534C]">Сипаттама<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={2} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" /></label>
+          <label className="text-[10px] font-extrabold text-[#5B534C]">Материалдар<textarea value={materials} onChange={(event) => setMaterials(event.target.value)} rows={3} placeholder={"Атауы | https://..."} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" /></label>
+          <label className="flex items-center gap-2 text-[10px] font-extrabold text-[#5B534C]"><input type="checkbox" checked={published} onChange={(event) => setPublished(event.target.checked)} />Жарияланған</label>
+          {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
+          <div className="flex justify-end"><PrimaryButton type="button" onClick={() => void save()} disabled={loading}>{loading ? "Сақталуда..." : <><Check size={13} />Сақтау</>}</PrimaryButton></div>
+        </div>
+      </StaffModal>
+    </>
+  );
 }
