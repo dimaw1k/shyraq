@@ -48,13 +48,13 @@ export default async function DashboardPage() {
         <div className="space-y-6">
           <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#FF6F2C]">SHYRAQ MARATHON</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#ff8000]">SHYRAQ MARATHON</p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-[-.05em] text-[#172235] sm:text-4xl">Сәлем, {firstName}</h1>
-              <p className="mt-2 text-sm text-[#8B8179]">Бүгінгі қадамыңды баста. Әр күн — нәтиже.</p>
+              <p className="mt-2 text-sm text-[#8B8179]">Бүгінгі қадамыңды баста.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Flame size={12} className="mr-1 inline text-[#FF6F2C]" />{streak} күн streak</span>
-              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Trophy size={12} className="mr-1 inline text-[#FF6F2C]" />{score} ұпай</span>
+              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Flame size={12} className="mr-1 inline text-[#ff8000]" />{streak} күн streak</span>
+              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Trophy size={12} className="mr-1 inline text-[#ff8000]" />{score} ұпай</span>
             </div>
           </section>
 
@@ -63,15 +63,15 @@ export default async function DashboardPage() {
           <section className="grid gap-4 md:grid-cols-3">
             {MARATHON_WEEKS.map((week) => (
               <Link key={week.week} href={"/marathon/week/" + week.week} className="group">
-                <Card className="h-full overflow-hidden p-0 transition duration-200 group-hover:-translate-y-1 group-hover:border-[#F3C7B0] group-hover:shadow-[0_24px_70px_rgba(255,111,44,.10)]">
+                <Card className="h-full overflow-hidden p-0 transition duration-200 group-hover:-translate-y-1 group-hover:border-[#F3C7B0] group-hover:shadow-[0_24px_70px_rgba(255,128,0,.10)]">
                   <div className="relative min-h-[190px] p-5 sm:p-6">
                     <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[#FFF0E8] blur-2xl transition group-hover:scale-125" />
                     <div className="relative">
                       <span className="inline-flex rounded-full bg-[#FFF0E8] px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#C85E2F]">21 КҮН</span>
                       <p className="mt-10 text-[11px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">{week.title}</p>
                       <h2 className="mt-1 text-2xl font-extrabold tracking-[-.04em] text-[#172235]">{week.subtitle}</h2>
-                      <p className="mt-4 text-xs leading-5 text-[#8B8179]">Аптаны ашып, сол кезеңнің сабақтарын, тесттерін, тапсырмаларын және күндік есептерін орында.</p>
-                      <span className="mt-5 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-[#FF6F2C]">Аптаны ашу <ArrowRight size={13} /></span>
+                      <p className="mt-4 text-xs leading-5 text-[#8B8179]">Сабақ, тест, тапсырма және есеп.</p>
+                      <span className="mt-5 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-[#ff8000]">Аптаны ашу <ArrowRight size={13} /></span>
                     </div>
                   </div>
                 </Card>
