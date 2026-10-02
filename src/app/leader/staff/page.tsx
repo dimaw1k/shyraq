@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/app/AppNav";
 import { LeaderStaffManager } from "@/components/staff/LeaderStaffManager";
-import { Card, PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
+import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 export default async function LeaderStaffPage() {
@@ -17,15 +17,9 @@ export default async function LeaderStaffPage() {
       role="LEADER"
       userName={profile.full_name}
       title="Қызметкерлер"
-      
     >
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader
-            eyebrow="STAFF"
-            title="Қызметкерлер"
-            
-          />
           <Card className="overflow-visible">
             <div className="hidden grid-cols-[1.15fr_170px_1fr_185px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
               <span>Қызметкер</span><span>Рөл</span><span>Байланыс</span><span>Статус</span>
