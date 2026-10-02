@@ -21,7 +21,7 @@ export async function getStaffTaskSubmissions(
 ): Promise<StaffTaskSubmissionRow[]> {
   const { data: submissions, error } = await supabase
     .from("task_submissions")
-    .select("id,task_id,student_id,status,text_answer,submitted_at,reviewed_at,reviewed_by")
+    .select("id,task_id,student_id,status,text_answer,link_url,submitted_late,submitted_at,reviewed_at,reviewed_by")
     .neq("status", "DRAFT")
     .order("submitted_at", { ascending: false, nullsFirst: false })
     .limit(limit);
@@ -52,6 +52,8 @@ export async function getStaffTaskSubmissions(
     student_id: submission.student_id,
     status: submission.status,
     text_answer: submission.text_answer,
+    link_url: submission.link_url,
+    submitted_late: Boolean(submission.submitted_late),
     submitted_at: submission.submitted_at,
     reviewed_at: submission.reviewed_at,
     reviewed_by: submission.reviewed_by,
