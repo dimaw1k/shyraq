@@ -33,11 +33,11 @@ const studentLinks: NavItem[] = [
 ];
 
 const mentorLinks: NavItem[] = [
-  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
-  { label: "Менің командам", href: "/mentor#team", icon: Users },
-  { label: "Тапсырманы тексеру", href: "/mentor/submissions", icon: ClipboardCheck },
+  { label: "Басқару", href: "/mentor", icon: LayoutDashboard },
+  { label: "Команда", href: "/mentor#students", icon: UsersRound },
+  { label: "Тапсырмалар", href: "/mentor#tasks", icon: ClipboardCheck },
   { label: "Есептер", href: "/mentor#reports", icon: FileText },
-  { label: "Meet", href: "/mentor#meet", icon: Activity },
+  { label: "Кездесу", href: "/mentor#meet", icon: Activity },
   { label: "Рейтинг", href: "/rankings", icon: Trophy },
 ];
 
