@@ -65,7 +65,7 @@ export default function RegisterPage() {
     const next: ErrorState = {};
 
     if (!isValidKzPhone(form.phone)) next.phone = "Телефон нөмірін толық енгізіңіз.";
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = "Email мекенжайын дұрыс енгізіңіз.";
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = "Электрондық пошта мекенжайын дұрыс енгізіңіз.";
     if (form.firstName.trim().length < 2) next.firstName = "Атыңызды дұрыс енгізіңіз.";
     if (form.lastName.trim().length < 2) next.lastName = "Тегіңізді дұрыс енгізіңіз.";
 
@@ -222,7 +222,7 @@ export default function RegisterPage() {
                   </label>
 
                   <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Email
+                    Электрондық пошта
                     <input
                       required
                       type="email"
