@@ -2,6 +2,7 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Link from "next/link";
+import { uiLabel } from "@/lib/ui-labels";
 
 const baseCard =
   "rounded-[24px] border border-[var(--border)] bg-[var(--card)]";
@@ -234,9 +235,11 @@ export function StatusPill({
     red: "bg-[#FFF0EE] text-[#BF514A]",
   }[tone];
 
+  const display = typeof children === "string" ? uiLabel(children) : children;
+
   return (
     <span className={"inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-extrabold " + toneClass}>
-      {children}
+      {display}
     </span>
   );
 }
