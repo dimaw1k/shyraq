@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const marathonDay = body.marathonDay === null || body.marathonDay === undefined || body.marathonDay === "" ? null : Number(body.marathonDay);
   if (marathonDay !== null && (!Number.isInteger(marathonDay) || marathonDay < 1 || marathonDay > 21)) return NextResponse.json({ error:"Марафон күні 1–21 аралығында болуы керек." }, { status:400 });
 
-  const maxFiles = body.maxFiles === undefined || body.maxFiles === "" ? 5 : Math.max(1, Math.min(10, Number(body.maxFiles)));
+  const maxFiles = body.maxFiles === undefined || body.maxFiles === "" ? 5 : Math.max(1, Math.min(10, Number(body.maxFiles)));\n  const latePointsPercent = body.latePointsPercent === undefined || body.latePointsPercent === "" ? 100 : Math.max(0, Math.min(100, Number(body.latePointsPercent)));
   const { data, error } = await supabase.from("tasks").insert({
     title:body.title.trim(),
     description:body.description.trim(),
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     deadline:typeof body.deadline === "string" && body.deadline ? body.deadline : null,
     points:typeof body.points === "number" ? Math.max(0, body.points) : 0,
     attachment_required:Boolean(body.attachmentRequired),
-    max_files:maxFiles,
+    max_files:maxFiles,\n    late_points_percent:latePointsPercent,
     marathon_day:marathonDay,
     task_order:typeof body.taskOrder === "number" ? Math.floor(body.taskOrder) : 0,
     active:body.active !== false,
