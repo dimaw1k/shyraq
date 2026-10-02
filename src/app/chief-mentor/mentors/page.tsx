@@ -67,7 +67,7 @@ export default async function ChiefMentorMentorsPage() {
               <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FFF0E8] text-[#FF6F2C]"><BarChart3 size={17} /></span>
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">БАҚЫЛАУ</p>
-                <p className="mt-1 text-sm font-extrabold text-[#172235]">Mentor workload нақты деректерден есептеледі.</p>
+                <p className="mt-1 text-sm font-extrabold text-[#172235]">Ментор жүктемесі нақты деректерден есептеледі.</p>
               </div>
             </div>
           </Card>
