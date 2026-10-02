@@ -15,7 +15,7 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   if(submissionError)return NextResponse.json({error:"Submission жүктеу сәтсіз аяқталды."},{status:500});
   if(!submission)return NextResponse.json({error:"Submission табылмады."},{status:404});
 
-  const {data:task}=await admin.from("tasks").select("id,title,team_id,points").eq("id",submission.task_id).maybeSingle();
+  const {data:task}=await admin.from("tasks").select("id,title,team_id,points,late_points_percent").eq("id",submission.task_id).maybeSingle();
   if(!task)return NextResponse.json({error:"Тапсырма табылмады."},{status:404});
 
   if(profile.role==="MENTOR"){
@@ -47,11 +47,11 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   }).eq("id",id).select("id,task_id,student_id,status,submitted_at,reviewed_at,reviewed_by,review_comment,resubmission_deadline").single();
   if(updateError||!updated)return NextResponse.json({error:"Submission статусын өзгерту сәтсіз аяқталды."},{status:500});
 
-  let scoreAwarded=false;
+  let scoreAwarded=false;\n  const late = Boolean(submission.submitted_at && task.points !== undefined && submission.submitted_at && false);
   if(nextStatus==="REVIEWED"&&Number(task.points)>0){
     const {data:scoreEvent,error:scoreError}=await admin.from("score_events").insert({
       student_id:submission.student_id,team_id:task.team_id,source_code:"TASK_REVIEW",source_id:submission.id,points:Number(task.points),
-      metadata:{task_id:task.id,task_title:task.title,submission_id:submission.id,reviewed_by:profile.id}
+      metadata:{task_id:task.id,task_title:task.title,submission_id:submission.id,reviewed_by:profile.id,base_points:Number(task.points),late_points_percent:Number(task.late_points_percent ?? 100)}}
     }).select("id").maybeSingle();
     if(scoreError&&scoreError.code!=="23505"){
       await admin.from("task_submissions").update({status:submission.status,reviewed_at:null,reviewed_by:null,review_comment:null,resubmission_deadline:null}).eq("id",id);
