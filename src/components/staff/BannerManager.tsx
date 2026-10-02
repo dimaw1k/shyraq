@@ -1,23 +1,194 @@
 "use client";
 
 import { useState } from "react";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
+import { PrimaryButton } from "@/components/ui/ShyraqUI";
+import { StaffDateTimeField, StaffModal, staffInputClass } from "@/components/staff/StaffUI";
 
-type Banner={id:string;title:string;description:string|null;image_path:string;imageUrl:string;href:string|null;published:boolean;starts_at:string|null;ends_at:string|null;sort_order:number};
+type Banner = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_path: string;
+  imageUrl: string;
+  href: string | null;
+  published: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  sort_order: number;
+};
 
-function localDate(value:string|null){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return "";const p=(n:number)=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes());}
+function toDatetimeLocal(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes());
+}
 
-export function BannerManager({initialBanners}:{initialBanners:Banner[]}){
- const [banners,setBanners]=useState(initialBanners); const [title,setTitle]=useState("");const [description,setDescription]=useState("");const [href,setHref]=useState("");const [startsAt,setStartsAt]=useState("");const [endsAt,setEndsAt]=useState("");const [sortOrder,setSortOrder]=useState("0");const [file,setFile]=useState<File|null>(null);const [loading,setLoading]=useState(false);const [message,setMessage]=useState("");
- async function create(){if(!file||!title.trim()){setMessage("Атау мен суретті таңдаңыз.");return;}setLoading(true);setMessage("");try{const form=new FormData();form.append("file",file);form.append("title",title);form.append("description",description);form.append("href",href);form.append("startsAt",startsAt?new Date(startsAt).toISOString():"");form.append("endsAt",endsAt?new Date(endsAt).toISOString():"");form.append("sortOrder",sortOrder);form.append("published","true");const response=await fetch("/api/leader/banners",{method:"POST",body:form});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error??"Banner жасалмады.");window.location.reload();}catch(error){setMessage(error instanceof Error?error.message:"Қате.");}finally{setLoading(false);}}
- async function toggle(b:Banner){const response=await fetch("/api/leader/banners/"+b.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({published:!b.published})});const data=await response.json().catch(()=>({}));if(response.ok)setBanners(current=>current.map(item=>item.id===b.id?{...item,...data.banner}:item));}
- async function remove(id:string){const response=await fetch("/api/leader/banners/"+id,{method:"DELETE"});if(response.ok)setBanners(current=>current.filter(item=>item.id!==id));}
- const input="rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF6F2C]";
- return <section className="space-y-3 rounded-[20px] border border-[#E8E1DA] bg-white p-5">
-   <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF0E8] text-[#FF6F2C]"><ImagePlus size={16}/></span><div><p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF6F2C]">DASHBOARD BANNERS</p><h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Марафон баннерлері</h2></div></div>
-   <div className="grid gap-2.5 lg:grid-cols-[1fr_1fr_1fr_160px_160px_90px_auto]"><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Тақырып" className={input}/><input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Қысқаша мәтін" className={input}/><input value={href} onChange={e=>setHref(e.target.value)} placeholder="Сілтеме (optional)" className={input}/><input type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)} className={input}/><input type="datetime-local" value={endsAt} onChange={e=>setEndsAt(e.target.value)} className={input}/><input type="number" value={sortOrder} onChange={e=>setSortOrder(e.target.value)} className={input}/><label className="inline-flex cursor-pointer items-center justify-center rounded-[12px] border border-dashed border-[#DCCFC5] bg-[#FFFCF9] px-3 text-[10px] font-bold text-[#6C625B]"><input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>setFile(e.target.files?.[0]??null)}/>{file?.name??"Сурет таңдау"}</label></div>
-   <button disabled={loading} onClick={()=>void create()} className="w-full rounded-[12px] bg-[#FF6F2C] px-4 py-3 text-[10px] font-extrabold text-white disabled:opacity-50">{loading?"Жүктелуде...":"Banner қосу"}</button>
-   {message?<p className="text-[9px] font-semibold text-[#7F756D]">{message}</p>:null}
-   <div className="space-y-2">{banners.map(b=><div key={b.id} className="grid gap-3 rounded-[16px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 sm:grid-cols-[140px_1fr_auto_auto] sm:items-center"><img src={b.imageUrl} alt="" className="h-20 w-full rounded-[12px] object-cover sm:w-[140px]"/><div className="min-w-0"><p className="truncate text-[11px] font-extrabold text-[#172235]">{b.title}</p><p className="mt-1 text-[9px] text-[#8B8179]">{b.starts_at?"Ашылады "+new Date(b.starts_at).toLocaleString("kk-KZ"):""}</p></div><button type="button" onClick={()=>void toggle(b)} className="rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-2 text-[9px] font-extrabold">{b.published?"Жасыру":"Жариялау"}</button><button type="button" onClick={()=>void remove(b.id)} className="grid h-9 w-9 place-items-center rounded-[10px] border border-[#E8D3CB] text-[#B54D2B]"><Trash2 size={13}/></button></div>)}</div>
- </section>;
+export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) {
+  const [open, setOpen] = useState(false);
+  const [banners, setBanners] = useState(initialBanners);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [href, setHref] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+  const [sortOrder, setSortOrder] = useState("0");
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  function reset() {
+    setTitle("");
+    setDescription("");
+    setHref("");
+    setStartsAt("");
+    setEndsAt("");
+    setSortOrder("0");
+    setFile(null);
+    setMessage("");
+  }
+
+  async function create() {
+    if (!file || !title.trim()) {
+      setMessage("Атау мен суретті таңдаңыз.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("title", title);
+      form.append("description", description);
+      form.append("href", href);
+      form.append("startsAt", startsAt ? new Date(startsAt).toISOString() : "");
+      form.append("endsAt", endsAt ? new Date(endsAt).toISOString() : "");
+      form.append("sortOrder", sortOrder);
+      form.append("published", "true");
+
+      const response = await fetch("/api/leader/banners", { method: "POST", body: form });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setMessage(data.error ?? "Баннер қосылмады.");
+        return;
+      }
+
+      setOpen(false);
+      reset();
+      window.location.reload();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function toggle(banner: Banner) {
+    const response = await fetch("/api/leader/banners/" + banner.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ published: !banner.published }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setBanners((current) => current.map((item) => item.id === banner.id ? { ...item, ...data.banner } : item));
+    }
+  }
+
+  async function remove(id: string) {
+    const response = await fetch("/api/leader/banners/" + id, { method: "DELETE" });
+    if (response.ok) setBanners((current) => current.filter((item) => item.id !== id));
+  }
+
+  return (
+    <section className="rounded-[20px] border border-[#E8E1DA] bg-white p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]"><ImagePlus size={16} /></span>
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">БАННЕР</p>
+            <h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Экран баннерлері</h2>
+          </div>
+        </div>
+        <PrimaryButton type="button" onClick={() => setOpen(true)}>
+          <Plus size={14} />
+          Баннер қосу
+        </PrimaryButton>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {banners.map((banner) => (
+          <div key={banner.id} className="grid gap-3 rounded-[15px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 sm:grid-cols-[120px_1fr_auto_auto] sm:items-center">
+            <img src={banner.imageUrl} alt="" className="h-16 w-full rounded-[10px] object-cover sm:w-[120px]" />
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-extrabold text-[#172235]">{banner.title}</p>
+              <p className="mt-1 text-[9px] font-semibold text-[#8B8179]">
+                {banner.starts_at ? new Date(banner.starts_at).toLocaleString("kk-KZ") : "Уақыт белгіленбеген"}
+              </p>
+            </div>
+            <button type="button" onClick={() => void toggle(banner)} className="h-9 rounded-[10px] border border-[#E8E1DA] bg-white px-3 text-[9px] font-extrabold text-[#4B433C]">
+              {banner.published ? "Жасыру" : "Жариялау"}
+            </button>
+            <button type="button" onClick={() => void remove(banner.id)} className="grid h-9 w-9 place-items-center rounded-[10px] border border-[#E8D3CB] text-[#B54D2B]" aria-label="Баннерді өшіру">
+              <Trash2 size={13} />
+            </button>
+          </div>
+        ))}
+        {!banners.length ? <div className="rounded-[14px] border border-dashed border-[#DED6CE] px-5 py-7 text-center text-[10px] font-semibold text-[#9A9189]">Баннер жоқ.</div> : null}
+      </div>
+
+      <StaffModal open={open} onClose={() => { if (!loading) setOpen(false); }} title="Жаңа баннер" description="Сурет пен көрсету уақытын белгілеңіз.">
+        <div className="grid gap-4">
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Сурет
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="mt-1.5 block w-full rounded-[14px] border border-dashed border-[#DCCFC5] bg-white px-3 py-3 text-[10px] font-semibold" />
+            {file ? <span className="mt-1 block truncate text-[9px] text-[#8B8179]">{file.name}</span> : null}
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Атауы
+            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Баннер атауы" className={staffInputClass + " mt-1.5"} />
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Қысқа мәтін
+            <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Қысқа мәтін" className={staffInputClass + " mt-1.5"} />
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Сілтеме
+            <input value={href} onChange={(event) => setHref(event.target.value)} placeholder="https://..." className={staffInputClass + " mt-1.5"} />
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="text-[10px] font-extrabold text-[#5B534C]">Көрсету басталуы</p>
+              <div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div>
+            </div>
+            <div>
+              <p className="text-[10px] font-extrabold text-[#5B534C]">Көрсету аяқталуы</p>
+              <div className="mt-1.5"><StaffDateTimeField value={endsAt} onChange={setEndsAt} label="Уақытты таңдау" /></div>
+            </div>
+          </div>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Реті
+            <input type="number" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} className={staffInputClass + " mt-1.5"} />
+          </label>
+
+          {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
+
+          <div className="flex justify-end">
+            <PrimaryButton type="button" onClick={() => void create()} disabled={loading}>
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+              Баннерді сақтау
+            </PrimaryButton>
+          </div>
+        </div>
+      </StaffModal>
+    </section>
+  );
 }
