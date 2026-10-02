@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
+import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
 
 type TeamOption = { id: string; name: string };
 
@@ -15,11 +15,9 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
   const [description, setDescription] = useState("");
   const [teamId, setTeamId] = useState("");
   const [marathonDay, setMarathonDay] = useState("");
-  const [taskOrder, setTaskOrder] = useState("0");
   const [startsAt, setStartsAt] = useState("");
   const [deadline, setDeadline] = useState("");
   const [points, setPoints] = useState("0");
-  const [latePointsPercent, setLatePointsPercent] = useState("100");
   const [maxFiles, setMaxFiles] = useState("5");
   const [attachmentRequired, setAttachmentRequired] = useState(false);
 
@@ -29,6 +27,12 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
     setMessage("");
 
     try {
+      const startsAtIso = parseKzDateTime(startsAt);
+      const deadlineIso = parseKzDateTime(deadline);
+      if (startsAtIso === undefined || deadlineIso === undefined) {
+        setMessage("Күн мен уақытты 12.09.2026 15:00:00 форматында енгізіңіз.");
+        return;
+      }
       const response = await fetch("/api/chief-mentor/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,11 +41,11 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
           description,
           teamId: teamId || null,
           marathonDay: marathonDay ? Number(marathonDay) : null,
-          taskOrder: Number(taskOrder || 0),
-          startsAt: startsAt ? new Date(startsAt).toISOString() : null,
-          deadline: deadline ? new Date(deadline).toISOString() : null,
+          taskOrder: 0,
+          startsAt: startsAtIso,
+          deadline: deadlineIso,
           points: Number(points),
-          latePointsPercent: Number(latePointsPercent),
+          latePointsPercent: 100,
           maxFiles: Number(maxFiles),
           attachmentRequired,
           active: true,
@@ -91,10 +95,6 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
               <input type="number" min="1" max="21" value={marathonDay} onChange={(event) => setMarathonDay(event.target.value)} className={staffInputClass + " mt-1.5"} />
             </label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Реті
-              <input type="number" min="0" value={taskOrder} onChange={(event) => setTaskOrder(event.target.value)} className={staffInputClass + " mt-1.5"} />
-            </label>
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
               Ұпай
               <input type="number" min="0" value={points} onChange={(event) => setPoints(event.target.value)} className={staffInputClass + " mt-1.5"} />
             </label>
@@ -105,8 +105,7 @@ export function StaffCreateTaskForm({ teams = [] }: { teams?: TeamOption[] }) {
             <div><p className="text-[10px] font-extrabold text-[#5B534C]">Соңғы мерзім</p><div className="mt-1.5"><StaffDateTimeField value={deadline} onChange={setDeadline} label="Соңғы мерзімді таңдау" /></div></div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="text-[10px] font-extrabold text-[#5B534C]">Кешіккенде ұпай, %<input type="number" min="0" max="100" value={latePointsPercent} onChange={(event) => setLatePointsPercent(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[10px] font-extrabold text-[#5B534C]">Файл саны<input type="number" min="1" max="10" value={maxFiles} onChange={(event) => setMaxFiles(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
             <label className="flex items-end pb-2 text-[10px] font-extrabold text-[#5B534C]"><span className="inline-flex items-center gap-2"><input type="checkbox" checked={attachmentRequired} onChange={(event) => setAttachmentRequired(event.target.checked)} />Файл міндетті</span></label>
           </div>
