@@ -7,7 +7,7 @@ type Question={id:string;marathon_day:number|null;question:string;field_key:stri
 export function ReportQuestionManager(){
  const [items,setItems]=useState<Question[]>([]);const [question,setQuestion]=useState("");const [fieldKey,setFieldKey]=useState("");const [day,setDay]=useState("");const [fieldType,setFieldType]=useState("LONG_TEXT");const [required,setRequired]=useState(true);const [loading,setLoading]=useState(false);const [message,setMessage]=useState("");
  async function load(){const r=await fetch("/api/chief-mentor/report-questions",{cache:"no-store"});const d=await r.json().catch(()=>({}));if(r.ok)setItems(d.questions??[]);}
- useEffect(()=>{void load();},[]);
+ useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, []);
  async function create(){setLoading(true);setMessage("");try{const r=await fetch("/api/chief-mentor/report-questions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,fieldKey,marathonDay:day?Number(day):null,fieldType,required,sortOrder:items.length})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error??"Сұрақ сақталмады.");setQuestion("");setFieldKey("");setDay("");await load();}catch(e){setMessage(e instanceof Error?e.message:"Қате.");}finally{setLoading(false);}}
  async function toggle(item:Question){const r=await fetch("/api/chief-mentor/report-questions",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id,active:!item.active})});if(r.ok)await load();}
  async function remove(id:string){const r=await fetch("/api/chief-mentor/report-questions?id="+id,{method:"DELETE"});if(r.ok)await load();}
