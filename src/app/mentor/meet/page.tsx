@@ -15,7 +15,7 @@ export default async function MentorMeetPage() {
             <Card className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">GOOGLE MEET</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">БЕЙНЕ КЕЗДЕСУ</p>
                   <h2 className="mt-1 text-[20px] font-extrabold text-[#172235]">{workspace.meetSpace?.display_name ?? "Кездесу кеңістігі"}</h2>
                   <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">Командаға арналған негізгі кездесу.</p>
                 </div>
