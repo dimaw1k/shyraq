@@ -58,6 +58,7 @@ const leaderLinks: NavItem[] = [
   { label: "Қызметкерлер", href: "/leader/staff", icon: Users },
   { label: "Командалар", href: "/leader/teams", icon: Users },
   { label: "Оқушылар", href: "/leader/students", icon: ClipboardCheck },
+  { label: "Тапсырмалар", href: "/leader/tasks", icon: ClipboardList },
   { label: "Контент", href: "/leader/content", icon: BookOpen },
   { label: "Тапсырыстар", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
