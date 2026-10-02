@@ -79,10 +79,14 @@ export async function GET(request: Request) {
   });
 
   if (saveError) {
-    return NextResponse.redirect(new URL("/dashboard?google=save_failed", request.url));
+    const response = NextResponse.redirect(new URL("/dashboard?google=save_failed", request.url));
+    response.cookies.delete("shyraq_google_oauth_state");
+    return response;
   }
 
-  return NextResponse.redirect(new URL("/dashboard?google=connected", request.url));
+  const response = NextResponse.redirect(new URL("/dashboard?google=connected", request.url));
+  response.cookies.delete("shyraq_google_oauth_state");
+  return response;
 }
 
 function cryptoSafeEqual(a: string, b: string) {
