@@ -12,7 +12,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const { lessonId } = await params;
   const [{ data: profile }, { data: lesson }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,marathon_day").eq("id", lessonId).eq("published", true).maybeSingle(),
+    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,marathon_day,materials").eq("id", lessonId).eq("published", true).maybeSingle(),
   ]);
 
   if (!lesson) notFound();
