@@ -6,5 +6,5 @@ import { SupportTicketManager } from "@/components/staff/SupportTicketManager";
 
 export default async function LeaderSupportPage(){
   const {profile}=await getAuthenticatedStaff("LEADER");
-  return <AppShell role="LEADER" userName={profile.full_name} title="Қолдау" description="Оқушылардың өтініштерін өңдеу."><PageContainer className="max-w-5xl"><div className="space-y-5"><SectionHeader eyebrow="ҚОЛДАУ" title="Қолдау өтініштері" description="Өтініштің күйін және ішкі ескертпені басқару."/><Card className="p-5 sm:p-6"><SupportTicketManager/></Card></div></PageContainer></AppShell>;
+  return <AppShell role="LEADER" userName={profile.full_name} title="Қолдау"><PageContainer className="max-w-5xl"><div className="space-y-5"><SectionHeader eyebrow="ҚОЛДАУ" title="Қолдау өтініштері" /><Card className="p-5 sm:p-6"><SupportTicketManager/></Card></div></PageContainer></AppShell>;
 }
