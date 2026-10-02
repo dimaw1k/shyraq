@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/config";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 
 // Production health contract: deployment must prove real Supabase connectivity.
 
@@ -10,18 +10,23 @@ export async function GET() {
   );
   const adminEnvConfigured = Boolean(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
   let supabaseReachable = false;
+  let supabaseUrl = "";
 
-  try {
-    const response = await fetch(
-      SUPABASE_URL + "/rest/v1/marathon_settings?select=id&limit=1",
-      {
-        headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
-        cache: "no-store",
-      },
-    );
-    supabaseReachable = response.ok;
-  } catch {
-    supabaseReachable = false;
+  if (publicEnvConfigured) {
+    try {
+      const { url, publishableKey } = getSupabaseConfig();
+      supabaseUrl = url;
+      const response = await fetch(
+        url + "/rest/v1/marathon_settings?select=id&limit=1",
+        {
+          headers: { apikey: publishableKey },
+          cache: "no-store",
+        },
+      );
+      supabaseReachable = response.ok;
+    } catch {
+      supabaseReachable = false;
+    }
   }
 
   const ok = supabaseReachable && publicEnvConfigured && adminEnvConfigured;
@@ -36,7 +41,7 @@ export async function GET() {
         adminEnvConfigured,
       },
       supabase: {
-        url: SUPABASE_URL,
+        url: supabaseUrl,
         reachable: supabaseReachable,
       },
       timestamp: new Date().toISOString(),
