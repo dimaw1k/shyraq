@@ -11,7 +11,7 @@ export default async function ChiefMentorAnalyticsPage(){
   supabase.from("task_submissions").select("status"),
   supabase.from("video_progress").select("watched_percent"),
  ]);
- const avg=(rows:Array<Record<string,unknown>>,key:string)=>rows.length?rows.reduce((a,r)=>a+Number(r[key]??0),0)/rows.length:0;
+ const avg=(rows:any[],key:string)=>rows.length?rows.reduce((a,r)=>a+Number(r[key]??0),0)/rows.length:0;
  const attendanceValue=avg(attendance??[],"attendance_percent");
  const reportValue=(reports??[]).length?((reports??[]).filter(r=>r.status==="SUBMITTED"||r.status==="REVIEWED").length/(reports??[]).length)*100:0;
  const submissionValue=(subs??[]).length?((subs??[]).filter(r=>r.status==="SUBMITTED"||r.status==="REVIEWED").length/(subs??[]).length)*100:0;
