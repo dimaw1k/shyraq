@@ -10,13 +10,15 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   if (!user) redirect("/login");
 
   const { lessonId } = await params;
-  const [{ data: profile }, { data: lesson }] = await Promise.all([
+  const [{ data: profile }, { data: membership }, { data: lesson }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,marathon_day,materials").eq("id", lessonId).eq("published", true).maybeSingle(),
+    supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
+    supabase.from("lessons").select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,marathon_day,team_id,materials").eq("id", lessonId).eq("published", true).maybeSingle(),
   ]);
 
   if (!lesson) notFound();
   const role = profile?.role ?? "STUDENT";
+  if (role === "STUDENT" && lesson.team_id && lesson.team_id !== membership?.team_id) notFound();
   const locked = Boolean(lesson.starts_at && new Date(lesson.starts_at).getTime() > new Date().getTime());
 
   if (locked) {
