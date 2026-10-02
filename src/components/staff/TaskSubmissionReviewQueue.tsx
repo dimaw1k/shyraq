@@ -86,7 +86,7 @@ export function TaskSubmissionReviewQueue({ submissions }: { submissions: StaffT
 
         {!submissions.length ? (
           <div className="p-8">
-            <EmptyState title="Тексерілетін submission жоқ." description="Оқушы тапсырма жібергенде осы жерде пайда болады." />
+            <EmptyState title="Тексерілетін тапсырма жұмысы жоқ." description="Оқушы тапсырма жібергенде осы жерде пайда болады." />
           </div>
         ) : null}
       </div>
