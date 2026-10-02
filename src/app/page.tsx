@@ -65,7 +65,7 @@ const days = [
 const sampleQuotes = [
   "Күнделікті жоспар",
   "Сабақ пен тапсырма",
-  "Прогресс пен рейтинг",
+  "Ілгерілеу мен рейтинг",
 ];
 
 function SocialIcon({ type }: { type: "instagram" | "tiktok" | "telegram" }) {
@@ -334,7 +334,7 @@ export default function HomePage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-[#756b63]">
-                {["Күнделікті тапсырмалар", "Сабақтар", "Прогресс", "Рейтинг"].map((item) => (
+                {["Күнделікті тапсырмалар", "Сабақтар", "Ілгерілеу", "Рейтинг"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-1.5">
                     <Check size={12} className="text-[#FF8000]" />
                     {item}
