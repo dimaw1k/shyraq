@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getMentorPageData } from "@/lib/mentor/auth";
+import { uiLabel } from "@/lib/ui-labels";
 
 export default async function MentorTeamPage() {
   const { profile, workspace } = await getMentorPageData();
@@ -33,7 +34,7 @@ export default async function MentorTeamPage() {
                     <span className="grid h-9 w-9 place-items-center rounded-full bg-[#FFF1E2] text-[#FF8000]"><GraduationCap size={14} /></span>
                     <div className="min-w-0">
                       <p className="truncate text-[11px] font-extrabold text-[#354153]">{student.full_name}</p>
-                      <p className="mt-1 truncate text-[9px] text-[#9A9189]">{student.status}</p>
+                      <p className="mt-1 truncate text-[9px] text-[#9A9189]">{uiLabel(student.status)}</p>
                     </div>
                   </div>
                   <div className="text-[9px] font-semibold text-[#8B8179]">
