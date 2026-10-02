@@ -4,9 +4,9 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, MetricCard, PageContainer, ProgressBar, SectionHeader } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
-export default async function ChiefMentorAnalyticsPage({searchParams}:{searchParams:Promise<{range?:string}>}){
+export default async function ChiefMentorAnalyticsPage(){
  const {supabase,profile}=await getAuthenticatedStaff("CHIEF_MENTOR");
- const params=await searchParams;const days=7;const start=new Date(Date.now()-days*86400000).toISOString();
+ const days=7;const start=new Date(Date.now()-days*86400000).toISOString();
  const [{data:attendance},{data:reports},{data:subs},{data:video}]=await Promise.all([
   supabase.from("attendance_records").select("attendance_percent").gte("imported_at",start),
   supabase.from("daily_reports").select("status").gte("report_date",start.slice(0,10)),
