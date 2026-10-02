@@ -34,7 +34,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
             <Card className="p-5 sm:p-6"><DailyReportForm marathonDay={marathonDay ?? undefined} /></Card>
             <Card className="p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">HISTORY</p><h2 className="mt-1 text-[18px] font-extrabold text-[#172235]">Есептер тарихы</h2></div>
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ТАРИХ</p><h2 className="mt-1 text-[18px] font-extrabold text-[#172235]">Есептер тарихы</h2></div>
                 <span className="text-[10px] font-semibold text-[#9A9189]">{filtered.length} жазба</span>
               </div>
               <div className="mt-4 space-y-2.5">
