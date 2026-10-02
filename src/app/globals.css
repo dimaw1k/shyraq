@@ -15,7 +15,9 @@
   --danger: #c94d45;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html {
   min-height: 100%;
@@ -24,32 +26,81 @@ html {
 }
 
 html.lenis,
-html.lenis body { height: auto; }
-html.lenis.lenis-smooth { scroll-behavior: auto !important; }
-html.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-html.lenis.lenis-stopped { overflow: hidden; }
+html.lenis body {
+  height: auto;
+}
+
+html.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+html.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+html.lenis.lenis-stopped {
+  overflow: hidden;
+}
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 18% -10%, rgba(255, 128, 0, 0.045), transparent 28rem),
+    var(--background);
   color: var(--foreground);
-  font-family: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-montserrat),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-h1,h2,h3,h4,h5,h6 {
-  font-family: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    var(--font-montserrat),
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
   text-wrap: balance;
 }
 
-a { color: inherit; text-decoration: none; }
-button,input,select,textarea { font: inherit; }
-button { cursor: pointer; }
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  color: var(--foreground);
+}
 
 input::placeholder,
-textarea::placeholder { color: #a79f97; }
+textarea::placeholder {
+  color: #a79f97;
+}
 
 ::selection {
   background: rgba(255, 128, 0, 0.18);
@@ -62,8 +113,13 @@ textarea::placeholder { color: #a79f97; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *,*::before,*::after {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
@@ -88,8 +144,12 @@ textarea::placeholder { color: #a79f97; }
   filter: blur(0);
 }
 
-section { scroll-margin-top: 96px; }
+section {
+  scroll-margin-top: 96px;
+}
 
 @media (max-width: 767px) {
-  .shrq-reveal { transform: translate3d(0, 14px, 0) scale(0.995); }
+  .shrq-reveal {
+    transform: translate3d(0, 14px, 0) scale(0.995);
+  }
 }
