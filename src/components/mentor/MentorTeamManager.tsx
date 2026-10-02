@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -409,7 +409,7 @@ function ChatPanel({ studentId }: { studentId: string }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -422,11 +422,14 @@ function ChatPanel({ studentId }: { studentId: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [studentId]);
 
   useEffect(() => {
-    void load();
-  }, [studentId]);
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function send() {
     const text = body.trim();
