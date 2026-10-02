@@ -1,6 +1,6 @@
 import { GraduationCap } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 export default async function LeaderStudentsPage() {
@@ -16,7 +16,6 @@ export default async function LeaderStudentsPage() {
     <AppShell role="LEADER" userName={profile.full_name} title="Оқушылар">
       <PageContainer>
         <div className="space-y-4">
-          <SectionHeader eyebrow="ОҚУШЫЛАР" title="Оқушылар" />
           <Card className="overflow-hidden">
             <div className="hidden grid-cols-[1.2fr_1.25fr_140px_130px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
               <span>Оқушы</span><span>Байланыс</span><span>Білім</span><span>Статус</span>
