@@ -73,7 +73,7 @@ export default async function LeaderTeamsPage() {
                       {team.mentor_id ? mentorMap.get(team.mentor_id) ?? "Ментор табылмады" : "Ментор жоқ"}
                     </p>
 
-                    <ProgressBar value={Math.min(utilization, 100)} label="Capacity" />
+                    <ProgressBar value={Math.min(utilization, 100)} label="Сыйымдылық" />
 
                     <StatusPill tone={team.status === "ACTIVE" ? "green" : "red"}>{team.status}</StatusPill>
 
