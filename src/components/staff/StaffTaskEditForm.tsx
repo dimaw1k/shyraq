@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
 import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
+import { toKzDatetimeLocal } from "@/lib/datetime";
 
 export type StaffTaskEditProps = {
   task: {
@@ -25,22 +26,14 @@ export type StaffTaskEditProps = {
   teams: Array<{ id: string; name: string }>;
 };
 
-function toDatetimeLocal(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const p = (n: number) => String(n).padStart(2, "0");
-  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes()) + ":" + p(date.getSeconds());
-}
-
 export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [teamId, setTeamId] = useState(task.team_id ?? "");
   const [marathonDay, setMarathonDay] = useState(String(task.marathon_day ?? ""));
-  const [startsAt, setStartsAt] = useState(toDatetimeLocal(task.starts_at));
-  const [deadline, setDeadline] = useState(toDatetimeLocal(task.deadline));
+  const [startsAt, setStartsAt] = useState(toKzDatetimeLocal(task.starts_at ?? ""));
+  const [deadline, setDeadline] = useState(toKzDatetimeLocal(task.deadline ?? ""));
   const [points, setPoints] = useState(String(task.points ?? 0));
   const [maxFiles, setMaxFiles] = useState(String(task.max_files ?? 5));
   const [attachmentRequired, setAttachmentRequired] = useState(task.attachment_required);
