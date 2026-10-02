@@ -24,7 +24,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   const submissionMap = new Map((submissions ?? []).map((item) => [item.task_id, item]));
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырмалар" description="Ашылған тапсырмаларды орында; deadline өткен соң да тапсыруға болады.">
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырмалар" description="Ашылған тапсырмаларды орында; соңғы мерзімі өтсе де тапсыруға болады.">
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader eyebrow="ЖҰМЫС" title="Тапсырмалар" description={selectedDay ? selectedDay + "-күн" : "Апта, күн және статус бойынша тапсырмаларды шол."} />
@@ -57,7 +57,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
                               </div>
                               <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-[#766E66]">{locked ? "Тапсырма ашылу уақытына дейін мазмұны жабық." : task.description}</p>
                               <p className="mt-3 text-[10px] font-semibold text-[#9A9189]">
-                                {locked ? "Ашылады: " + new Date(task.starts_at!).toLocaleString("kk-KZ") : (task.deadline ? "Deadline: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Deadline жоқ") + " · " + task.points + " ұпай"}
+                                {locked ? "Ашылады: " + new Date(task.starts_at!).toLocaleString("kk-KZ") : (task.deadline ? "Соңғы мерзім: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ") + " · " + task.points + " ұпай"}
                                 {submission?.submitted_late ? " · КЕШ ТАПСЫРЫЛДЫ" : ""}
                               </p>
                             </div>
