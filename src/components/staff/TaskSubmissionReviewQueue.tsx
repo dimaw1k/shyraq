@@ -16,7 +16,9 @@ function statusTone(status: string) {
   return "orange" as const;
 }
 
-export function TaskSubmissionReviewQueue({ submissions }: { submissions: StaffTaskSubmissionRow[] }) {
+type ReviewSubmissionRow = StaffTaskSubmissionRow & { link_url?: string | null; submitted_late?: boolean };
+
+export function TaskSubmissionReviewQueue({ submissions }: { submissions: ReviewSubmissionRow[] }) {
   return (
     <Card className="overflow-hidden">
       <div className="hidden grid-cols-[1.05fr_1fr_110px_110px_250px] gap-3 border-b border-[#EFE8E1] bg-[#FCFAF8] px-6 py-3 text-[8px] font-extrabold uppercase tracking-[0.12em] text-[#9A9189] lg:grid">
