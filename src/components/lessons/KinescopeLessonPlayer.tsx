@@ -62,7 +62,7 @@ export function KinescopeLessonPlayer({
     </div>
     <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft">
       <div className="flex items-center justify-between">
-        <div><p className="text-xs font-semibold text-gray-900">Видео прогресі</p><p className="mt-0.5 text-[10px] text-gray-400">Бірегей көрілген уақыт есептеледі.</p></div>
+        <div><p className="text-xs font-semibold text-gray-900">Бейне ілгерілеуі</p><p className="mt-0.5 text-[10px] text-gray-400">Бірегей көрілген уақыт есептеледі.</p></div>
         <strong className="text-sm text-[#C25100]">{percent.toFixed(0)}%</strong>
       </div>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
