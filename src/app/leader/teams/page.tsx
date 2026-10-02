@@ -32,14 +32,14 @@ export default async function LeaderTeamsPage() {
       role="LEADER"
       userName={profile.full_name}
       title="Командалар"
-      description="Барлық команда, mentor және capacity көрінісі."
+      
     >
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
             eyebrow="TEAMS"
             title="Командалар"
-            description="Команда жүктемесін бақылау және команда параметрлерін басқару."
+            
           />
 
           <StaffCreateTeamForm />
