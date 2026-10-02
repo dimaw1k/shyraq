@@ -90,6 +90,7 @@ const labels: Record<string, string> = {
   MOVE_STUDENT: "Оқушы ауыстырылды",
   ASSIGN_MENTOR: "Ментор тағайындалды",
   SYNC_MEET: "Кездесу синхрондалды",
+  TASK_REQUEST: "ТАПСЫРМА СҰРАНЫСЫ",
 };
 
 export function uiLabel(value: unknown): string {
