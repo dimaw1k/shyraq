@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Users } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
+import { StaffModal, staffInputClass } from "@/components/staff/StaffUI";
 
 export function StaffCreateTeamForm() {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("70");
+
+  function reset() {
+    setName("");
+    setCapacity("70");
+    setMessage("");
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,35 +36,64 @@ export function StaffCreateTeamForm() {
         return;
       }
 
-      setName("");
-      setCapacity("70");
-      setMessage("Команда сәтті қосылды.");
+      setOpen(false);
+      reset();
+      window.location.reload();
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-2.5 rounded-[18px] border border-[#E8E1DA] bg-[#FFFCF9] p-4 sm:grid-cols-[1fr_140px_auto] sm:items-center">
-      <input
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder="Команда атауы"
-        className="rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
-      />
-      <input
-        type="number"
-        min="1"
-        value={capacity}
-        onChange={(event) => setCapacity(event.target.value)}
-        aria-label="Команда сыйымдылығы"
-        className="rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
-      />
-      <PrimaryButton type="submit" disabled={loading}>
-        {loading ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+    <>
+      <PrimaryButton type="button" onClick={() => { reset(); setOpen(true); }}>
+        <Plus size={14} />
         Команда қосу
       </PrimaryButton>
-      {message ? <p className="text-[9px] font-semibold text-[#7F756D] sm:col-span-3">{message}</p> : null}
-    </form>
+
+      <StaffModal
+        open={open}
+        onClose={() => { if (!loading) setOpen(false); }}
+        title="Жаңа команда"
+        description="Команда атауы мен оқушы сыйымдылығын енгізіңіз."
+      >
+        <form onSubmit={submit} className="grid gap-4">
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Команда атауы
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              autoFocus
+              placeholder="Мысалы: Самғау"
+              className={staffInputClass + " mt-1.5"}
+            />
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Оқушы сыйымдылығы
+            <input
+              type="number"
+              min="1"
+              value={capacity}
+              onChange={(event) => setCapacity(event.target.value)}
+              className={staffInputClass + " mt-1.5"}
+            />
+          </label>
+
+          {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
+
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setOpen(false)} disabled={loading} className="h-11 rounded-[13px] border border-[#E8E1DA] bg-white px-4 text-[10px] font-extrabold text-[#6B625B]">
+              Бас тарту
+            </button>
+            <PrimaryButton type="submit" disabled={loading}>
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+              Команда қосу
+            </PrimaryButton>
+          </div>
+        </form>
+      </StaffModal>
+    </>
   );
 }
