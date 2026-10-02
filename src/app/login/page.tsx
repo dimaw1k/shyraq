@@ -111,7 +111,7 @@ export default function LoginPage() {
     <main className={montserrat.className + " min-h-screen overflow-hidden bg-[#fbfaf7] text-[#172235]"}>
       <div className="absolute inset-x-0 top-0 h-[430px] bg-[radial-gradient(circle_at_14%_12%,rgba(255,255,255,.88),transparent_30%),linear-gradient(135deg,#fff0e8_0%,#ffd7ca_48%,#ffb18d_100%)]" />
 
-      <div className="relative mx-auto max-w-6xl px-5 py-5 sm:px-7 lg:px-8">
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
         <div className="flex items-center justify-between">
           <Brand />
           <Link
@@ -122,7 +122,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="mx-auto mt-6 grid max-w-5xl items-center gap-6 lg:grid-cols-[1.18fr_.82fr] lg:gap-7">
+        <div className="mx-auto flex w-full flex-1 items-center justify-center py-8"><div className="grid w-full max-w-4xl items-center gap-5 lg:grid-cols-[1.12fr_.78fr] lg:gap-6">
           <section className="order-1 relative lg:order-1">
             <div className="absolute -inset-4 rounded-[34px] bg-[#ff8000]/10 blur-2xl" />
             <div className="relative rounded-[30px] border border-[#ebe4dc] bg-white/95 p-5 shadow-[0_24px_70px_rgba(39,25,17,.10)] backdrop-blur-xl sm:p-6 lg:p-7">
@@ -230,7 +230,7 @@ export default function LoginPage() {
               </div>
             </div>
           </section>
-        </div>
+        </div></div>
       </div>
     </main>
   );
