@@ -3,6 +3,9 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, X } from "lucide-react";
+import { formatKzDateTime, parseKzDateTime, toKzDatetimeLocal } from "@/lib/datetime";
+
+export { formatKzDateTime, parseKzDateTime };
 
 export type MenuOption = { value: string; label: string };
 
@@ -60,116 +63,6 @@ export function StaffSelectMenu({
   );
 }
 
-export function formatKzDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Almaty",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
-
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? "";
-
-  return get("day") + "." + get("month") + "." + get("year") + " " + get("hour") + ":" + get("minute") + ":" + get("second");
-}
-
-function toDatetimeLocal(value: string) {
-  if (!value) return "";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value.includes("T") ? value.slice(0, 19) : value;
-  }
-
-  const p = (n: number) => String(n).padStart(2, "0");
-  return (
-    date.getFullYear() +
-    "-" +
-    p(date.getMonth() + 1) +
-    "-" +
-    p(date.getDate()) +
-    "T" +
-    p(date.getHours()) +
-    ":" +
-    p(date.getMinutes()) +
-    ":" +
-    p(date.getSeconds())
-  );
-}
-
-export function parseKzDateTime(value: string): string | null | undefined {
-  const raw = value.trim();
-  if (!raw) return null;
-
-  const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
-  if (localMatch) {
-    const [, yyyy, mm, dd, hh, min, ss = "00"] = localMatch;
-    const year = Number(yyyy);
-    const month = Number(mm);
-    const day = Number(dd);
-    const hour = Number(hh);
-    const minute = Number(min);
-    const second = Number(ss);
-
-    const probe = new Date(year, month - 1, day, hour, minute, second);
-    if (
-      probe.getFullYear() !== year ||
-      probe.getMonth() !== month - 1 ||
-      probe.getDate() !== day ||
-      probe.getHours() !== hour ||
-      probe.getMinutes() !== minute ||
-      probe.getSeconds() !== second ||
-      month < 1 ||
-      month > 12 ||
-      hour > 23 ||
-      minute > 59 ||
-      second > 59
-    ) {
-      return undefined;
-    }
-
-    return probe.toISOString();
-  }
-
-  const legacyMatch = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
-  if (!legacyMatch) return undefined;
-
-  const [, dd, mm, yyyy, hh, min, ss = "00"] = legacyMatch;
-  const day = Number(dd);
-  const month = Number(mm);
-  const year = Number(yyyy);
-  const hour = Number(hh);
-  const minute = Number(min);
-  const second = Number(ss);
-
-  const probe = new Date(year, month - 1, day, hour, minute, second);
-  if (
-    probe.getFullYear() !== year ||
-    probe.getMonth() !== month - 1 ||
-    probe.getDate() !== day ||
-    probe.getHours() !== hour ||
-    probe.getMinutes() !== minute ||
-    probe.getSeconds() !== second ||
-    month < 1 ||
-    month > 12 ||
-    hour > 23 ||
-    minute > 59 ||
-    second > 59
-  ) {
-    return undefined;
-  }
-
-  return probe.toISOString();
-}
-
 export function StaffDateTimeField({
   value,
   onChange,
@@ -184,7 +77,7 @@ export function StaffDateTimeField({
       <input
         type="datetime-local"
         step="1"
-        value={toDatetimeLocal(value)}
+        value={toKzDatetimeLocal(value)}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
         className="h-11 w-full rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
