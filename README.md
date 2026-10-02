@@ -122,7 +122,7 @@ The `main` branch is connected to the Shyraq Vercel project.
 Current audited GitHub `main` head:
 
 ```text
-a08a47a705ff2b2fec5f085c46c5039f6c77a339
+f86fa0a5984e330d7c9adca724802c2f0bae2282
 ```
 
 The latest Vercel production deployment inspected during the audit is still based on the older `2df68da544...` commit and is `ERROR` with `next build`/lint-or-type failure metadata. A subsequent Vercel status check on the newer `c4d22c82...` commit reported a `build-rate-limit` failure. Therefore the production deployment has not yet been verified against the audited `main` head.
