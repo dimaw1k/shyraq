@@ -35,15 +35,14 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - Chief Mentor operational workspace with mentor/team/lesson/task management, submission review, reports and analytics
 - Leader operational workspace with staff/student/team/content management, submission review, analytics, audit log and settings
 - Scheduled Meet attendance sync endpoint and Vercel cron configuration
-
-- Student registration/login skeleton
+- Student registration/login flow with KZ phone normalization
 - Student-first role creation
 - Mentor phone lookup and team assignment backend
 - Team/task/report APIs
 - Private Supabase Storage uploads
 - Kinescope player + watch-coverage tracking
 - 85% server-side test gate
-- Test submission and hidden correct answers
+- Test submission with server-only answer-key evaluation
 - Idempotent score events
 - Student/mentor/staff overview APIs
 - Role-scoped ranking API
@@ -54,6 +53,9 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - Manual Google participant mapping
 - Staff APIs for teams, tasks, lessons and tests
 - GitHub Actions CI
+- Kazakhstan-time-safe staff/lesson datetime handling
+- Team/start-time authorization on lesson progress and test APIs
+- Submitted task locking
 
 ## Local setup
 
@@ -83,7 +85,9 @@ npm run build
 
 ## Database
 
-Apply all migrations in repository order. Note that phone normalization is split into two migrations (`0002_standardize_phone_format.sql` and `0020_signup_phone_normalization.sql`), so do not omit either one.
+Apply repository migrations in order. The connected production database already contains the migration history through `20261002185843_lesson_team_assignment`.
+
+The repository also contains `20261003002500_security_and_fk_indexes.sql`. Its SQL has already been applied directly to the connected Shyraq database; use your normal Supabase migration reconciliation command before the next schema change so the remote migration ledger and the repository remain aligned.
 
 ## Important product rules
 
@@ -115,25 +119,24 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 
 The `main` branch is connected to the Shyraq Vercel project.
 
-Current GitHub main baseline:
+Current audited GitHub `main` head:
+
 ```text
-25d743c4675d48e0ce87a467af096d51cfd1a749
+a08a47a705ff2b2fec5f085c46c5039f6c77a339
 ```
 
-Current Vercel Production deployment metadata still points to:
-```text
-1aeeed23d56f49e11ac9263a84fc0574bc333f55
-```
+The latest Vercel production deployment inspected during the audit is still based on the older `2df68da544...` commit and is `ERROR` with `next build`/lint-or-type failure metadata. A subsequent Vercel status check on the newer `c4d22c82...` commit reported a `build-rate-limit` failure. Therefore the production deployment has not yet been verified against the audited `main` head.
 
 Production health endpoint:
+
 ```text
 https://shyraq-nu.vercel.app/api/health
 ```
-
-The health endpoint currently returns HTTP 200 and confirms the deployed server can reach Supabase. A fresh production deployment is still required to move Vercel from the older commit to the current `main` baseline.
 
 ## Verification
 
 The repository includes GitHub Actions for typecheck, lint and production build on pushes and pull requests.
 
-The current execution environment cannot reliably clone the GitHub repository from the public network, so local build execution has not been claimed as verified. The CI workflow is the authoritative automated verification path after each push.
+The current execution environment cannot reliably clone the GitHub repository from the public network, so local build execution has not been claimed as verified. Vercel's connected integration is currently blocked by its reported build-rate limit, so the final production deployment check must be completed after the rate limit clears.
+
+For security, enable Supabase Auth leaked-password protection before the production release. The connected Supabase advisor currently reports this as a warning.
