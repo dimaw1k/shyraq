@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, RefreshCw, X } from "lucide-react";
 import { Card, StatusPill } from "@/components/ui/ShyraqUI";
 
@@ -32,7 +32,7 @@ export function MentorTaskRequestQueue() {
   const [comments, setComments] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -45,11 +45,14 @@ export function MentorTaskRequestQueue() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    void load();
-  }, []);
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function review(id: string, status: "APPROVED" | "REJECTED") {
     setActionId(id);
