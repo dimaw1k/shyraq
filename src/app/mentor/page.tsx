@@ -17,7 +17,7 @@ export default async function MentorPage() {
 
   if (!team) {
     return (
-      <AppShell role="MENTOR" userName={profile.full_name} title="Ментор панелі" description="Командаңыз бен оқушыларды басқарыңыз.">
+      <AppShell role="MENTOR" userName={profile.full_name} title="Ментор панелі" >
         <PageContainer>
           <Card className="p-10 text-center">
             <p className="text-sm font-extrabold text-[#3F3832]">Белсенді команда бекітілмеген.</p>
@@ -90,14 +90,14 @@ export default async function MentorPage() {
         <div className="space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader eyebrow="МЕНТОР" title={team.name} description="Оқушылардың прогресін бір экраннан бақыла." />
-            {meetSpace?.meeting_url ? <PrimaryLink href={meetSpace.meeting_url}>Meet-ке кіру <ArrowRight size={14} /></PrimaryLink> : null}
+            {meetSpace?.meeting_url ? <PrimaryLink href={meetSpace.meeting_url}>Кездесуге кіру <ArrowRight size={14} /></PrimaryLink> : null}
           </div>
 
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard label="ОҚУШЫЛАР" value={`${students.length}/${team.capacity ?? "—"}`} hint="команда құрамы" />
-            <MetricCard label="ATTENDANCE" value={averageAttendance.toFixed(1) + "%"} hint="команда орташа" />
-            <MetricCard label="REPORTS" value={String(students.reduce((sum, student) => sum + student.reportCount, 0))} hint="жіберілген есептер" />
-            <MetricCard label="MEET" value={meetSpace?.active ? "Қосылған" : "Қосу қажет"} hint="team Meet space" />
+            <MetricCard label="ҚАТЫСУ" value={averageAttendance.toFixed(1) + "%"} hint="команда орташа" />
+            <MetricCard label="ЕСЕПТЕР" value={String(students.reduce((sum, student) => sum + student.reportCount, 0))} hint="жіберілген есептер" />
+            <MetricCard label="КЕЗДЕСУ" value={meetSpace?.active ? "Қосылған" : "Қосу қажет"} hint="команда кездесуі" />
           </section>
 
           <Card className="p-4 sm:p-5">
