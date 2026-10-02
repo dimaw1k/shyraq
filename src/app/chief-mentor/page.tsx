@@ -5,13 +5,13 @@ import { Card, MetricCard, PageContainer, SectionHeader } from "@/components/ui/
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 const modules = [
-  ["Менторлар", "/chief-mentor/mentors", "Менторларды қосу, статусы және performance.", Users],
+  ["Менторлар", "/chief-mentor/mentors", "Менторларды қосу, мәртебесі және нәтижелілігі.", Users],
   ["Командалар", "/chief-mentor/teams", "Команда, сыйымдылық және ментор байланысы.", UsersRound],
   ["Оқушылар", "/chief-mentor/students", "Барлық оқушының ілгерілеуі және командасы.", Users],
   ["Сабақтар", "/chief-mentor/lessons", "Сабақ, бейне және тест материалдары.", BookOpen],
   ["Тапсырмалар", "/chief-mentor/tasks", "Тапсырмалар және ментор сұраныстары.", ClipboardCheck],
   ["Есептер", "/chief-mentor/reports", "Күндік есептерді бақылау.", FileText],
-  ["Кездесулер", "/chief-mentor/meet", "Google Meet және қатысу.", CalendarCheck2],
+  ["Кездесулер", "/chief-mentor/meet", "Бейне кездесулер және қатысу.", CalendarCheck2],
   ["Рейтинг", "/chief-mentor/rating", "Ментор, команда және оқушы нәтижесі.", Trophy],
   ["Аналитика", "/chief-mentor/analytics", "Негізгі көрсеткіштер, графиктер және салыстыру.", BarChart3],
   ["Хабарламалар", "/chief-mentor/messages", "Менторлармен ішкі байланыс.", Mail],
