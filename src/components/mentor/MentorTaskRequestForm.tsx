@@ -89,7 +89,7 @@ export function MentorTaskRequestForm() {
             <div className="flex items-start justify-between gap-4 border-b border-[#E8E1DA] px-4 py-3.5">
               <div>
                 <p className="text-[14px] font-extrabold text-[#172235]">Тапсырма сұрау</p>
-                <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Сұраныс Leader немесе Chief Mentor бекіткеннен кейін өз командаңызға тапсырма болып шығады.</p>
+                <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Сұраныс Жетекші немесе Бас ментор бекіткеннен кейін өз командаңызға тапсырма болып шығады.</p>
               </div>
               <button type="button" onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-[10px] border border-[var(--border)] bg-white"><X size={14} /></button>
             </div>
