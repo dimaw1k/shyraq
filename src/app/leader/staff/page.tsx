@@ -17,14 +17,14 @@ export default async function LeaderStaffPage() {
       role="LEADER"
       userName={profile.full_name}
       title="Қызметкерлер"
-      description="Қызметкерлерді номер арқылы тексеру және басқару."
+      
     >
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
             eyebrow="STAFF"
             title="Қызметкерлер"
-            description="Телефон арқылы тіркелген пайдаланушыны тауып, рөлін бір жерден тағайындаңыз."
+            
           />
           <Card className="overflow-visible">
             <div className="hidden grid-cols-[1.15fr_170px_1fr_185px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
