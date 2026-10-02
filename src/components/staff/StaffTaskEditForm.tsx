@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
+import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
 
 export type StaffTaskEditProps = {
   task: {
@@ -39,11 +39,9 @@ export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
   const [description, setDescription] = useState(task.description);
   const [teamId, setTeamId] = useState(task.team_id ?? "");
   const [marathonDay, setMarathonDay] = useState(String(task.marathon_day ?? ""));
-  const [taskOrder, setTaskOrder] = useState(String(task.task_order ?? 0));
   const [startsAt, setStartsAt] = useState(toDatetimeLocal(task.starts_at));
   const [deadline, setDeadline] = useState(toDatetimeLocal(task.deadline));
   const [points, setPoints] = useState(String(task.points ?? 0));
-  const [latePointsPercent, setLatePointsPercent] = useState(String(task.late_points_percent ?? 100));
   const [maxFiles, setMaxFiles] = useState(String(task.max_files ?? 5));
   const [attachmentRequired, setAttachmentRequired] = useState(task.attachment_required);
   const [active, setActive] = useState(task.active);
@@ -55,6 +53,12 @@ export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
     setMessage("");
 
     try {
+      const startsAtIso = parseKzDateTime(startsAt);
+      const deadlineIso = parseKzDateTime(deadline);
+      if (startsAtIso === undefined || deadlineIso === undefined) {
+        setMessage("Күн мен уақытты 12.09.2026 15:00:00 форматында енгізіңіз.");
+        return;
+      }
       const response = await fetch("/api/chief-mentor/tasks/" + task.id, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -63,11 +67,11 @@ export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
           description,
           teamId: teamId || null,
           marathonDay: marathonDay ? Number(marathonDay) : null,
-          taskOrder: Number(taskOrder || 0),
-          startsAt: startsAt ? new Date(startsAt).toISOString() : null,
-          deadline: deadline ? new Date(deadline).toISOString() : null,
+          taskOrder: 0,
+          startsAt: startsAtIso,
+          deadline: deadlineIso,
           points: Number(points),
-          latePointsPercent: Number(latePointsPercent),
+          latePointsPercent: 100,
           maxFiles: Number(maxFiles),
           attachmentRequired,
           active,
@@ -101,11 +105,10 @@ export function StaffTaskEditForm({ task, teams }: StaffTaskEditProps) {
             <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Сипаттама<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" /></label>
             <div><p className="text-[10px] font-extrabold text-[#5B534C]">Команда</p><div className="mt-1.5"><StaffSelectMenu value={teamId} onChange={setTeamId} placeholder="Барлығы" options={[{ value: "", label: "Барлығы" }, ...teams.map((team) => ({ value: team.id, label: team.name }))]} /></div></div>
             <label className="text-[10px] font-extrabold text-[#5B534C]">Марафон күні<input type="number" min="1" max="21" value={marathonDay} onChange={(event) => setMarathonDay(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
-            <label className="text-[10px] font-extrabold text-[#5B534C]">Реті<input type="number" min="0" value={taskOrder} onChange={(event) => setTaskOrder(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">Ұпай<input type="number" min="0" value={points} onChange={(event) => setPoints(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
           </div>
           <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-[10px] font-extrabold text-[#5B534C]">Ашылу уақыты</p><div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div></div><div><p className="text-[10px] font-extrabold text-[#5B534C]">Соңғы мерзім</p><div className="mt-1.5"><StaffDateTimeField value={deadline} onChange={setDeadline} label="Соңғы мерзімді таңдау" /></div></div></div>
-          <div className="grid gap-3 sm:grid-cols-3"><label className="text-[10px] font-extrabold text-[#5B534C]">Кеш ұпайы, %<input type="number" min="0" max="100" value={latePointsPercent} onChange={(event) => setLatePointsPercent(event.target.value)} className={staffInputClass + " mt-1.5"} /></label><label className="text-[10px] font-extrabold text-[#5B534C]">Файл саны<input type="number" min="1" max="10" value={maxFiles} onChange={(event) => setMaxFiles(event.target.value)} className={staffInputClass + " mt-1.5"} /></label><label className="flex items-end pb-2 text-[10px] font-extrabold text-[#5B534C]"><span className="inline-flex items-center gap-2"><input type="checkbox" checked={attachmentRequired} onChange={(event) => setAttachmentRequired(event.target.checked)} />Файл міндетті</span></label></div>
+          <div className="grid gap-3 sm:grid-cols-2"><label className="text-[10px] font-extrabold text-[#5B534C]">Файл саны<input type="number" min="1" max="10" value={maxFiles} onChange={(event) => setMaxFiles(event.target.value)} className={staffInputClass + " mt-1.5"} /></label><label className="flex items-center gap-2 text-[10px] font-extrabold text-[#5B534C]"><input type="checkbox" checked={attachmentRequired} onChange={(event) => setAttachmentRequired(event.target.checked)} />Файл міндетті</label></div>
           <label className="flex items-center gap-2 text-[10px] font-extrabold text-[#5B534C]"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} />Белсенді</label>
           {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
           <div className="flex justify-end"><PrimaryButton type="button" onClick={() => void save()} disabled={loading}>{loading ? "Сақталуда..." : <><Check size={13} />Сақтау</>}</PrimaryButton></div>
