@@ -4,6 +4,7 @@ import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/Shy
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { StaffCreateTaskForm } from "@/components/staff/StaffCreateTaskForm";
 import { StaffTaskEditForm } from "@/components/staff/StaffTaskEditForm";
+import { MentorTaskRequestQueue } from "@/components/staff/MentorTaskRequestQueue";
 
 export default async function ChiefMentorTasksPage() {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
@@ -17,6 +18,7 @@ export default async function ChiefMentorTasksPage() {
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Тапсырмалар">
       <PageContainer>
         <div className="space-y-5">
+          <MentorTaskRequestQueue />
           <section className="flex flex-wrap items-end justify-between gap-3">
             <StaffCreateTaskForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
           </section>
