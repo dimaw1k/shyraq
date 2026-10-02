@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { uiLabel } from "@/lib/ui-labels";
 import { Camera, Loader2 } from "lucide-react";
 
 type Profile = {
@@ -136,7 +137,7 @@ export function ProfileClient() {
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">ПРОФИЛЬ</p>
           <h2 className="mt-1 text-xl font-extrabold text-[#172235]">{profile.full_name}</h2>
-          <p className="mt-1 text-xs text-[#8B8179]">{profile.email} · {profile.status}</p>
+          <p className="mt-1 text-xs text-[#8B8179]">{profile.email} · {uiLabel(profile.status)}</p>
           <p className="mt-1 text-[10px] font-semibold text-[#8B8179]">
             Команда: {profile.team_name ?? "Күтілуде"} · Ментор: {profile.mentor_name ?? "Тағайындалмаған"}
           </p>
