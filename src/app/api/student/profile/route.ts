@@ -56,10 +56,36 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => null);
   const updates: Record<string, unknown> = {};
 
-  if (typeof body?.fullName === "string") updates.full_name = body.fullName.trim();
-  if (typeof body?.phone === "string") updates.phone = normalizePhone(body.phone);
-  if (typeof body?.age === "number" && Number.isFinite(body.age)) updates.age = body.age;
-  if (typeof body?.educationType === "string") updates.education_type = body.educationType;
+  if (typeof body?.fullName === "string") {
+    const fullName = body.fullName.trim();
+    if (fullName.length < 2 || fullName.length > 120) {
+      return NextResponse.json({ error: "Аты-жөніңіз дұрыс емес." }, { status: 400 });
+    }
+    updates.full_name = fullName;
+  }
+
+  if (typeof body?.phone === "string") {
+    const phone = normalizePhone(body.phone);
+    if (!/^\+7\d{10}$/.test(phone)) {
+      return NextResponse.json({ error: "Қазақстан телефон нөмірі дұрыс емес." }, { status: 400 });
+    }
+    updates.phone = phone;
+  }
+
+  if (typeof body?.age === "number" && Number.isFinite(body.age)) {
+    if (!Number.isInteger(body.age) || body.age < 10 || body.age > 100) {
+      return NextResponse.json({ error: "Жас 10–100 аралығында болуы керек." }, { status: 400 });
+    }
+    updates.age = body.age;
+  }
+
+  if (typeof body?.educationType === "string") {
+    const educationType = body.educationType.trim().toUpperCase();
+    if (!["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"].includes(educationType)) {
+      return NextResponse.json({ error: "Білім алу деңгейі дұрыс емес." }, { status: 400 });
+    }
+    updates.education_type = educationType;
+  }
 
   if (!Object.keys(updates).length) {
     return NextResponse.json({ error: "No supported fields" }, { status: 400 });
