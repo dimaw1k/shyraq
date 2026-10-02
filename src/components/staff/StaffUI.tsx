@@ -64,20 +64,21 @@ export function formatKzDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  const p = (n: number) => String(n).padStart(2, "0");
-  return (
-    p(date.getDate()) +
-    "." +
-    p(date.getMonth() + 1) +
-    "." +
-    date.getFullYear() +
-    " " +
-    p(date.getHours()) +
-    ":" +
-    p(date.getMinutes()) +
-    ":" +
-    p(date.getSeconds())
-  );
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Almaty",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return get("day") + "." + get("month") + "." + get("year") + " " + get("hour") + ":" + get("minute") + ":" + get("second");
 }
 
 function toDatetimeLocal(value: string) {
