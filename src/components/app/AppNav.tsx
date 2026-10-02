@@ -44,18 +44,18 @@ const leaderLinks: NavItem[] = [
   { label: "Командалар", href: "/leader/teams", icon: Users },
   { label: "Оқушылар", href: "/leader/students", icon: ClipboardCheck },
   { label: "Контент", href: "/leader/content", icon: BookOpen },
-  { label: "Тапсырма", href: "/leader/submissions", icon: ClipboardCheck },
+  { label: "Тапсырыстар", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
-  { label: "Support", href: "/leader/support", icon: Bell },
+  { label: "Қолдау", href: "/leader/support", icon: Bell },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
 ];
 
 const roleLabels: Record<string, string> = {
   STUDENT: "Оқушы",
   MENTOR: "Ментор",
-  CHIEF_MENTOR: "Главный ментор",
-  LEADER: "Лидер",
+  CHIEF_MENTOR: "Аға ментор",
+  LEADER: "Жетекші",
 };
 
 const roleHome: Record<string, string> = {
