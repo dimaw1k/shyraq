@@ -11,7 +11,7 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   if (!body?.status || !ALLOWED_STATUSES.has(body.status)) return NextResponse.json({error:"Жарамсыз submission статусы."},{status:400});
 
   const admin=createAdminSupabaseClient();
-  const {data:submission,error:submissionError}=await admin.from("task_submissions").select("id,task_id,student_id,status,submitted_at,review_comment,resubmission_deadline").eq("id",id).maybeSingle();
+  const {data:submission,error:submissionError}=await admin.from("task_submissions").select("id,task_id,student_id,status,submitted_at,submitted_late,review_comment,resubmission_deadline").eq("id",id).maybeSingle();
   if(submissionError)return NextResponse.json({error:"Submission жүктеу сәтсіз аяқталды."},{status:500});
   if(!submission)return NextResponse.json({error:"Submission табылмады."},{status:404});
 
@@ -47,11 +47,13 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   }).eq("id",id).select("id,task_id,student_id,status,submitted_at,reviewed_at,reviewed_by,review_comment,resubmission_deadline").single();
   if(updateError||!updated)return NextResponse.json({error:"Submission статусын өзгерту сәтсіз аяқталды."},{status:500});
 
-  let scoreAwarded=false;\n  const late = Boolean(submission.submitted_at && task.points !== undefined && submission.submitted_at && false);
+  let scoreAwarded=false;
+  const latePointsPercent = Number(task.late_points_percent ?? 100);
+  const awardedPoints = submission.submitted_late ? Math.round(Number(task.points) * latePointsPercent / 100) : Number(task.points);
   if(nextStatus==="REVIEWED"&&Number(task.points)>0){
     const {data:scoreEvent,error:scoreError}=await admin.from("score_events").insert({
-      student_id:submission.student_id,team_id:task.team_id,source_code:"TASK_REVIEW",source_id:submission.id,points:Number(task.points),
-      metadata:{task_id:task.id,task_title:task.title,submission_id:submission.id,reviewed_by:profile.id,base_points:Number(task.points),late_points_percent:Number(task.late_points_percent ?? 100)}}
+      student_id:submission.student_id,team_id:task.team_id,source_code:"TASK_REVIEW",source_id:submission.id,points:awardedPoints,
+      metadata:{task_id:task.id,task_title:task.title,submission_id:submission.id,reviewed_by:profile.id,base_points:Number(task.points),awarded_points:awardedPoints,late_points_percent:latePointsPercent,submitted_late:Boolean(submission.submitted_late)}}
     }).select("id").maybeSingle();
     if(scoreError&&scoreError.code!=="23505"){
       await admin.from("task_submissions").update({status:submission.status,reviewed_at:null,reviewed_by:null,review_comment:null,resubmission_deadline:null}).eq("id",id);
@@ -60,6 +62,6 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
     scoreAwarded=Boolean(scoreEvent)||scoreError?.code==="23505";
   }
 
-  await admin.from("audit_logs").insert({actor_id:profile.id,actor_role:profile.role,action:"TASK_SUBMISSION_REVIEWED",entity_type:"TASK_SUBMISSION",entity_id:submission.id,metadata:{task_id:task.id,student_id:submission.student_id,from_status:submission.status,to_status:nextStatus,score_awarded:scoreAwarded,points:nextStatus==="REVIEWED"?Number(task.points):0}});
+  await admin.from("audit_logs").insert({actor_id:profile.id,actor_role:profile.role,action:"TASK_SUBMISSION_REVIEWED",entity_type:"TASK_SUBMISSION",entity_id:submission.id,metadata:{task_id:task.id,student_id:submission.student_id,from_status:submission.status,to_status:nextStatus,score_awarded:scoreAwarded,points:nextStatus==="REVIEWED"?awardedPoints:0}});
   return NextResponse.json({submission:updated,scoreAwarded});
 }
