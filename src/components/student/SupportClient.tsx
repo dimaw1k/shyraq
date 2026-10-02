@@ -28,7 +28,7 @@ export function SupportClient() {
     if (response.ok) setTickets(data.tickets ?? []);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
