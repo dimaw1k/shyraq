@@ -1,11 +1,14 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
+type Attachment = { name: string; path: string; mime: string; size: number };
 type RawTestQuestion = {
   id: string;
   test_id: string;
   question_text: string;
   points: number | string;
   sort_order: number;
+  question_type: string;
+  attachments: Attachment[] | null;
   test_options: Array<{
     id: string;
     option_text: string;
@@ -24,15 +27,17 @@ export type StaffTestData = {
     active: boolean;
   } | null;
   questions: Array<{
+    id?: string;
     text: string;
     points: number;
+    type: "SINGLE" | "MULTIPLE" | "TEXT";
     options: Array<{ text: string; isCorrect: boolean }>;
+    attachments: Attachment[];
   }>;
 };
 
 export async function getStaffTestData(lessonIds: string[]) {
   const result = new Map<string, StaffTestData>();
-
   if (!lessonIds.length) return result;
 
   const admin = createAdminSupabaseClient();
@@ -47,10 +52,9 @@ export async function getStaffTestData(lessonIds: string[]) {
   if (testIds.length) {
     const { data } = await admin
       .from("test_questions")
-      .select("id,test_id,question_text,points,sort_order,test_options(id,option_text,is_correct,sort_order)")
+      .select("id,test_id,question_text,points,sort_order,question_type,attachments,test_options(id,option_text,is_correct,sort_order)")
       .in("test_id", testIds)
       .order("sort_order", { ascending: true });
-
     questions = (data ?? []) as RawTestQuestion[];
   }
 
@@ -79,8 +83,10 @@ export async function getStaffTestData(lessonIds: string[]) {
           }
         : null,
       questions: testQuestions.map((question) => ({
+        id: question.id,
         text: question.question_text,
         points: Number(question.points),
+        type: question.question_type === "MULTIPLE" || question.question_type === "TEXT" ? question.question_type : "SINGLE",
         options: (question.test_options ?? [])
           .slice()
           .sort((a, b) => a.sort_order - b.sort_order)
@@ -88,6 +94,7 @@ export async function getStaffTestData(lessonIds: string[]) {
             text: option.option_text,
             isCorrect: Boolean(option.is_correct),
           })),
+        attachments: Array.isArray(question.attachments) ? question.attachments : [],
       })),
     });
   }
