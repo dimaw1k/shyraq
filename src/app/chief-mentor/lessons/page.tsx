@@ -1,6 +1,6 @@
 import { BookOpen } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { StaffCreateLessonForm } from "@/components/staff/StaffCreateLessonForm";
 import { StaffLessonEditForm } from "@/components/staff/StaffLessonEditForm";
@@ -23,7 +23,6 @@ export default async function ChiefMentorLessonsPage() {
       <PageContainer>
         <div className="space-y-5">
           <section className="flex flex-wrap items-end justify-between gap-3">
-            <SectionHeader eyebrow="САБАҚТАР" title="Сабақтар" description="Сабақты қосу, уақытын белгілеу және тестін басқару." />
             <StaffCreateLessonForm />
           </section>
 
