@@ -34,6 +34,10 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
     );
   }
 
+  const materials = Array.isArray(lesson.materials)
+    ? lesson.materials.filter((item: unknown): item is { label: string; url: string; type?: string } => Boolean(item && typeof item === "object" && typeof (item as { label?: unknown }).label === "string" && typeof (item as { url?: unknown }).url === "string"))
+    : [];
+
   const { data: progress } = await supabase.from("video_progress")
     .select("watched_ranges,watched_percent,test_unlocked")
     .eq("lesson_id", lessonId)
@@ -55,6 +59,18 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
             <h2 className="mt-1.5 text-sm font-semibold text-gray-900">Тест</h2>
             <p className="mt-1 text-xs leading-5 text-gray-500">{lesson.required_watch_percent}% бірегей көру орындалғанда тест автоматты түрде ашылады.</p>
             <div className="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-gray-500 shadow-soft">Видео мен тест сабақтың completion логикасын құрайды.</div>
+          {materials.length ? (
+            <div className="mt-4 rounded-xl bg-white p-3 shadow-soft">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#C25100]">МАТЕРИАЛДАР</p>
+              <div className="mt-2 space-y-2">
+                {materials.map((material) => (
+                  <a key={material.url} href={material.url} target="_blank" rel="noreferrer" className="block rounded-[10px] bg-[#FFFCF9] px-3 py-2 text-[10px] font-bold text-[#4B433C] hover:text-[#C25100]">
+                    {material.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
           </aside>
         </div>
       </main>
