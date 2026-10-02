@@ -47,7 +47,9 @@ export function MentorTaskRequestQueue() {
     }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function review(id: string, status: "APPROVED" | "REJECTED") {
     setActionId(id);
