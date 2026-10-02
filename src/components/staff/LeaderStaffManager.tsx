@@ -25,8 +25,8 @@ type LookupProfile = StaffRow & {
 
 const roleOptions = [
   { value: "MENTOR", label: "Ментор" },
-  { value: "CHIEF_MENTOR", label: "Главный ментор" },
-  { value: "LEADER", label: "Лидер" },
+  { value: "CHIEF_MENTOR", label: "Аға ментор" },
+  { value: "LEADER", label: "Жетекші" },
 ];
 
 const statusOptions = [
@@ -66,10 +66,10 @@ function ChoiceMenu({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex min-h-9 w-full items-center justify-between gap-2 rounded-[11px] border border-[#E8E1DA] bg-white px-3 py-2 text-[10px] font-extrabold text-[#354153] transition hover:border-[#FFB067] disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-extrabold text-[#354153] transition hover:border-[#FFB067] disabled:cursor-not-allowed disabled:opacity-60"
         aria-expanded={open}
       >
-        <span>{label}</span>
+        <span className="min-w-0 truncate whitespace-nowrap">{label}</span>
         <ChevronDown size={13} className={open ? "rotate-180 transition-transform" : "transition-transform"} />
       </button>
 
@@ -88,7 +88,7 @@ function ChoiceMenu({
                 value === option.value ? "bg-[#FFF1E2] text-[#D95F00]" : "text-[#4B433C] hover:bg-[#FAF7F3]",
               ].join(" ")}
             >
-              <span>{option.label}</span>
+              <span className="whitespace-nowrap">{option.label}</span>
               {value === option.value ? <Check size={12} /> : null}
             </button>
           ))}
