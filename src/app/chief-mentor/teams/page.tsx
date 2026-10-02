@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, ProgressBar, StatusPill } from "@/components/ui/ShyraqUI";
@@ -63,7 +64,7 @@ export default async function ChiefMentorTeamsPage() {
                         <Users size={14} />
                       </span>
                       <div>
-                        <p className="text-[11px] font-extrabold text-[#354153]">{team.name}</p>
+                        <Link href={"/chief-mentor/teams/"+team.id} className="text-[11px] font-extrabold text-[#354153] hover:text-[var(--accent)]">{team.name}</Link>
                         <p className="mt-1 text-[9px] text-[#9A9189]">
                           {mentorMap.get(team.mentor_id ?? "") ?? "Ментор жоқ"}
                         </p>
