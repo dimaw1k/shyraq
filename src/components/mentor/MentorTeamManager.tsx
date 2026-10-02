@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import { TaskSubmissionReviewActions } from "@/components/staff/TaskSubmissionReviewActions";
 import { Card, ProgressBar, StatusPill } from "@/components/ui/ShyraqUI";
-import type { MentorMeetSpace, MentorStudent, MentorSubmission, MentorTask } from "@/lib/mentor/workspace";
+import type { MentorMeetSpace, MentorReport, MentorStudent, MentorSubmission, MentorTask } from "@/lib/mentor/workspace";
+import { MentorReportReviewActions } from "@/components/mentor/MentorReportReviewActions";
+import { MentorTaskRequestForm } from "@/components/mentor/MentorTaskRequestForm";
 
 type View = "dashboard" | "students" | "tasks" | "reports" | "meet";
 
@@ -31,10 +33,12 @@ function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "О";
 }
 
-function whatsappUrl(phone: string) {
+function whatsappUrl(phone: string, name: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
-  return "https://wa.me/" + (digits.startsWith("8") ? "7" + digits.slice(1) : digits);
+  const normalized = digits.startsWith("8") ? "7" + digits.slice(1) : digits;
+  const message = "Сәлем, " + name + "! Shyraq бойынша хабарласқым келді.";
+  return "https://wa.me/" + normalized + "?text=" + encodeURIComponent(message);
 }
 
 function issueOf(student: MentorStudent) {
@@ -56,6 +60,7 @@ export function MentorTeamManager({
   students,
   tasks,
   submissions,
+  reports,
   averageAttendance,
   pendingReviewCount,
   meetSpace,
@@ -66,6 +71,7 @@ export function MentorTeamManager({
   students: MentorStudent[];
   tasks: MentorTask[];
   submissions: MentorSubmission[];
+  reports: MentorReport[];
   averageAttendance: number;
   pendingReviewCount: number;
   meetSpace: MentorMeetSpace;
@@ -190,9 +196,11 @@ export function MentorTeamManager({
             <div className="flex items-center justify-between border-b border-[#EEE8E1] px-4 py-3.5">
               <div>
                 <p className="text-[13px] font-extrabold text-[var(--foreground)]">Тапсырмалар</p>
-                <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Тексеруді қажет ететін жұмыстар</p>
+                <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Тексеру және жаңа сұраныс</p>
               </div>
-              <button type="button" onClick={() => openView("tasks")} className="text-[9px] font-extrabold text-[var(--accent)]">Толығырақ</button>
+              <div className="flex items-center gap-2">
+                <MentorTaskRequestForm />
+                <button type="button" onClick={() => openView("tasks")} className="text-[9px] font-extrabold text-[var(--accent)]">Толығырақ</button></div>
             </div>
             <div className="divide-y divide-[#F0EBE5]">
               {submissions.filter((submission) => submission.status === "SUBMITTED").slice(0, 3).map((submission) => (
@@ -217,8 +225,8 @@ export function MentorTeamManager({
               <FileText size={15} className="text-[var(--accent)]" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <MiniStat label="Жіберген" value={String(students.filter((student) => !student.todayReportMissing).length)} />
-              <MiniStat label="Жоқ" value={String(students.filter((student) => student.todayReportMissing).length)} />
+              <MiniStat label="Жаңа" value={String(reports.filter((report) => report.status === "SUBMITTED").length)} />
+              <MiniStat label="Есеп жоқ" value={String(students.filter((student) => student.todayReportMissing).length)} />
             </div>
             <button type="button" onClick={() => openView("reports")} className="mt-3 inline-flex w-full items-center justify-between rounded-[11px] bg-[#FFFBF6] px-3 py-2.5 text-[9px] font-extrabold text-[#7B7168]">Толығырақ <ArrowRight size={12} /></button>
           </Card>
@@ -287,7 +295,7 @@ function WorkspacePanel({
                   <span className="min-w-0 flex-1"><span className="block truncate text-[10px] font-extrabold text-[#263247]">{student.full_name}</span><span className="mt-0.5 block text-[8px] font-semibold text-[#9A9189]">{student.score} ұпай</span></span>
                   {issue ? <StatusPill tone={issue.tone}>{issue.title}</StatusPill> : null}
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-1.5"><MiniStat label="Қатысу" value={student.attendanceAverage ? student.attendanceAverage + "%" : "—"} /><MiniStat label="Есеп" value={String(student.reportCount)} /><MiniStat label="Тапсырма" value={String(student.taskSubmittedCount)} /></div>
+                <div className="mt-3 grid grid-cols-3 gap-1.5"><MiniStat label="Қатысу" value={student.attendanceStatus} /><MiniStat label="Есеп" value={String(student.reportCount)} /><MiniStat label="Тапсырма" value={String(student.taskSubmittedCount)} /></div>
               </button>;
             })}
           </div>
@@ -304,9 +312,28 @@ function WorkspacePanel({
         {tasks.length ? <div className="border-t border-[#F0EBE5] px-4 py-3"><p className="text-[9px] font-extrabold text-[#6F665E]">Белсенді тапсырмалар</p><div className="mt-2 flex flex-wrap gap-2">{tasks.slice(0, 6).map((task) => <span key={task.id} className="rounded-full bg-[#FAF7F3] px-2.5 py-1.5 text-[8px] font-semibold text-[#7B7168]">{task.title}{task.deadline ? " · " + new Date(task.deadline).toLocaleDateString("kk-KZ") : ""}</span>)}</div></div> : null}
       </div> : null}
 
-      {view === "reports" ? <div id="reports" className="p-4">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4"><MiniStat label="Барлығы" value={String(allStudents.length)} /><MiniStat label="Есеп бар" value={String(allStudents.filter((student) => !student.todayReportMissing).length)} /><MiniStat label="Есеп жоқ" value={String(allStudents.filter((student) => student.todayReportMissing).length)} /><MiniStat label="Қатысу" value={allStudents.length ? (allStudents.reduce((sum, student) => sum + student.attendanceAverage, 0) / allStudents.length).toFixed(1) + "%" : "—"} /></div>
-        <div className="mt-3 space-y-2">{allStudents.filter((student) => student.todayReportMissing).slice(0, 20).map((student) => <button key={student.id} type="button" onClick={() => onStudent(student)} className="flex w-full items-center justify-between rounded-[12px] border border-[#EEE8E1] bg-white px-3 py-2.5 text-left"><span><span className="block text-[10px] font-extrabold text-[#263247]">{student.full_name}</span><span className="mt-0.5 block text-[8px] font-semibold text-[#9A9189]">Бүгін есеп жоқ</span></span><ArrowRight size={13} className="text-[#B6ADA4]" /></button>)}</div>
+      {view === "reports" ? <div id="reports" className="divide-y divide-[#F0EBE5]">
+        <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4"><MiniStat label="Барлығы" value={String(allStudents.length)} /><MiniStat label="Жаңа" value={String(reports.filter((report) => report.status === "SUBMITTED").length)} /><MiniStat label="Тексерілді" value={String(reports.filter((report) => report.status === "REVIEWED").length)} /><MiniStat label="Есеп жоқ" value={String(allStudents.filter((student) => student.todayReportMissing).length)} /></div>
+        <div className="divide-y divide-[#F0EBE5]">
+          {reports.slice(0, 20).map((report) => (
+            <div key={report.id} className="grid gap-3 px-4 py-3.5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold text-[#263247]">{report.student_name}</p>
+                <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">{new Date(report.report_date).toLocaleDateString("kk-KZ")} · {report.study_minutes} мин · {report.completed_task_count} тапсырма</p>
+                {report.reflection || report.difficulties || report.next_day_goal ? (
+                  <div className="mt-2 grid gap-1 text-[8px] leading-4 text-[#6F665E]">
+                    {report.reflection ? <p><span className="font-extrabold">Қорытынды:</span> {report.reflection}</p> : null}
+                    {report.difficulties ? <p><span className="font-extrabold">Қиындық:</span> {report.difficulties}</p> : null}
+                    {report.next_day_goal ? <p><span className="font-extrabold">Келесі:</span> {report.next_day_goal}</p> : null}
+                  </div>
+                ) : null}
+                {report.review_comment ? <p className="mt-2 text-[8px] font-semibold text-[#8F857D]">Комментарий: {report.review_comment}</p> : null}
+              </div>
+              <MentorReportReviewActions reportId={report.id} status={report.status} reviewComment={report.review_comment} />
+            </div>
+          ))}
+          {!reports.length ? <p className="px-4 py-8 text-center text-[10px] font-semibold text-[#9A9189]">Есеп жоқ</p> : null}
+        </div>
       </div> : null}
 
       {view === "meet" ? <div id="meet-panel" className="p-4 text-[10px] font-semibold text-[#6F665E]">Meet қатысуы автоматты түрде attendance тарихына түседі. Негізгі басқару жоғарыдағы Кездесу блогында.</div> : null}
@@ -316,7 +343,7 @@ function WorkspacePanel({
 
 function StudentDrawer({ student, onClose }: { student: MentorStudent; onClose: () => void }) {
   const [chatOpen, setChatOpen] = useState(false);
-  const wa = whatsappUrl(student.phone);
+  const wa = whatsappUrl(student.phone, student.full_name);
 
   return (
     <div className="fixed inset-0 z-[70]">
@@ -330,7 +357,7 @@ function StudentDrawer({ student, onClose }: { student: MentorStudent; onClose: 
           <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-[10px] border border-[var(--border)] bg-white"><X size={14} /></button>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Ұпай" value={String(student.score)} /><MiniStat label="Қатысу" value={student.attendanceAverage ? student.attendanceAverage + "%" : "—"} /><MiniStat label="Есеп" value={String(student.reportCount)} /></div>
+        <div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Ұпай" value={String(student.score)} /><MiniStat label="Қатысу" value={student.attendanceStatus} /><MiniStat label="Есеп" value={String(student.reportCount)} /></div>
 
         <div className="mt-4 rounded-[14px] border border-[#EEE8E1] bg-white p-3.5">
           <div className="flex items-center justify-between gap-3"><span className="text-[9px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">Белсенділік</span><span className="text-[9px] font-semibold text-[#71685F]">{dateLabel(student.lastActivityAt)}</span></div>
