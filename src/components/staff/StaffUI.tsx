@@ -83,7 +83,7 @@ export function parseKzDateTime(value: string): string | null | undefined {
   const raw = value.trim();
   if (!raw) return null;
 
-  const match = raw.match(/^(\\d{2})\\.(\\d{2})\\.(\\d{4})\\s+(\\d{2}):(\\d{2})(?::(\\d{2}))?$/);
+  const match = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (!match) return undefined;
 
   const [, dd, mm, yyyy, hh, min, ss = "00"] = match;
@@ -111,7 +111,7 @@ export function parseKzDateTime(value: string): string | null | undefined {
     return undefined;
   }
 
-  const iso = new Date(\`${yyyy}-${mm}-${dd}T${hh}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}+05:00\`);
+  const iso = new Date(`${yyyy}-${mm}-${dd}T${hh}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}+05:00`);
   return iso.toISOString();
 }
 
