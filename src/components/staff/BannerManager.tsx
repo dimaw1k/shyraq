@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { parseKzDateTime, StaffDateTimeField, StaffModal } from "@/components/staff/StaffUI";
+import { formatKzDateTime, parseKzDateTime, StaffDateTimeField, StaffModal } from "@/components/staff/StaffUI";
 
 type Banner = {
   id: string;
@@ -119,8 +119,8 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
             <div className="min-w-0">
               <p className="truncate text-[11px] font-extrabold text-[#172235]">{banner.title}</p>
               <p className="mt-1 text-[9px] font-semibold text-[#8B8179]">
-                {banner.starts_at ? new Date(banner.starts_at).toLocaleString("kk-KZ") : "Уақыт белгіленбеген"}
-                {banner.ends_at ? " — " + new Date(banner.ends_at).toLocaleString("kk-KZ") : ""}
+                {banner.starts_at ? formatKzDateTime(banner.starts_at) : "Уақыт белгіленбеген"}
+                {banner.ends_at ? " — " + formatKzDateTime(banner.ends_at) : ""}
               </p>
             </div>
             <button type="button" onClick={() => void toggle(banner)} className="h-9 rounded-[10px] border border-[#E8E1DA] bg-white px-3 text-[9px] font-extrabold text-[#4B433C]">
