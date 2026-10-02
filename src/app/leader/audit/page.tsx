@@ -8,10 +8,10 @@ export default async function LeaderAuditPage() {
   const { data: logs } = await supabase.from("audit_logs").select("id,actor_id,actor_role,action,entity_type,entity_id,metadata,created_at").order("created_at", { ascending: false }).limit(100);
 
   return (
-    <AppShell role="LEADER" userName={profile.full_name} title="Журнал" description="Маңызды әрекеттер журналы.">
+    <AppShell role="LEADER" userName={profile.full_name} title="Журнал">
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader eyebrow="ЖУРНАЛ" title="Әрекет журналы" description="Маңызды әрекеттер көрсетіледі." />
+          <SectionHeader eyebrow="ЖУРНАЛ" title="Әрекет журналы" />
           <Card className="overflow-hidden">
             <div className="divide-y divide-[#EFE8E1]">
               {(logs ?? []).map((log) => (
