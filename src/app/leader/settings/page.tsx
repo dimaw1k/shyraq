@@ -5,7 +5,7 @@ import { ScoreRulesManager } from "@/components/staff/ScoreRulesManager";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 export default async function LeaderSettingsPage() {
-  const { supabase, profile } = await getAuthenticatedStaff("LEADER");
+  const { supabase, profile } = await getAuthenticatedStaff("ЖЕТЕКШІ");
   const [{ data: settings }, { data: scoreRules }] = await Promise.all([
     supabase
       .from("marathon_settings")
@@ -19,13 +19,13 @@ export default async function LeaderSettingsPage() {
   ]);
 
   return (
-    <AppShell role="LEADER" userName={profile.full_name} title="Баптаулар" description="Марафонның жүйелік параметрлері.">
+    <AppShell role="ЖЕТЕКШІ" userName={profile.full_name} title="Баптаулар" >
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
-            eyebrow="SETTINGS"
+            eyebrow="БАПТАУЛАР"
             title="Марафон баптаулары"
-            description="Жүйелік параметрлер және scoring engine конфигурациясы."
+            description="Негізгі параметрлер."
           />
 
           <Card className="p-5">
@@ -43,11 +43,11 @@ export default async function LeaderSettingsPage() {
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[16px] bg-[#FFFCF9] p-4">
-                <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">VIDEO WATCH</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">БЕЙНЕ КӨРУ</p>
                 <p className="mt-2 text-[22px] font-extrabold text-[#172235]">{settings?.default_video_watch_percent ?? 85}%</p>
               </div>
               <div className="rounded-[16px] bg-[#FFFCF9] p-4">
-                <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">TEAM CAPACITY</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">КОМАНДА СЫЙЫМДЫЛЫҒЫ</p>
                 <p className="mt-2 text-[22px] font-extrabold text-[#172235]">{settings?.default_team_capacity ?? 70}</p>
               </div>
             </div>
@@ -62,15 +62,15 @@ export default async function LeaderSettingsPage() {
           />
 
           <Card className="p-5">
-            <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ROLE HIERARCHY</p>
+            <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">РӨЛ ДЕҢГЕЙІ</p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <StatusPill tone="orange">LEADER</StatusPill>
+              <StatusPill tone="orange">ЖЕТЕКШІ</StatusPill>
               <span className="text-[#9A9189]">→</span>
-              <StatusPill tone="orange">CHIEF_MENTOR</StatusPill>
+              <StatusPill tone="orange">АҒА МЕНТОР</StatusPill>
               <span className="text-[#9A9189]">→</span>
               <StatusPill tone="green">MENTOR</StatusPill>
               <span className="text-[#9A9189]">→</span>
-              <StatusPill>STUDENT</StatusPill>
+              <StatusPill>ОҚУШЫ</StatusPill>
             </div>
           </Card>
         </div>
