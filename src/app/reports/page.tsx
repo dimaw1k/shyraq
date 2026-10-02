@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/AppNav";
+import { uiLabel } from "@/lib/ui-labels";
 import { DailyReportForm } from "@/components/reports/DailyReportForm";
 import { Card, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -42,7 +43,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
                   <div key={report.id} className="rounded-[16px] bg-[#FFFCF9] p-4">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-[11px] font-extrabold text-[#172235]">{report.report_date}</span>
-                      <StatusPill tone={report.status === "REVIEWED" ? "green" : "neutral"}>{report.status}</StatusPill>
+                      <StatusPill tone={report.status === "REVIEWED" ? "green" : "neutral"}>{uiLabel(report.status)}</StatusPill>
                     </div>
                     <p className="mt-2 text-[10px] font-semibold text-[#8B8179]">{report.study_minutes ?? 0} мин · {report.completed_task_count ?? 0} тапсырма</p>
                     {report.reflection ? <p className="mt-2.5 text-xs font-medium leading-5 text-[#4F4740]">{report.reflection}</p> : null}
