@@ -5,7 +5,7 @@ import { Check, Pencil, X } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
 
 export type StaffTaskEditProps = {
-  task: { id:string; title:string; description:string; instructions:string|null; team_id:string|null; starts_at:string|null; deadline:string|null; points:number; late_points_percent:number; attachment_required:boolean; max_files:number; late_points_percent:number; marathon_day:number|null; task_order:number; active:boolean };
+  task: { id:string; title:string; description:string; instructions:string|null; team_id:string|null; starts_at:string|null; deadline:string|null; points:number; late_points_percent:number; attachment_required:boolean; max_files:number; marathon_day:number|null; task_order:number; active:boolean };
   teams:Array<{id:string;name:string}>;
 };
 
