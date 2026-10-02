@@ -6,6 +6,8 @@ export type StaffTaskSubmissionRow = {
   student_id: string;
   status: string;
   text_answer: string | null;
+  link_url: string | null;
+  submitted_late: boolean;
   submitted_at: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
