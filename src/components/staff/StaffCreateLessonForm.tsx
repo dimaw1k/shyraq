@@ -97,7 +97,7 @@ export function StaffCreateLessonForm() {
         open={open}
         onClose={() => { if (!loading) setOpen(false); }}
         title="Жаңа сабақ"
-        description="Сабақ атауы, Kinescope бейнесі және ашылу уақытын енгізіңіз."
+        description="Сабақ атауы, бейне сілтемесі және ашылу уақытын енгізіңіз."
       >
         <form onSubmit={submit} className="grid gap-4">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -106,8 +106,8 @@ export function StaffCreateLessonForm() {
               <input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Мысалы: Күн тәртібі" className={staffInputClass + " mt-1.5"} />
             </label>
             <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">
-              Kinescope бейнесінің сілтемесі
-              <input value={video} onChange={(event) => setVideo(event.target.value)} required placeholder="https://kinescope.io/..." className={staffInputClass + " mt-1.5"} />
+              Бейне сілтемесі
+              <input value={video} onChange={(event) => setVideo(event.target.value)} required placeholder="Бейне сілтемесін енгізіңіз" className={staffInputClass + " mt-1.5"} />
             </label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">
               Ұзақтығы, секунд
@@ -129,8 +129,8 @@ export function StaffCreateLessonForm() {
               <span className="mt-1.5 block"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Ашу уақытын таңдау" /></span>
             </label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Дедлайн
-              <span className="mt-1.5 block"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Дедлайнды таңдау" /></span>
+              Соңғы мерзім
+              <span className="mt-1.5 block"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Соңғы мерзімды таңдау" /></span>
             </label>
           </div>
 
