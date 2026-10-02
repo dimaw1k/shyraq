@@ -10,6 +10,7 @@ export type MentorStudent = {
   reportCount: number;
   taskSubmittedCount: number;
   attendanceAverage: number;
+  attendanceStatus: "Қатысты" | "Қатыспады" | "—";
   videoAverage: number;
   unlockedTests: number;
   overdueTaskCount: number;
@@ -141,7 +142,7 @@ export async function getMentorWorkspaceData(
     studentIds.length
       ? supabase
           .from("attendance_records")
-          .select("student_id,attendance_percent,started_at,ended_at")
+          .select("student_id,attendance_percent,attended_seconds,started_at,ended_at,status")
           .in("student_id", studentIds)
           .eq("team_id", team.id)
       : Promise.resolve({ data: [] as Array<Record<string, never>> }),
@@ -178,6 +179,7 @@ export async function getMentorWorkspaceData(
 
   const scoreMap = new Map<string, number>();
   const attendanceMap = new Map<string, number[]>();
+  const latestAttendanceMap = new Map<string, { at: number; present: boolean }>();
   const reportCountMap = new Map<string, number>();
   const taskCountMap = new Map<string, number>();
   const lastActivityMap = new Map<string, number>();
@@ -193,10 +195,14 @@ export async function getMentorWorkspaceData(
     attendanceMap.set(row.student_id, values);
     const stamp = row.ended_at ?? row.started_at;
     if (stamp) {
+      const at = Date.parse(stamp);
       lastActivityMap.set(
         row.student_id,
-        Math.max(lastActivityMap.get(row.student_id) ?? 0, Date.parse(stamp)),
+        Math.max(lastActivityMap.get(row.student_id) ?? 0, at),
       );
+      const present = Number(row.attended_seconds ?? 0) > 0 || Number(row.attendance_percent ?? 0) > 0 || row.status === "ATTENDED" || row.status === "PRESENT";
+      const previous = latestAttendanceMap.get(row.student_id);
+      if (!previous || at >= previous.at) latestAttendanceMap.set(row.student_id, { at, present });
     }
   }
 
@@ -268,6 +274,11 @@ export async function getMentorWorkspaceData(
       attendanceAverage: values.length
         ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1))
         : 0,
+      attendanceStatus: latestAttendanceMap.has(student.id)
+        ? latestAttendanceMap.get(student.id)?.present
+          ? "Қатысты"
+          : "Қатыспады"
+        : "—",
       videoAverage: video?.count ? Number((video.total / video.count).toFixed(1)) : 0,
       unlockedTests: video?.unlocked ?? 0,
       overdueTaskCount,
