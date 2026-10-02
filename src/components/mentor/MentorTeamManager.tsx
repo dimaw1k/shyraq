@@ -96,6 +96,31 @@ export function MentorTeamManager({
     if (!value) return students;
     return students.filter((student) => [student.full_name, student.phone, student.email].join(" ").toLocaleLowerCase("kk-KZ").includes(value));
   }, [query, students]);
+  useEffect(() => {
+    const viewByHash: Record<string, View> = {
+      students: "students",
+      tasks: "tasks",
+      reports: "reports",
+      meet: "meet",
+    };
+
+    const syncHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      const next = viewByHash[hash];
+      if (!next) return;
+      setView(next);
+      window.requestAnimationFrame(() => {
+        document.getElementById("mentor-workspace")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    };
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
 
   async function syncMeet() {
     setMeetLoading(true);
