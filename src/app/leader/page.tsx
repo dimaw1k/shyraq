@@ -58,8 +58,8 @@ export default async function LeaderPage() {
     ["Оқушылар", "/leader/students", "Барлық оқушыны, статусты және команданы бақылау.", GraduationCap],
     ["Командалар", "/leader/teams", "Командалар мен ментор бекітулерін басқару.", Users],
     ["Контент", "/leader/content", "Сабақтар мен тапсырмалардың жалпы күйі.", BookOpen],
-    ["Аналитика", "/leader/analytics", "Attendance, есептер және белсенділік.", BarChart3],
-    ["Журнал", "/leader/audit", "Маңызды staff әрекеттерінің audit журналы.", FileClock],
+    ["Аналитика", "/leader/analytics", "Қатысу, есептер және белсенділік.", BarChart3],
+    ["Журнал", "/leader/audit", "Маңызды қызметкер әрекеттерінің журналы.", FileClock],
   ] as const;
 
   return (
@@ -81,10 +81,10 @@ export default async function LeaderPage() {
           </section>
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint={`${activeStudentCount ?? 0} active`} icon={<GraduationCap size={17} />} />
-            <MetricCard label="STAFF" value={String(staffCount ?? 0)} hint={`${mentorCount ?? 0} mentor`} icon={<ShieldCheck size={17} />} />
-            <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint={`${activeMemberCount ?? 0} active membership`} icon={<Users size={17} />} />
-            <MetricCard label="ATTENDANCE" value={averageAttendance.toFixed(1) + "%"} hint="барлық attendance" icon={<BarChart3 size={17} />} />
+            <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint={`${activeStudentCount ?? 0} белсенді`} icon={<GraduationCap size={17} />} />
+            <MetricCard label="ҚЫЗМЕТКЕРЛЕР" value={String(staffCount ?? 0)} hint={`${mentorCount ?? 0} ментор`} icon={<ShieldCheck size={17} />} />
+            <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint={`${activeMemberCount ?? 0} белсенді мүшелік`} icon={<Users size={17} />} />
+            <MetricCard label="ҚАТЫСУ" value={averageAttendance.toFixed(1) + "%"} hint="барлық қатысу" icon={<BarChart3 size={17} />} />
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -116,7 +116,7 @@ export default async function LeaderPage() {
               </div>
               <div className="grid gap-3 p-5 sm:grid-cols-3 sm:p-6">
                 <MetricCard label="САБАҚ" value={String(lessonCount ?? 0)} hint="барлығы" />
-                <MetricCard label="ТАПСЫРМА" value={String(taskCount ?? 0)} hint="active" />
+                <MetricCard label="ТАПСЫРМА" value={String(taskCount ?? 0)} hint="белсенді" />
                 <MetricCard label="ЕСЕП" value={String(submittedReports ?? 0)} hint="submitted" />
               </div>
             </Card>
@@ -142,7 +142,7 @@ export default async function LeaderPage() {
                     <StatusPill tone="neutral">{new Date(item.created_at).toLocaleDateString("kk-KZ", { day: "2-digit", month: "short" })}</StatusPill>
                   </div>
                 ))}
-                {!audit?.length ? <div className="p-8"><EmptyState title="Әзірге audit жоқ." /></div> : null}
+                {!audit?.length ? <div className="p-8"><EmptyState title="Әзірге журнал жоқ." /></div> : null}
               </div>
             </Card>
           </section>
