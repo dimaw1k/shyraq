@@ -55,8 +55,8 @@ export function SupportClient() {
   return (
     <div className="space-y-7">
       <div className="rounded-[20px] border border-[#E8E1DA] bg-[#FFFCF9] p-4 sm:p-5">
-        <h2 className="text-lg font-extrabold text-[#172235]">Support-қа жазу</h2>
-        <p className="mt-1 text-xs leading-5 text-[#8B8179]">Парольді қалпына келтіру үшін SMS/код қолданылмайды. Өтініш жіберілгеннен кейін оны әзірлеуші/қолдау тарапы қолмен өңдейді.</p>
+        <h2 className="text-lg font-extrabold text-[#172235]">Қолдау қызметіне жазу</h2>
+        <p className="mt-1 text-xs leading-5 text-[#8B8179]">Парольді қалпына келтіру үшін SMS/код қолданылмайды. Өтініш жіберілгеннен кейін оны жоба әзірлеушісі немесе қолдау қызметі қолмен өңдейді.</p>
         <form onSubmit={submit} className="mt-5 space-y-3">
           <select
             value={category}
@@ -85,7 +85,7 @@ export function SupportClient() {
             <div key={ticket.id} className="rounded-[16px] border border-[#E8E1DA] bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-extrabold text-[#172235]">{ticket.subject}</p><span className="rounded-full bg-[#FFF0E8] px-2.5 py-1 text-[9px] font-extrabold text-[#C85E2F]">{ticket.status}</span></div>
               <p className="mt-2 text-xs leading-5 text-[#6F665E]">{ticket.message}</p>
-              {ticket.staff_note ? <div className="mt-3 rounded-[12px] bg-[#F6F2ED] p-3 text-[11px] leading-5 text-[#5C5149]"><span className="font-extrabold">Support:</span> {ticket.staff_note}</div> : null}
+              {ticket.staff_note ? <div className="mt-3 rounded-[12px] bg-[#F6F2ED] p-3 text-[11px] leading-5 text-[#5C5149]"><span className="font-extrabold">Қолдау қызметі:</span> {ticket.staff_note}</div> : null}
               <p className="mt-3 text-[9px] font-semibold text-[#A19890]">{new Date(ticket.created_at).toLocaleString("kk-KZ")}</p>
             </div>
           ))}
