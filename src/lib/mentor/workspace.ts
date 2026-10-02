@@ -254,6 +254,7 @@ export async function getMentorWorkspaceData(
   const hydratedStudents: MentorStudent[] = students.map((student) => {
     const values = attendanceMap.get(student.id) ?? [];
     const video = videoMap.get(student.id);
+    const lastActivity = lastActivityMap.get(student.id);
     const overdueTaskCount = (tasks ?? []).filter((task) => {
       if (!task.deadline || Date.parse(task.deadline) >= now) return false;
       return !submittedSet.has(student.id + ":" + task.id);
@@ -284,8 +285,8 @@ export async function getMentorWorkspaceData(
       overdueTaskCount,
       pendingReviewCount,
       todayReportMissing: !todayReports.has(student.id),
-      lastActivityAt: lastActivityMap.get(student.id)
-        ? new Date(lastActivityMap.get(student.id)).toISOString()
+      lastActivityAt: lastActivity
+        ? new Date(lastActivity).toISOString()
         : null,
     };
   });
