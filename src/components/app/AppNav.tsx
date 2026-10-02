@@ -17,6 +17,7 @@ import {
   Settings,
   Trophy,
   Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
