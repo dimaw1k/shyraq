@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { StaffDateTimeField, StaffModal, staffInputClass } from "@/components/staff/StaffUI";
+import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
 
 function extractKinescopeId(value: string) {
   const raw = value.trim();
@@ -18,28 +18,26 @@ function extractKinescopeId(value: string) {
   }
 }
 
-export function StaffCreateLessonForm() {
+type TeamOption = { id: string; name: string };\n\nexport function StaffCreateLessonForm({ teams = [] }: { teams?: TeamOption[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
   const [video, setVideo] = useState("");
-  const [duration, setDuration] = useState("360");
+  const [description, setDescription] = useState("");
   const [marathonDay, setMarathonDay] = useState("");
-  const [lessonOrder, setLessonOrder] = useState("0");
   const [startsAt, setStartsAt] = useState("");
   const [deadlineAt, setDeadlineAt] = useState("");
-  const [materials, setMaterials] = useState("");
+  const [teamId, setTeamId] = useState("");
 
   function reset() {
     setTitle("");
     setVideo("");
-    setDuration("360");
+    setDescription("");
     setMarathonDay("");
-    setLessonOrder("0");
     setStartsAt("");
     setDeadlineAt("");
-    setMaterials("");
+    setTeamId("");
     setMessage("");
   }
 
@@ -49,25 +47,26 @@ export function StaffCreateLessonForm() {
     setMessage("");
 
     try {
+      const startsAtIso = parseKzDateTime(startsAt);
+      const deadlineAtIso = parseKzDateTime(deadlineAt);
+      if (startsAtIso === undefined || deadlineAtIso === undefined) {
+        setMessage("Күн мен уақытты 12.09.2026 15:00:00 форматында енгізіңіз.");
+        return;
+      }
       const response = await fetch("/api/chief-mentor/lessons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          description,
           kinescopeVideo: extractKinescopeId(video),
-          durationSeconds: Number(duration),
+          durationSeconds: 360,
           marathonDay: marathonDay ? Number(marathonDay) : null,
-          lessonOrder: Number(lessonOrder || 0),
-          startsAt: startsAt ? new Date(startsAt).toISOString() : null,
-          deadlineAt: deadlineAt ? new Date(deadlineAt).toISOString() : null,
+          teamId: teamId || null,
+          startsAt: startsAtIso,
+          deadlineAt: deadlineAtIso,
           published: false,
-          materials: materials
-            .split("\n")
-            .map((line) => {
-              const [label, ...rest] = line.split("|");
-              return { label: label?.trim(), url: rest.join("|").trim(), type: "LINK" };
-            })
-            .filter((item) => item.label && item.url),
+          materials: [],
         }),
       });
 
@@ -105,39 +104,51 @@ export function StaffCreateLessonForm() {
               Сабақ атауы
               <input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Мысалы: Күн тәртібі" className={staffInputClass + " mt-1.5"} />
             </label>
+
+            <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">
+              Сипаттама
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={4}
+                placeholder="Сабақ туралы толық сипаттаманы еркін жазыңыз."
+                className="mt-1.5 w-full resize-y rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-3 text-[11px] font-semibold leading-5 outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+              />
+            </label>
+
             <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">
               Бейне сілтемесі
               <input value={video} onChange={(event) => setVideo(event.target.value)} required placeholder="Бейне сілтемесін енгізіңіз" className={staffInputClass + " mt-1.5"} />
             </label>
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Ұзақтығы, секунд
-              <input type="number" min="1" value={duration} onChange={(event) => setDuration(event.target.value)} className={staffInputClass + " mt-1.5"} />
-            </label>
+
+            <div>
+              <p className="text-[10px] font-extrabold text-[#5B534C]">Команда</p>
+              <div className="mt-1.5">
+                <StaffSelectMenu
+                  value={teamId}
+                  onChange={setTeamId}
+                  placeholder="Барлық командалар"
+                  options={[{ value: "", label: "Барлық командалар" }, ...teams.map((team) => ({ value: team.id, label: team.name }))]}
+                />
+              </div>
+            </div>
+
             <label className="text-[10px] font-extrabold text-[#5B534C]">
               Марафон күні
               <input type="number" min="1" max="21" value={marathonDay} onChange={(event) => setMarathonDay(event.target.value)} placeholder="1–21" className={staffInputClass + " mt-1.5"} />
             </label>
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Реті
-              <input type="number" min="0" value={lessonOrder} onChange={(event) => setLessonOrder(event.target.value)} className={staffInputClass + " mt-1.5"} />
-            </label>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Ашылу уақыты
-              <span className="mt-1.5 block"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Ашу уақытын таңдау" /></span>
-            </label>
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
-              Соңғы мерзім
-              <span className="mt-1.5 block"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Соңғы мерзімды таңдау" /></span>
-            </label>
+            <div>
+              <p className="text-[10px] font-extrabold text-[#5B534C]">Ашылу уақыты</p>
+              <div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Ашылу уақыты" /></div>
+            </div>
+            <div>
+              <p className="text-[10px] font-extrabold text-[#5B534C]">Соңғы мерзім</p>
+              <div className="mt-1.5"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Соңғы мерзім" /></div>
+            </div>
           </div>
-
-          <label className="text-[10px] font-extrabold text-[#5B534C]">
-            Қосымша материалдар
-            <textarea value={materials} onChange={(event) => setMaterials(event.target.value)} rows={3} placeholder={"Әдістеме | https://...\nҚосымша | https://..."} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" />
-          </label>
 
           {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
 
