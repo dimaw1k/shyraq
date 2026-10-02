@@ -24,14 +24,36 @@ export async function POST(request: Request, context: { params: Promise<{ testId
 
   if (!test?.active) return NextResponse.json({ error: "Тест табылмады." }, { status: 404 });
 
-  const { data: progress } = await supabase
-    .from("video_progress")
-    .select("test_unlocked")
-    .eq("lesson_id", test.lesson_id)
-    .eq("student_id", user.id)
-    .maybeSingle();
+  const [{ data: lesson }, { data: membership }, { data: progress }] = await Promise.all([
+    supabase
+      .from("lessons")
+      .select("id,published,starts_at,team_id")
+      .eq("id", test.lesson_id)
+      .maybeSingle(),
+    supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("student_id", user.id)
+      .eq("status", "ACTIVE")
+      .maybeSingle(),
+    supabase
+      .from("video_progress")
+      .select("test_unlocked")
+      .eq("lesson_id", test.lesson_id)
+      .eq("student_id", user.id)
+      .maybeSingle(),
+  ]);
 
-  if (!progress?.test_unlocked) return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
+  if (!lesson?.published) return NextResponse.json({ error: "Сабақ табылмады." }, { status: 404 });
+  if (lesson.starts_at && new Date(lesson.starts_at).getTime() > Date.now()) {
+    return NextResponse.json({ error: "Сабақ әлі ашылған жоқ." }, { status: 403 });
+  }
+  if (lesson.team_id && lesson.team_id !== membership?.team_id) {
+    return NextResponse.json({ error: "Бұл тест сіздің командаңызға арналмаған." }, { status: 403 });
+  }
+  if (!progress?.test_unlocked) {
+    return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
+  }
 
   const { count: existingAttempts } = await supabase
     .from("test_attempts")
@@ -100,8 +122,6 @@ export async function POST(request: Request, context: { params: Promise<{ testId
         type: "TEXT",
         selectedOptionId: null,
         selectedOptionIds: [],
-        correctOptionId: null,
-        correctOptionIds: [],
         isCorrect: false,
         manualReview: true,
       };
@@ -123,8 +143,6 @@ export async function POST(request: Request, context: { params: Promise<{ testId
       type: question.question_type === "MULTIPLE" ? "MULTIPLE" : "SINGLE",
       selectedOptionId: Array.isArray(answer) ? null : String(answer),
       selectedOptionIds: selectedIds,
-      correctOptionId: correctIds[0] ?? null,
-      correctOptionIds: correctIds,
       isCorrect,
       manualReview: false,
     };
@@ -160,19 +178,12 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   const { error: answerError } = await admin.from("test_answers").insert(answerRows);
   if (answerError) return NextResponse.json({ error: "Тест жауаптарын сақтау мүмкін болмады." }, { status: 500 });
 
-  const { data: membership } = await supabase
-    .from("team_members")
-    .select("team_id")
-    .eq("student_id", user.id)
-    .eq("status", "ACTIVE")
-    .maybeSingle();
-
   const { data: rule } = await supabase.from("score_rules").select("weight,active").eq("code", "TESTS").maybeSingle();
   if (rule?.active && Number(rule.weight) !== 0 && questionResults.every((result) => !result.manualReview)) {
     try {
       await recordScoreEvent(supabase, {
         studentId: user.id,
-        teamId: membership?.team_id ?? null,
+        teamId: membership?.team_id ?? lesson.team_id ?? null,
         sourceCode: "TESTS",
         sourceId: attempt.id,
         points: Number(rule.weight) * score,
@@ -183,5 +194,15 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     }
   }
 
-  return NextResponse.json({ attempt, questionResults });
+  return NextResponse.json({
+    attempt,
+    questionResults: questionResults.map(({ questionId, type, selectedOptionId, selectedOptionIds, isCorrect, manualReview }) => ({
+      questionId,
+      type,
+      selectedOptionId,
+      selectedOptionIds,
+      isCorrect,
+      manualReview,
+    })),
+  });
 }
