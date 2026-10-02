@@ -49,6 +49,23 @@ export type MentorMeetSpace = {
   active: boolean;
 } | null;
 
+export type MentorReport = {
+  id: string;
+  student_id: string;
+  student_name: string;
+  report_date: string;
+  status: string;
+  study_minutes: number;
+  completed_task_count: number;
+  reflection: string | null;
+  difficulties: string | null;
+  next_day_goal: string | null;
+  answers: Record<string, unknown>;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  review_comment: string | null;
+};
+
 export async function getMentorWorkspaceData(
   supabase: SupabaseClient,
   mentorId: string,
@@ -131,7 +148,7 @@ export async function getMentorWorkspaceData(
     studentIds.length
       ? supabase
           .from("daily_reports")
-          .select("student_id,report_date,status,submitted_at")
+          .select("id,student_id,report_date,status,study_minutes,completed_task_count,reflection,difficulties,next_day_goal,answers,submitted_at,reviewed_at,review_comment")
           .in("student_id", studentIds)
       : Promise.resolve({ data: [] as Array<Record<string, never>> }),
     studentIds.length && taskIds.length
@@ -262,6 +279,28 @@ export async function getMentorWorkspaceData(
     };
   });
 
+  const reportStudentMap = new Map(students.map((student) => [student.id, student.full_name]));
+  const mentorReports: MentorReport[] = (reports ?? [])
+    .filter((report) => report.status !== "DRAFT")
+    .sort((a, b) => String(b.report_date).localeCompare(String(a.report_date)))
+    .slice(0, 100)
+    .map((report) => ({
+      id: report.id,
+      student_id: report.student_id,
+      student_name: reportStudentMap.get(report.student_id) ?? "Оқушы",
+      report_date: report.report_date,
+      status: report.status,
+      study_minutes: Number(report.study_minutes ?? 0),
+      completed_task_count: Number(report.completed_task_count ?? 0),
+      reflection: report.reflection ?? null,
+      difficulties: report.difficulties ?? null,
+      next_day_goal: report.next_day_goal ?? null,
+      answers: (report.answers ?? {}) as Record<string, unknown>,
+      submitted_at: report.submitted_at ?? null,
+      reviewed_at: report.reviewed_at ?? null,
+      review_comment: report.review_comment ?? null,
+    }));
+
   const taskRows: MentorTask[] = (tasks ?? []).map((task) => ({
     id: task.id,
     title: task.title,
@@ -303,6 +342,7 @@ export async function getMentorWorkspaceData(
     students: hydratedStudents,
     tasks: taskRows,
     submissions: mentorSubmissions,
+    reports: mentorReports,
     averageAttendance,
     pendingReviewCount: mentorSubmissions.filter((submission) => submission.status === "SUBMITTED").length,
     meetSpace: meetSpace
