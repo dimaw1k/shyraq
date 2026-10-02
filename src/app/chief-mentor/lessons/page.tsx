@@ -39,7 +39,7 @@ export default async function ChiefMentorLessonsPage() {
                         <p className="mt-1 text-[9px] text-[#9A9189]">
                           {lesson.marathon_day ? lesson.marathon_day + "-күн" : "Күн жоқ"} · {Math.round(Number(lesson.duration_seconds) / 60)} мин
                           {lesson.starts_at ? " · ашылу " + new Date(lesson.starts_at).toLocaleString("kk-KZ") : ""}
-                          {lesson.deadline_at ? " · дедлайн " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
+                          {lesson.deadline_at ? " · соңғы мерзім " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
                         </p>
                       </div>
                       <StatusPill tone={lesson.published ? "green" : "orange"}>{lesson.published ? "Жарияланған" : "Жоба"}</StatusPill>
