@@ -50,7 +50,7 @@ const benefits = [
     icon: Trophy,
     eyebrow: "04",
     title: "Нәтижең көз алдыңда тұрады",
-    text: "Ұпай, рейтинг, streak және апта қорытындысы қай жерде тұрғаныңды күн сайын көрсетеді.",
+    text: "Ұпай, рейтинг, үзілмеген оқу күндері және апта қорытындысы қай жерде тұрғаныңды күн сайын көрсетеді.",
     tone: "bg-[#fff7dc]",
   },
 ];
@@ -205,7 +205,7 @@ function DashboardMockup() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <div className="rounded-[22px] border border-[#ece7df] bg-[#faf8f4] p-4">
                 <div className="flex items-center justify-between text-[10px] text-[#9c948b]">
-                  <span>Сабақ прогресі</span>
+                  <span>Сабақтың ілгерілеуі</span>
                   <span className="font-bold text-[#FF8000]">Тест ашық</span>
                 </div>
                 <p className="mt-2 text-3xl font-extrabold text-[#172235]">91.7%</p>
@@ -229,7 +229,7 @@ function DashboardMockup() {
             {[
               ["Бүгінгі тапсырма", "Математика практикасы", "25 ұпай"],
               ["Күндік есеп", "Бүгінгі оқу қорытындысы", "1 минут"],
-              ["Кешкі сабақ", "Google Meet", "18:00"],
+              ["Кешкі сабақ", "Бейне кездесу", "18:00"],
             ].map(([label, title, meta]) => (
               <div key={label} className="rounded-[20px] border border-[#ebe6df] bg-white p-4">
                 <p className="text-[10px] text-[#a19a91]">{label}</p>
@@ -248,7 +248,7 @@ function DashboardMockup() {
       </div>
 
       <div className="absolute -bottom-5 -left-4 hidden rounded-2xl bg-white px-4 py-3 shadow-[0_18px_45px_rgba(20,20,20,.14)] sm:block">
-        <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#aaa29a]">STREAK</p>
+        <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#aaa29a]">ҮЗІЛМЕГЕН КҮНДЕР</p>
         <p className="mt-1 text-sm font-extrabold text-[#172235]">7 күн қатарынан</p>
       </div>
     </div>
