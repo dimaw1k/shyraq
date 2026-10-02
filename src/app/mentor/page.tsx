@@ -1,45 +1,119 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Activity, BarChart3, ClipboardCheck, FileText, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { MentorTeamManager } from "@/components/mentor/MentorTeamManager";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getMentorWorkspaceData } from "@/lib/mentor/workspace";
+import { Card, MetricCard, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { getMentorPageData } from "@/lib/mentor/auth";
+
+function issueOf(student: {
+  overdueTaskCount: number;
+  todayReportMissing: boolean;
+  attendanceAverage: number;
+  pendingReviewCount: number;
+}) {
+  if (student.overdueTaskCount > 0) return { title: "Дедлайннан кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
+  if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Daily report", tone: "orange" as const };
+  if (student.attendanceAverage > 0 && student.attendanceAverage < 80) return { title: "Қатысуы төмен", detail: student.attendanceAverage + "%", tone: "orange" as const };
+  if (student.pendingReviewCount > 0) return { title: "Тапсырмасы тексерілуде", detail: student.pendingReviewCount + " жұмыс", tone: "orange" as const };
+  return null;
+}
 
 export default async function MentorPage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name,role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profile?.role !== "MENTOR") redirect("/dashboard");
-
-  const workspace = await getMentorWorkspaceData(supabase, user.id);
+  const { profile, workspace } = await getMentorPageData();
 
   if (!workspace) {
     return (
       <AppShell role="MENTOR" userName={profile.full_name} title="Басқару">
-        <main className="mx-auto w-full max-w-[1180px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-          <div className="rounded-[18px] border border-[var(--border)] bg-white p-7 text-center shadow-[0_10px_28px_rgba(23,34,53,.035)]">
-            <p className="text-sm font-extrabold text-[var(--foreground)]">Команда бекітілмеген</p>
-          </div>
-        </main>
+        <PageContainer>
+          <Card className="p-8 text-center">
+            <p className="text-sm font-extrabold text-[#172235]">Команда бекітілмеген</p>
+            <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">Лидер сізге команда бекіткеннен кейін бұл бөлім толтырылады.</p>
+          </Card>
+        </PageContainer>
       </AppShell>
     );
   }
 
+  const alerts = workspace.students
+    .map((student) => ({ student, issue: issueOf(student) }))
+    .filter((item): item is { student: typeof workspace.students[number]; issue: NonNullable<ReturnType<typeof issueOf>> } => Boolean(item.issue))
+    .sort((a, b) => (a.issue.tone === "red" ? -1 : b.issue.tone === "red" ? 1 : 0))
+    .slice(0, 3);
+
   return (
-    <AppShell
-      role="MENTOR"
-      userName={profile.full_name}
-      title="Басқару"
-      description={workspace.team.name}
-    >
-      <MentorTeamManager {...workspace} teamId={workspace.team.id} teamName={workspace.team.name} />
+    <AppShell role="MENTOR" userName={profile.full_name} title="Басқару" description={workspace.team.name}>
+      <PageContainer>
+        <div className="space-y-5">
+          <SectionHeader
+            eyebrow="MENTOR"
+            title="Бүгінгі жағдай"
+            description="Командадағы ең маңызды ақпарат қысқа түрде көрсетіледі."
+          />
+
+          <section className="grid gap-3 sm:grid-cols-3">
+            <MetricCard label="ОҚУШЫ" value={String(workspace.students.length)} hint="команда" icon={<UsersRound size={17} />} />
+            <MetricCard label="ТЕКСЕРУ" value={String(workspace.pendingReviewCount)} hint="жаңа жұмыс" icon={<ClipboardCheck size={17} />} />
+            <MetricCard label="ҚАТЫСУ" value={workspace.averageAttendance ? workspace.averageAttendance + "%" : "—"} hint="орташа" icon={<BarChart3 size={17} />} />
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4">
+                <div>
+                  <p className="text-[13px] font-extrabold text-[#172235]">Назар аударатындар</p>
+                  <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Қазір әрекет қажет болуы мүмкін</p>
+                </div>
+                <Link href="/mentor/team" className="text-[9px] font-extrabold text-[#FF8000]">Барлығын көру</Link>
+              </div>
+              <div className="divide-y divide-[#EFE8E1]">
+                {alerts.length ? alerts.map(({ student, issue }) => (
+                  <Link key={student.id} href="/mentor/team" className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FFFBF6]">
+                    <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#172235] text-[10px] font-extrabold text-white">
+                      {student.full_name.split(" ").filter(Boolean).slice(0, 2).map((x) => x[0]?.toUpperCase()).join("")}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[11px] font-extrabold text-[#243044]">{student.full_name}</span>
+                      <span className="mt-0.5 block truncate text-[9px] font-semibold text-[#8F857D]">{issue.title} · {issue.detail}</span>
+                    </span>
+                    <StatusPill tone={issue.tone}>{issue.tone === "red" ? "Шұғыл" : "Назар"}</StatusPill>
+                  </Link>
+                )) : (
+                  <div className="px-5 py-8 text-center text-[10px] font-extrabold text-[#3F3832]">Қазір назар аударатын оқушы жоқ</div>
+                )}
+              </div>
+            </Card>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <Link href="/mentor/tasks">
+                <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
+                  <div>
+                    <p className="text-[13px] font-extrabold text-[#172235]">Тапсырмалар</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Тексеру және сұраныстар</p>
+                  </div>
+                  <ClipboardCheck size={18} className="text-[#FF8000]" />
+                </Card>
+              </Link>
+              <Link href="/mentor/reports">
+                <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
+                  <div>
+                    <p className="text-[13px] font-extrabold text-[#172235]">Есептер</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Daily report тексеру</p>
+                  </div>
+                  <FileText size={18} className="text-[#FF8000]" />
+                </Card>
+              </Link>
+              <Link href="/mentor/meet" className="sm:col-span-2 lg:col-span-1">
+                <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
+                  <div>
+                    <p className="text-[13px] font-extrabold text-[#172235]">Кездесу</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">{workspace.meetSpace?.display_name ?? "Google Meet"}</p>
+                  </div>
+                  <Activity size={18} className="text-[#FF8000]" />
+                </Card>
+              </Link>
+            </div>
+          </section>
+        </div>
+      </PageContainer>
     </AppShell>
   );
 }

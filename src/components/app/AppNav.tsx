@@ -35,11 +35,11 @@ const studentLinks: NavItem[] = [
 
 const mentorLinks: NavItem[] = [
   { label: "Басқару", href: "/mentor", icon: LayoutDashboard },
-  { label: "Команда", href: "/mentor#students", icon: UsersRound },
-  { label: "Тапсырмалар", href: "/mentor#tasks", icon: ClipboardCheck },
-  { label: "Есептер", href: "/mentor#reports", icon: FileText },
-  { label: "Кездесу", href: "/mentor#meet", icon: Activity },
-  { label: "Рейтинг", href: "/rankings", icon: Trophy },
+  { label: "Команда", href: "/mentor/team", icon: UsersRound },
+  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck },
+  { label: "Есептер", href: "/mentor/reports", icon: FileText },
+  { label: "Кездесу", href: "/mentor/meet", icon: Activity },
+  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy },
 ];
 
 const chiefMentorLinks: NavItem[] = [
@@ -85,7 +85,8 @@ function isActive(pathname: string, href: string) {
   const route = href.split("#")[0];
   if (href.includes("#")) return false;
   const rootRoutes = new Set(["/dashboard", "/mentor", "/chief-mentor", "/leader"]);
-  return pathname === route || (!rootRoutes.has(route) && pathname.startsWith(route + "/"));
+  if (rootRoutes.has(route)) return pathname === route;
+  return pathname === route || pathname.startsWith(route + "/");
 }
 
 function initials(name?: string) {
