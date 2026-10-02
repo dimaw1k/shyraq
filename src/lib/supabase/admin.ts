@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL } from "./config";
+import { getSupabaseConfig } from "./config";
 
 export function createAdminSupabaseClient() {
   const secretKey =
@@ -10,7 +10,9 @@ export function createAdminSupabaseClient() {
     throw new Error("Supabase server secret key is missing");
   }
 
-  return createClient(SUPABASE_URL, secretKey, {
+  const { url } = getSupabaseConfig();
+
+  return createClient(url, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }
