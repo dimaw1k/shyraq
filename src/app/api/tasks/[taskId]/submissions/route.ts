@@ -17,7 +17,7 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   const { data: task } = await supabase.from("tasks").select("id,team_id,active,starts_at,deadline,points,attachment_required,max_files").eq("id", taskId).maybeSingle();
   if (!task?.active) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
-  const now = Date.now();
+  const now = new Date().getTime();
   if (task.starts_at && new Date(task.starts_at).getTime() > now) return NextResponse.json({ error: "Task has not started yet" }, { status: 409 });
 
   const { data: membership } = await supabase.from("team_members").select("team_id,status").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
