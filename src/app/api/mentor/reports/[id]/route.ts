@@ -32,14 +32,6 @@ export async function PATCH(
 
   if (!team) return NextResponse.json({ error: "Белсенді команда жоқ." }, { status: 409 });
 
-  const { data: member } = await admin
-    .from("team_members")
-    .select("student_id")
-    .eq("team_id", team.id)
-    .eq("status", "ACTIVE")
-    .eq("student_id", existing.student_id)
-    .maybeSingle();
-
   const { data: existing, error: existingError } = await admin
     .from("daily_reports")
     .select("id,student_id,status,report_date,reviewed_at,reviewed_by,review_comment")
@@ -48,6 +40,14 @@ export async function PATCH(
 
   if (existingError) return NextResponse.json({ error: "Есепті жүктеу сәтсіз аяқталды." }, { status: 500 });
   if (!existing) return NextResponse.json({ error: "Есеп табылмады." }, { status: 404 });
+
+  const { data: member } = await admin
+    .from("team_members")
+    .select("student_id")
+    .eq("team_id", team.id)
+    .eq("status", "ACTIVE")
+    .eq("student_id", existing.student_id)
+    .maybeSingle();
 
   if (!member || member.student_id !== existing.student_id) {
     return NextResponse.json({ error: "Бұл есеп сіздің командаңызға тиесілі емес." }, { status: 403 });
