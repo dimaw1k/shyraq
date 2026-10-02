@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
-import { StaffDateTimeField, StaffModal, staffInputClass } from "@/components/staff/StaffUI";
+import { parseKzDateTime, StaffDateTimeField, StaffModal } from "@/components/staff/StaffUI";
 
 type Banner = {
   id: string;
@@ -18,41 +18,33 @@ type Banner = {
   sort_order: number;
 };
 
-function toDatetimeLocal(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const p = (n: number) => String(n).padStart(2, "0");
-  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes());
-}
-
 export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) {
   const [open, setOpen] = useState(false);
   const [banners, setBanners] = useState(initialBanners);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [href, setHref] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
-  const [sortOrder, setSortOrder] = useState("0");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   function reset() {
-    setTitle("");
-    setDescription("");
-    setHref("");
     setStartsAt("");
     setEndsAt("");
-    setSortOrder("0");
     setFile(null);
     setMessage("");
   }
 
   async function create() {
-    if (!file || !title.trim()) {
-      setMessage("Атау мен суретті таңдаңыз.");
+    if (!file) {
+      setMessage("Суретті таңдаңыз.");
+      return;
+    }
+
+    const startsAtIso = parseKzDateTime(startsAt);
+    const endsAtIso = parseKzDateTime(endsAt);
+
+    if (startsAtIso === undefined || endsAtIso === undefined) {
+      setMessage("Күн мен уақытты 12.09.2026 15:00:00 форматында енгізіңіз.");
       return;
     }
 
@@ -62,12 +54,9 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
     try {
       const form = new FormData();
       form.append("file", file);
-      form.append("title", title);
-      form.append("description", description);
-      form.append("href", href);
-      form.append("startsAt", startsAt ? new Date(startsAt).toISOString() : "");
-      form.append("endsAt", endsAt ? new Date(endsAt).toISOString() : "");
-      form.append("sortOrder", sortOrder);
+      form.append("title", file.name.replace(/.[^/.]+$/, "") || "Баннер");
+      form.append("startsAt", startsAtIso ?? "");
+      form.append("endsAt", endsAtIso ?? "");
       form.append("published", "true");
 
       const response = await fetch("/api/leader/banners", { method: "POST", body: form });
@@ -94,7 +83,9 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
-      setBanners((current) => current.map((item) => item.id === banner.id ? { ...item, ...data.banner } : item));
+      setBanners((current) =>
+        current.map((item) => item.id === banner.id ? { ...item, ...data.banner } : item),
+      );
     }
   }
 
@@ -107,19 +98,21 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
     <section className="rounded-[20px] border border-[#E8E1DA] bg-white p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]"><ImagePlus size={16} /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]">
+            <ImagePlus size={16} />
+          </span>
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">БАННЕР</p>
             <h2 className="mt-1 text-[16px] font-extrabold text-[#172235]">Экран баннерлері</h2>
           </div>
         </div>
-        <PrimaryButton type="button" onClick={() => setOpen(true)}>
+        <PrimaryButton type="button" onClick={() => { setMessage(""); setOpen(true); }}>
           <Plus size={14} />
           Баннер қосу
         </PrimaryButton>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 grid gap-2">
         {banners.map((banner) => (
           <div key={banner.id} className="grid gap-3 rounded-[15px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 sm:grid-cols-[120px_1fr_auto_auto] sm:items-center">
             <img src={banner.imageUrl} alt="" className="h-16 w-full rounded-[10px] object-cover sm:w-[120px]" />
@@ -127,6 +120,7 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
               <p className="truncate text-[11px] font-extrabold text-[#172235]">{banner.title}</p>
               <p className="mt-1 text-[9px] font-semibold text-[#8B8179]">
                 {banner.starts_at ? new Date(banner.starts_at).toLocaleString("kk-KZ") : "Уақыт белгіленбеген"}
+                {banner.ends_at ? " — " + new Date(banner.ends_at).toLocaleString("kk-KZ") : ""}
               </p>
             </div>
             <button type="button" onClick={() => void toggle(banner)} className="h-9 rounded-[10px] border border-[#E8E1DA] bg-white px-3 text-[9px] font-extrabold text-[#4B433C]">
@@ -140,44 +134,29 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
         {!banners.length ? <div className="rounded-[14px] border border-dashed border-[#DED6CE] px-5 py-7 text-center text-[10px] font-semibold text-[#9A9189]">Баннер жоқ.</div> : null}
       </div>
 
-      <StaffModal open={open} onClose={() => { if (!loading) setOpen(false); }} title="Жаңа баннер" description="Сурет пен көрсету уақытын белгілеңіз.">
+      <StaffModal open={open} onClose={() => { if (!loading) setOpen(false); }} title="Жаңа баннер" description="Суретті жүктеп, көрсету аралығын енгізіңіз.">
         <div className="grid gap-4">
           <label className="text-[10px] font-extrabold text-[#5B534C]">
             Сурет
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="mt-1.5 block w-full rounded-[14px] border border-dashed border-[#DCCFC5] bg-white px-3 py-3 text-[10px] font-semibold" />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              className="mt-1.5 block w-full rounded-[14px] border border-dashed border-[#DCCFC5] bg-white px-3 py-3 text-[10px] font-semibold"
+            />
             {file ? <span className="mt-1 block truncate text-[9px] text-[#8B8179]">{file.name}</span> : null}
-          </label>
-
-          <label className="text-[10px] font-extrabold text-[#5B534C]">
-            Атауы
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Баннер атауы" className={staffInputClass + " mt-1.5"} />
-          </label>
-
-          <label className="text-[10px] font-extrabold text-[#5B534C]">
-            Қысқа мәтін
-            <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Қысқа мәтін" className={staffInputClass + " mt-1.5"} />
-          </label>
-
-          <label className="text-[10px] font-extrabold text-[#5B534C]">
-            Сілтеме
-            <input value={href} onChange={(event) => setHref(event.target.value)} placeholder="https://..." className={staffInputClass + " mt-1.5"} />
           </label>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-[10px] font-extrabold text-[#5B534C]">Көрсету басталуы</p>
-              <div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div>
+              <div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Көрсету басталуы" /></div>
             </div>
             <div>
               <p className="text-[10px] font-extrabold text-[#5B534C]">Көрсету аяқталуы</p>
-              <div className="mt-1.5"><StaffDateTimeField value={endsAt} onChange={setEndsAt} label="Уақытты таңдау" /></div>
+              <div className="mt-1.5"><StaffDateTimeField value={endsAt} onChange={setEndsAt} label="Көрсету аяқталуы" /></div>
             </div>
           </div>
-
-          <label className="text-[10px] font-extrabold text-[#5B534C]">
-            Реті
-            <input type="number" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} className={staffInputClass + " mt-1.5"} />
-          </label>
 
           {message ? <p className="rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-bold text-[#B95D00]">{message}</p> : null}
 
