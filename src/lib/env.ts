@@ -1,5 +1,3 @@
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/config";
-
 export type PublicEnv = {
   supabaseUrl: string;
   supabasePublishableKey: string;
@@ -7,9 +5,15 @@ export type PublicEnv = {
 };
 
 export const env: PublicEnv = {
-  supabaseUrl: SUPABASE_URL,
-  supabasePublishableKey: SUPABASE_PUBLISHABLE_KEY,
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  get supabaseUrl() {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  },
+  get supabasePublishableKey() {
+    return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+  },
+  get appUrl() {
+    return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  },
 };
 
 export function assertPublicEnv() {
