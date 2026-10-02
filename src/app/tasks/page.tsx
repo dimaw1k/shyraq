@@ -20,7 +20,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   ]);
 
   const role = profile?.role ?? "STUDENT";
-  const now = Date.now();
+  const now = new Date().getTime();
   const submissionMap = new Map((submissions ?? []).map((item) => [item.task_id, item]));
 
   return (
