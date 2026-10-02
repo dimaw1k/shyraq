@@ -97,7 +97,7 @@ export function StaffLessonEditForm({ lesson }: Props) {
         <div className="grid gap-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Сабақ атауы<input value={title} onChange={(event) => setTitle(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
-            <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Kinescope сілтемесі<input value={video} onChange={(event) => setVideo(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
+            <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">Бейне сілтемесі<input value={video} onChange={(event) => setVideo(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">Ұзақтығы<input type="number" min="1" value={duration} onChange={(event) => setDuration(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">Көру талабы, %<input type="number" min="0" max="100" value={requiredWatch} onChange={(event) => setRequiredWatch(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
             <label className="text-[10px] font-extrabold text-[#5B534C]">Марафон күні<input type="number" min="1" max="21" value={marathonDay} onChange={(event) => setMarathonDay(event.target.value)} className={staffInputClass + " mt-1.5"} /></label>
@@ -105,7 +105,7 @@ export function StaffLessonEditForm({ lesson }: Props) {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div><p className="text-[10px] font-extrabold text-[#5B534C]">Ашылу уақыты</p><div className="mt-1.5"><StaffDateTimeField value={startsAt} onChange={setStartsAt} label="Уақытты таңдау" /></div></div>
-            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Дедлайн</p><div className="mt-1.5"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Дедлайнды таңдау" /></div></div>
+            <div><p className="text-[10px] font-extrabold text-[#5B534C]">Соңғы мерзім</p><div className="mt-1.5"><StaffDateTimeField value={deadlineAt} onChange={setDeadlineAt} label="Соңғы мерзімды таңдау" /></div></div>
           </div>
           <label className="text-[10px] font-extrabold text-[#5B534C]">Сипаттама<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={2} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" /></label>
           <label className="text-[10px] font-extrabold text-[#5B534C]">Материалдар<textarea value={materials} onChange={(event) => setMaterials(event.target.value)} rows={3} placeholder={"Атауы | https://..."} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" /></label>
