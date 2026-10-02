@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 
 export type MenuOption = { value: string; label: string };
@@ -31,15 +31,9 @@ export function StaffSelectMenu({
         aria-expanded={open}
       >
         <span className="truncate">{label}</span>
-        <ChevronDown
-          size={15}
-          className={
-            open
-              ? "shrink-0 rotate-180 transition-transform"
-              : "shrink-0 transition-transform"
-          }
-        />
+        <ChevronDown size={15} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
       </button>
+
       {open ? (
         <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-[80] rounded-[14px] border border-[#E8E1DA] bg-white p-1.5 shadow-[0_20px_50px_rgba(23,34,53,.14)]">
           {options.map((option) => (
@@ -52,9 +46,7 @@ export function StaffSelectMenu({
               }}
               className={[
                 "flex w-full items-center justify-between rounded-[10px] px-3 py-2.5 text-left text-[11px] font-semibold transition",
-                value === option.value
-                  ? "bg-[#FFF1E2] text-[#C95500]"
-                  : "text-[#4B433C] hover:bg-[#FAF7F3]",
+                value === option.value ? "bg-[#FFF1E2] text-[#C95500]" : "text-[#4B433C] hover:bg-[#FAF7F3]",
               ].join(" ")}
             >
               <span>{option.label}</span>
@@ -67,6 +59,14 @@ export function StaffSelectMenu({
   );
 }
 
+function parseDateTime(value: string) {
+  return {
+    date: value ? value.slice(0, 10) : "",
+    hour: value ? value.slice(11, 13) || "12" : "12",
+    minute: value ? value.slice(14, 16) || "00" : "00",
+  };
+}
+
 export function StaffDateTimeField({
   value,
   onChange,
@@ -77,21 +77,9 @@ export function StaffDateTimeField({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [localDate, setLocalDate] = useState(() =>
-    value ? value.slice(0, 10) : "",
-  );
-  const [localHour, setLocalHour] = useState(() =>
-    value ? value.slice(11, 13) || "12" : "12",
-  );
-  const [localMinute, setLocalMinute] = useState(() =>
-    value ? value.slice(14, 16) || "00" : "00",
-  );
+  const [draft, setDraft] = useState(() => parseDateTime(value));
 
-  useEffect(() => {
-    setLocalDate(value ? value.slice(0, 10) : "");
-    setLocalHour(value ? value.slice(11, 13) || "12" : "12");
-    setLocalMinute(value ? value.slice(14, 16) || "00" : "00");
-  }, [value]);
+  const shown = parseDateTime(value);
 
   function commit(nextDate: string, nextHour: string, nextMinute: string) {
     if (!nextDate) {
@@ -116,21 +104,15 @@ export function StaffDateTimeField({
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setDraft(shown);
+          setOpen((current) => !current);
+        }}
         className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-2.5 text-left text-[11px] font-semibold text-[#172235] transition hover:border-[#FFB067]"
         aria-expanded={open}
       >
-        <span className={value ? "truncate" : "truncate text-[#9A9189]"}>
-          {labelText}
-        </span>
-        <ChevronDown
-          size={15}
-          className={
-            open
-              ? "shrink-0 rotate-180 transition-transform"
-              : "shrink-0 transition-transform"
-          }
-        />
+        <span className={value ? "truncate" : "truncate text-[#9A9189]"}>{labelText}</span>
+        <ChevronDown size={15} className={open ? "shrink-0 rotate-180 transition-transform" : "shrink-0 transition-transform"} />
       </button>
 
       {open ? (
@@ -140,11 +122,11 @@ export function StaffDateTimeField({
               Күн
               <input
                 type="date"
-                value={localDate}
+                value={draft.date}
                 onChange={(event) => {
                   const next = event.target.value;
-                  setLocalDate(next);
-                  commit(next, localHour, localMinute);
+                  setDraft((current) => ({ ...current, date: next }));
+                  commit(next, draft.hour, draft.minute);
                 }}
                 className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000]"
               />
@@ -155,14 +137,14 @@ export function StaffDateTimeField({
                 Сағат
                 <span className="mt-1.5 block">
                   <StaffSelectMenu
-                    value={localHour}
+                    value={draft.hour}
                     options={Array.from({ length: 24 }, (_, index) => {
                       const item = String(index).padStart(2, "0");
                       return { value: item, label: item };
                     })}
                     onChange={(next) => {
-                      setLocalHour(next);
-                      commit(localDate, next, localMinute);
+                      setDraft((current) => ({ ...current, hour: next }));
+                      commit(draft.date, next, draft.minute);
                     }}
                   />
                 </span>
@@ -172,24 +154,13 @@ export function StaffDateTimeField({
                 Минут
                 <span className="mt-1.5 block">
                   <StaffSelectMenu
-                    value={localMinute}
-                    options={[
-                      "00",
-                      "05",
-                      "10",
-                      "15",
-                      "20",
-                      "25",
-                      "30",
-                      "35",
-                      "40",
-                      "45",
-                      "50",
-                      "55",
-                    ].map((item) => ({ value: item, label: item }))}
+                    value={draft.minute}
+                    options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(
+                      (item) => ({ value: item, label: item }),
+                    )}
                     onChange={(next) => {
-                      setLocalMinute(next);
-                      commit(localDate, localHour, next);
+                      setDraft((current) => ({ ...current, minute: next }));
+                      commit(draft.date, draft.hour, next);
                     }}
                   />
                 </span>
@@ -199,9 +170,7 @@ export function StaffDateTimeField({
             <button
               type="button"
               onClick={() => {
-                setLocalDate("");
-                setLocalHour("12");
-                setLocalMinute("00");
+                setDraft({ date: "", hour: "12", minute: "00" });
                 onChange("");
                 setOpen(false);
               }}
@@ -229,16 +198,14 @@ export function StaffModal({
   onClose: () => void;
   children: ReactNode;
 }) {
-  useEffect(() => {
-    if (!open) return;
+  const [scrollLocked, setScrollLocked] = useState(false);
 
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [open]);
+  if (open !== scrollLocked) {
+    setScrollLocked(open);
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+  }
 
   if (!open) return null;
 
@@ -251,14 +218,8 @@ export function StaffModal({
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7]/95 px-5 py-4 backdrop-blur sm:px-6">
           <div className="min-w-0">
-            <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">
-              {title}
-            </h2>
-            {description ? (
-              <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">
-                {description}
-              </p>
-            ) : null}
+            <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">{title}</h2>
+            {description ? <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">{description}</p> : null}
           </div>
           <button
             type="button"
