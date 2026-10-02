@@ -1,4 +1,5 @@
-// Student marathon week structure: 1–7, 8–13, 14–21.\nexport type MarathonWeek = {
+// Student marathon week structure: 1–7, 8–13, 14–21.
+export type MarathonWeek = {
   week: 1 | 2 | 3;
   startDay: number;
   endDay: number;
