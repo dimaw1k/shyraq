@@ -43,9 +43,9 @@ export default async function ChiefMentorStudentsPage(){
     return { ...s,team_id:teamId??null,team_name:teamId?teamMap.get(teamId)?.name??null:null,mentor_name:mentorId?mentorMap.get(mentorId)??null:null,score:Math.round(score.get(s.id)??0),attendance:values.length?values.reduce((a,b)=>a+b,0)/values.length:0,report_count:reportCount.get(s.id)??0,task_count:taskCount.get(s.id)??0,video:vv.length?vv.reduce((a,b)=>a+b,0)/vv.length:0 };
   });
   const initialTeams=(teams??[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,count:(members??[]).filter(m=>m.team_id===t.id).length}));
-  return <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Оқушылар" description="Оқушы progress, команда және оқу нәтижелері.">
+  return <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Оқушылар" description="Оқушының ілгерілеуі, командасы және оқу нәтижелері.">
     <PageContainer><div className="space-y-5">
-      <SectionHeader eyebrow="ОҚУШЫЛАР" title="Барлық оқушылар" description="Іздеу, фильтр және команда ауыстыру." action={<Link href="/chief-mentor/teams" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><Users size={14}/> Командалар</Link>}/>
+      <SectionHeader eyebrow="ОҚУШЫЛАР" title="Барлық оқушылар" description="Іздеу, сүзгі және команда ауыстыру." action={<Link href="/chief-mentor/teams" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><Users size={14}/> Командалар</Link>}/>
       <Card className="overflow-hidden"><div className="hidden grid-cols-[1.45fr_1fr_100px_100px_110px_190px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] lg:grid"><span>Оқушы</span><span>Команда</span><span>Ұпай</span><span>Қатысу</span><span>Статус</span><span className="text-right">Команданы өзгерту</span></div><ChiefMentorStudentsManager initialStudents={initialStudents} teams={initialTeams}/></Card>
     </div></PageContainer>
   </AppShell>;
