@@ -38,7 +38,7 @@ export default async function MarathonWeekPage({ params }: { params: Promise<{ w
     supabase.from("daily_reports").select("marathon_day,status,report_date").eq("student_id", user.id).gte("marathon_day", week.startDay).lte("marathon_day", week.endDay),
   ]);
 
-  const now = Date.now();
+  const now = new Date().getTime();
   const progressByLesson = new Map((progress ?? []).map((item) => [item.lesson_id, item]));
   const submissionByTask = new Map((submissions ?? []).map((item) => [item.task_id, item]));
   const reportByDay = new Map((reports ?? []).map((item) => [Number(item.marathon_day), item]));
