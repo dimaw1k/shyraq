@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
 import { parseKzDateTime, StaffDateTimeField, StaffModal, StaffSelectMenu, staffInputClass } from "@/components/staff/StaffUI";
+import { toKzDatetimeLocal } from "@/lib/datetime";
 
 type Props = {
   lesson: {
@@ -25,14 +26,6 @@ type Props = {
   teams: Array<{ id: string; name: string }>;
 };
 
-function toDatetimeLocal(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const p = (n: number) => String(n).padStart(2, "0");
-  return date.getFullYear() + "-" + p(date.getMonth() + 1) + "-" + p(date.getDate()) + "T" + p(date.getHours()) + ":" + p(date.getMinutes()) + ":" + p(date.getSeconds());
-}
-
 export function StaffLessonEditForm({ lesson, teams }: Props) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(lesson.title);
@@ -40,8 +33,8 @@ export function StaffLessonEditForm({ lesson, teams }: Props) {
   const [video, setVideo] = useState("https://kinescope.io/" + lesson.kinescope_video_id);
   const [requiredWatch, setRequiredWatch] = useState(String(lesson.required_watch_percent));
   const [marathonDay, setMarathonDay] = useState(String(lesson.marathon_day ?? ""));
-  const [startsAt, setStartsAt] = useState(toDatetimeLocal(lesson.starts_at));
-  const [deadlineAt, setDeadlineAt] = useState(toDatetimeLocal(lesson.deadline_at));
+  const [startsAt, setStartsAt] = useState(toKzDatetimeLocal(lesson.starts_at ?? ""));
+  const [deadlineAt, setDeadlineAt] = useState(toKzDatetimeLocal(lesson.deadline_at ?? ""));
   const [published, setPublished] = useState(lesson.published);
   const [teamId, setTeamId] = useState(lesson.team_id ?? "");
   const [loading, setLoading] = useState(false);
