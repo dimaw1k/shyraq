@@ -53,9 +53,9 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
 
       {banners.length > 1 ? (
         <div className="absolute bottom-5 right-5 flex items-center gap-2">
-          <button type="button" aria-label="Алдыңғы баннер" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setIndex((current - 1 + banners.length) % banners.length); }} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md"><ChevronLeft size={16} /></button>
+          <button type="button" aria-label="Алдыңғы баннер" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setIndex((itemIndex) => (itemIndex - 1 + banners.length) % banners.length); }} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md"><ChevronLeft size={16} /></button>
           <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1.5 text-[9px] font-extrabold text-white/80 backdrop-blur-md">{index + 1} / {banners.length}</span>
-          <button type="button" aria-label="Келесі баннер" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setIndex((current + 1) % banners.length); }} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md"><ChevronRight size={16} /></button>
+          <button type="button" aria-label="Келесі баннер" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setIndex((itemIndex) => (itemIndex + 1) % banners.length); }} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md"><ChevronRight size={16} /></button>
         </div>
       ) : null}
     </div>
