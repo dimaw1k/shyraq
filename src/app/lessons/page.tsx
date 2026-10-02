@@ -17,7 +17,7 @@ export default async function LessonsPage() {
   ]);
 
   const role = profile?.role ?? "STUDENT";
-  const now = Date.now();
+  const now = new Date().getTime();
 
   return (
     <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақтар" description="Сабақтар апта және күн құрылымымен орналасқан.">
