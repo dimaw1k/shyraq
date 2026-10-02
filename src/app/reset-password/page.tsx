@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -25,7 +25,6 @@ function Brand() {
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -39,7 +38,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     let active = true;
     const supabase = createBrowserSupabaseClient();
-    const code = searchParams.get("code");
+    const code = new URLSearchParams(window.location.search).get("code");
 
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
@@ -67,7 +66,7 @@ export default function ResetPasswordPage() {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [searchParams]);
+  }, []);
 
   async function requestReset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
