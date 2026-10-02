@@ -39,26 +39,24 @@ Configure:
 
 ## Supabase production configuration
 
-The production project is `Shyraq` with project ref `dujeagndgxlehxsvwrsq`.
+The connected Shyraq Supabase project is **Shyraq** with project ref `sqjjqnisnndulkzcqfwb` in region `eu-central-1`.
 
-All repository migrations through `0019_split_admin_policies` must exist in production. The current production database has migrations `0001` through `0019` applied.
+The production database currently reports migration history through `20261002185843_lesson_team_assignment`. The repository now also contains a new hardening migration, `20261003002500_security_and_fk_indexes.sql`, whose SQL has already been applied directly to the connected database. Run the normal migration push/reconciliation flow before the next schema change so the migration ledger and repository stay aligned.
 
-For hosted Auth, set the production Site URL in Supabase Dashboard to:
+For hosted Auth, keep the production Site URL aligned with the deployed application URL:
 
 `https://shyraq-nu.vercel.app`
 
 ## Verification
 
-After Vercel Production variables are saved, redeploy the project and open:
+The repository health contract requires:
 
-`https://shyraq-nu.vercel.app/api/health`
+- `NEXT_PUBLIC_SUPABASE_URL` configured
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` configured
+- `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` configured
+- `NEXT_PUBLIC_APP_URL` configured
+- real Supabase REST reachability
 
-A healthy response must report:
-
-- `ok: true`
-- `publicEnvConfigured: true`
-- `adminEnvConfigured: true`
-- `appUrlConfigured: true`
-- `supabase.reachable: true`
+The latest Vercel production deployment inspected during the audit is not current: it points to an older commit and is in `ERROR` state. A later Vercel status check on commit `c4d22c82...` reported a `build-rate-limit` failure. The code changes in the repository therefore require a fresh successful CI/build/deployment before production can be treated as current.
 
 Do not place `SUPABASE_SECRET_KEY`, `GOOGLE_CLIENT_SECRET`, `KINESCOPE_API_TOKEN`, or `GOOGLE_TOKEN_ENCRYPTION_KEY` in GitHub.
