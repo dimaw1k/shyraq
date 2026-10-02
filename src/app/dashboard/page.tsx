@@ -53,7 +53,7 @@ export default async function DashboardPage() {
               <p className="mt-2 text-sm text-[#8B8179]">Бүгінгі қадамыңды баста.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Flame size={12} className="mr-1 inline text-[#ff8000]" />{streak} күн streak</span>
+              <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Flame size={12} className="mr-1 inline text-[#ff8000]" />{streak} күн қатарынан</span>
               <span className="rounded-full bg-white px-3 py-2 text-[10px] font-extrabold text-[#7A7068] ring-1 ring-[#E8E1DA]"><Trophy size={12} className="mr-1 inline text-[#ff8000]" />{score} ұпай</span>
             </div>
           </section>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
           <div className="flex justify-end"><Link href="/marathon/final" className="inline-flex items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-3 text-[10px] font-extrabold text-[#4B433C]">21 күндік нәтиже <ArrowRight size={13}/></Link></div>
 
           <section className="grid gap-3 sm:grid-cols-3">
-            <MetricCard label="STREAK" value={streak + " күн"} hint="күндік белсенділік" icon={<Flame size={17} />} />
+            <MetricCard label="ҚАТАРЫНАН ОҚУ КҮНДЕРІ" value={streak + " күн"} hint="күндік белсенділік" icon={<Flame size={17} />} />
             <MetricCard label="ҰПАЙ" value={String(score)} hint="жиналған ұпай" icon={<Trophy size={17} />} />
             <MetricCard label="КОМАНДА" value={team ? String(team.name) : "Күтілуде"} hint="қазіргі командаң" />
           </section>
