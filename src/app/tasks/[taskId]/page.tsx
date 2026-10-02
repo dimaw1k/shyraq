@@ -18,7 +18,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
   if (!task) notFound();
 
   const role = profile?.role ?? "STUDENT";
-  const now = Date.now();
+  const now = new Date().getTime();
   const locked = Boolean(task.starts_at && new Date(task.starts_at).getTime() > now);
 
   if (locked) {
