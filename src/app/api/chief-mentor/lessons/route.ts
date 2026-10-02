@@ -36,6 +36,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Видео ұзақтығын енгізіңіз." }, { status: 400 });
   }
 
+  const teamId = body?.teamId === null || body?.teamId === "" || body?.teamId === undefined ? null : String(body.teamId);
+  if (teamId) {
+    const { data: team } = await supabase.from("teams").select("id").eq("id", teamId).maybeSingle();
+    if (!team) return NextResponse.json({ error: "Команда табылмады." }, { status: 400 });
+  }
+
   const marathonDay = body?.marathonDay === null || body?.marathonDay === "" || body?.marathonDay === undefined ? null : Number(body.marathonDay);
   if (marathonDay !== null && (!Number.isInteger(marathonDay) || marathonDay < 1 || marathonDay > 21)) {
     return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
@@ -61,6 +67,7 @@ export async function POST(request: Request) {
       duration_seconds: duration,
       required_watch_percent: typeof body.requiredWatchPercent === "number" ? Math.min(100, Math.max(0, body.requiredWatchPercent)) : 85,
       marathon_day: marathonDay,
+      team_id: teamId,
       lesson_order: typeof body.lessonOrder === "number" ? Math.floor(body.lessonOrder) : 0,
       sort_order: typeof body.sortOrder === "number" ? Math.floor(body.sortOrder) : 0,
       published: Boolean(body.published),
