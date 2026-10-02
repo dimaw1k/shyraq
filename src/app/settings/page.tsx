@@ -19,7 +19,7 @@ export default async function SettingsPage() {
     <AppShell role={profile?.role ?? "STUDENT"} userName={profile?.full_name ?? undefined} title="Баптаулар">
       <PageContainer className="max-w-5xl">
         <div className="space-y-5">
-          <SectionHeader eyebrow="SUPPORT" title="Баптаулар және Support" description="Парольді қалпына келтіру үшін код күтпей, қолдау қызметіне өтініш жібер." />
+          <SectionHeader eyebrow="ҚОЛДАУ" title="Баптаулар және қолдау" description="Парольді қалпына келтіру үшін код күтпей, қолдау қызметіне өтініш жібер." />
           <Card className="p-5 sm:p-6"><SupportClient /></Card>
         </div>
       </PageContainer>
