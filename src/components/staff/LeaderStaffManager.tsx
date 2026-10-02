@@ -197,7 +197,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
           ? current.map((item) => item.id === data.profile.id ? data.profile : item)
           : [...current, data.profile];
       });
-      setLookup(data.profile);
+      setLookup((current) => current ? { ...current, ...data.profile } : current);
       setLookupMessage("Қызметкер сәтті қосылды.");
     } finally {
       setAddLoading(false);
