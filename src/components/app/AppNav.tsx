@@ -103,7 +103,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <div className="flex items-center gap-2">
-            <NotificationBell />
+            {role === "STUDENT" ? <NotificationBell /> : <div className="h-10 w-10" />}
             <UserChip name={userName} role={role} />
           </div>
         </div>
