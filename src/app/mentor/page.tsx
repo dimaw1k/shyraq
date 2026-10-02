@@ -10,7 +10,7 @@ function issueOf(student: {
   attendanceAverage: number;
   pendingReviewCount: number;
 }) {
-  if (student.overdueTaskCount > 0) return { title: "Дедлайннан кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
+  if (student.overdueTaskCount > 0) return { title: "Соңғы мерзімнен кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
   if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Күндік есеп", tone: "orange" as const };
   if (student.attendanceAverage > 0 && student.attendanceAverage < 80) return { title: "Қатысуы төмен", detail: student.attendanceAverage + "%", tone: "orange" as const };
   if (student.pendingReviewCount > 0) return { title: "Тапсырмасы тексерілуде", detail: student.pendingReviewCount + " жұмыс", tone: "orange" as const };
