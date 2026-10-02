@@ -14,7 +14,9 @@ export default async function ChiefMentorLessonsPage() {
     .select("id,title,description,kinescope_video_id,duration_seconds,required_watch_percent,sort_order,lesson_order,marathon_day,published,starts_at,deadline_at,created_at,materials")
     .order("marathon_day")
     .order("lesson_order")
-    .limit(100);
+    .limit(100),
+    supabase.from("teams").select("id,name").order("name"),
+  ]);
 
   const testData = await getStaffTestData((lessons ?? []).map((lesson) => lesson.id));
 
@@ -23,7 +25,7 @@ export default async function ChiefMentorLessonsPage() {
       <PageContainer>
         <div className="space-y-5">
           <section className="flex flex-wrap items-end justify-between gap-3">
-            <StaffCreateLessonForm />
+            <StaffCreateLessonForm teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
           </section>
 
           <Card className="overflow-hidden">
@@ -37,7 +39,7 @@ export default async function ChiefMentorLessonsPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-extrabold text-[#354153]">{lesson.title}</p>
                         <p className="mt-1 text-[9px] text-[#9A9189]">
-                          {lesson.marathon_day ? lesson.marathon_day + "-күн" : "Күн жоқ"} · {Math.round(Number(lesson.duration_seconds) / 60)} мин
+                          {lesson.marathon_day ? lesson.marathon_day + "-күн" : "Күн жоқ"} · {lesson.team_id ? (teams?.find((team) => team.id === lesson.team_id)?.name ?? "Команда") : "Барлық команда"}
                           {lesson.starts_at ? " · ашылу " + new Date(lesson.starts_at).toLocaleString("kk-KZ") : ""}
                           {lesson.deadline_at ? " · соңғы мерзім " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
                         </p>
@@ -45,7 +47,7 @@ export default async function ChiefMentorLessonsPage() {
                       <StatusPill tone={lesson.published ? "green" : "orange"}>{lesson.published ? "Жарияланған" : "Жоба"}</StatusPill>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <StaffLessonEditForm lesson={lesson} />
+                      <StaffLessonEditForm lesson={lesson} teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))} />
                       <StaffTestEditor lessonId={lesson.id} test={lessonTest.test} questions={lessonTest.questions} />
                     </div>
                   </div>
