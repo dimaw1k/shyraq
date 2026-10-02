@@ -13,14 +13,14 @@ export default async function ChiefMentorSubmissionsPage() {
       role="CHIEF_MENTOR"
       userName={profile.full_name}
       title="Тапсырмаларды тексеру"
-      description="Барлық mentor командаларынан келген тапсырма submission-дарын бақылау."
+      
     >
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
-            eyebrow="REVIEW"
+            eyebrow="ТЕКСЕРУ"
             title="Тапсырмаларды тексеру"
-            description="Главный ментор барлық командалардың submission сапасын тексеріп, нәтижені бекітеді."
+            description="Тапсырма жауаптарын тексеріп, нәтижені бекіту."
           />
           <TaskSubmissionReviewQueue submissions={submissions} />
         </div>
