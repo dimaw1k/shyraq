@@ -80,7 +80,7 @@ const leaderLinks: NavItem[] = [
 const roleLabels: Record<string, string> = {
   STUDENT: "Оқушы",
   MENTOR: "Ментор",
-  CHIEF_MENTOR: "Аға ментор",
+  CHIEF_MENTOR: "Бас ментор",
   LEADER: "Жетекші",
 };
 
