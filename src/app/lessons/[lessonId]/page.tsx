@@ -17,7 +17,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   if (!lesson) notFound();
   const role = profile?.role ?? "STUDENT";
-  const locked = Boolean(lesson.starts_at && new Date(lesson.starts_at).getTime() > Date.now());
+  const locked = Boolean(lesson.starts_at && new Date(lesson.starts_at).getTime() > new Date().getTime());
 
   if (locked) {
     return (
