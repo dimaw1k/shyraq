@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/phone";
 
-async function withProfileContext<T extends Record<string, unknown>>(supabase:any, profile:T, userId:string){
+async function withProfileContext<T extends Record<string, unknown>>(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, profile:T, userId:string){
   const admin=createAdminSupabaseClient();
   const {data:membership}=await supabase.from("team_members").select("team_id,teams(name,mentor_id)").eq("student_id",userId).eq("status","ACTIVE").maybeSingle();
   const team=Array.isArray(membership?.teams)?membership?.teams[0]:membership?.teams;
