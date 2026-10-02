@@ -35,7 +35,7 @@ export default async function MentorTasksPage() {
                   {workspace.tasks.map((task) => (
                     <div key={task.id} className="rounded-[12px] border border-[#EFE8E1] bg-[#FFFCF9] px-3.5 py-3">
                       <p className="text-[10px] font-extrabold text-[#263247]">{task.title}</p>
-                      <p className="mt-1 text-[9px] font-semibold text-[#8F857D]">{task.points} ұпай · {task.deadline ? new Date(task.deadline).toLocaleDateString("kk-KZ") : "Дедлайн жоқ"}</p>
+                      <p className="mt-1 text-[9px] font-semibold text-[#8F857D]">{task.points} ұпай · {task.deadline ? new Date(task.deadline).toLocaleDateString("kk-KZ") : "Соңғы мерзім жоқ"}</p>
                     </div>
                   ))}
                   {!workspace.tasks.length ? <EmptyState title="Белсенді тапсырма жоқ." /> : null}
