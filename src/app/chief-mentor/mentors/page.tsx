@@ -29,10 +29,10 @@ export default async function ChiefMentorMentorsPage() {
   for (const member of members ?? []) studentCount.set(member.team_id, (studentCount.get(member.team_id) ?? 0) + 1);
 
   return (
-    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Менторлар" description="Барлық ментор мен олардың team жүктемесі.">
+    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Менторлар">
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader eyebrow="MENTORS" title="Менторлар штабы" description="Главный ментор менторлардың жұмыс көлемі мен командаларын осы жерден бақылайды." />
+          <SectionHeader eyebrow="МЕНТОРЛАР" title="Менторлар штабы" description="Менторлар мен командаларды бақылау." />
           <Card className="overflow-hidden">
             <div className="hidden grid-cols-[1.2fr_120px_1fr_120px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] sm:grid">
               <span>Ментор</span><span>Команда</span><span>Жүктеме</span><span>Статус</span>
@@ -49,7 +49,7 @@ export default async function ChiefMentorMentorsPage() {
                       <span className="grid h-9 w-9 place-items-center rounded-full bg-[#172235] text-white"><Users size={14} /></span>
                       <div className="min-w-0">
                         <p className="truncate text-[11px] font-extrabold text-[#354153]">{mentor.full_name}</p>
-                        <p className="mt-1 truncate text-[9px] text-[#9A9189]">{mentor.role === "CHIEF_MENTOR" ? "Главный ментор" : mentor.email}</p>
+                        <p className="mt-1 truncate text-[9px] text-[#9A9189]">{mentor.role === "CHIEF_MENTOR" ? "Аға ментор" : mentor.email}</p>
                       </div>
                     </div>
                     <p className="text-[10px] font-extrabold text-[#4B433C]">{teamCount.get(mentor.id) ?? 0}</p>
