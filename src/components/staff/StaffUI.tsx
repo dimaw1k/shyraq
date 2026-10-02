@@ -130,34 +130,11 @@ export function StaffDateTimeField({
             <div className="grid grid-cols-2 gap-2">
               <label className="text-[10px] font-extrabold text-[#5B534C]">
                 Сағат
-                <select
-                  value={hour}
-                  onChange={(event) => {
-                    setHour(event.target.value);
-                    commit(date, event.target.value, minute);
-                  }}
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]"
-                >
-                  {Array.from({ length: 24 }, (_, index) => {
-                    const item = String(index).padStart(2, "0");
-                    return <option key={item} value={item}>{item}</option>;
-                  })}
-                </select>
+                <span className="mt-1.5 block"><StaffSelectMenu value={hour} options={Array.from({ length: 24 }, (_, index) => { const item = String(index).padStart(2, "0"); return { value: item, label: item }; })} onChange={(value) => { setHour(value); commit(date, value, minute); }} /></span>
               </label>
               <label className="text-[10px] font-extrabold text-[#5B534C]">
                 Минут
-                <select
-                  value={minute}
-                  onChange={(event) => {
-                    setMinute(event.target.value);
-                    commit(date, hour, event.target.value);
-                  }}
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]"
-                >
-                  {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
+                <span className="mt-1.5 block"><StaffSelectMenu value={minute} options={["00","05","10","15","20","25","30","35","40","45","50","55"].map((item) => ({ value: item, label: item }))} onChange={(value) => { setMinute(value); commit(date, hour, value); }} /></span>
               </label>
             </div>
             <button
