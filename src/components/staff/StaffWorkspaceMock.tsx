@@ -49,14 +49,14 @@ const mentors = [
 ];
 
 const staffRows = [
-  { name: "Әсел Т.", role: "Главный ментор", scope: "5 ментор • 5 команда", status: "Белсенді", tone: "green" as const },
+  { name: "Әсел Т.", role: "Бас ментор", scope: "5 ментор • 5 команда", status: "Белсенді", tone: "green" as const },
   { name: "Айдана С.", role: "Ментор", scope: "Алатау • 64 оқушы", status: "Белсенді", tone: "green" as const },
   { name: "Дамир К.", role: "Ментор", scope: "Самғау • 61 оқушы", status: "Белсенді", tone: "green" as const },
   { name: "Нұрбек Е.", role: "Ментор", scope: "Болашақ • 59 оқушы", status: "Назарда", tone: "orange" as const },
 ];
 
 function RolePreviewBadge({ role }: { role: StaffPreviewRole }) {
-  const label = role === "LEADER" ? "ЛИДЕР" : role === "CHIEF_MENTOR" ? "ГЛАВНЫЙ МЕНТОР" : "МЕНТОР";
+  const label = role === "LEADER" ? "ЖЕТЕКШІ" : role === "CHIEF_MENTOR" ? "БАС МЕНТОР" : "МЕНТОР";
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[#E8E1DA] bg-white px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.13em] text-[#766E66] shadow-[0_8px_24px_rgba(23,34,53,.04)]">
       <span className="h-1.5 w-1.5 rounded-full bg-[#FF6F2C]" />
@@ -145,7 +145,7 @@ function MentorWorkspace() {
                 </div>
                 <ProgressBar value={student.activity} label="Белсенділік" />
                 <div>
-                  <p className="text-[9px] font-extrabold uppercase tracking-[.11em] text-[#A19890]">Meet</p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-[.11em] text-[#A19890]">КЕЗДЕСУ</p>
                   <p className="mt-1 text-[11px] font-extrabold text-[#172235]">{student.attendance}%</p>
                 </div>
                 <StatusPill tone={student.tone}>{student.task}</StatusPill>
@@ -186,20 +186,20 @@ function MentorWorkspace() {
           <Card dark className="p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-white/45">MEET</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-white/45">КЕЗДЕСУ</p>
                 <h2 className="mt-2 text-[18px] font-extrabold">Алатау • Бүгін 19:00</h2>
-                <p className="mt-2 text-[10px] leading-5 text-white/55">64 оқушының қатысуын бақылау және кейінгі attendance есебі.</p>
+                <p className="mt-2 text-[10px] leading-5 text-white/55">64 оқушының қатысуын бақылау және кейінгі қатысу есебі.</p>
               </div>
               <span className="grid h-10 w-10 place-items-center rounded-[13px] bg-white/10"><Video size={17} /></span>
             </div>
             <div className="mt-5 flex gap-2">
-              <PrimaryLink href="#meet" className="!bg-white !text-[#172235] !shadow-none">Meet-ке кіру</PrimaryLink>
+              <PrimaryLink href="#meet" className="!bg-white !text-[#172235] !shadow-none">Кездесуге кіру</PrimaryLink>
               <SecondaryLink href="#meet" className="!border-white/10 !bg-white/10 !text-white">Қатысуды көру</SecondaryLink>
             </div>
           </Card>
 
           <div id="reports"><Card className="p-5">
-            <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">REPORTS</p>
+            <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ЕСЕПТЕР</p>
             <h2 className="mt-1.5 text-[17px] font-extrabold text-[#172235]">Күндік есептер</h2>
             <div className="mt-4 flex items-end justify-between gap-4">
               <div><p className="text-[30px] font-extrabold tracking-[-.06em] text-[#172235]">57/64</p><p className="mt-1 text-[9px] text-[#9A9189]">бүгін жіберілді</p></div>
@@ -219,7 +219,7 @@ function ChiefMentorWorkspace() {
         role="CHIEF_MENTOR"
         eyebrow="МЕНТОРЛАРДЫ БАСҚАРУ • КҮНДЕЛІКТІ ОПЕРАЦИЯ"
         title="Менторлардың жұмысын бір деңгей жоғарыдан басқар."
-        description="Главный ментордың негізгі кеңістігі — барлық менторлар, командалар, контент, есептер және оқушылардың жалпы ритмі."
+        description="Бас ментордың негізгі кеңістігі — барлық менторлар, командалар, контент, есептер және оқушылардың жалпы ритмі."
       />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -314,11 +314,11 @@ function ChiefMentorWorkspace() {
         <div id="analytics"><Card dark className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">АНАЛИТИКА</p>
           <h2 className="mt-1.5 text-[19px] font-extrabold">Оқушы нәтижесі өсіп келеді.</h2>
-          <p className="mt-2 max-w-lg text-[10px] leading-5 text-white/55">Бұл экранда кейін нақты team-level және mentor-level деректер байланысады. Қазір макетте олардың иерархиясы көрсетілген.</p>
+          <p className="mt-2 max-w-lg text-[10px] leading-5 text-white/55">Бұл экранда кейін нақты команда және ментор деңгейіндегі деректер байланысады. Қазір макетте олардың иерархиясы көрсетілген.</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ACTIVITY</p><p className="mt-1.5 text-[22px] font-extrabold">88%</p></div>
+            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">БЕЛСЕНДІЛІК</p><p className="mt-1.5 text-[22px] font-extrabold">88%</p></div>
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ATTENDANCE</p><p className="mt-1.5 text-[22px] font-extrabold">91%</p></div>
-            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">REPORTS</p><p className="mt-1.5 text-[22px] font-extrabold">92%</p></div>
+            <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] uppercase tracking-[.12em] text-white/40">ЕСЕПТЕР</p><p className="mt-1.5 text-[22px] font-extrabold">92%</p></div>
           </div>
         </Card></div>
       </section>
@@ -335,7 +335,7 @@ function ChiefMentorWorkspace() {
         <Card className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">БАҚЫЛАУ</p>
           <h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Назардағы ментор</h2>
-          <p className="mt-2 text-[11px] font-medium leading-5 text-[#7E756D]">Нұрбек Е. • 59 оқушы • белсенділік 78%. Главный ментор осы жерде action жібере алады.</p>
+          <p className="mt-2 text-[11px] font-medium leading-5 text-[#7E756D]">Нұрбек Е. • 59 оқушы • белсенділік 78%. Главный ментор осы жерде әрекет жасай алады.</p>
           <SecondaryLink href="#mentors" className="mt-4">Менторды ашу <ArrowRight size={14} /></SecondaryLink>
         </Card>
       </section>
@@ -354,7 +354,7 @@ function LeaderWorkspace() {
       />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="ГЛАВНЫЙ МЕНТОР" value="1" hint="операциялық жетекші" icon={<ShieldCheck size={17} />} />
+        <MetricCard label="БАС МЕНТОР" value="1" hint="операциялық жетекші" icon={<ShieldCheck size={17} />} />
         <MetricCard label="МЕНТОР" value="6" hint="барлығы" icon={<Users size={17} />} />
         <MetricCard label="ОҚУШЫ" value="312" hint="марафонда" icon={<Users size={17} />} />
         <MetricCard label="ЖАЛПЫ БЕЛСЕНДІЛІК" value="84%" hint="соңғы 7 күн" icon={<BarChart3 size={17} />} />
@@ -371,7 +371,7 @@ function LeaderWorkspace() {
               <div key={row.name} className="grid gap-3 px-5 py-4 sm:grid-cols-[1.25fr_1.1fr_1.2fr_100px] sm:items-center sm:px-6">
                 <div><p className="text-[12px] font-extrabold text-[#283446]">{row.name}</p><p className="mt-1 text-[9px] text-[#9A9189]">{row.scope}</p></div>
                 <span className="text-[10px] font-extrabold text-[#4B433C]">{row.role}</span>
-                <ProgressBar value={row.role === "Главный ментор" ? 97 : row.name === "Нұрбек Е." ? 74 : 89} />
+                <ProgressBar value={row.role === "Бас ментор" ? 97 : row.name === "Нұрбек Е." ? 74 : 89} />
                 <StatusPill tone={row.tone}>{row.status}</StatusPill>
               </div>
             ))}
@@ -400,7 +400,7 @@ function LeaderWorkspace() {
         <div id="students"><Card dark className="p-5 sm:p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">ОҚУШЫЛАР</p>
           <h2 className="mt-1.5 text-[22px] font-extrabold">312</h2>
-          <p className="mt-2 text-[10px] leading-5 text-white/55">Жалпы база, белсенділік, attendance, есептер және рейтинг кейін осы бөлімдерден жеке ашылады.</p>
+          <p className="mt-2 text-[10px] leading-5 text-white/55">Жалпы база, белсенділік, қатысу, есептер және рейтинг кейін осы бөлімдерден жеке ашылады.</p>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] text-white/40">ACTIVE</p><p className="mt-1.5 text-[18px] font-extrabold">286</p></div>
             <div className="rounded-[17px] bg-white/8 p-3"><p className="text-[9px] text-white/40">WAITING</p><p className="mt-1.5 text-[18px] font-extrabold">26</p></div>
@@ -430,7 +430,7 @@ function LeaderWorkspace() {
           <div className="flex items-center justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">АНАЛИТИКА</p><h2 className="mt-1.5 text-[18px] font-extrabold text-[#172235]">Марафонның жалпы ритмі</h2></div><BarChart3 size={17} className="text-[#FF6F2C]" /></div>
           <div className="mt-5 space-y-5">
             <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Оқушы белсенділігі</span><span>84%</span></div><ProgressBar value={84} /></div>
-            <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Attendance</span><span>91%</span></div><ProgressBar value={91} /></div>
+            <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Қатысу</span><span>91%</span></div><ProgressBar value={91} /></div>
             <div><div className="mb-2 flex justify-between text-[10px] font-extrabold text-[#7B726A]"><span>Есептер</span><span>92%</span></div><ProgressBar value={92} /></div>
           </div>
         </Card></div>
@@ -441,7 +441,7 @@ function LeaderWorkspace() {
           <div className="flex items-center justify-between border-b border-[#EFE8E1] px-5 py-4 sm:px-6"><div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ЖУРНАЛ</p><h2 className="mt-1 text-[17px] font-extrabold text-[#172235]">Соңғы маңызды әрекеттер</h2></div><MoreHorizontal size={17} className="text-[#9A9189]" /></div>
           <div className="divide-y divide-[#EFE8E1]">
             {[
-              ["Главный ментор", "Сабақ 18 жарияланды", "10:12"],
+              ["Бас ментор", "Сабақ 18 жарияланды", "10:12"],
               ["Айдана С.", "Командаға 2 оқушы қосты", "09:48"],
               ["Дамир К.", "7 тапсырманы тексерді", "09:31"],
             ].map(([actor, action, time]) => (
@@ -468,8 +468,8 @@ function LeaderWorkspace() {
 export function StaffWorkspaceMock({ role }: { role: StaffPreviewRole }) {
   const meta = {
     MENTOR: { userName: "Айдана С.", title: "Ментор кабинеті", description: "Өз командаңның күнделікті жұмыс кеңістігі." },
-    CHIEF_MENTOR: { userName: "Әсел Т.", title: "Главный ментор кабинеті", description: "Барлық менторлар мен командалардың операциялық кеңістігі." },
-    LEADER: { userName: "Данияр М.", title: "Лидер кабинеті", description: "Марафонның ең жоғары қызметкерлік басқару кеңістігі." },
+    CHIEF_MENTOR: { userName: "Әсел Т.", title: "Бас ментор кабинеті", description: "Барлық менторлар мен командалардың операциялық кеңістігі." },
+    LEADER: { userName: "Данияр М.", title: "Жетекші кабинеті", description: "Марафонның ең жоғары қызметкерлік басқару кеңістігі." },
   }[role];
 
   return (
