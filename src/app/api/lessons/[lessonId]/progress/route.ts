@@ -4,15 +4,55 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasReachedWatchGate, watchedPercent, mergeTimeRanges, type TimeRange } from "@/lib/video/coverage";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
+async function getAccessibleLesson(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, lessonId: string, userId: string) {
+  const [{ data: lesson }, { data: membership }] = await Promise.all([
+    supabase
+      .from("lessons")
+      .select("id,duration_seconds,required_watch_percent,published,starts_at,team_id")
+      .eq("id", lessonId)
+      .maybeSingle(),
+    supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("student_id", userId)
+      .eq("status", "ACTIVE")
+      .maybeSingle(),
+  ]);
+
+  if (!lesson?.published) return { lesson: null, forbidden: false };
+
+  if (lesson.starts_at && new Date(lesson.starts_at).getTime() > Date.now()) {
+    return { lesson: null, forbidden: true };
+  }
+
+  if (lesson.team_id && lesson.team_id !== membership?.team_id) {
+    return { lesson: null, forbidden: true };
+  }
+
+  return { lesson, forbidden: false };
+}
+
 export async function GET(_request: Request, context: { params: Promise<{ lessonId: string }> }) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { lessonId } = await context.params;
-  const { data, error } = await supabase.from("video_progress")
+  const access = await getAccessibleLesson(supabase, lessonId, user.id);
+  if (!access.lesson) {
+    return NextResponse.json(
+      { error: access.forbidden ? "Lesson is not available for your team or has not opened yet." : "Lesson not found" },
+      { status: access.forbidden ? 403 : 404 },
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("video_progress")
     .select("lesson_id,watched_seconds,watched_percent,maximum_position_seconds,watched_ranges,completed,test_unlocked,first_started_at,last_watched_at")
-    .eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
+    .eq("lesson_id", lessonId)
+    .eq("student_id", user.id)
+    .maybeSingle();
+
   if (error) return NextResponse.json({ error: "Unable to load progress" }, { status: 400 });
   return NextResponse.json({ progress: data });
 }
@@ -23,12 +63,22 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { lessonId } = await context.params;
-  const { data: lesson } = await supabase.from("lessons")
-    .select("id,duration_seconds,required_watch_percent,published").eq("id", lessonId).maybeSingle();
-  if (!lesson?.published) return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+  const access = await getAccessibleLesson(supabase, lessonId, user.id);
+  if (!access.lesson) {
+    return NextResponse.json(
+      { error: access.forbidden ? "Lesson is not available for your team or has not opened yet." : "Lesson not found" },
+      { status: access.forbidden ? 403 : 404 },
+    );
+  }
 
-  const { data: existing } = await supabase.from("video_progress")
-    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle();
+  const lesson = access.lesson;
+
+  const { data: existing } = await supabase
+    .from("video_progress")
+    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at")
+    .eq("lesson_id", lessonId)
+    .eq("student_id", user.id)
+    .maybeSingle();
 
   const body = await request.json().catch(() => null);
   const rawRanges: unknown[] = Array.isArray(body?.ranges) ? body.ranges : [];
@@ -88,7 +138,7 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     }
   }
 
-  const maximumPosition = Math.floor(Math.max(0, ...ranges.map((r) => r.end)));
+  const maximumPosition = Math.floor(Math.max(0, ...ranges.map((range) => range.end)));
 
   const payload = {
     lesson_id: lessonId,
@@ -104,20 +154,24 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   };
 
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin.from("video_progress")
-    .upsert(payload, { onConflict: "lesson_id,student_id" }).select("*").single();
+  const { data, error } = await admin
+    .from("video_progress")
+    .upsert(payload, { onConflict: "lesson_id,student_id" })
+    .select("*")
+    .single();
+
   if (error) return NextResponse.json({ error: "Progress save failed" }, { status: 400 });
 
   if (unlocked && !existing?.test_unlocked) {
-    const { data: rule } = await supabase.from("score_rules").select("weight,active")
-      .eq("code", "VIDEO").maybeSingle();
+    const { data: rule } = await supabase.from("score_rules").select("weight,active").eq("code", "VIDEO").maybeSingle();
     const { data: membership } = await supabase.from("team_members")
       .select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();
+
     if (rule?.active && Number(rule.weight) !== 0) {
       try {
         await recordScoreEvent(supabase, {
           studentId: user.id,
-          teamId: membership?.team_id ?? null,
+          teamId: membership?.team_id ?? lesson.team_id ?? null,
           sourceCode: "VIDEO",
           sourceId: data.id,
           points: Number(rule.weight),
