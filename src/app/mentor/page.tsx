@@ -11,7 +11,7 @@ function issueOf(student: {
   pendingReviewCount: number;
 }) {
   if (student.overdueTaskCount > 0) return { title: "Дедлайннан кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
-  if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Daily report", tone: "orange" as const };
+  if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Күндік есеп", tone: "orange" as const };
   if (student.attendanceAverage > 0 && student.attendanceAverage < 80) return { title: "Қатысуы төмен", detail: student.attendanceAverage + "%", tone: "orange" as const };
   if (student.pendingReviewCount > 0) return { title: "Тапсырмасы тексерілуде", detail: student.pendingReviewCount + " жұмыс", tone: "orange" as const };
   return null;
@@ -44,7 +44,7 @@ export default async function MentorPage() {
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
-            eyebrow="MENTOR"
+            eyebrow="МЕНТОР"
             title="Бүгінгі жағдай"
             description="Командадағы ең маңызды ақпарат қысқа түрде көрсетіледі."
           />
@@ -96,7 +96,7 @@ export default async function MentorPage() {
                 <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
                   <div>
                     <p className="text-[13px] font-extrabold text-[#172235]">Есептер</p>
-                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Daily report тексеру</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Күндік есепті тексеру</p>
                   </div>
                   <FileText size={18} className="text-[#FF8000]" />
                 </Card>
@@ -105,7 +105,7 @@ export default async function MentorPage() {
                 <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
                   <div>
                     <p className="text-[13px] font-extrabold text-[#172235]">Кездесу</p>
-                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">{workspace.meetSpace?.display_name ?? "Google Meet"}</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">{workspace.meetSpace?.display_name ?? "Бейне кездесу"}</p>
                   </div>
                   <Activity size={18} className="text-[#FF8000]" />
                 </Card>
