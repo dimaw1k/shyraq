@@ -11,12 +11,15 @@ export default async function LessonsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: lessons }] = await Promise.all([
+  const [{ data: profile }, { data: membership }, { data: lessons }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase.from("lessons").select("id,title,description,duration_seconds,required_watch_percent,marathon_day,lesson_order,starts_at,published").eq("published", true).order("marathon_day").order("lesson_order").limit(100),
+    supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
+    supabase.from("lessons").select("id,title,description,duration_seconds,required_watch_percent,marathon_day,lesson_order,team_id,starts_at,published").eq("published", true).order("marathon_day").order("lesson_order").limit(100),
   ]);
 
   const role = profile?.role ?? "STUDENT";
+  const teamId = membership?.team_id ?? null;
+  const visibleLessons = role === "STUDENT" ? (lessons ?? []).filter((lesson) => !lesson.team_id || lesson.team_id === teamId) : (lessons ?? []);
   const now = new Date().getTime();
 
   return (
@@ -25,7 +28,7 @@ export default async function LessonsPage() {
         <div className="space-y-5">
           <SectionHeader eyebrow="ОҚУ" title="Сабақтар" description="Қажетті күнді ашып, видео мен тестті ретімен орында." />
           {MARATHON_WEEKS.map((week) => {
-            const weekLessons = (lessons ?? []).filter((lesson) => {
+            const weekLessons = visibleLessons.filter((lesson) => {
               const day = Number(lesson.marathon_day ?? 0);
               return day >= week.startDay && day <= week.endDay;
             });
