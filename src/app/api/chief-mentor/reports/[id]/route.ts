@@ -12,7 +12,7 @@ export async function PATCH(
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const { id } = await params;
 
-  let body: { status?: string };
+  let body: { status?: string; reviewComment?: string };
   try {
     body = await request.json();
   } catch {
@@ -24,6 +24,7 @@ export async function PATCH(
   }
 
   const nextStatus = body.status as "REVIEWED" | "REJECTED";
+  const reviewComment = typeof body.reviewComment === "string" ? body.reviewComment.trim().slice(0, 3000) : null;
   const admin = createAdminSupabaseClient();
 
   const { data: existing, error: existingError } = await admin
@@ -57,9 +58,10 @@ export async function PATCH(
       status: nextStatus,
       reviewed_at: new Date().toISOString(),
       reviewed_by: profile.id,
+      review_comment: reviewComment,
     })
     .eq("id", id)
-    .select("id,student_id,report_date,status,reviewed_at,reviewed_by")
+    .select("id,student_id,report_date,status,reviewed_at,reviewed_by,review_comment")
     .single();
 
   if (updateError || !updated) {
