@@ -11,7 +11,7 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   const body = await request.json().catch(() => null);
   const textAnswer = typeof body?.textAnswer === "string" ? body.textAnswer.trim() : null;
   const linkUrl = typeof body?.linkUrl === "string" ? body.linkUrl.trim() : null;
-  if (linkUrl && !/^https?:\\/\\//i.test(linkUrl)) return NextResponse.json({ error: "Сілтеме http:// немесе https:// арқылы басталуы керек." }, { status: 400 });
+  if (linkUrl) { try { const parsed = new URL(linkUrl); if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("protocol"); } catch { return NextResponse.json({ error: "Сілтеме жарамсыз." }, { status: 400 }); } }
   const finalize = body?.finalize !== false;
 
   const { data: task } = await supabase.from("tasks").select("id,team_id,active,starts_at,deadline,points,attachment_required,max_files").eq("id", taskId).maybeSingle();
