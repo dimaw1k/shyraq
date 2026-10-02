@@ -37,7 +37,7 @@ export async function PATCH(
     .select("student_id")
     .eq("team_id", team.id)
     .eq("status", "ACTIVE")
-    .eq("student_id", (await admin.from("daily_reports").select("student_id").eq("id", id).maybeSingle()).data?.student_id ?? "")
+    .eq("student_id", existing.student_id)
     .maybeSingle();
 
   const { data: existing, error: existingError } = await admin
