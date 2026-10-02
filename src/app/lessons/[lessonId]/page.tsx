@@ -47,7 +47,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const initialRanges = Array.isArray(progress?.watched_ranges) ? (progress.watched_ranges as { start: number; end: number }[]) : [];
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · видео → тест" : "Видео → тест"} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · бейне → тест" : "Бейне → тест"} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
       <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <section className="min-w-0">
