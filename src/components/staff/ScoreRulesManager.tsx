@@ -64,10 +64,10 @@ export function ScoreRulesManager({ initialRules }: { initialRules: Rule[] }) {
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">SCORING ENGINE</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF6F2C]">ҰПАЙ ЖҮЙЕСІ</p>
           <h2 className="mt-1.5 text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">Ұпай ережелері</h2>
           <p className="mt-1 text-[11px] font-medium leading-5 text-[#8E847B]">
-            Weight — оқушы бір оқиға үшін алатын базалық ұпай. 0 болса сол rule ұпай бермейді.
+            Әр әрекетке берілетін базалық ұпай.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export function ScoreRulesManager({ initialRules }: { initialRules: Rule[] }) {
             </div>
 
             <label className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">Weight</span>
+              <span className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">Ұпай</span>
               <input
                 type="number"
                 min="0"
