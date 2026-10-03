@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useLenis } from "lenis/react";
 import { ArrowRight } from "lucide-react";
 
 const items = [
@@ -13,7 +12,6 @@ const items = [
 ];
 
 export function StickyNav() {
-  const lenis = useLenis();
   const [active, setActive] = useState("top");
   const [scrolled, setScrolled] = useState(false);
 
@@ -60,11 +58,10 @@ export function StickyNav() {
 
     if (!section) return;
 
-    lenis?.scrollTo(target === "top" ? 0 : section, {
-      offset: -96,
-      duration: 1.05,
-      easing: (t: number) => 1 - Math.pow(1 - t, 4),
-    });
+    const top = target === "top"
+      ? 0
+      : Math.max(0, window.scrollY + section.getBoundingClientRect().top - 96);
+    window.scrollTo({ top, behavior: "smooth" });
   };
 
   return (
