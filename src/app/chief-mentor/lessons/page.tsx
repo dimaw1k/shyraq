@@ -25,12 +25,12 @@ export default async function ChiefMentorLessonsPage() {
   return (
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Сабақтар">
       <PageContainer>
-        <div className="space-y-5">
+        <div className="space-y-6">
           <section className="flex flex-wrap items-end justify-between gap-3">
             <StaffCreateLessonForm teams={teamOptions} />
           </section>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden rounded-[20px] border border-[#EEE6DE] shadow-[0_10px_35px_rgba(23,34,53,.05)]">
             <div className="divide-y divide-[#EFE8E1]">
               {(lessons ?? []).map((lesson) => {
                 const lessonTest = testData.get(lesson.id) ?? { test: null, questions: [] };
@@ -39,14 +39,14 @@ export default async function ChiefMentorLessonsPage() {
                   : "Барлық команда";
 
                 return (
-                  <div key={lesson.id} className="space-y-3 px-5 py-4">
+                  <div key={lesson.id} className="space-y-3.5 px-5 py-4.5 transition hover:bg-[#FFFCF9]">
                     <div className="flex items-start gap-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]">
                         <BookOpen size={14} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[11px] font-extrabold text-[#354153]">{lesson.title}</p>
-                        <p className="mt-1 text-[9px] text-[#9A9189]">
+                        <p className="truncate text-[13px] font-extrabold tracking-[-.01em] text-[#172235]">{lesson.title}</p>
+                        <p className="mt-1.5 text-[10px] leading-5 text-[#8B8178]">
                           {lesson.marathon_day ? lesson.marathon_day + "-күн" : "Күн жоқ"} · {teamName}
                           {lesson.starts_at ? " · ашылу " + new Date(lesson.starts_at).toLocaleString("kk-KZ") : ""}
                           {lesson.deadline_at ? " · соңғы мерзім " + new Date(lesson.deadline_at).toLocaleString("kk-KZ") : ""}
@@ -56,7 +56,7 @@ export default async function ChiefMentorLessonsPage() {
                         {lesson.published ? "Жарияланған" : "Жоба"}
                       </StatusPill>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-2 border-t border-[#F1ECE7] pt-3">
                       <StaffLessonEditForm lesson={lesson} teams={teamOptions} />
                       <StaffTestEditor lessonId={lesson.id} test={lessonTest.test} questions={lessonTest.questions} />
                     </div>
