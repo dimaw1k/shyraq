@@ -219,7 +219,7 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-[11px] border border-[#E8E1DA] bg-white px-3.5 py-2 text-[9px] font-extrabold text-[#4B433C] transition hover:border-[#FFB067]"
+        className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E7DED5] bg-[#FFFBF6] px-4 py-2.5 text-[11px] font-bold text-[#3F3832] shadow-[0_4px_14px_rgba(23,34,53,.035)] transition-all hover:-translate-y-0.5 hover:border-[#FFB067] hover:bg-[#FFF4E8] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(255,128,0,.12)]"
       >
         <FilePlus2 size={12} />
         {test ? "Тестті өңдеу" : "Тест жасау"}
