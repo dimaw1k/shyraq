@@ -100,7 +100,7 @@ export function KinescopeLessonPlayer({
     }finally{setSaving(false);}
   },[lessonId]);
 
-  function handleTimeUpdate(event:{currentTime:number}){
+  const handleTimeUpdate=useCallback((event:{currentTime:number})=>{
     if(!shouldTrackProgress)return;
     const current=Math.max(0,Math.min(durationSeconds,event.currentTime));
     const previous=lastTime.current;
@@ -112,7 +112,7 @@ export function KinescopeLessonPlayer({
     rangesRef.current=next;
     setRanges(next);
     setPercent(watchedPercent(next,durationSeconds));
-  }
+  },[durationSeconds,shouldTrackProgress]);
 
   useEffect(()=>{
     if(!youtubeId || !youtubeContainerRef.current || !shouldTrackProgress)return;
@@ -180,7 +180,7 @@ export function KinescopeLessonPlayer({
       try{youtubePlayerRef.current?.destroy();}catch{}
       youtubePlayerRef.current=null;
     };
-  },[youtubeId,shouldTrackProgress,durationSeconds]);
+  },[youtubeId,shouldTrackProgress,durationSeconds,handleTimeUpdate]);
 
   useEffect(()=>{
     if(!shouldTrackProgress)return;
