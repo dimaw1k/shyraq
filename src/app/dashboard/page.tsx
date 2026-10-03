@@ -40,6 +40,10 @@ export default async function DashboardPage() {
   const streak = calculateCurrentStreak(getSubmittedReportDates(reports ?? []), today);
   const score = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
   const team = Array.isArray(membership?.teams) ? membership.teams[0] : membership?.teams;
+  const teamId = membership?.team_id ?? null;
+  const { data: meetSpace } = teamId
+    ? await supabase.from("meet_spaces").select("meeting_url,display_name,active").eq("team_id", teamId).eq("active", true).maybeSingle()
+    : { data: null };
   const firstName = profile?.full_name?.split(" ")[0] ?? "досым";
 
   return (
@@ -80,6 +84,26 @@ export default async function DashboardPage() {
           </section>
 
           <div className="flex justify-end"><Link href="/marathon/final" className="inline-flex items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-3 text-[10px] font-extrabold text-[#4B433C]">21 күндік нәтиже <ArrowRight size={13}/></Link></div>
+
+          {meetSpace?.meeting_url ? (
+            <section className="rounded-[20px] border border-[#E8E1DA] bg-white p-5 shadow-soft">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#ff8000]">БЕЙНЕ КЕЗДЕСУ</p>
+                  <h2 className="mt-1.5 text-lg font-extrabold text-[#172235]">{meetSpace.display_name || "Meet – STUDY STREAM"}</h2>
+                  <p className="mt-1 text-xs leading-5 text-[#8B8179]">Өз командаңның онлайн сабағына осы жерден кір.</p>
+                </div>
+                <a
+                  href={meetSpace.meeting_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-[12px] bg-[#ff8000] px-5 py-3 text-[10px] font-extrabold text-white transition hover:-translate-y-0.5 hover:opacity-90"
+                >
+                  Кездесуге кіру
+                </a>
+              </div>
+            </section>
+          ) : null}
 
           <section className="grid gap-3 sm:grid-cols-3">
             <MetricCard label="ҚАТАРЫНАН ОҚУ КҮНДЕРІ" value={streak + " күн"} hint="күндік белсенділік" icon={<Flame size={17} />} />
