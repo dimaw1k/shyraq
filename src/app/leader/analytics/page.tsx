@@ -20,7 +20,7 @@ export default async function LeaderAnalyticsPage() {
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader eyebrow="АНАЛИТИКА" title="Жалпы аналитика"  />
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">} />
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <MetricCard label="ЕСЕПТЕР" value={String(reports ?? 0)} hint="жіберілді" />
             <MetricCard label="ТАПСЫРМАЛАР" value={submissionValue.toFixed(1) + "%"} hint="жіберілді + тексерілді" />
             <MetricCard label="БЕЙНЕ" value={videoValue.toFixed(1) + "%"} hint="орташа қарау" />
