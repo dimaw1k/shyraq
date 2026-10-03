@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, BarChart3, ClipboardCheck, FileText, UsersRound } from "lucide-react";
+import { Activity, ClipboardCheck, FileText, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, MetricCard, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { getMentorPageData } from "@/lib/mentor/auth";
@@ -7,12 +7,10 @@ import { getMentorPageData } from "@/lib/mentor/auth";
 function issueOf(student: {
   overdueTaskCount: number;
   todayReportMissing: boolean;
-  attendanceAverage: number;
   pendingReviewCount: number;
 }) {
   if (student.overdueTaskCount > 0) return { title: "Соңғы мерзімнен кешігу", detail: student.overdueTaskCount + " тапсырма", tone: "red" as const };
   if (student.todayReportMissing) return { title: "Бүгін есеп жоқ", detail: "Күндік есеп", tone: "orange" as const };
-  if (student.attendanceAverage > 0 && student.attendanceAverage < 80) return { title: "Қатысуы төмен", detail: student.attendanceAverage + "%", tone: "orange" as const };
   if (student.pendingReviewCount > 0) return { title: "Тапсырмасы тексерілуде", detail: student.pendingReviewCount + " жұмыс", tone: "orange" as const };
   return null;
 }
@@ -50,8 +48,7 @@ export default async function MentorPage() {
 
           <section className="grid gap-3 sm:grid-cols-3">
             <MetricCard label="ОҚУШЫ" value={String(workspace.students.length)} hint="команда" icon={<UsersRound size={17} />} />
-            <MetricCard label="ТЕКСЕРУ" value={String(workspace.pendingReviewCount)} hint="жаңа жұмыс" icon={<ClipboardCheck size={17} />} />
-            <MetricCard label="ҚАТЫСУ" value={workspace.averageAttendance ? workspace.averageAttendance + "%" : "—"} hint="орташа" icon={<BarChart3 size={17} />} />
+            <MetricCard label="ТЕКСЕРУ" value={String(workspace.pendingReviewCount)} hint="жаңа жұмыс" icon={<ClipboardCheck size={17} />} />} />
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
