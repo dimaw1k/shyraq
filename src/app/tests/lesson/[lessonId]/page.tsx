@@ -32,8 +32,7 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
     notFound();
   }
 
-  const isYouTubeLesson=/youtu\.be|youtube\.com/i.test(lesson.kinescope_video_id ?? "");
-  if (!progress?.test_unlocked && !isYouTubeLesson) redirect("/lessons/" + lessonId);
+  if (!progress?.test_unlocked) redirect("/lessons/" + lessonId);
 
   const admin = createAdminSupabaseClient();
   const [{ data: rawQuestions }, { data: attempts }] = await Promise.all([
