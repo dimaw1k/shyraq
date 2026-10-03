@@ -120,7 +120,7 @@ export function StickyNav() {
             </svg>
           </Link>
 
-          <nav className="relative hidden overflow-hidden rounded-full bg-[#172235] p-1 sm:flex">
+          <nav className="relative hidden overflow-hidden rounded-full bg-[#eef1f6] p-1 sm:flex">
             <span
               aria-hidden="true"
               className="pointer-events-none absolute bottom-1 left-1 top-1 rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,.14)] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]"
@@ -142,7 +142,7 @@ export function StickyNav() {
                   "relative z-10 flex min-w-[100px] flex-1 items-center justify-center rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-xs",
                   active === item.target
                     ? "text-[#172235]"
-                    : "text-white/72 hover:text-white",
+                    : "text-[#172235]/65 hover:text-[#172235]",
                 ].join(" ")}
               >
                 {item.label}
