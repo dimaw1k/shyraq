@@ -20,3 +20,26 @@ export function getMarathonWeek(week: number) {
 export function getMarathonWeekForDay(day: number) {
   return MARATHON_WEEKS.find((item) => day >= item.startDay && day <= item.endDay) ?? null;
 }
+
+
+export function kzDateKey(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Almaty",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function marathonDayFromDate(value: string | Date, marathonStart: string | Date) {
+  const valueKey = kzDateKey(value);
+  const startKey = kzDateKey(marathonStart);
+  if (!valueKey || !startKey) return null;
+  const valueUtc = Date.parse(valueKey + "T00:00:00Z");
+  const startUtc = Date.parse(startKey + "T00:00:00Z");
+  if (Number.isNaN(valueUtc) || Number.isNaN(startUtc)) return null;
+  const day = Math.floor((valueUtc - startUtc) / 86_400_000) + 1;
+  return day >= 1 && day <= 21 ? day : null;
+}
