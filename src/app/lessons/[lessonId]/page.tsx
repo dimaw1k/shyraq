@@ -25,7 +25,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   if (locked) {
     return (
-      <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақ жабық" right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+      <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақ жабық">
         <main className="mx-auto w-full max-w-3xl px-3.5 py-5 sm:px-6 sm:py-8">
           <div className="rounded-[24px] border border-[#E8E1DA] bg-white p-6 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
@@ -56,7 +56,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const initialRanges = Array.isArray(progress?.watched_ranges) ? (progress.watched_ranges as { start: number; end: number }[]) : [];
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ") : (hasTest ? "Бейне → тест" : "Бейне сабақ")} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ") : (hasTest ? "Бейне → тест" : "Бейне сабақ")}>
       <main className="mx-auto w-full max-w-5xl px-3.5 py-4 sm:px-6 sm:py-7">
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <section className="min-w-0">
