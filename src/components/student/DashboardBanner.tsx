@@ -51,12 +51,11 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
       <div className="grid min-h-[150px] sm:min-h-[170px] lg:grid-cols-[1.05fr_1.45fr]">
         <div className="order-2 flex min-w-0 items-center px-5 py-5 sm:px-7 lg:order-1">
           <div className="min-w-0">
-            <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000] sm:text-[10px]">
-              МАҢЫЗДЫ ХАБАРЛАМА
-            </p>
-            <h2 className="mt-2 line-clamp-2 text-xl font-extrabold leading-[1.05] tracking-[-.04em] text-[#172235] sm:text-2xl">
-              {current.title}
-            </h2>
+            {current.title && !/^image\s*\(?\d*\)?$/i.test(current.title.trim()) ? (
+              <h2 className="line-clamp-2 text-xl font-extrabold leading-[1.05] tracking-[-.04em] text-[#172235] sm:text-2xl">
+                {current.title}
+              </h2>
+            ) : null}
             {current.description ? (
               <p className="mt-2 line-clamp-2 max-w-xl text-[11px] font-medium leading-5 text-[#8B8179] sm:text-xs">
                 {current.description}
