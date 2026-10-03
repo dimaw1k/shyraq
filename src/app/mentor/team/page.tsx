@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
+import { marathonDayFromDate } from "@/lib/marathon";
 import { getMentorPageData } from "@/lib/mentor/auth";
 import { uiLabel } from "@/lib/ui-labels";
 
@@ -11,6 +12,15 @@ export default async function MentorTeamPage({ searchParams }: { searchParams?: 
 
   const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
   const studentIds = workspace?.students.map((student) => student.id) ?? [];
+  const { data: marathonStartRow } = await supabase
+    .from("tasks")
+    .select("starts_at")
+    .eq("marathon_day", 1)
+    .not("starts_at", "is", null)
+    .order("starts_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const marathonStart = marathonStartRow?.starts_at ?? null;
   const { data: dayAttendance } = workspace && studentIds.length
     ? await supabase
         .from("attendance_records")
@@ -23,11 +33,7 @@ export default async function MentorTeamPage({ searchParams }: { searchParams?: 
   for (const row of dayAttendance ?? []) {
     const stamp = row.ended_at ?? row.started_at;
     if (!stamp) continue;
-    const day = Number(new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Almaty",
-      day: "2-digit",
-    }).format(new Date(stamp)));
-    if (day !== selectedDay) continue;
+    if (marathonStart && marathonDayFromDate(stamp, marathonStart) !== selectedDay) continue;
     const values = dayMap.get(row.student_id) ?? [];
     values.push(Number(row.attendance_percent ?? 0));
     dayMap.set(row.student_id, values);
