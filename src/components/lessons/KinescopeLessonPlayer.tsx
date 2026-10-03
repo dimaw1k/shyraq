@@ -58,7 +58,7 @@ export function KinescopeLessonPlayer({
   useEffect(()=>{rangesRef.current=ranges;},[ranges]);
 
   const persist=useCallback(async(nextRanges:TimeRange[])=>{
-    if(!nextRanges.length) return;
+    if(!nextRanges.length)return;
     setSaving(true);
     try{
       const response=await fetch("/api/lessons/"+lessonId+"/progress",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({ranges:nextRanges})});
@@ -69,7 +69,9 @@ export function KinescopeLessonPlayer({
   function handleTimeUpdate(event:{currentTime:number}){
     if(!shouldTrackProgress)return;
     const current=Math.max(0,Math.min(durationSeconds,event.currentTime));
-    const previous=lastTime.current;lastTime.current=current;if(previous===null)return;
+    const previous=lastTime.current;
+    lastTime.current=current;
+    if(previous===null)return;
     const next=previous<=current&&current-previous<=4?mergeTimeRanges([...rangesRef.current,{start:previous,end:current}]):rangesRef.current;
     rangesRef.current=next;setRanges(next);setPercent(watchedPercent(next,durationSeconds));
   }
@@ -103,7 +105,15 @@ export function KinescopeLessonPlayer({
         </div>
         <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-soft">
           <p className="text-xs font-semibold text-gray-900">Видео сабақ</p>
-          <p className="mt-1 text-[10px] leading-5 text-gray-500">Сабақты толық көріп, төмендегі практика мен тапсырманы орында.</p>
+          <p className="mt-1 text-[10px] leading-5 text-gray-500">Сабақты қарап шыққаннан кейін практика мен тапсырмаларды орында.</p>
+          {testHref ? (
+            <Link
+              href={testHref}
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
+            >
+              Тестке өту
+            </Link>
+          ) : null}
         </div>
       </div>
     );
