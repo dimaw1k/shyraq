@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { todayInTimezone } from "@/lib/streak";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export type MentorStudent = {
   id: string;
@@ -81,31 +82,59 @@ export async function getMentorWorkspaceData(
 
   if (!team) return null;
 
-  const [{ data: members }, { data: tasks }, { data: meetSpace }, { data: googleConnection }] =
-    await Promise.all([
-      supabase
-        .from("team_members")
-        .select("student_id,assigned_at,profiles(id,full_name,phone,email,status)")
-        .eq("team_id", team.id)
-        .eq("status", "ACTIVE"),
-      supabase
-        .from("tasks")
-        .select("id,title,deadline,points,active")
-        .eq("team_id", team.id)
-        .eq("active", true)
-        .order("deadline", { ascending: true, nullsFirst: false }),
-      supabase
-        .from("meet_spaces")
-        .select("id,meeting_url,display_name,active")
-        .eq("team_id", team.id)
-        .eq("active", true)
-        .maybeSingle(),
-      supabase
-        .from("google_connections")
-        .select("google_email")
-        .eq("user_id", mentorId)
-        .maybeSingle(),
-    ]);
+  // The team lookup above is the authorization check. After it succeeds,
+  // load only this mentor's team data through the server-side admin client.
+  // This avoids losing nested rows to unrelated RLS joins while keeping the
+  // access scope explicitly constrained to the authorized team/student IDs.
+  const admin = createAdminSupabaseClient();
+
+  const [
+    { data: memberRows },
+    { data: taskRows },
+    { data: meetSpace },
+    { data: googleConnection },
+  ] = await Promise.all([
+    admin
+      .from("team_members")
+      .select("student_id,assigned_at")
+      .eq("team_id", team.id)
+      .eq("status", "ACTIVE"),
+    admin
+      .from("tasks")
+      .select("id,title,deadline,points,active")
+      .or(`team_id.eq.${team.id},team_id.is.null`)
+      .eq("active", true)
+      .order("deadline", { ascending: true, nullsFirst: false }),
+    admin
+      .from("meet_spaces")
+      .select("id,meeting_url,display_name,active")
+      .eq("team_id", team.id)
+      .eq("active", true)
+      .maybeSingle(),
+    admin
+      .from("google_connections")
+      .select("google_email")
+      .eq("user_id", mentorId)
+      .maybeSingle(),
+  ]);
+
+  const memberIds = (memberRows ?? []).map((row) => row.student_id).filter(Boolean);
+  const { data: memberProfiles } = memberIds.length
+    ? await admin
+        .from("profiles")
+        .select("id,full_name,phone,email,status")
+        .in("id", memberIds)
+    : { data: [] as Array<{ id: string; full_name: string; phone: string; email: string; status: string }> };
+
+  const profileMap = new Map((memberProfiles ?? []).map((profile) => [profile.id, profile]));
+  const members = (memberRows ?? [])
+    .map((row) => ({
+      student_id: row.student_id,
+      assigned_at: row.assigned_at,
+      profiles: profileMap.get(row.student_id) ?? null,
+    }))
+    .filter((row) => row.profiles);
+  const tasks = taskRows ?? [];
 
   const students = (members ?? [])
     .map((row) => {
