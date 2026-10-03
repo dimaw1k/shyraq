@@ -25,21 +25,27 @@ export async function GET(request: Request) {
   const stateCookie = (await import("next/headers")).cookies;
   const cookieStore = await stateCookie();
   const expectedState = cookieStore.get("shyraq_google_oauth_state")?.value;
+  const returnTo = cookieStore.get("shyraq_google_return_to")?.value ?? "/dashboard";
+  const safeReturnTo =
+    returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
+  const withStatus = (status: string) =>
+    new URL(`${safeReturnTo}${safeReturnTo.includes("?") ? "&" : "?"}google=${status}`, request.url);
+
   const state = url.searchParams.get("state");
 
   if (!state || !expectedState || !cryptoSafeEqual(state, expectedState)) {
-    return NextResponse.redirect(new URL("/dashboard?google=invalid_state", request.url));
+    return NextResponse.redirect(withStatus("invalid_state"));
   }
 
   const error = url.searchParams.get("error");
-  if (error) return NextResponse.redirect(new URL("/dashboard?google=cancelled", request.url));
+  if (error) return NextResponse.redirect(withStatus("cancelled"));
 
   const code = url.searchParams.get("code");
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = process.env.GOOGLE_REDIRECT_URI;
   if (!code || !clientId || !clientSecret || !redirectUri) {
-    return NextResponse.redirect(new URL("/dashboard?google=not_configured", request.url));
+    return NextResponse.redirect(withStatus("not_configured"));
   }
 
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -55,12 +61,12 @@ export async function GET(request: Request) {
   });
 
   if (!tokenResponse.ok) {
-    return NextResponse.redirect(new URL("/dashboard?google=token_exchange_failed", request.url));
+    return NextResponse.redirect(withStatus("token_exchange_failed"));
   }
 
   const token = (await tokenResponse.json()) as TokenResponse;
   if (!token.refresh_token) {
-    return NextResponse.redirect(new URL("/dashboard?google=no_refresh_token", request.url));
+    return NextResponse.redirect(withStatus("no_refresh_token"));
   }
 
   const userInfoResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
@@ -79,13 +85,15 @@ export async function GET(request: Request) {
   });
 
   if (saveError) {
-    const response = NextResponse.redirect(new URL("/dashboard?google=save_failed", request.url));
+    const response = NextResponse.redirect(withStatus("save_failed"));
     response.cookies.delete("shyraq_google_oauth_state");
+    response.cookies.delete("shyraq_google_return_to");
     return response;
   }
 
-  const response = NextResponse.redirect(new URL("/dashboard?google=connected", request.url));
+  const response = NextResponse.redirect(withStatus("connected"));
   response.cookies.delete("shyraq_google_oauth_state");
+  response.cookies.delete("shyraq_google_return_to");
   return response;
 }
 
