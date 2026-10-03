@@ -21,8 +21,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 import { formatKzDateTime } from "@/lib/datetime";
 
-const PAGE_RENDERED_AT = Date.now();
-
 function weekForDay(day: number) {
   return MARATHON_WEEKS.find((week) => day >= week.startDay && day <= week.endDay) ?? MARATHON_WEEKS[0];
 }
@@ -72,7 +70,7 @@ export default async function LessonsPage({
     return day >= activeWeek.startDay && day <= activeWeek.endDay;
   });
   const featured = weekLessons[0] ?? visibleLessons[0] ?? null;
-  const now = PAGE_RENDERED_AT;
+  const now = Date.now();
 
   return (
     <AppShell
@@ -89,7 +87,7 @@ export default async function LessonsPage({
             description="Аптаны таңда, тақырыпты аш және сабақтың бүкіл статусын бірден көр."
           />
 
-          <div className="rounded-[22px] border border-[#E8E1DA] bg-white p-2 shadow-[0_10px_30px_rgba(23,34,53,.035)]">
+          <div className="overflow-x-auto rounded-[22px] border border-[#E8E1DA] bg-white p-2 shadow-[0_10px_30px_rgba(23,34,53,.035)]">
             <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
               {MARATHON_WEEKS.map((week) => (
                 <Link
@@ -212,7 +210,7 @@ export default async function LessonsPage({
                       </span>
                     </div>
 
-                    <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                       {([
                         ["САБАҚ", "Лекция", BookOpen],
                         ["БЕЙНЕ КӨРУ", featured.required_watch_percent + "%+", CheckCircle2],
