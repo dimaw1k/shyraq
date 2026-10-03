@@ -66,6 +66,15 @@ export function toKzDatetimeLocal(value: string) {
   );
 }
 
+export function isoDaysAgo(days: number) {
+  const safeDays = Number.isFinite(days) ? Math.max(0, days) : 0;
+  return new Date(Date.now() - safeDays * 86_400_000).toISOString();
+}
+
+export function isDateInFuture(value: string) {
+  return new Date(value).getTime() > Date.now();
+}
+
 function isValidKzLocal(parts: {
   year: string;
   month: string;

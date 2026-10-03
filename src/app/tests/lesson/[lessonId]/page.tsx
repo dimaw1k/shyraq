@@ -3,10 +3,14 @@ import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { TestClient } from "@/components/tests/TestClient";
+import { isDateInFuture } from "@/lib/datetime";
 
 export default async function LessonTestPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
   const { lessonId } = await params;
@@ -20,7 +24,7 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
 
   if (!lesson?.published || !test) notFound();
 
-  if (lesson.starts_at && new Date(lesson.starts_at).getTime() > Date.now()) {
+  if (lesson.starts_at && isDateInFuture(lesson.starts_at)) {
     redirect("/lessons/" + lessonId);
   }
 
@@ -45,24 +49,33 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
       .order("attempt_number", { ascending: false }),
   ]);
 
-  const questions = await Promise.all((rawQuestions ?? []).map(async (question) => {
-    const attachments = Array.isArray(question.attachments)
-      ? await Promise.all(question.attachments.map(async (attachment: { name: string; path: string; mime: string; size: number }) => {
-          const { data } = await admin.storage.from("test-question-files").createSignedUrl(attachment.path, 3600);
-          return { name: attachment.name, mime: attachment.mime, url: data?.signedUrl ?? null };
-        }))
-      : [];
+  const questions = await Promise.all(
+    (rawQuestions ?? []).map(async (question) => {
+      const attachments = Array.isArray(question.attachments)
+        ? await Promise.all(
+            question.attachments.map(
+              async (attachment: { name: string; path: string; mime: string; size: number }) => {
+                const { data } = await admin.storage.from("test-question-files").createSignedUrl(attachment.path, 3600);
+                return { name: attachment.name, mime: attachment.mime, url: data?.signedUrl ?? null };
+              },
+            ),
+          )
+        : [];
 
-    return {
-      id: question.id,
-      question_text: question.question_text,
-      points: Number(question.points ?? 0),
-      sort_order: question.sort_order,
-      question_type: question.question_type === "MULTIPLE" || question.question_type === "TEXT" ? question.question_type : "SINGLE",
-      attachments,
-      test_options: Array.isArray(question.test_options) ? question.test_options : [],
-    };
-  }));
+      return {
+        id: question.id,
+        question_text: question.question_text,
+        points: Number(question.points ?? 0),
+        sort_order: question.sort_order,
+        question_type:
+          question.question_type === "MULTIPLE" || question.question_type === "TEXT"
+            ? question.question_type
+            : "SINGLE",
+        attachments,
+        test_options: Array.isArray(question.test_options) ? question.test_options : [],
+      };
+    }),
+  );
 
   const role = profile?.role ?? "STUDENT";
   const initialAttempts = (attempts ?? []).map((attempt) => ({
@@ -73,7 +86,12 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
   }));
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title={test.title} description="Сұрақтарға жауап беріп, тесті аяқтаңыз.">
+    <AppShell
+      role={role}
+      userName={profile?.full_name ?? undefined}
+      title={test.title}
+      description="Сұрақтарға жауап беріп, тесті аяқтаңыз."
+    >
       <main className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-7">
         {test.instructions ? <p className="mb-4 text-sm leading-6 text-[#766E66]">{test.instructions}</p> : null}
         <TestClient

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -40,7 +41,15 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
   const current = banners[index];
   const content = (
     <div className="relative min-h-[260px] overflow-hidden rounded-[30px] border border-white/10 bg-[#172235] shadow-[0_18px_60px_rgba(23,34,53,.16)]">
-      {current.imageUrl ? <img src={current.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" /> : null}
+      {current.imageUrl ? (
+        <Image
+          src={current.imageUrl}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, 1200px"
+          className="object-cover"
+        />
+      ) : null}
       <div className="absolute inset-0 bg-gradient-to-r from-[#172235]/95 via-[#172235]/70 to-[#172235]/10" />
       <div className="relative flex min-h-[260px] items-end p-6 sm:p-9">
         <div className="max-w-3xl">

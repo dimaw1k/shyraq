@@ -54,7 +54,7 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
     try {
       const form = new FormData();
       form.append("file", file);
-      form.append("title", file.name.replace(/.[^/.]+$/, "") || "Баннер");
+      form.append("title", file.name.replace(/\.[^/.]+$/, "") || "Баннер");
       form.append("startsAt", startsAtIso ?? "");
       form.append("endsAt", endsAtIso ?? "");
       form.append("published", "true");

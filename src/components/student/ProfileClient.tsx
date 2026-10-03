@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { uiLabel } from "@/lib/ui-labels";
 import { Camera, Loader2 } from "lucide-react";
@@ -111,7 +112,13 @@ export function ProfileClient() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative">
           {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-[28px] object-cover ring-4 ring-[#FFF1E2]" />
+            <Image
+              src={profile.avatar_url}
+              alt=""
+              width={96}
+              height={96}
+              className="h-24 w-24 rounded-[28px] object-cover ring-4 ring-[#FFF1E2]"
+            />
           ) : (
             <div className="grid h-24 w-24 place-items-center rounded-[28px] bg-[#172235] text-xl font-extrabold text-white ring-4 ring-[#FFF1E2]">
               {initials}
