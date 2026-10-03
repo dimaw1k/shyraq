@@ -117,24 +117,24 @@ export function StaffModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-[10000] w-full max-w-[760px] rounded-[24px] border border-white/80 bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.25)] sm:max-h-[calc(100vh-48px)]"
+        className="relative z-[10000] flex w-full max-w-[780px] max-h-[calc(100vh-24px)] flex-col overflow-hidden rounded-[22px] border border-white/80 bg-[#FAF9F7] shadow-[0_24px_70px_rgba(23,34,53,.22)] sm:max-h-[calc(100vh-40px)]"
       >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#E8E1DA] bg-[#FAF9F7] px-5 py-4 sm:px-6">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#E8E1DA] bg-[#FAF9F7] px-5 py-3.5 sm:px-5">
           <div className="min-w-0">
-            <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">{title}</h2>
+            <h2 className="text-[17px] font-extrabold tracking-[-.03em] text-[#172235]">{title}</h2>
             {description ? <p className="mt-1 text-[10px] font-medium leading-5 text-[#857B72]">{description}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] border border-[#E8E1DA] bg-white text-[#5B534C] transition hover:bg-[#FFF1E2]"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] border border-[#E8E1DA] bg-white text-[#5B534C] transition hover:bg-[#FFF1E2]"
             aria-label="Жабу"
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="p-5 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
           {children}
         </div>
       </div>
