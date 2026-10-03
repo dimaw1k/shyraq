@@ -21,6 +21,7 @@ export default async function ChiefMentorStudentsPage(){
     studentIds.length?supabase.from("video_progress").select("student_id,watched_percent").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;watched_percent:number|null}>}),
   ]);
   const membershipMap=new Map((members??[]).map(x=>[x.student_id,x.team_id]));
+
   const teamMap=new Map((teams??[]).map(x=>[x.id,x]));
   const mentorByTeam=new Map<string,string>();
   if(teamIds.length){
@@ -36,7 +37,7 @@ export default async function ChiefMentorStudentsPage(){
   const videoAvg=new Map<string,number[]>();for(const x of video??[])videoAvg.set(x.student_id,[...(videoAvg.get(x.student_id)??[]),Number(x.watched_percent??0)]);
 
   const initialStudents=(students??[]).map(s=>{
-    const teamId=membershipMap.get(s.id);const values=avg.get(s.id)??[];const vv=videoAvg.get(s.id)??[];
+    const teamId=membershipMap.get(s.id);const vv=videoAvg.get(s.id)??[];
     const mentorId=teamId?mentorByTeam.get(teamId):undefined;
     return { ...s,team_id:teamId??null,team_name:teamId?teamMap.get(teamId)?.name??null:null,mentor_name:mentorId?mentorMap.get(mentorId)??null:null,score:Math.round(score.get(s.id)??0),report_count:reportCount.get(s.id)??0,task_count:taskCount.get(s.id)??0,video:vv.length?vv.reduce((a,b)=>a+b,0)/vv.length:0 };
   });
