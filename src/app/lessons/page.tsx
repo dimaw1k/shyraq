@@ -82,7 +82,7 @@ export default async function LessonsPage({
       description="21 күндік оқу жоспарын бір жерден бақыла."
     >
       <PageContainer>
-        <div className="space-y-5">
+        <div className="space-y-5" data-shyraq-ui="lessons-v2">
           <SectionHeader
             eyebrow="ОҚУ"
             title="Сабақтар"
