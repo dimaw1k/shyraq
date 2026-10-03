@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,20 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [registeredMessage, setRegisteredMessage] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const registered = params.get("registered") === "1";
+    const email = params.get("email")?.trim() ?? "";
+
+    if (registered) {
+      setRegisteredMessage("Аккаунт сәтті ашылды. Енді жаңа логин мен құпиясөзбен кіріңіз.");
+    }
+    if (email) {
+      setIdentifier(email);
+    }
+  }, []);
 
   function handleIdentifierChange(value: string) {
     if (/^[+\d\s()\-]*$/.test(value) && /\d/.test(value)) {
@@ -129,6 +143,12 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </label>
+
+                {registeredMessage ? (
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-semibold leading-5 text-emerald-700">
+                    {registeredMessage}
+                  </div>
+                ) : null}
 
                 {error ? (
                   <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700">
