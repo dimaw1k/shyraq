@@ -16,7 +16,26 @@ type Props={
   initialRanges?:TimeRange[];
   testHref?:string;
   initialTestUnlocked?:boolean;
+  trackProgress?:boolean;
 };
+
+function getYouTubeId(value:string){
+  const raw=value.trim();
+  try{
+    const url=new URL(raw);
+    const host=url.hostname.toLowerCase();
+    if(host==="youtu.be" || host.endsWith(".youtu.be")){
+      return url.pathname.split("/").filter(Boolean)[0] ?? null;
+    }
+    if(host.includes("youtube.com")){
+      const v=url.searchParams.get("v");
+      if(v) return v;
+      const parts=url.pathname.split("/").filter(Boolean);
+      if(parts[0]==="embed" || parts[0]==="shorts") return parts[1] ?? null;
+    }
+  }catch{}
+  return null;
+}
 
 export function KinescopeLessonPlayer({
   lessonId,
@@ -26,12 +45,15 @@ export function KinescopeLessonPlayer({
   initialRanges=[],
   testHref,
   initialTestUnlocked=false,
+  trackProgress=true,
 }:Props){
   const [ranges,setRanges]=useState<TimeRange[]>(initialRanges);
   const [percent,setPercent]=useState(()=>watchedPercent(initialRanges,durationSeconds));
   const [saving,setSaving]=useState(false);
   const lastTime=useRef<number|null>(null);
   const rangesRef=useRef<TimeRange[]>(initialRanges);
+  const youtubeId=getYouTubeId(videoId);
+  const shouldTrackProgress=trackProgress && !youtubeId;
 
   useEffect(()=>{rangesRef.current=ranges;},[ranges]);
 
@@ -45,16 +67,47 @@ export function KinescopeLessonPlayer({
   },[lessonId]);
 
   function handleTimeUpdate(event:{currentTime:number}){
+    if(!shouldTrackProgress)return;
     const current=Math.max(0,Math.min(durationSeconds,event.currentTime));
     const previous=lastTime.current;lastTime.current=current;if(previous===null)return;
     const next=previous<=current&&current-previous<=4?mergeTimeRanges([...rangesRef.current,{start:previous,end:current}]):rangesRef.current;
     rangesRef.current=next;setRanges(next);setPercent(watchedPercent(next,durationSeconds));
   }
 
-  useEffect(()=>{const timer=window.setInterval(()=>{void persist(rangesRef.current);},15000);return()=>window.clearInterval(timer);},[persist]);
-  useEffect(()=>{const flush=()=>void persist(rangesRef.current);window.addEventListener("beforeunload",flush);return()=>window.removeEventListener("beforeunload",flush);},[persist]);
+  useEffect(()=>{
+    if(!shouldTrackProgress)return;
+    const timer=window.setInterval(()=>{void persist(rangesRef.current);},15000);
+    return()=>window.clearInterval(timer);
+  },[persist,shouldTrackProgress]);
+
+  useEffect(()=>{
+    if(!shouldTrackProgress)return;
+    const flush=()=>void persist(rangesRef.current);
+    window.addEventListener("beforeunload",flush);
+    return()=>window.removeEventListener("beforeunload",flush);
+  },[persist,shouldTrackProgress]);
 
   const unlocked=initialTestUnlocked || percent>=requiredWatchPercent;
+
+  if(youtubeId){
+    return (
+      <div className="space-y-3">
+        <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
+          <iframe
+            title="Видео сабақ"
+            src={"https://www.youtube.com/embed/"+youtubeId+"?rel=0&modestbranding=1&playsinline=1"}
+            className="h-full w-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+        <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-soft">
+          <p className="text-xs font-semibold text-gray-900">Видео сабақ</p>
+          <p className="mt-1 text-[10px] leading-5 text-gray-500">Сабақты толық көріп, төмендегі практика мен тапсырманы орында.</p>
+        </div>
+      </div>
+    );
+  }
 
   return <div className="space-y-3">
     <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
