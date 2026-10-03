@@ -211,7 +211,7 @@ export default async function LessonsPage({
                     </div>
 
                     <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-                      {[
+                      {([
                         ["САБАҚ", "Лекция", BookOpen],
                         ["БЕЙНЕ КӨРУ", featured.required_watch_percent + "%+", CheckCircle2],
                         [
@@ -228,7 +228,7 @@ export default async function LessonsPage({
                             ? LockKeyhole
                             : CheckCircle2,
                         ],
-                      ].map(([label, value, Icon]) => {
+                      ] as Array<[string, string, typeof BookOpen]>).map(([label, value, Icon]) => {
                         const MetaIcon = Icon as typeof BookOpen;
                         return (
                           <div
