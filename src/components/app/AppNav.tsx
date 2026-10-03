@@ -43,6 +43,7 @@ const mentorLinks: NavItem[] = [
   { label: "Есептер", href: "/mentor/reports", icon: FileText },
   { label: "Кездесу", href: "/mentor/meet", icon: Activity },
   { label: "Рейтинг", href: "/mentor/rating", icon: Trophy },
+  { label: "Профиль", href: "/profile", icon: Users },
 ];
 
 const chiefMentorLinks: NavItem[] = [
@@ -61,6 +62,7 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
   { label: "Қолдау", href: "/chief-mentor/support", icon: Bell },
   { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
+  { label: "Профиль", href: "/profile", icon: Users },
 ];
 
 const leaderLinks: NavItem[] = [
@@ -75,6 +77,7 @@ const leaderLinks: NavItem[] = [
   { label: "Журнал", href: "/leader/audit", icon: FileText },
   { label: "Қолдау", href: "/leader/support", icon: Bell },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
+  { label: "Профиль", href: "/profile", icon: Users },
 ];
 
 const roleLabels: Record<string, string> = {
