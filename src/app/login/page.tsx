@@ -71,7 +71,7 @@ export default function LoginPage() {
     <main className={montserrat.className + " min-h-screen overflow-hidden bg-[#fbfaf7] text-[#172235]"}>
       <div className="absolute inset-x-0 top-0 h-[430px] bg-[radial-gradient(circle_at_14%_12%,rgba(255,255,255,.88),transparent_30%),linear-gradient(135deg,#fff0e8_0%,#ffd7ca_48%,#ffb18d_100%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-6 sm:px-7 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-5 py-5 sm:px-7 lg:px-8">
         <div className="flex items-center justify-between">
           <Brand />
           <Link
@@ -82,12 +82,12 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="mx-auto mt-7 grid max-w-6xl items-center gap-8 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
+        <div className="mx-auto mt-6 grid max-w-5xl items-center gap-6 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
           <section className="order-1 relative lg:order-1">
             <div className="absolute -inset-5 rounded-[38px] bg-[#ff6f2c]/10 blur-2xl" />
-            <div className="relative rounded-[36px] border border-[#ebe4dc] bg-white/95 p-5 shadow-[0_30px_100px_rgba(39,25,17,.12)] backdrop-blur-xl sm:p-7 lg:p-8">
+            <div className="relative rounded-[30px] border border-[#ebe4dc] bg-white/95 p-5 shadow-[0_24px_80px_rgba(39,25,17,.10)] backdrop-blur-xl sm:p-6 lg:p-7">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ЖЕКЕ ТІРКЕЛГІ</p>
-              <h1 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізге кіріңіз.</h1>
+              <h1 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-[38px]">Жеке тіркелгіңізге кіріңіз.</h1>
               <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-[#766e66]">
                 Электрондық пошта немесе телефон нөмірі арқылы тіркелгіңізге кіріңіз.
               </p>
@@ -155,7 +155,7 @@ export default function LoginPage() {
           </section>
 
           <section className="order-2 relative lg:order-2">
-            <div className="rounded-[28px] bg-[#172235] p-6 text-white shadow-[0_28px_80px_rgba(23,34,53,.18)] sm:p-7">
+            <div className="rounded-[30px] bg-[#172235] p-5 text-white shadow-[0_24px_70px_rgba(23,34,53,.16)] sm:p-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
                 <Sparkles size={12} className="text-[#ff8a52]" />
                 21 күндік оқу марафоны
@@ -163,7 +163,7 @@ export default function LoginPage() {
 
               <h2 className="mt-6 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
                 Күнде аздап.
-                <span className="block text-[#ff6f2c]">21 күнде үлкен өзгеріс.</span>
+                <span className="block text-[#FF8000]">21 күнде үлкен өзгеріс.</span>
               </h2>
 
               <p className="mt-4 text-sm font-medium leading-6 text-white/65">
