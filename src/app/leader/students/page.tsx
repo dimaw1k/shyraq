@@ -46,9 +46,9 @@ export default async function LeaderStudentsPage({ searchParams }: { searchParam
     studentIds.length
       ? supabase
           .from("score_events")
-          .select("student_id,points")
+          .select("student_id,points,created_at")
           .in("student_id", studentIds)
-      : Promise.resolve({ data: [] as Array<{ student_id: string; points: number }> }),
+      : Promise.resolve({ data: [] as Array<{ student_id: string; points: number; created_at: string | null }> }),
   ]);
 
   const { data: startRow } = await supabase
