@@ -2,21 +2,47 @@ import { CheckCircle2, CircleAlert, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 import { getMentorPageData } from "@/lib/mentor/auth";
 import { uiLabel } from "@/lib/ui-labels";
 
-export default async function MentorTeamPage() {
+export default async function MentorTeamPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { profile, workspace } = await getMentorPageData();
 
-  const averageMeet =
-    workspace?.students.length
-      ? workspace.students.reduce((sum, student) => sum + student.attendanceAverage, 0) /
-        workspace.students.length
-      : 0;
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
+  const studentIds = workspace?.students.map((student) => student.id) ?? [];
+  const { data: dayAttendance } = workspace && studentIds.length
+    ? await supabase
+        .from("attendance_records")
+        .select("student_id,attendance_percent,status,started_at,ended_at")
+        .eq("team_id", workspace.team.id)
+        .in("student_id", studentIds)
+    : { data: [] as Array<{ student_id: string; attendance_percent: number | null; status: string; started_at: string | null; ended_at: string | null }> };
+
+  const dayMap = new Map<string, number[]>();
+  for (const row of dayAttendance ?? []) {
+    const stamp = row.ended_at ?? row.started_at;
+    if (!stamp) continue;
+    const day = Number(new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Almaty",
+      day: "2-digit",
+    }).format(new Date(stamp)));
+    if (day !== selectedDay) continue;
+    const values = dayMap.get(row.student_id) ?? [];
+    values.push(Number(row.attendance_percent ?? 0));
+    dayMap.set(row.student_id, values);
+  }
+
+  const dailyMeetValues = [...dayMap.values()].map((values) =>
+    values.reduce((sum, value) => sum + value, 0) / values.length,
+  );
+  const averageMeet = dailyMeetValues.length
+    ? dailyMeetValues.reduce((sum, value) => sum + value, 0) / dailyMeetValues.length
+    : 0;
 
   const attentionCount =
     workspace?.students.filter(
-      (student) => student.attendanceAverage > 0 && student.attendanceAverage < 60,
+      (student) => Boolean(dayMap.get(student.id)?.length) && (dayMap.get(student.id)!.reduce((a, b) => a + b, 0) / dayMap.get(student.id)!.length) < 60,
     ).length ?? 0;
 
   return (
@@ -28,11 +54,13 @@ export default async function MentorTeamPage() {
     >
       <PageContainer>
         {!workspace ? (
+
           <Card className="p-8 text-center">
             <EmptyState title="Команда бекітілмеген." />
           </Card>
         ) : (
           <div className="space-y-5">
+            <MarathonDayNavigator basePath="/mentor/team" selectedDay={selectedDay} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">КОМАНДА</p>
@@ -45,7 +73,7 @@ export default async function MentorTeamPage() {
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 ["ОҚУШЫ", String(workspace.students.length), "командада"],
-                ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", "орташа"],
+                ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", selectedDay + "-күн"],
                 ["НАЗАР", String(attentionCount), "төмен қатысу"],
               ].map(([label, value, hint], index) => (
                 <Card key={label} className="p-4 sm:p-5">
@@ -130,12 +158,12 @@ export default async function MentorTeamPage() {
                             "grid h-7 w-7 place-items-center rounded-full",
                             student.attendanceAverage >= 80
                               ? "bg-[#EDF8F2] text-[#2E7E58]"
-                              : student.attendanceAverage > 0 && student.attendanceAverage < 60
+                              : Boolean(dayMap.get(student.id)?.length) && (dayMap.get(student.id)!.reduce((a, b) => a + b, 0) / dayMap.get(student.id)!.length) < 60
                                 ? "bg-[#FFF0EE] text-[#BF514A]"
                                 : "bg-[#F4F1EC] text-[#8B8179]",
                           ].join(" ")}
                         >
-                          {student.attendanceAverage > 0 && student.attendanceAverage < 60 ? (
+                          {Boolean(dayMap.get(student.id)?.length) && (dayMap.get(student.id)!.reduce((a, b) => a + b, 0) / dayMap.get(student.id)!.length) < 60 ? (
                             <CircleAlert size={12} />
                           ) : (
                             <CheckCircle2 size={12} />
@@ -143,8 +171,8 @@ export default async function MentorTeamPage() {
                         </span>
                         <div>
                           <p className="text-[10px] font-extrabold text-[#334054]">
-                            {student.attendanceAverage
-                              ? student.attendanceAverage.toFixed(1) + "%"
+                            {dayMap.get(student.id)?.length
+                              ? (dayMap.get(student.id)!.reduce((a, b) => a + b, 0) / dayMap.get(student.id)!.length).toFixed(1) + "%"
                               : "—"}
                           </p>
                           <p className="mt-0.5 text-[7px] font-semibold text-[#A19890]">
@@ -204,7 +232,7 @@ export default async function MentorTeamPage() {
 
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        ["Meet", student.attendanceAverage ? student.attendanceAverage.toFixed(1) + "%" : "—"],
+                        ["Meet", dayMap.get(student.id)?.length ? (dayMap.get(student.id)!.reduce((a, b) => a + b, 0) / dayMap.get(student.id)!.length).toFixed(1) + "%" : "—"],
                         ["Бейне", student.videoAverage ? student.videoAverage.toFixed(1) + "%" : "—"],
                         ["Ұпай", String(student.score || 0)],
                       ].map(([label, value]) => (
