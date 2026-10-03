@@ -343,7 +343,7 @@ export async function getMentorWorkspaceData(
       review_comment: report.review_comment ?? null,
     }));
 
-  const taskRows: MentorTask[] = (tasks ?? []).map((task) => ({
+  const mentorTaskRows: MentorTask[] = tasks.map((task) => ({
     id: task.id,
     title: task.title,
     deadline: task.deadline,
@@ -351,7 +351,7 @@ export async function getMentorWorkspaceData(
     active: Boolean(task.active),
   }));
 
-  const taskMap = new Map(taskRows.map((task) => [task.id, task]));
+  const taskMap = new Map(mentorTaskRows.map((task) => [task.id, task]));
   const nameMap = new Map(students.map((student) => [student.id, student.full_name]));
 
   const mentorSubmissions: MentorSubmission[] = (submissions ?? []).map((submission) => ({
@@ -382,7 +382,7 @@ export async function getMentorWorkspaceData(
   return {
     team,
     students: hydratedStudents,
-    tasks: taskRows,
+    tasks: mentorTaskRows,
     submissions: mentorSubmissions,
     reports: mentorReports,
     averageAttendance,
