@@ -140,3 +140,6 @@ The repository includes GitHub Actions for typecheck, lint and production build 
 The current execution environment cannot reliably clone the GitHub repository from the public network, so local build execution has not been claimed as verified. Vercel's connected integration is currently blocked by its reported build-rate limit, so the final production deployment check must be completed after the rate limit clears.
 
 For security, enable Supabase Auth leaked-password protection before the production release. The connected Supabase advisor currently reports this as a warning.
+
+
+<!-- Vercel deployment sync: current main includes daily week/day staff navigation and review flows. -->
