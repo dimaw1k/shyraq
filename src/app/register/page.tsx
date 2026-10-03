@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
 const montserrat = Montserrat({
@@ -19,7 +19,6 @@ type FormState = {
   firstName: string;
   lastName: string;
   age: string;
-  educationType: string;
   password: string;
   confirmPassword: string;
 };
@@ -32,7 +31,6 @@ const initialForm: FormState = {
   firstName: "",
   lastName: "",
   age: "",
-  educationType: "SCHOOL",
   password: "",
   confirmPassword: "",
 };
@@ -98,7 +96,6 @@ export default function RegisterPage() {
           firstName: form.firstName,
           lastName: form.lastName,
           age: form.age,
-          educationType: form.educationType,
           password: form.password,
         }),
       });
@@ -134,224 +131,170 @@ export default function RegisterPage() {
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
 
   return (
-    <main className={montserrat.className + " min-h-screen overflow-hidden bg-[#fbfaf7] text-[#172235]"}>
-      <div className="absolute inset-x-0 top-0 h-[430px] bg-[radial-gradient(circle_at_14%_12%,rgba(255,255,255,.88),transparent_30%),linear-gradient(135deg,#fff0e8_0%,#ffd7ca_48%,#ffb18d_100%)]" />
-
-      <div className="relative mx-auto max-w-7xl px-5 py-5 sm:px-7 lg:px-8">
-        <div className="flex items-center justify-between">
-          <Brand />
-          <Link
-            href="/login"
-            className="rounded-full bg-white/85 px-4 py-2.5 text-xs font-extrabold shadow-[0_8px_26px_rgba(20,20,20,.07)] backdrop-blur transition hover:-translate-y-0.5"
-          >
-            Кіру
-          </Link>
-        </div>
-
-        <div className="mx-auto mt-6 max-w-5xl">
-          <div className="rounded-[30px] border border-white/75 bg-white/92 p-4 shadow-[0_24px_80px_rgba(39,25,17,.10)] backdrop-blur-xl sm:p-6 lg:p-7">
-            <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
-              <section className="order-2 rounded-[30px] bg-[#172235] p-5 text-white sm:order-2 sm:p-6 lg:order-2">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
-                  <Sparkles size={12} className="text-[#ff8a52]" />
-                  21 күндік оқу марафоны
-                </div>
-                <h1 className="mt-5 text-3xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-[42px]">
-                  Күнде аздап.
-                  <span className="block text-[#ff6f2c]">21 күнде үлкен өзгеріс.</span>
-                </h1>
-                <p className="mt-4 text-sm font-medium leading-6 text-white/65">
-                  Shyraq — оқуды кейінге қалдырмай, күн сайын жоспармен жүруге көмектесетін марафон. Сабақ, тапсырма және прогресс — бір жерде.
-                </p>
-
-                <div className="mt-7 space-y-3">
-                  {[
-                    "Күнделікті нақты тапсырмалар",
-                    "Сабақтар және оқу жоспары",
-                    "Ұпай, серия және рейтинг",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-3 text-xs font-semibold text-white/75">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#ff6f2c] text-white">
-                        <Check size={15} />
-                      </span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 rounded-[22px] border border-white/8 bg-white/[.04] p-4">
-                  <p className="text-[9px] font-extrabold uppercase tracking-[.17em] text-white/35">АККАУНТ</p>
-                  <p className="mt-2 text-sm font-semibold text-white/80">Тіркелу аяқталғаннан кейін платформаға бірден кіре аласыз.</p>
-                </div>
-              </section>
-
-              <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">ТІРКЕЛУ</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-[38px]">Жеке тіркелгіңізді ашыңыз.</h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
-                  Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
-                </p>
-
-                <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Телефон
-                    <input
-                      required
-                      inputMode="tel"
-                      autoComplete="tel"
-                      value={form.phone}
-                      onChange={(event) => updateField("phone", formatKzPhone(event.target.value))}
-                      placeholder="+7 (700) 000 00 00"
-                      maxLength={18}
-                      className={inputClass("phone")}
-                    />
-                    {errorText("phone")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Электрондық пошта
-                    <input
-                      required
-                      type="email"
-                      autoComplete="email"
-                      value={form.email}
-                      onChange={(event) => updateField("email", event.target.value)}
-                      placeholder="you@example.com"
-                      className={inputClass("email")}
-                    />
-                    {errorText("email")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Аты
-                    <input
-                      required
-                      autoComplete="given-name"
-                      value={form.firstName}
-                      onChange={(event) => updateField("firstName", event.target.value)}
-                      placeholder="Атыңызды енгізіңіз"
-                      className={inputClass("firstName")}
-                    />
-                    {errorText("firstName")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Тегі
-                    <input
-                      required
-                      autoComplete="family-name"
-                      value={form.lastName}
-                      onChange={(event) => updateField("lastName", event.target.value)}
-                      placeholder="Тегіңізді енгізіңіз"
-                      className={inputClass("lastName")}
-                    />
-                    {errorText("lastName")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Жасы
-                    <input
-                      required
-                      min={10}
-                      max={100}
-                      type="number"
-                      value={form.age}
-                      onChange={(event) => updateField("age", event.target.value)}
-                      placeholder="Жасыңыз"
-                      className={inputClass("age")}
-                    />
-                    {errorText("age")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Білім алу деңгейі
-                    <select
-                      value={form.educationType}
-                      onChange={(event) => updateField("educationType", event.target.value)}
-                      className={inputClass("educationType")}
-                    >
-                      <option value="SCHOOL">Мектеп</option>
-                      <option value="COLLEGE">Колледж</option>
-                      <option value="UNIVERSITY">Университет</option>
-                      <option value="OTHER">Басқа</option>
-                    </select>
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Құпиясөз
-                    <div className="relative mt-2">
-                      <input
-                        required
-                        minLength={8}
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        value={form.password}
-                        onChange={(event) => updateField("password", event.target.value)}
-                        placeholder="Кемінде 8 таңба"
-                        className={inputClass("password") + " pr-12"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((value) => !value)}
-                        aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] transition hover:bg-[#f4eee8] hover:text-[#172235]"
-                      >
-                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                      </button>
-                    </div>
-                    {errorText("password")}
-                  </label>
-
-                  <label className="block text-xs font-extrabold text-[#3f3832]">
-                    Құпиясөзді қайталаңыз
-                    <div className="relative mt-2">
-                      <input
-                        required
-                        minLength={8}
-                        type={showConfirmPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        value={form.confirmPassword}
-                        onChange={(event) => updateField("confirmPassword", event.target.value)}
-                        placeholder="Қайта енгізіңіз"
-                        className={inputClass("confirmPassword") + " pr-12"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword((value) => !value)}
-                        aria-label={showConfirmPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] transition hover:bg-[#f4eee8] hover:text-[#172235]"
-                      >
-                        {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                      </button>
-                    </div>
-                    {errorText("confirmPassword")}
-                  </label>
-
-                  {errors.form ? (
-                    <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700 sm:col-span-2">
-                      {errors.form}
-                    </div>
-                  ) : null}
-
-                  <button
-                    disabled={loading}
-                    type="submit"
-                    className="group mt-1 flex items-center justify-center gap-2 rounded-2xl bg-[#ff6f2c] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,111,44,.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(255,111,44,.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
-                  >
-                    {loading ? "Тіркелу..." : "Аккаунт ашу"}
-                    {!loading ? <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /> : null}
-                  </button>
-                </form>
-
-                <p className="mt-5 text-center text-xs font-medium text-[#837970]">
-                  Аккаунтыңыз бар ма?{" "}
-                  <Link href="/login" className="font-extrabold text-[#ff6f2c] hover:underline">
-                    Кіру
-                  </Link>
-                </p>
-              </section>
-            </div>
+    <main className={montserrat.className + " min-h-screen bg-[#FAF9F7] text-[#172235]"}>
+      <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
+        <div className="w-full max-w-[760px]">
+          <div className="mb-6 flex items-center justify-between">
+            <Brand />
+            <Link
+              href="/login"
+              className="rounded-full border border-[#E7E0D8] bg-white px-4 py-2.5 text-xs font-extrabold text-[#4A423B] shadow-[0_6px_18px_rgba(23,34,53,.04)] transition hover:-translate-y-0.5 hover:border-[#FFB067] hover:bg-[#FFF8F1]"
+            >
+              Кіру
+            </Link>
           </div>
+
+          <section className="rounded-[28px] border border-[#E7E0D8] bg-white p-6 shadow-[0_24px_70px_rgba(23,34,53,.08)] sm:p-8">
+            <p className="text-[11px] font-extrabold uppercase tracking-[.18em] text-[#FF8000]">ТІРКЕЛУ</p>
+            <h1 className="mt-2 text-[30px] font-extrabold tracking-[-.045em] sm:text-[36px]">Аккаунт ашыңыз.</h1>
+            <p className="mt-2 text-sm font-medium leading-6 text-[#766E66]">
+              Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
+            </p>
+
+            <form onSubmit={handleSubmit} noValidate className="mt-7 grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Телефон
+                <input
+                  required
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={form.phone}
+                  onChange={(event) => updateField("phone", formatKzPhone(event.target.value))}
+                  placeholder="+7 (700) 000 00 00"
+                  maxLength={18}
+                  className={inputClass("phone")}
+                />
+                {errorText("phone")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Электрондық пошта
+                <input
+                  required
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(event) => updateField("email", event.target.value)}
+                  placeholder="you@example.com"
+                  className={inputClass("email")}
+                />
+                {errorText("email")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Аты
+                <input
+                  required
+                  autoComplete="given-name"
+                  value={form.firstName}
+                  onChange={(event) => updateField("firstName", event.target.value)}
+                  placeholder="Атыңызды енгізіңіз"
+                  className={inputClass("firstName")}
+                />
+                {errorText("firstName")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Тегі
+                <input
+                  required
+                  autoComplete="family-name"
+                  value={form.lastName}
+                  onChange={(event) => updateField("lastName", event.target.value)}
+                  placeholder="Тегіңізді енгізіңіз"
+                  className={inputClass("lastName")}
+                />
+                {errorText("lastName")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Жасы
+                <input
+                  required
+                  min={10}
+                  max={100}
+                  type="number"
+                  value={form.age}
+                  onChange={(event) => updateField("age", event.target.value)}
+                  placeholder="Жасыңыз"
+                  className={inputClass("age")}
+                />
+                {errorText("age")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Құпиясөз
+                <div className="relative mt-2">
+                  <input
+                    required
+                    minLength={8}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(event) => updateField("password", event.target.value)}
+                    placeholder="Кемінде 8 таңба"
+                    className={inputClass("password") + " pr-12"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887D73] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+                {errorText("password")}
+              </label>
+
+              <label className="block text-xs font-extrabold text-[#3F3832]">
+                Құпиясөзді қайталаңыз
+                <div className="relative mt-2">
+                  <input
+                    required
+                    minLength={8}
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={form.confirmPassword}
+                    onChange={(event) => updateField("confirmPassword", event.target.value)}
+                    placeholder="Қайта енгізіңіз"
+                    className={inputClass("confirmPassword") + " pr-12"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((value) => !value)}
+                    aria-label={showConfirmPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887D73] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
+                  >
+                    {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+                {errorText("confirmPassword")}
+              </label>
+
+              {errors.form ? (
+                <div className="rounded-[14px] border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700 sm:col-span-2">
+                  {errors.form}
+                </div>
+              ) : null}
+
+              <button
+                disabled={loading}
+                type="submit"
+                className="group mt-1 flex items-center justify-center gap-2 rounded-[16px] bg-[#FF8000] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+              >
+                {loading ? "Тіркелу..." : "Аккаунт ашу"}
+                {!loading ? <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" /> : null}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-xs font-medium text-[#837970]">
+              Аккаунтыңыз бар ма?{" "}
+              <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
+                Кіру
+              </Link>
+            </p>
+          </section>
         </div>
       </div>
     </main>
