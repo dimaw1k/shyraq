@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
@@ -115,7 +116,7 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
       <div className="mt-4 grid gap-2">
         {banners.map((banner) => (
           <div key={banner.id} className="grid gap-3 rounded-[15px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 sm:grid-cols-[120px_1fr_auto_auto] sm:items-center">
-            <img src={banner.imageUrl} alt="" className="h-16 w-full rounded-[10px] object-cover sm:w-[120px]" />
+            <Image src={banner.imageUrl} alt="" width={120} height={64} sizes="120px" className="h-16 w-full rounded-[10px] object-cover sm:w-[120px]" />
             <div className="min-w-0">
               <p className="truncate text-[11px] font-extrabold text-[#172235]">{banner.title}</p>
               <p className="mt-1 text-[9px] font-semibold text-[#8B8179]">

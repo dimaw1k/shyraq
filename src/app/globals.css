@@ -1,4 +1,5 @@
 @config "../../tailwind.config.js";
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -12,6 +13,7 @@
   --accent-soft: #fff1e2;
   --surface: #f4f1ec;
   --success: #23845a;
+  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --danger: #c94d45;
 }
 
