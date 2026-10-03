@@ -27,6 +27,7 @@ export type MentorTask = {
   deadline: string | null;
   points: number;
   active: boolean;
+  marathon_day: number | null;
 };
 
 export type MentorSubmission = {
@@ -41,6 +42,7 @@ export type MentorSubmission = {
   reviewed_at: string | null;
   task_title: string;
   task_points: number;
+  task_marathon_day: number | null;
   student_name: string;
   file_count: number;
 };
@@ -101,7 +103,7 @@ export async function getMentorWorkspaceData(
       .eq("status", "ACTIVE"),
     admin
       .from("tasks")
-      .select("id,title,deadline,points,active")
+      .select("id,title,deadline,points,active,marathon_day")
       .or(`team_id.eq.${team.id},team_id.is.null`)
       .eq("active", true)
       .order("deadline", { ascending: true, nullsFirst: false }),
@@ -349,6 +351,7 @@ export async function getMentorWorkspaceData(
     deadline: task.deadline,
     points: Number(task.points ?? 0),
     active: Boolean(task.active),
+    marathon_day: task.marathon_day == null ? null : Number(task.marathon_day),
   }));
 
   const taskMap = new Map(mentorTaskRows.map((task) => [task.id, task]));
@@ -368,6 +371,7 @@ export async function getMentorWorkspaceData(
     task_points: Number(taskMap.get(submission.task_id)?.points ?? 0),
     student_name: nameMap.get(submission.student_id) ?? "Оқушы",
     file_count: 0,
+    task_marathon_day: taskMap.get(submission.task_id)?.marathon_day ?? null,
   }));
 
   const averageAttendance = attendance?.length
