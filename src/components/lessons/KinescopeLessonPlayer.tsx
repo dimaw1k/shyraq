@@ -8,6 +8,32 @@ import { mergeTimeRanges, watchedPercent } from "@/lib/video/coverage";
 
 const KinescopePlayer=dynamic(()=>import("@kinescope/react-kinescope-player"),{ssr:false});
 
+type YouTubePlayer={
+  getCurrentTime:()=>number;
+  destroy:()=>void;
+};
+
+type YouTubeApi={
+  Player:new (
+    element:HTMLElement,
+    options:{
+      videoId:string;
+      playerVars:Record<string,number>;
+      events:{
+        onReady:()=>void;
+        onStateChange:(event:{data:number})=>void;
+      };
+    }
+  )=>YouTubePlayer;
+};
+
+declare global{
+  interface Window{
+    YT?:YouTubeApi;
+    onYouTubeIframeAPIReady?:()=>void;
+  }
+}
+
 type Props={
   lessonId:string;
   videoId:string;
@@ -29,9 +55,9 @@ function getYouTubeId(value:string){
     }
     if(host.includes("youtube.com")){
       const v=url.searchParams.get("v");
-      if(v) return v;
+      if(v)return v;
       const parts=url.pathname.split("/").filter(Boolean);
-      if(parts[0]==="embed" || parts[0]==="shorts") return parts[1] ?? null;
+      if(parts[0]==="embed" || parts[0]==="shorts")return parts[1] ?? null;
     }
   }catch{}
   return null;
@@ -52,8 +78,11 @@ export function KinescopeLessonPlayer({
   const [saving,setSaving]=useState(false);
   const lastTime=useRef<number|null>(null);
   const rangesRef=useRef<TimeRange[]>(initialRanges);
+  const youtubeContainerRef=useRef<HTMLDivElement|null>(null);
+  const youtubePlayerRef=useRef<YouTubePlayer|null>(null);
+  const youtubePollRef=useRef<number|null>(null);
   const youtubeId=getYouTubeId(videoId);
-  const shouldTrackProgress=trackProgress && !youtubeId;
+  const shouldTrackProgress=trackProgress;
 
   useEffect(()=>{rangesRef.current=ranges;},[ranges]);
 
@@ -61,7 +90,12 @@ export function KinescopeLessonPlayer({
     if(!nextRanges.length)return;
     setSaving(true);
     try{
-      const response=await fetch("/api/lessons/"+lessonId+"/progress",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({ranges:nextRanges})});
+      const response=await fetch("/api/lessons/"+lessonId+"/progress",{
+        method:"POST",
+        keepalive:true,
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ranges:nextRanges}),
+      });
       if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
     }finally{setSaving(false);}
   },[lessonId]);
@@ -72,9 +106,81 @@ export function KinescopeLessonPlayer({
     const previous=lastTime.current;
     lastTime.current=current;
     if(previous===null)return;
-    const next=previous<=current&&current-previous<=4?mergeTimeRanges([...rangesRef.current,{start:previous,end:current}]):rangesRef.current;
-    rangesRef.current=next;setRanges(next);setPercent(watchedPercent(next,durationSeconds));
+    const next=previous<=current&&current-previous<=4
+      ? mergeTimeRanges([...rangesRef.current,{start:previous,end:current}])
+      : rangesRef.current;
+    rangesRef.current=next;
+    setRanges(next);
+    setPercent(watchedPercent(next,durationSeconds));
   }
+
+  useEffect(()=>{
+    if(!youtubeId || !youtubeContainerRef.current || !shouldTrackProgress)return;
+
+    let disposed=false;
+
+    const startPolling=()=>{
+      if(disposed || !youtubePlayerRef.current || youtubePollRef.current!==null)return;
+      youtubePollRef.current=window.setInterval(()=>{
+        const player=youtubePlayerRef.current;
+        if(!player)return;
+        try{
+          const currentTime=player.getCurrentTime();
+          if(Number.isFinite(currentTime))handleTimeUpdate({currentTime});
+        }catch{}
+      },1000);
+    };
+
+    const createPlayer=()=>{
+      if(disposed || !youtubeContainerRef.current || !window.YT?.Player)return;
+      youtubePlayerRef.current=new window.YT.Player(youtubeContainerRef.current,{
+        videoId:youtubeId,
+        playerVars:{rel:0,modestbranding:1,playsinline:1},
+        events:{
+          onReady:()=>{
+            if(disposed)return;
+            startPolling();
+          },
+          onStateChange:(event)=>{
+            // YouTube PLAYING=1. Stop polling while paused/buffered/ended.
+            if(event.data===1)startPolling();
+            else if(youtubePollRef.current!==null){
+              window.clearInterval(youtubePollRef.current);
+              youtubePollRef.current=null;
+            }
+          },
+        },
+      });
+    };
+
+    if(window.YT?.Player){
+      createPlayer();
+    }else{
+      const previousReady=window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady=()=>{
+        previousReady?.();
+        createPlayer();
+      };
+      const scriptId="shyraq-youtube-iframe-api";
+      if(!document.getElementById(scriptId)){
+        const script=document.createElement("script");
+        script.id=scriptId;
+        script.src="https://www.youtube.com/iframe_api";
+        script.async=true;
+        document.head.appendChild(script);
+      }
+    }
+
+    return()=>{
+      disposed=true;
+      if(youtubePollRef.current!==null){
+        window.clearInterval(youtubePollRef.current);
+        youtubePollRef.current=null;
+      }
+      try{youtubePlayerRef.current?.destroy();}catch{}
+      youtubePlayerRef.current=null;
+    };
+  },[youtubeId,shouldTrackProgress,durationSeconds]);
 
   useEffect(()=>{
     if(!shouldTrackProgress)return;
@@ -89,27 +195,35 @@ export function KinescopeLessonPlayer({
     return()=>window.removeEventListener("beforeunload",flush);
   },[persist,shouldTrackProgress]);
 
-  const unlocked=youtubeId ? Boolean(testHref) : (initialTestUnlocked || percent>=requiredWatchPercent);
+  const unlocked=initialTestUnlocked || percent>=requiredWatchPercent;
 
   if(youtubeId){
     return (
       <div className="space-y-3">
         <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
-          <iframe
-            title="Видео сабақ"
-            src={"https://www.youtube.com/embed/"+youtubeId+"?rel=0&modestbranding=1&playsinline=1"}
-            className="h-full w-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          <div ref={youtubeContainerRef} className="h-full w-full" />
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-soft">
-          <p className="text-xs font-semibold text-gray-900">Видео сабақ</p>
-          <p className="mt-1 text-[10px] leading-5 text-gray-500">Сабақты қарап шыққаннан кейін практика мен тапсырмаларды орында.</p>
-          {testHref ? (
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-gray-900">Бейне ілгерілеуі</p>
+              <p className="mt-0.5 text-[10px] text-gray-400">Көрілген бірегей уақыт есептеледі.</p>
+            </div>
+            <strong className="text-sm text-[#C25100]">{percent.toFixed(0)}%</strong>
+          </div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
+            <div className="h-full rounded-full bg-[#C25100] transition-all duration-300 ease-in-out" style={{width:Math.min(100,percent)+"%"}}/>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <p className="text-[10px] text-gray-400">
+              {unlocked ? "Тест ашылды." : "Тестті ашу үшін кемінде "+requiredWatchPercent+"% көру керек."}
+            </p>
+            {saving?<span className="text-[10px] text-gray-400">Сақталуда...</span>:null}
+          </div>
+          {unlocked && testHref ? (
             <Link
               href={testHref}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
             >
               Тестке өту
             </Link>
