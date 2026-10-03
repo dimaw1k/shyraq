@@ -48,7 +48,7 @@ export default async function MentorPage() {
 
           <section className="grid gap-3 sm:grid-cols-3">
             <MetricCard label="ОҚУШЫ" value={String(workspace.students.length)} hint="команда" icon={<UsersRound size={17} />} />
-            <MetricCard label="ТЕКСЕРУ" value={String(workspace.pendingReviewCount)} hint="жаңа жұмыс" icon={<ClipboardCheck size={17} />} />} />
+            <MetricCard label="ТЕКСЕРУ" value={String(workspace.pendingReviewCount)} hint="жаңа жұмыс" icon={<ClipboardCheck size={17} />} />
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
