@@ -33,7 +33,7 @@ export default async function MentorTeamPage({ searchParams }: { searchParams?: 
   for (const row of dayAttendance ?? []) {
     const stamp = row.ended_at ?? row.started_at;
     if (!stamp) continue;
-    if (marathonStart && marathonDayFromDate(stamp, marathonStart) !== selectedDay) continue;
+    if (!marathonStart || marathonDayFromDate(stamp, marathonStart) !== selectedDay) continue;
     const values = dayMap.get(row.student_id) ?? [];
     values.push(Number(row.attendance_percent ?? 0));
     dayMap.set(row.student_id, values);
