@@ -1,17 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-
-const montserrat = Montserrat({
-  subsets: ["cyrillic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
 
 function Brand() {
   return (
@@ -121,7 +114,7 @@ export default function ResetPasswordPage() {
   const inputClass = "mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 text-sm font-medium outline-none transition-all duration-200 focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
   return (
-    <main className={montserrat.className + " min-h-screen bg-[#FAF9F7] text-[#172235]"}>
+    <main className="min-h-[100dvh] bg-[#FAF9F7] text-[#172235]">
       <div className="absolute inset-x-0 top-0 h-[360px] bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.9),transparent_30%),linear-gradient(135deg,#fff1e2_0%,#ffe0c4_52%,#ffbd84_100%)]" />
       <div className="relative mx-auto max-w-5xl px-5 py-6 sm:px-7 lg:px-8">
         <div className="flex items-center justify-between">
