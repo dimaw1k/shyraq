@@ -36,13 +36,13 @@ export default async function LeaderStudentsPage({ searchParams }: { searchParam
           .from("attendance_records")
           .select("student_id,attendance_percent,started_at,ended_at")
           .in("student_id", studentIds)
-      : Promise.resolve({ data: [] as Array<{ student_id: string; attendance_percent: number | null }> }),
+      : Promise.resolve({ data: [] as Array<{ student_id: string; attendance_percent: number | null; started_at: string | null; ended_at: string | null }> }),
     studentIds.length
       ? supabase
           .from("video_progress")
           .select("student_id,watched_percent,updated_at")
           .in("student_id", studentIds)
-      : Promise.resolve({ data: [] as Array<{ student_id: string; watched_percent: number | null }> }),
+      : Promise.resolve({ data: [] as Array<{ student_id: string; watched_percent: number | null; updated_at: string | null }> }),
     studentIds.length
       ? supabase
           .from("score_events")
