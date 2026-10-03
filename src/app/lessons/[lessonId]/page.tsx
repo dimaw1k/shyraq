@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { Clock3, LockKeyhole } from "lucide-react";
-import { AppShell, UserChip } from "@/components/app/AppNav";
+import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { KinescopeLessonPlayer } from "@/components/lessons/KinescopeLessonPlayer";
 import { formatKzDateTime } from "@/lib/datetime";
@@ -26,7 +26,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   if (locked) {
     return (
       <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақ жабық" right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
-        <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+        <main className="mx-auto w-full max-w-3xl px-3.5 py-5 sm:px-6 sm:py-8">
           <div className="rounded-[24px] border border-[#E8E1DA] bg-white p-6 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
             <h2 className="mt-4 text-xl font-extrabold text-[#172235]">{lesson.title}</h2>
@@ -57,13 +57,13 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   return (
     <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ") : (hasTest ? "Бейне → тест" : "Бейне сабақ")} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
-      <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-7">
+      <main className="mx-auto w-full max-w-5xl px-3.5 py-4 sm:px-6 sm:py-7">
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <section className="min-w-0">
             {lesson.description ? <p className="mb-4 text-sm leading-6 text-gray-500">{lesson.description}</p> : null}
             <KinescopeLessonPlayer lessonId={lesson.id} videoId={lesson.kinescope_video_id} durationSeconds={lesson.duration_seconds} requiredWatchPercent={lesson.required_watch_percent} initialRanges={initialRanges} testHref={hasTest ? "/tests/lesson/" + lesson.id : undefined} initialTestUnlocked={Boolean(progress?.test_unlocked)} trackProgress={hasTest} />
           </section>
-          <aside className="h-fit rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4">
+          <aside className="h-fit min-w-0 rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C25100]">КЕЛЕСІ ҚАДАМ</p>
             <h2 className="mt-1.5 text-sm font-semibold text-gray-900">Тест</h2>
             <p className="mt-1 text-xs leading-5 text-gray-500">YouTube сабақтарында тестке видео блогының астындағы батырма арқылы өтесіз. Kinescope сабақтарында тест {lesson.required_watch_percent}% бірегей көруден кейін ашылады.</p>
