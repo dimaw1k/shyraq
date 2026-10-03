@@ -6,7 +6,6 @@ import {
   ArrowRight,
   ArrowRightLeft,
   CheckCircle2,
-  CircleAlert,
   Search,
   UsersRound,
 } from "lucide-react";
@@ -22,7 +21,6 @@ type Row = {
   team_name: string | null;
   mentor_name: string | null;
   score: number;
-  attendance: number;
   report_count: number;
   task_count: number;
   video: number;
@@ -86,16 +84,11 @@ export function ChiefMentorStudentsManager({
     [rows, query, status, team],
   );
 
-  const averageMeet = filtered.length
-    ? filtered.reduce((sum, row) => sum + row.attendance, 0) / filtered.length
-    : 0;
-
   const averageVideo = filtered.length
     ? filtered.reduce((sum, row) => sum + row.video, 0) / filtered.length
     : 0;
 
   const activeCount = filtered.filter((row) => row.status === "ACTIVE").length;
-  const attentionCount = filtered.filter((row) => row.attendance > 0 && row.attendance < 60).length;
 
   async function move(id: string, nextTeamId: string) {
     setSaving(id);
@@ -137,9 +130,7 @@ export function ChiefMentorStudentsManager({
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {([
             ["ОҚУШЫ", String(filtered.length), "көрсетілген", UsersRound],
-            ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", "орташа қатысу", CheckCircle2],
             ["БЕЙНЕ КӨРУ", averageVideo ? averageVideo.toFixed(1) + "%" : "—", "орташа coverage", CheckCircle2],
-            ["НАЗАР", String(attentionCount), "төмен қатысу", CircleAlert],
           ] as Array<[string, string, string, typeof UsersRound]>).map(([label, value, hint, Icon]) => {
             const MetricIcon = Icon as typeof CheckCircle2;
             return (
@@ -215,10 +206,9 @@ export function ChiefMentorStudentsManager({
 
       <div className="hidden overflow-x-auto lg:block">
         <div className="min-w-[1120px]">
-          <div className="grid grid-cols-[54px_2.05fr_1.05fr_110px_110px_90px_130px_190px] items-center gap-3 border-b border-[#EFE8E1] bg-[#FAF8F5] px-5 py-3 text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
+          <div className="grid grid-cols-[54px_2.4fr_1.1fr_110px_110px_130px_190px] items-center gap-3 border-b border-[#EFE8E1] bg-[#FAF8F5] px-5 py-3 text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
             <span>№</span>
             <span>ОҚУШЫ</span>
-            <span>MEET ҚАТЫСУ</span>
             <span>БЕЙНЕ</span>
             <span>ҰПАЙ</span>
             <span>ТАПСЫРМА</span>
@@ -228,12 +218,10 @@ export function ChiefMentorStudentsManager({
 
           <div className="divide-y divide-[#F0EBE6]">
             {filtered.map((row, index) => {
-              const meetGood = row.attendance >= 80;
-              const meetLow = row.attendance > 0 && row.attendance < 60;
               return (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[54px_2.05fr_1.05fr_110px_110px_90px_130px_190px] items-center gap-3 px-5 py-3.5 transition hover:bg-[#FFFCF9]"
+                  className="grid grid-cols-[54px_2.4fr_1.1fr_110px_110px_130px_190px] items-center gap-3 px-5 py-3.5 transition hover:bg-[#FFFCF9]"
                 >
                   <span className="text-[10px] font-bold text-[#A19890]">{index + 1}</span>
 
@@ -250,25 +238,6 @@ export function ChiefMentorStudentsManager({
                       </Link>
                       <p className="mt-0.5 truncate text-[8px] font-semibold text-[#9A9189]">
                         {row.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={[
-                        "grid h-7 w-7 place-items-center rounded-full",
-                        meetGood ? "bg-[#EDF8F2] text-[#2E7E58]" : meetLow ? "bg-[#FFF0EE] text-[#BF514A]" : "bg-[#F4F1EC] text-[#8B8179]",
-                      ].join(" ")}
-                    >
-                      {meetLow ? <CircleAlert size={13} /> : <CheckCircle2 size={13} />}
-                    </span>
-                    <div>
-                      <p className="text-[10px] font-extrabold text-[#334054]">
-                        {row.attendance ? row.attendance.toFixed(1) + "%" : "—"}
-                      </p>
-                      <p className="mt-0.5 text-[7px] font-semibold text-[#A19890]">
-                        {meetGood ? "Тұрақты" : meetLow ? "Назар қажет" : "Дерек жоқ"}
                       </p>
                     </div>
                   </div>
