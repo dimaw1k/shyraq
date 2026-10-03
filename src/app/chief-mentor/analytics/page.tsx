@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, BarChart3, CheckCircle2, Download, Video } from "lucide-react";
+import { BarChart3, CheckCircle2, Download, Video } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, MetricCard, PageContainer, ProgressBar, SectionHeader } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
@@ -10,8 +10,7 @@ export default async function ChiefMentorAnalyticsPage() {
   const days = 7;
   const start = isoDaysAgo(days);
 
-  const [{ data: attendance }, { data: reports }, { data: subs }, { data: video }] = await Promise.all([
-    supabase.from("attendance_records").select("attendance_percent").gte("imported_at", start),
+  const [{ data: reports }, { data: subs }, { data: video }] = await Promise.all([
     supabase.from("daily_reports").select("status").gte("report_date", start.slice(0, 10)),
     supabase.from("task_submissions").select("status").gte("submitted_at", start),
     supabase.from("video_progress").select("watched_percent").gte("updated_at", start),
@@ -20,7 +19,6 @@ export default async function ChiefMentorAnalyticsPage() {
   const avg = (rows: any[], key: string) =>
     rows.length ? rows.reduce((total, row) => total + Number(row[key] ?? 0), 0) / rows.length : 0;
 
-  const attendanceValue = avg(attendance ?? [], "attendance_percent");
   const reportValue =
     (reports ?? []).length
       ? ((reports ?? []).filter((row) => row.status === "SUBMITTED" || row.status === "REVIEWED").length /
@@ -69,8 +67,7 @@ export default async function ChiefMentorAnalyticsPage() {
             }
           />
 
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="ҚАТЫСУ" value={attendanceValue.toFixed(1) + "%"} hint="орташа" icon={<Activity size={17} />} />
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">} />
             <MetricCard label="ЕСЕП" value={reportValue.toFixed(1) + "%"} hint="жіберілген/қаралған" icon={<CheckCircle2 size={17} />} />
             <MetricCard label="ТАПСЫРМА" value={submissionValue.toFixed(1) + "%"} hint="тапсырма тапсыру белсенділігі" icon={<BarChart3 size={17} />} />
             <MetricCard label="БЕЙНЕ" value={videoValue.toFixed(1) + "%"} hint="орташа қарау" icon={<Video size={17} />} />
@@ -78,7 +75,6 @@ export default async function ChiefMentorAnalyticsPage() {
 
           <Card className="p-5">
             <div className="space-y-5">
-              <ProgressBar value={attendanceValue} label="Қатысу" />
               <ProgressBar value={reportValue} label="Күндік есеп" />
               <ProgressBar value={submissionValue} label="Тапсырманы тапсыру" />
               <ProgressBar value={videoValue} label="Бейне ілгерілеуі" />
