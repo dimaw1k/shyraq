@@ -59,6 +59,7 @@ export type MentorReport = {
   student_id: string;
   student_name: string;
   report_date: string;
+  marathon_day: number | null;
   status: string;
   study_minutes: number;
   completed_task_count: number;
@@ -181,7 +182,7 @@ export async function getMentorWorkspaceData(
     studentIds.length
       ? supabase
           .from("daily_reports")
-          .select("id,student_id,report_date,status,study_minutes,completed_task_count,reflection,difficulties,next_day_goal,answers,submitted_at,reviewed_at,review_comment")
+          .select("id,student_id,report_date,marathon_day,status,study_minutes,completed_task_count,reflection,difficulties,next_day_goal,answers,submitted_at,reviewed_at,review_comment")
           .in("student_id", studentIds)
       : Promise.resolve({ data: [] as Array<Record<string, never>> }),
     studentIds.length && taskIds.length
@@ -333,6 +334,7 @@ export async function getMentorWorkspaceData(
       student_id: report.student_id,
       student_name: reportStudentMap.get(report.student_id) ?? "Оқушы",
       report_date: report.report_date,
+      marathon_day: report.marathon_day == null ? null : Number(report.marathon_day),
       status: report.status,
       study_minutes: Number(report.study_minutes ?? 0),
       completed_task_count: Number(report.completed_task_count ?? 0),
