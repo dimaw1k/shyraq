@@ -30,7 +30,7 @@ export function StaffLessonEditForm({ lesson, teams }: Props) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(lesson.title);
   const [description, setDescription] = useState(lesson.description ?? "");
-  const [video, setVideo] = useState("https://kinescope.io/" + lesson.kinescope_video_id);
+  const [video, setVideo] = useState(lesson.kinescope_video_id.startsWith("http") ? lesson.kinescope_video_id : "https://kinescope.io/" + lesson.kinescope_video_id);
   const [requiredWatch, setRequiredWatch] = useState(String(lesson.required_watch_percent));
   const [marathonDay, setMarathonDay] = useState(String(lesson.marathon_day ?? ""));
   const [startsAt, setStartsAt] = useState(toKzDatetimeLocal(lesson.starts_at ?? ""));
