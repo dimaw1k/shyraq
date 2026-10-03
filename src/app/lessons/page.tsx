@@ -98,7 +98,7 @@ export default async function LessonsPage({
                   className={[
                     "rounded-[15px] px-4 py-3 text-center transition-all",
                     activeWeek.week === week.week
-                      ? "bg-[#172235] text-white shadow-[0_8px_18px_rgba(23,34,53,.12)]"
+                      ? "border border-[#FFD9B3] bg-[#FFF1E2] text-[#B95D00] shadow-[0_6px_18px_rgba(255,128,0,.08)]"
                       : "text-[#786F67] hover:bg-[#FAF8F5] hover:text-[#172235]",
                   ].join(" ")}
                 >
@@ -161,7 +161,7 @@ export default async function LessonsPage({
                           locked ? "pointer-events-none opacity-65" : "",
                         ].join(" ")}
                       >
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#172235] text-[9px] font-extrabold text-white">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[9px] font-extrabold text-[#B95D00] ring-1 ring-[#FFDDBB]">
                           {String(index + 1).padStart(2, "0")}
                         </span>
                         <span className="min-w-0 flex-1">
