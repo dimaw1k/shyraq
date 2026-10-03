@@ -24,7 +24,7 @@ export default async function MentorTeamPage() {
       role="MENTOR"
       userName={profile.full_name}
       title="Команда"
-      description={workspace?.team.name}
+      hideHeader
     >
       <PageContainer>
         {!workspace ? (
@@ -32,7 +32,16 @@ export default async function MentorTeamPage() {
             <EmptyState title="Команда бекітілмеген." />
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">КОМАНДА</p>
+                <h1 className="mt-1 text-[28px] font-extrabold tracking-[-.045em] text-[#172235]">Команда</h1>
+              </div>
+              <span className="rounded-full border border-[#FFDDBB] bg-[#FFF1E2] px-3.5 py-2 text-[11px] font-extrabold text-[#B95D00]">
+                {workspace.team.name}
+              </span>
+            </div>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 ["ОҚУШЫ", String(workspace.students.length), "командада"],
