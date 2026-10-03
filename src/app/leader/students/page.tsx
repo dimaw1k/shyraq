@@ -5,6 +5,8 @@ import {
   Search,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
+import { marathonDayFromDate } from "@/lib/marathon";
 import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
@@ -15,8 +17,9 @@ function educationText(value: string | null) {
   return "Басқа";
 }
 
-export default async function LeaderStudentsPage() {
+export default async function LeaderStudentsPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
 
   const { data: students } = await supabase
     .from("profiles")
@@ -31,13 +34,13 @@ export default async function LeaderStudentsPage() {
     studentIds.length
       ? supabase
           .from("attendance_records")
-          .select("student_id,attendance_percent")
+          .select("student_id,attendance_percent,started_at,ended_at")
           .in("student_id", studentIds)
       : Promise.resolve({ data: [] as Array<{ student_id: string; attendance_percent: number | null }> }),
     studentIds.length
       ? supabase
           .from("video_progress")
-          .select("student_id,watched_percent")
+          .select("student_id,watched_percent,updated_at")
           .in("student_id", studentIds)
       : Promise.resolve({ data: [] as Array<{ student_id: string; watched_percent: number | null }> }),
     studentIds.length
@@ -48,8 +51,20 @@ export default async function LeaderStudentsPage() {
       : Promise.resolve({ data: [] as Array<{ student_id: string; points: number }> }),
   ]);
 
+  const { data: startRow } = await supabase
+    .from("tasks")
+    .select("starts_at")
+    .eq("marathon_day", 1)
+    .not("starts_at", "is", null)
+    .order("starts_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const marathonStart = startRow?.starts_at ?? null;
+
   const meetMap = new Map<string, number[]>();
   for (const row of attendance ?? []) {
+    const stamp = row.ended_at ?? row.started_at;
+    if (!stamp || !marathonStart || marathonDayFromDate(stamp, marathonStart) !== selectedDay) continue;
     meetMap.set(row.student_id, [
       ...(meetMap.get(row.student_id) ?? []),
       Number(row.attendance_percent ?? 0),
@@ -58,6 +73,7 @@ export default async function LeaderStudentsPage() {
 
   const videoMap = new Map<string, number[]>();
   for (const row of video ?? []) {
+    if (!row.updated_at || !marathonStart || marathonDayFromDate(row.updated_at, marathonStart) !== selectedDay) continue;
     videoMap.set(row.student_id, [
       ...(videoMap.get(row.student_id) ?? []),
       Number(row.watched_percent ?? 0),
@@ -66,6 +82,7 @@ export default async function LeaderStudentsPage() {
 
   const scoreMap = new Map<string, number>();
   for (const row of scores ?? []) {
+    if (!row.created_at || !marathonStart || marathonDayFromDate(row.created_at, marathonStart) !== selectedDay) continue;
     scoreMap.set(row.student_id, (scoreMap.get(row.student_id) ?? 0) + Number(row.points ?? 0));
   }
 
@@ -88,11 +105,12 @@ export default async function LeaderStudentsPage() {
     <AppShell role="LEADER" userName={profile.full_name} title="Оқушылар" description="Барлық оқушының оқу және live сабақ көрсеткіштері.">
       <PageContainer>
         <div className="space-y-4">
+          <MarathonDayNavigator basePath="/leader/students" selectedDay={selectedDay} />
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               ["ОҚУШЫ", String(rows.length), "барлығы"],
-              ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", "орташа"],
-              ["БЕЙНЕ КӨРУ", rows.length ? (rows.reduce((s, row) => s + row.video, 0) / rows.length).toFixed(1) + "%" : "—", "орташа"],
+              ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", selectedDay + "-күн"],
+              ["БЕЙНЕ КӨРУ", rows.length ? (rows.reduce((s, row) => s + row.video, 0) / rows.length).toFixed(1) + "%" : "—", selectedDay + "-күн"],
             ].map(([label, value, hint]) => (
               <Card key={label} className="p-4 sm:p-5">
                 <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#A19890]">{label}</p>
