@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  BarChart3,
   BookOpen,
   FileClock,
   GraduationCap,
@@ -78,7 +79,6 @@ export default async function LeaderPage() {
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint={`${activeStudentCount ?? 0} белсенді`} icon={<GraduationCap size={17} />} />
             <MetricCard label="ҚЫЗМЕТКЕРЛЕР" value={String(staffCount ?? 0)} hint={`${mentorCount ?? 0} ментор`} icon={<ShieldCheck size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint={`${activeMemberCount ?? 0} белсенді мүшелік`} icon={<Users size={17} />} />
-} />
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
