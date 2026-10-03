@@ -30,7 +30,6 @@ export default async function ChiefMentorStudentsPage(){
   const mentorUserIds=[...mentorByTeam.values()];
   const {data:mentorProfiles}=mentorUserIds.length?await supabase.from("profiles").select("id,full_name").in("id",mentorUserIds):{data:[] as Array<{id:string;full_name:string}>};
   const mentorMap=new Map((mentorProfiles??[]).map(x=>[x.id,x.full_name]));
-  const avg=new Map<string,number[]>();for(const x of attendance??[])avg.set(x.student_id,[...(avg.get(x.student_id)??[]),Number(x.attendance_percent??0)]);
   const score=new Map<string,number>();for(const x of scores??[])score.set(x.student_id,(score.get(x.student_id)??0)+Number(x.points??0));
   const reportCount=new Map<string,number>();for(const x of reports??[])reportCount.set(x.student_id,(reportCount.get(x.student_id)??0)+1);
   const taskCount=new Map<string,number>();for(const x of taskSubs??[])taskCount.set(x.student_id,(taskCount.get(x.student_id)??0)+1);
@@ -45,7 +44,7 @@ export default async function ChiefMentorStudentsPage(){
   return <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Оқушылар" description="Оқушының ілгерілеуі, командасы және оқу нәтижелері.">
     <PageContainer><div className="space-y-5">
       <SectionHeader eyebrow="ОҚУШЫЛАР" title="Барлық оқушылар" description="Іздеу, сүзгі және команда ауыстыру." action={<Link href="/chief-mentor/teams" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E1DA] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><Users size={14}/> Командалар</Link>}/>
-      <Card className="overflow-hidden"><div className="hidden grid-cols-[1.45fr_1fr_100px_100px_110px_190px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] lg:grid"><span>Оқушы</span><span>Команда</span><span>Ұпай</span><span>Қатысу</span><span>Статус</span><span className="text-right">Команданы өзгерту</span></div><ChiefMentorStudentsManager initialStudents={initialStudents} teams={initialTeams}/></Card>
+      <Card className="overflow-hidden"><ChiefMentorStudentsManager initialStudents={initialStudents} teams={initialTeams}/></Card>
     </div></PageContainer>
   </AppShell>;
 }
