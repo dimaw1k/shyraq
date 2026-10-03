@@ -87,7 +87,7 @@ export function KinescopeLessonPlayer({
     return()=>window.removeEventListener("beforeunload",flush);
   },[persist,shouldTrackProgress]);
 
-  const unlocked=initialTestUnlocked || percent>=requiredWatchPercent;
+  const unlocked=youtubeId ? Boolean(testHref) : (initialTestUnlocked || percent>=requiredWatchPercent);
 
   if(youtubeId){
     return (
