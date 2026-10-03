@@ -127,6 +127,8 @@ export async function POST(request: Request, context: { params: Promise<{ testId
         type: "TEXT",
         selectedOptionId: null,
         selectedOptionIds: [],
+        correctOptionId: null,
+        correctOptionIds: [],
         isCorrect: false,
         manualReview: true,
       };
@@ -148,6 +150,8 @@ export async function POST(request: Request, context: { params: Promise<{ testId
       type: question.question_type === "MULTIPLE" ? "MULTIPLE" : "SINGLE",
       selectedOptionId: Array.isArray(answer) ? null : String(answer),
       selectedOptionIds: selectedIds,
+      correctOptionId: correctIds.length === 1 ? correctIds[0] : null,
+      correctOptionIds: correctIds,
       isCorrect,
       manualReview: false,
     };
@@ -201,11 +205,13 @@ export async function POST(request: Request, context: { params: Promise<{ testId
 
   return NextResponse.json({
     attempt,
-    questionResults: questionResults.map(({ questionId, type, selectedOptionId, selectedOptionIds, isCorrect, manualReview }) => ({
+    questionResults: questionResults.map(({ questionId, type, selectedOptionId, selectedOptionIds, correctOptionId, correctOptionIds, isCorrect, manualReview }) => ({
       questionId,
       type,
       selectedOptionId,
       selectedOptionIds,
+      correctOptionId,
+      correctOptionIds,
       isCorrect,
       manualReview,
     })),
