@@ -1,23 +1,26 @@
 import { ClipboardCheck } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer } from "@/components/ui/ShyraqUI";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 import { MentorTaskRequestForm } from "@/components/mentor/MentorTaskRequestForm";
 import { TaskSubmissionReviewActions } from "@/components/staff/TaskSubmissionReviewActions";
 import { getMentorPageData } from "@/lib/mentor/auth";
 
-export default async function MentorTasksPage() {
+export default async function MentorTasksPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { profile, workspace } = await getMentorPageData();
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
 
   return (
     <AppShell role="MENTOR" userName={profile.full_name} title="Тапсырмалар" description={workspace?.team.name}>
       <PageContainer>
         {!workspace ? <Card className="p-8 text-center"><EmptyState title="Команда бекітілмеген." /></Card> : (
           <div className="space-y-5">
+            <MarathonDayNavigator basePath="/mentor/tasks" selectedDay={selectedDay} />
             <section className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">ТАПСЫРМАЛАР</p>
                 <h2 className="mt-1 text-[18px] font-extrabold text-[#172235]">Тексеру және сұраныс</h2>
-                <p className="mt-1 text-[10px] font-medium text-[#9A9189]">{workspace.pendingReviewCount} жаңа жұмыс тексеруді күтуде.</p>
+                <p className="mt-1 text-[10px] font-medium text-[#9A9189]">{workspace.submissions.filter((submission) => submission.task_marathon_day === selectedDay && submission.status === "SUBMITTED").length} жаңа жұмыс тексеруді күтуде.</p>
               </div>
               <MentorTaskRequestForm />
             </section>
@@ -32,7 +35,7 @@ export default async function MentorTasksPage() {
                   </div>
                 </div>
                 <div className="mt-4 space-y-2">
-                  {workspace.tasks.map((task) => (
+                  {workspace.tasks.filter((task) => task.marathon_day === selectedDay).map((task) => (
                     <div key={task.id} className="rounded-[12px] border border-[#EFE8E1] bg-[#FFFCF9] px-3.5 py-3">
                       <p className="text-[10px] font-extrabold text-[#263247]">{task.title}</p>
                       <p className="mt-1 text-[9px] font-semibold text-[#8F857D]">{task.points} ұпай · {task.deadline ? new Date(task.deadline).toLocaleDateString("kk-KZ") : "Соңғы мерзім жоқ"}</p>
@@ -48,7 +51,7 @@ export default async function MentorTasksPage() {
                   <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">Команда бойынша соңғы тапсырмалар</p>
                 </div>
                 <div className="divide-y divide-[#EFE8E1]">
-                  {workspace.submissions.map((submission) => (
+                  {workspace.submissions.filter((submission) => submission.task_marathon_day === selectedDay).map((submission) => (
                     <div key={submission.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
                       <div className="min-w-0">
                         <p className="truncate text-[10px] font-extrabold text-[#263247]">{submission.student_name}</p>
