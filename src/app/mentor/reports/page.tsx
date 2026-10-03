@@ -2,9 +2,11 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer } from "@/components/ui/ShyraqUI";
 import { MentorReportsManager } from "@/components/mentor/MentorReportsManager";
 import { getMentorPageData } from "@/lib/mentor/auth";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 
-export default async function MentorReportsPage() {
+export default async function MentorReportsPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { profile, workspace } = await getMentorPageData();
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
 
   return (
     <AppShell role="MENTOR" userName={profile.full_name} title="Есептер" hideHeader>
@@ -15,6 +17,7 @@ export default async function MentorReportsPage() {
           </Card>
         ) : (
           <div className="space-y-5">
+            <MarathonDayNavigator basePath="/mentor/reports" selectedDay={selectedDay} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">КҮНДЕЛІКТІ ЕСЕП</p>
@@ -25,7 +28,7 @@ export default async function MentorReportsPage() {
               </span>
             </div>
 
-            <MentorReportsManager reports={workspace.reports} />
+            <MentorReportsManager reports={workspace.reports.filter((report) => Number(report.marathon_day ?? 0) === selectedDay)} />
           </div>
         )}
       </PageContainer>
