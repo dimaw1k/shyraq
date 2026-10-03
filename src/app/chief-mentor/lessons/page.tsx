@@ -88,7 +88,7 @@ export default async function ChiefMentorLessonsPage({
               <div className="divide-y divide-[#EFE8E1]">
                 {weekLessons.map((lesson, index) => (
                   <div key={lesson.id} className="flex items-center gap-2.5 px-4 py-3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-[#172235] text-[8px] font-extrabold text-white">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-[#FFF1E2] text-[8px] font-extrabold text-[#B95D00] ring-1 ring-[#FFDDBB]">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <span className="min-w-0 flex-1">
