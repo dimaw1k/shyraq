@@ -94,7 +94,7 @@ export function StickyNav() {
                 fontSize="27"
                 fontWeight="800"
                 letterSpacing="-1.15"
-                fontFamily="Arial, Helvetica, sans-serif"
+                fontFamily="Montserrat, Arial, Helvetica, sans-serif"
               >
                 SHYR
               </text>
@@ -116,7 +116,7 @@ export function StickyNav() {
                 fontSize="27"
                 fontWeight="800"
                 letterSpacing="-1.15"
-                fontFamily="Arial, Helvetica, sans-serif"
+                fontFamily="Montserrat, Arial, Helvetica, sans-serif"
               >
                 Q
               </text>
