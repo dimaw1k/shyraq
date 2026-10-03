@@ -155,3 +155,21 @@ section {
     transform: translate3d(0, 14px, 0) scale(0.995);
   }
 }
+
+
+/* Shyraq visual system: light surfaces, readable type, modern controls. */
+[class~="bg-[#172235]"] {
+  background-color: var(--accent-soft) !important;
+  color: var(--foreground) !important;
+  border-color: rgba(255, 128, 0, 0.14) !important;
+}
+[class~="bg-[#172235]"] [class~="text-white"],
+[class~="bg-[#172235]"][class~="text-white"] {
+  color: var(--foreground) !important;
+}
+[class~="text-[7px]"] { font-size: 10px !important; }
+[class~="text-[8px]"] { font-size: 10px !important; }
+[class~="text-[9px]"] { font-size: 11px !important; }
+[class~="text-[10px]"] { font-size: 12px !important; }
+[class~="text-[11px]"] { font-size: 12px !important; }
+button, a { -webkit-tap-highlight-color: transparent; }
