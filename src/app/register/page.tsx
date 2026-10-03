@@ -32,7 +32,7 @@ const initialForm: FormState = {
   firstName: "",
   lastName: "",
   age: "",
-  educationType: "UNIVERSITY",
+  educationType: "SCHOOL",
   password: "",
   confirmPassword: "",
 };
@@ -128,7 +128,7 @@ export default function RegisterPage() {
   const inputClass = (key: keyof FormState) =>
     "mt-2 w-full rounded-2xl border " +
     (errors[key] ? "border-red-300 bg-red-50/40" : "border-[#e7e0d8] bg-[#fcfbf9]") +
-    " px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 focus:border-[#ff6f2c] focus:bg-white focus:ring-4 focus:ring-[#ff6f2c]/10";
+    " px-4 py-3.5 text-sm font-medium outline-none transition-all duration-300 focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
   const errorText = (key: keyof FormState) =>
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
@@ -137,7 +137,7 @@ export default function RegisterPage() {
     <main className={montserrat.className + " min-h-screen overflow-hidden bg-[#fbfaf7] text-[#172235]"}>
       <div className="absolute inset-x-0 top-0 h-[430px] bg-[radial-gradient(circle_at_14%_12%,rgba(255,255,255,.88),transparent_30%),linear-gradient(135deg,#fff0e8_0%,#ffd7ca_48%,#ffb18d_100%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-6 sm:px-7 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-5 py-5 sm:px-7 lg:px-8">
         <div className="flex items-center justify-between">
           <Brand />
           <Link
@@ -148,15 +148,15 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <div className="mx-auto mt-7 max-w-6xl">
-          <div className="rounded-[36px] border border-white/75 bg-white/92 p-4 shadow-[0_30px_100px_rgba(39,25,17,.12)] backdrop-blur-xl sm:p-6 lg:p-8">
-            <div className="grid gap-8 lg:grid-cols-[1.28fr_.72fr] lg:gap-10">
-              <section className="order-2 rounded-[28px] bg-[#172235] p-6 text-white sm:order-2 sm:p-7 lg:order-2">
+        <div className="mx-auto mt-6 max-w-5xl">
+          <div className="rounded-[30px] border border-white/75 bg-white/92 p-4 shadow-[0_24px_80px_rgba(39,25,17,.10)] backdrop-blur-xl sm:p-6 lg:p-7">
+            <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr] lg:gap-8">
+              <section className="order-2 rounded-[30px] bg-[#172235] p-5 text-white sm:order-2 sm:p-6 lg:order-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/65">
                   <Sparkles size={12} className="text-[#ff8a52]" />
                   21 күндік оқу марафоны
                 </div>
-                <h1 className="mt-5 text-4xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-5xl">
+                <h1 className="mt-5 text-3xl font-extrabold leading-[1.02] tracking-[-.055em] sm:text-[42px]">
                   Күнде аздап.
                   <span className="block text-[#ff6f2c]">21 күнде үлкен өзгеріс.</span>
                 </h1>
@@ -186,8 +186,8 @@ export default function RegisterPage() {
               </section>
 
               <section className="order-1 px-1 py-1 sm:order-1 sm:px-2 lg:order-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#ff6f2c]">ТІРКЕЛУ</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">Жеке тіркелгіңізді ашыңыз.</h2>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">ТІРКЕЛУ</p>
+                <h2 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-[38px]">Жеке тіркелгіңізді ашыңыз.</h2>
                 <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#766e66]">
                   Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
                 </p>
