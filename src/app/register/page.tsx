@@ -5,7 +5,6 @@ import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
 const montserrat = Montserrat({
@@ -118,20 +117,8 @@ export default function RegisterPage() {
         return;
       }
 
-      const supabase = createBrowserSupabaseClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-      });
-
-      if (signInError) {
-        setErrors({ form: "Тіркелгі жасалды. Кіру беті арқылы тіркелгіңізге кіріп көріңіз." });
-        setLoading(false);
-        return;
-      }
-
-      router.push("/dashboard");
-      router.refresh();
+      const email = form.email.trim().toLowerCase();
+      router.push(`/login?registered=1&email=${encodeURIComponent(email)}`);
     } catch {
       setErrors({ form: "Тіркелу кезінде байланыс қатесі болды. Қайта көріңіз." });
       setLoading(false);
