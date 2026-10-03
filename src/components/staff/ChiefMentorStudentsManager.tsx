@@ -135,12 +135,12 @@ export function ChiefMentorStudentsManager({
     <div>
       <div className="border-b border-[#EFE8E1] bg-[#FFFCF9] p-4 sm:p-5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
+          {([
             ["ОҚУШЫ", String(filtered.length), "көрсетілген", UsersRound],
             ["MEET ҚАТЫСУ", averageMeet ? averageMeet.toFixed(1) + "%" : "—", "орташа қатысу", CheckCircle2],
             ["БЕЙНЕ КӨРУ", averageVideo ? averageVideo.toFixed(1) + "%" : "—", "орташа coverage", CheckCircle2],
             ["НАЗАР", String(attentionCount), "төмен қатысу", CircleAlert],
-          ].map(([label, value, hint, Icon]) => {
+          ] as Array<[string, string, string, typeof UsersRound]>).map(([label, value, hint, Icon]) => {
             const MetricIcon = Icon as typeof CheckCircle2;
             return (
               <div
