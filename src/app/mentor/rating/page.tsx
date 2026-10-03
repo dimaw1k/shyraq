@@ -24,7 +24,7 @@ export default async function MentorRatingPage() {
                   <span className="grid h-9 w-9 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">{String(index + 1).padStart(2, "0")}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[11px] font-extrabold text-[#263247]">{student.full_name}</p>
-                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Қатысу {student.attendanceAverage || 0}% · Тапсырма {student.taskSubmittedCount}</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">Тапсырма {student.taskSubmittedCount}</p>
                   </div>
                   <StatusPill tone={index === 0 ? "orange" : "neutral"}>{student.score} ұпай</StatusPill>
                 </div>
