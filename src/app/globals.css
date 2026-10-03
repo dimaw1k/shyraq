@@ -163,3 +163,57 @@ section {
 [class~="text-[10px]"] { font-size: 12px !important; }
 [class~="text-[11px]"] { font-size: 12px !important; }
 button, a { -webkit-tap-highlight-color: transparent; }
+
+
+/* Mobile foundations: prevent horizontal page drift, iOS zoom, and content being hidden behind the bottom navigation. */
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  overscroll-behavior-x: none;
+  min-height: 100dvh;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
+.shrq-mobile-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  section {
+    scroll-margin-top: 76px;
+  }
+}
+
+@media (min-width: 768px) {
+  .shrq-mobile-nav {
+    display: none;
+  }
+}
