@@ -242,10 +242,6 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
   const home = roleHome[role] ?? "/dashboard";
 
   useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
