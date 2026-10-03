@@ -3,10 +3,12 @@ import { PageContainer } from "@/components/ui/ShyraqUI";
 import { TaskSubmissionReviewQueue } from "@/components/staff/TaskSubmissionReviewQueue";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { getStaffTaskSubmissions } from "@/lib/staff/task-submissions";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 
-export default async function ChiefMentorSubmissionsPage() {
+export default async function ChiefMentorSubmissionsPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
-  const submissions = (await getStaffTaskSubmissions(supabase)).filter((submission) => submission.submitted_late || submission.status === "REJECTED");
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
+  const submissions = (await getStaffTaskSubmissions(supabase)).filter((submission) => submission.task_marathon_day === selectedDay && (submission.submitted_late || submission.status === "REJECTED"));
 
   return (
     <AppShell
@@ -17,6 +19,7 @@ export default async function ChiefMentorSubmissionsPage() {
     >
       <PageContainer>
         <div className="space-y-5">
+          <MarathonDayNavigator basePath="/chief-mentor/submissions" selectedDay={selectedDay} />
           <TaskSubmissionReviewQueue submissions={submissions} />
         </div>
       </PageContainer>
