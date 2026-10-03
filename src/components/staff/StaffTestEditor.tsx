@@ -231,8 +231,8 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
         title={test ? "Тестті өңдеу" : "Жаңа тест"}
         description="Сұрақ түрін таңдап, қажет болса файл тіркеңіз."
       >
-        <div className="grid gap-5">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <label className="text-[10px] font-extrabold text-[#5B534C] sm:col-span-2">
               Тест атауы
               <input value={title} onChange={(event) => setTitle(event.target.value)} className={staffInputClass + " mt-1.5"} />
@@ -249,7 +249,7 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
 
           <label className="text-[10px] font-extrabold text-[#5B534C]">
             Нұсқаулық
-            <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={2} className="mt-1.5 w-full resize-none rounded-[14px] border border-[#E8E1DA] bg-white px-3.5 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]" />
+            <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)} rows={2} className="mt-1.5 w-full resize-none rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF8000]" />
           </label>
 
           <label className="flex items-center gap-2 text-[10px] font-extrabold text-[#5B534C]">
@@ -257,9 +257,9 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
             Белсенді
           </label>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {questions.map((question, questionIndex) => (
-              <div key={question.id ?? questionIndex} className="rounded-[18px] border border-[#E8E1DA] bg-[#FFFCF9] p-4">
+              <div key={question.id ?? questionIndex} className="rounded-[16px] border border-[#E8E1DA] bg-[#FFFCF9] p-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[11px] font-extrabold text-[#172235]">Сұрақ {questionIndex + 1}</p>
                   {questions.length > 1 ? (
@@ -282,11 +282,11 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
                   onChange={(event) => setQuestion(questionIndex, { text: event.target.value })}
                   rows={3}
                   placeholder="Сұрақ мәтіні"
-                  className="mt-3 w-full resize-none rounded-[13px] border border-[#E8E1DA] bg-white px-3 py-3 text-[11px] font-semibold outline-none focus:border-[#FF8000]"
+                  className="mt-2.5 w-full resize-none rounded-[12px] border border-[#E8E1DA] bg-white px-3 py-2.5 text-[10px] font-semibold outline-none focus:border-[#FF8000]"
                 />
 
                 {question.type !== "TEXT" ? (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-2.5 space-y-1.5">
                     {question.options.map((option, optionIndex) => (
                       <div key={optionIndex} className="flex items-center gap-2">
                         <button
@@ -304,7 +304,7 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
                           value={option.text}
                           onChange={(event) => setOption(questionIndex, optionIndex, { text: event.target.value })}
                           placeholder={"Нұсқа " + (optionIndex + 1)}
-                          className={staffInputClass}
+                          className={staffInputClass + " h-10"}
                         />
                         {question.options.length > 2 ? (
                           <button type="button" onClick={() => removeOption(questionIndex, optionIndex)} className="grid h-8 w-8 place-items-center rounded-[9px] text-[#B54D2B]" aria-label="Нұсқаны өшіру">
@@ -328,7 +328,7 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
                   </div>
                 )}
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <div className="mt-3 grid gap-2.5 sm:grid-cols-[1fr_auto] sm:items-end">
                   <div>
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-[12px] border border-dashed border-[#DCCFC5] bg-white px-3 py-2.5 text-[9px] font-extrabold text-[#5B534C]">
                       <FilePlus2 size={13} />
@@ -344,9 +344,9 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
                         }}
                       />
                     </label>
-                    <p className="mt-1.5 text-[8px] font-semibold text-[#9A9189]">Сурет, PDF немесе Word · 10 МБ-қа дейін</p>
+                    <p className="mt-1 text-[8px] font-semibold text-[#9A9189]">Сурет, PDF немесе Word · 10 МБ-қа дейін</p>
                     {(question.attachments.length || question.files.length) ? (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {question.attachments.map((attachment) => (
                           <span key={attachment.path} className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-[8px] font-bold text-[#5B534C]">
                             {attachment.name}
