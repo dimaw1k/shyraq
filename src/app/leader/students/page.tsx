@@ -127,7 +127,7 @@ export default async function LeaderStudentsPage() {
                       <span className="text-[9px] font-bold text-[#A19890]">{index + 1}</span>
                       <div className="flex min-w-0 items-center gap-3">
                         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#172235] text-[9px] font-extrabold text-white">
-                          {student.full_name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")}
+                          {student.full_name.split(" ").filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join("")}
                         </span>
                         <div className="min-w-0">
                           <p className="truncate text-[11px] font-extrabold text-[#354153]">{student.full_name}</p>
@@ -160,7 +160,7 @@ export default async function LeaderStudentsPage() {
                 <div key={student.id} className="space-y-3 px-4 py-4">
                   <div className="flex items-start gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
-                      {student.full_name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")}
+                      {student.full_name.split(" ").filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join("")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[11px] font-extrabold text-[#354153]">{student.full_name}</p>
