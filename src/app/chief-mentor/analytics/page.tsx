@@ -67,7 +67,7 @@ export default async function ChiefMentorAnalyticsPage() {
             }
           />
 
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">} />
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <MetricCard label="ЕСЕП" value={reportValue.toFixed(1) + "%"} hint="жіберілген/қаралған" icon={<CheckCircle2 size={17} />} />
             <MetricCard label="ТАПСЫРМА" value={submissionValue.toFixed(1) + "%"} hint="тапсырма тапсыру белсенділігі" icon={<BarChart3 size={17} />} />
             <MetricCard label="БЕЙНЕ" value={videoValue.toFixed(1) + "%"} hint="орташа қарау" icon={<Video size={17} />} />
