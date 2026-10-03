@@ -1,11 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Unplug } from "lucide-react";
 
 export function MentorMeetSync({ teamId, googleConnected }: { teamId: string; googleConnected: boolean }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  async function disconnect() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/integrations/google/disconnect", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error ?? "Google аккаунтын ажырату сәтсіз аяқталды.");
+      window.location.reload();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Қате");
+      setLoading(false);
+    }
+  }
 
   async function sync() {
     setLoading(true);
@@ -27,16 +41,19 @@ export function MentorMeetSync({ teamId, googleConnected }: { teamId: string; go
   }
 
   if (!googleConnected) {
-    return <a href="/api/integrations/google/start" className="inline-flex min-h-10 items-center rounded-[11px] bg-[#172235] px-4 py-2.5 text-[10px] font-extrabold text-white">Google қосу</a>;
+    return <a href="/api/integrations/google/start?returnTo=%2Fmentor%2Fmeet" className="inline-flex min-h-10 items-center rounded-[11px] bg-[#172235] px-4 py-2.5 text-[10px] font-extrabold text-white">Google қосу</a>;
   }
 
   return (
-    <div>
+    <div className="flex flex-wrap items-center gap-2">
       <button type="button" onClick={() => void sync()} disabled={loading} className="inline-flex min-h-10 items-center gap-2 rounded-[11px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white disabled:opacity-50">
         <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
         {loading ? "Жаңартылуда..." : "Қатысуды жаңарту"}
       </button>
-      {message ? <p className="mt-2 text-[9px] font-semibold text-[#6F665E]">{message}</p> : null}
+      <button type="button" onClick={() => void disconnect()} disabled={loading} className="inline-flex min-h-10 items-center gap-2 rounded-[11px] border border-[#E8E3DD] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#5B534C] disabled:opacity-50">
+        <Unplug size={13} /> Google-ды ажырату
+      </button>
+      {message ? <p className="basis-full text-[9px] font-semibold text-[#6F665E]">{message}</p> : null}
     </div>
   );
 }
