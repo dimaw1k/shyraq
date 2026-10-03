@@ -37,7 +37,7 @@ const studentLinks: NavItem[] = [
 ];
 
 const mentorLinks: NavItem[] = [
-  { label: "Басқару", href: "/mentor", icon: LayoutDashboard },
+  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
   { label: "Команда", href: "/mentor/team", icon: UsersRound },
   { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck },
   { label: "Есептер", href: "/mentor/reports", icon: FileText },
@@ -66,7 +66,7 @@ const chiefMentorLinks: NavItem[] = [
 ];
 
 const leaderLinks: NavItem[] = [
-  { label: "Басқару", href: "/leader", icon: LayoutDashboard },
+  { label: "Басты бет", href: "/leader", icon: LayoutDashboard },
   { label: "Қызметкерлер", href: "/leader/staff", icon: Users },
   { label: "Командалар", href: "/leader/teams", icon: Users },
   { label: "Оқушылар", href: "/leader/students", icon: ClipboardCheck },
@@ -213,20 +213,6 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
           <NavLinks links={links} pathname={pathname} close={() => setMobileOpen(false)} />
 
-          <div className="mt-auto rounded-[18px] border border-[#E8E3DD] bg-white p-3.5 shadow-[0_10px_28px_rgba(23,34,53,.04)]">
-            <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#A19890]">Профиль</p>
-            <div className="mt-2.5 flex items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
-                {initials(userName)}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-[11px] font-extrabold text-[#172235]">{userName ?? "Shyraq"}</p>
-                <p className="mt-0.5 truncate text-[9px] font-semibold text-[#A19890]">
-                  {roleLabels[role] ?? role}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </aside>
 
@@ -287,7 +273,7 @@ export function AppShell({
 export function UserChip({ name, role }: { name?: string; role?: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
         {initials(name)}
       </span>
       <div className="hidden max-w-40 min-w-0 sm:block">
