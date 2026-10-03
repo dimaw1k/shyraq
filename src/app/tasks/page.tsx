@@ -13,13 +13,18 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
 
   const dayParam = (await searchParams)?.day;
   const selectedDay = dayParam ? Number(dayParam) : null;
-  const [{ data: profile }, { data: tasks }, { data: submissions }] = await Promise.all([
+  const [{ data: profile }, { data: membership }, { data: tasks }, { data: submissions }] = await Promise.all([
     supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
+    supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
     supabase.from("tasks").select("id,title,description,deadline,starts_at,points,marathon_day,task_order,team_id,active").eq("active", true).order("marathon_day").order("task_order"),
     supabase.from("task_submissions").select("task_id,status,submitted_late,submitted_at").eq("student_id", user.id),
   ]);
 
   const role = profile?.role ?? "STUDENT";
+  const teamId = membership?.team_id ?? null;
+  const visibleTasks = role === "STUDENT"
+    ? (tasks ?? []).filter((task) => !task.team_id || task.team_id === teamId)
+    : (tasks ?? []);
   const now = new Date().getTime();
   const submissionMap = new Map((submissions ?? []).map((item) => [item.task_id, item]));
 
@@ -29,7 +34,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
         <div className="space-y-5">
           <SectionHeader eyebrow="ЖҰМЫС" title="Тапсырмалар" description={selectedDay ? selectedDay + "-күн" : "Апта, күн және статус бойынша тапсырмаларды шол."} />
           {MARATHON_WEEKS.map((week) => {
-            const weekTasks = (tasks ?? []).filter((task) => {
+            const weekTasks = visibleTasks.filter((task) => {
               const day = Number(task.marathon_day ?? 0);
               return day >= week.startDay && day <= week.endDay && (!selectedDay || day === selectedDay);
             });
@@ -70,7 +75,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
               </section>
             );
           })}
-          {!tasks?.length ? <EmptyState title="Әзірге тапсырма жоқ." /> : null}
+          {!visibleTasks.length ? <EmptyState title="Әзірге тапсырма жоқ." /> : null}
         </div>
       </PageContainer>
     </AppShell>
