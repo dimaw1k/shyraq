@@ -13,6 +13,7 @@ export type StaffTaskSubmissionRow = {
   reviewed_by: string | null;
   task_title: string;
   task_points: number;
+  task_marathon_day: number | null;
   student_name: string;
   file_count: number;
 };
@@ -35,7 +36,7 @@ export async function getStaffTaskSubmissions(
   const submissionIds = submissions.map((submission) => submission.id);
 
   const [{ data: tasks }, { data: students }, { data: files }] = await Promise.all([
-    supabase.from("tasks").select("id,title,points").in("id", taskIds),
+    supabase.from("tasks").select("id,title,points,marathon_day").in("id", taskIds),
     supabase.from("profiles").select("id,full_name").in("id", studentIds),
     supabase.from("submission_files").select("submission_id").in("submission_id", submissionIds),
   ]);
@@ -61,6 +62,7 @@ export async function getStaffTaskSubmissions(
     reviewed_by: submission.reviewed_by,
     task_title: taskMap.get(submission.task_id)?.title ?? "Тапсырма",
     task_points: Number(taskMap.get(submission.task_id)?.points ?? 0),
+    task_marathon_day: taskMap.get(submission.task_id)?.marathon_day == null ? null : Number(taskMap.get(submission.task_id)?.marathon_day),
     student_name: studentMap.get(submission.student_id) ?? "Оқушы",
     file_count: fileCounts.get(submission.id) ?? 0,
   }));
