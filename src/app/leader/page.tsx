@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  BarChart3,
   BookOpen,
   FileClock,
   GraduationCap,
@@ -30,7 +29,6 @@ export default async function LeaderPage() {
     { count: mentorCount },
     { count: teamCount },
     { count: activeMemberCount },
-    { data: attendance },
     { count: submittedReports },
     { count: lessonCount },
     { count: taskCount },
@@ -49,16 +47,12 @@ export default async function LeaderPage() {
     supabase.from("audit_logs").select("id,actor_role,action,entity_type,created_at").order("created_at", { ascending: false }).limit(6),
   ]);
 
-  const averageAttendance = attendance?.length
-    ? attendance.reduce((sum, item) => sum + Number(item.attendance_percent ?? 0), 0) / attendance.length
-    : 0;
-
   const modules = [
     ["Қызметкерлер", "/leader/staff", "Менторлар мен бас менторларды басқару.", Users],
     ["Оқушылар", "/leader/students", "Барлық оқушыны, статусты және команданы бақылау.", GraduationCap],
     ["Командалар", "/leader/teams", "Командалар мен ментор бекітулерін басқару.", Users],
     ["Контент", "/leader/content", "Сабақтар мен тапсырмалардың жалпы күйі.", BookOpen],
-    ["Аналитика", "/leader/analytics", "Қатысу, есептер және белсенділік.", BarChart3],
+    ["Аналитика", "/leader/analytics", "Есептер, тапсырмалар және белсенділік.", BarChart3],
     ["Журнал", "/leader/audit", "Маңызды қызметкер әрекеттерінің журналы.", FileClock],
   ] as const;
 
@@ -84,7 +78,7 @@ export default async function LeaderPage() {
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint={`${activeStudentCount ?? 0} белсенді`} icon={<GraduationCap size={17} />} />
             <MetricCard label="ҚЫЗМЕТКЕРЛЕР" value={String(staffCount ?? 0)} hint={`${mentorCount ?? 0} ментор`} icon={<ShieldCheck size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint={`${activeMemberCount ?? 0} белсенді мүшелік`} icon={<Users size={17} />} />
-            <MetricCard label="ҚАТЫСУ" value={averageAttendance.toFixed(1) + "%"} hint="барлық қатысу" icon={<BarChart3 size={17} />} />
+} />
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
