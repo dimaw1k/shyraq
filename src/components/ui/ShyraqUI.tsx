@@ -19,7 +19,7 @@ export function PageContainer({
   return (
     <main
       className={
-        "mx-auto w-full max-w-[1320px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 " +
+        "mx-auto w-full min-w-0 max-w-[1320px] px-3.5 py-4 pb-2 sm:px-6 sm:py-7 sm:pb-4 lg:px-8 lg:pb-5 " +
         className
       }
     >
@@ -65,14 +65,14 @@ export function SectionHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-4">
+    <div className="flex min-w-0 flex-col items-start justify-between gap-3 sm:flex-row sm:items-end sm:gap-4">
       <div className="min-w-0">
         {eyebrow ? (
           <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[var(--accent)]">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="mt-1.5 text-[24px] font-extrabold tracking-[-.045em] text-[var(--foreground)] sm:text-[30px]">
+        <h1 className="mt-1.5 text-[22px] leading-tight font-extrabold tracking-[-.045em] text-[var(--foreground)] sm:text-[30px]">
           {title}
         </h1>
         {description ? (
