@@ -13,9 +13,8 @@ export default async function ChiefMentorStudentsPage(){
   ]);
   const studentIds=(students??[]).map(x=>x.id);
   const teamIds=(teams??[]).map(x=>x.id);
-  const [{data:members},{data:attendance},{data:scores},{data:reports},{data:taskSubs},{data:video}]=await Promise.all([
+  const [{data:members},{data:scores},{data:reports},{data:taskSubs},{data:video}]=await Promise.all([
     studentIds.length?supabase.from("team_members").select("student_id,team_id").in("student_id",studentIds).eq("status","ACTIVE"):Promise.resolve({data:[] as Array<{student_id:string;team_id:string}>}),
-    studentIds.length?supabase.from("attendance_records").select("student_id,attendance_percent").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;attendance_percent:number|null}>}),
     studentIds.length?supabase.from("score_events").select("student_id,points").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;points:number}>}),
     studentIds.length?supabase.from("daily_reports").select("student_id,id").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;id:string}>}),
     studentIds.length?supabase.from("task_submissions").select("student_id,id").in("student_id",studentIds):Promise.resolve({data:[] as Array<{student_id:string;id:string}>}),
@@ -40,7 +39,7 @@ export default async function ChiefMentorStudentsPage(){
   const initialStudents=(students??[]).map(s=>{
     const teamId=membershipMap.get(s.id);const values=avg.get(s.id)??[];const vv=videoAvg.get(s.id)??[];
     const mentorId=teamId?mentorByTeam.get(teamId):undefined;
-    return { ...s,team_id:teamId??null,team_name:teamId?teamMap.get(teamId)?.name??null:null,mentor_name:mentorId?mentorMap.get(mentorId)??null:null,score:Math.round(score.get(s.id)??0),attendance:values.length?values.reduce((a,b)=>a+b,0)/values.length:0,report_count:reportCount.get(s.id)??0,task_count:taskCount.get(s.id)??0,video:vv.length?vv.reduce((a,b)=>a+b,0)/vv.length:0 };
+    return { ...s,team_id:teamId??null,team_name:teamId?teamMap.get(teamId)?.name??null:null,mentor_name:mentorId?mentorMap.get(mentorId)??null:null,score:Math.round(score.get(s.id)??0),report_count:reportCount.get(s.id)??0,task_count:taskCount.get(s.id)??0,video:vv.length?vv.reduce((a,b)=>a+b,0)/vv.length:0 };
   });
   const initialTeams=(teams??[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,count:(members??[]).filter(m=>m.team_id===t.id).length}));
   return <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Оқушылар" description="Оқушының ілгерілеуі, командасы және оқу нәтижелері.">
