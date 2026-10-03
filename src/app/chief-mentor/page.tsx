@@ -45,7 +45,6 @@ export default async function ChiefMentorPage() {
             <MetricCard label="МЕНТОР" value={String(mentorCount ?? 0)} hint="белсенді" icon={<Users size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint="белсенді" icon={<UsersRound size={17} />} />
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint="барлығы" icon={<Users size={17} />} />
-} />
           </section>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {modules.map(([title, href, description, Icon]) => (
