@@ -5,13 +5,15 @@ import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/co
 import { ReportReviewActions } from "@/components/staff/ReportReviewActions";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { ReportQuestionManager } from "@/components/staff/ReportQuestionManager";
+import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 
-export default async function ChiefMentorReportsPage() {
+export default async function ChiefMentorReportsPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
+  const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
 
   const { data: reports } = await supabase
     .from("daily_reports")
-    .select("id,student_id,report_date,status,study_minutes,completed_task_count,submitted_at")
+    .select("id,student_id,report_date,marathon_day,status,study_minutes,completed_task_count,submitted_at")
     .order("report_date", { ascending: false })
     .limit(100);
 
@@ -31,6 +33,7 @@ export default async function ChiefMentorReportsPage() {
     >
       <PageContainer>
         <div className="space-y-5">
+          <MarathonDayNavigator basePath="/chief-mentor/reports" selectedDay={selectedDay} />
           <ReportQuestionManager />
 
           <SectionHeader
@@ -49,7 +52,7 @@ export default async function ChiefMentorReportsPage() {
             </div>
 
             <div className="divide-y divide-[#EFE8E1]">
-              {(reports ?? []).map((report) => (
+              {(reports ?? []).filter((report) => Number(report.marathon_day ?? 0) === selectedDay).map((report) => (
                 <div
                   key={report.id}
                   className="grid gap-4 px-5 py-4 sm:grid-cols-[1.15fr_110px_120px_120px_190px] sm:items-center sm:px-6"
