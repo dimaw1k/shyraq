@@ -145,7 +145,7 @@ function NavLinks({
             onClick={close}
             aria-current={active ? "page" : undefined}
             className={[
-              "group flex min-h-10 items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-[12px] font-bold transition-all duration-200",
+              "group flex min-h-10 items-center gap-3 rounded-[12px] px-3.5 py-2.5 text-[12px] font-bold transition-all duration-200",
               active
                 ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_3px_0_0_var(--accent)]"
                 : "text-[#6F665E] hover:bg-white hover:text-[#172235]",
