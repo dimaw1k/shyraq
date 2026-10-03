@@ -187,7 +187,7 @@ function getMobileLinks(role: string, links: NavItem[]) {
 function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: string }) {
   return (
     <nav
-      className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/96 shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
+      className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
       aria-label="Мобильді навигация"
     >
       <div className="mx-auto grid max-w-[520px] grid-cols-5 px-1">
@@ -308,7 +308,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           type="button"
           aria-label="Мәзірді жабу"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-45 bg-[#172235]/15 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-[45] bg-[#172235]/15 backdrop-blur-[1px] lg:hidden"
         />
       ) : null}
 
