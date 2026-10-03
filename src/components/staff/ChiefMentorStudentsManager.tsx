@@ -88,8 +88,6 @@ export function ChiefMentorStudentsManager({
     ? filtered.reduce((sum, row) => sum + row.video, 0) / filtered.length
     : 0;
 
-  const activeCount = filtered.filter((row) => row.status === "ACTIVE").length;
-
   async function move(id: string, nextTeamId: string) {
     setSaving(id);
     setMessage("");
