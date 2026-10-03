@@ -27,7 +27,7 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   const [{ data: lesson }, { data: membership }, { data: progress }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id,published,starts_at,team_id")
+      .select("id,published,starts_at,team_id,kinescope_video_id")
       .eq("id", test.lesson_id)
       .maybeSingle(),
     supabase
@@ -51,7 +51,12 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   if (lesson.team_id && lesson.team_id !== membership?.team_id) {
     return NextResponse.json({ error: "Бұл тест сіздің командаңызға арналмаған." }, { status: 403 });
   }
-  if (!progress?.test_unlocked) {
+
+  // Kinescope сабақтарында 85% сияқты watch-gate серверде тексеріледі.
+  // YouTube iframe-ы playback progress-ті сенімді серверлік түрде бермейді,
+  // сондықтан YouTube сабақтары осы беттің өзіндегі test link арқылы жіберіледі.
+  const isYouTubeLesson = /youtu\.be|youtube\.com/i.test(lesson.kinescope_video_id ?? "");
+  if (!progress?.test_unlocked && !isYouTubeLesson) {
     return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
   }
 
