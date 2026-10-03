@@ -22,7 +22,7 @@ export default async function MentorPage() {
 
   if (!workspace) {
     return (
-      <AppShell role="MENTOR" userName={profile.full_name} title="Басқару">
+      <AppShell role="MENTOR" userName={profile.full_name} title="Басты бет">
         <PageContainer>
           <Card className="p-8 text-center">
             <p className="text-sm font-extrabold text-[#172235]">Команда бекітілмеген</p>
@@ -40,13 +40,12 @@ export default async function MentorPage() {
     .slice(0, 3);
 
   return (
-    <AppShell role="MENTOR" userName={profile.full_name} title="Басқару" description={workspace.team.name}>
+    <AppShell role="MENTOR" userName={profile.full_name} title="Басқару">
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader
             eyebrow="МЕНТОР"
             title="Бүгінгі жағдай"
-            description="Командадағы ең маңызды ақпарат қысқа түрде көрсетіледі."
           />
 
           <section className="grid gap-3 sm:grid-cols-3">
