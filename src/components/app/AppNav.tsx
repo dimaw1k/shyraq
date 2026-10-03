@@ -23,7 +23,7 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/student/NotificationBell";
 
 type NavItem = { label: string; href: string; icon: LucideIcon };
@@ -114,10 +114,15 @@ function initials(name?: string) {
   );
 }
 
-function Wordmark() {
+function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span aria-label="Shyraq" className="inline-flex items-center">
-      <span className="text-[24px] font-extrabold tracking-[-0.08em] text-[#172235]">
+      <span
+        className={[
+          "font-extrabold tracking-[-0.08em] text-[#172235]",
+          compact ? "text-[19px]" : "text-[24px]",
+        ].join(" ")}
+      >
         SHYR<span className="text-[var(--accent)]">A</span>Q
       </span>
     </span>
@@ -134,7 +139,7 @@ function NavLinks({
   close: () => void;
 }) {
   return (
-    <nav className="mt-7 space-y-1" aria-label="Негізгі навигация">
+    <nav className="mt-6 space-y-1 pb-4" aria-label="Негізгі навигация">
       {links.map((item) => {
         const Icon = item.icon;
         const active = isActive(pathname, item.href);
@@ -145,7 +150,7 @@ function NavLinks({
             onClick={close}
             aria-current={active ? "page" : undefined}
             className={[
-              "group flex min-h-10 items-center gap-3 rounded-[12px] px-3.5 py-2.5 text-[12px] font-bold transition-all duration-200",
+              "group flex min-h-11 items-center gap-3 rounded-[13px] px-3.5 py-2.5 text-[12px] font-bold transition-all duration-200",
               active
                 ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_3px_0_0_var(--accent)]"
                 : "text-[#6F665E] hover:bg-white hover:text-[#172235]",
@@ -156,6 +161,68 @@ function NavLinks({
           </Link>
         );
       })}
+    </nav>
+  );
+}
+
+function getMobileLinks(role: string, links: NavItem[]) {
+  const preferredByRole: Record<string, string[]> = {
+    STUDENT: ["/dashboard", "/lessons", "/tasks", "/profile", "/settings"],
+    MENTOR: ["/mentor", "/mentor/team", "/mentor/tasks", "/mentor/reports", "/profile"],
+    CHIEF_MENTOR: [
+      "/chief-mentor",
+      "/chief-mentor/mentors",
+      "/chief-mentor/submissions",
+      "/chief-mentor/reports",
+      "/profile",
+    ],
+    LEADER: ["/leader", "/leader/staff", "/leader/students", "/leader/analytics", "/profile"],
+  };
+
+  const preferred = preferredByRole[role] ?? preferredByRole.STUDENT;
+  const byHref = new Map(links.map((item) => [item.href, item]));
+  return preferred.map((href) => byHref.get(href)).filter((item): item is NavItem => Boolean(item));
+}
+
+function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: string }) {
+  return (
+    <nav
+      className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/96 shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
+      aria-label="Мобильді навигация"
+    >
+      <div className="mx-auto grid max-w-[520px] grid-cols-5 px-1">
+        {links.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(pathname, item.href);
+          const label = item.label
+            .replace("Басты бет", "Басты")
+            .replace("Баптаулар", "Баптау")
+            .replace("Тапсырмаларды тексеру", "Тексеру");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={[
+                "flex min-h-[62px] min-w-0 flex-col items-center justify-center gap-1 rounded-[12px] px-1 py-2 text-center transition-colors",
+                active ? "text-[var(--accent)]" : "text-[#8A8178]",
+              ].join(" ")}
+            >
+              <span
+                className={[
+                  "grid h-8 w-10 place-items-center rounded-[11px] transition-colors",
+                  active ? "bg-[var(--accent-soft)]" : "",
+                ].join(" ")}
+              >
+                <Icon size={18} strokeWidth={active ? 2.4 : 1.9} />
+              </span>
+              <span className="max-w-full truncate text-[9px] font-extrabold leading-none">
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
@@ -171,23 +238,41 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
     return studentLinks;
   }, [role]);
 
+  const mobileLinks = useMemo(() => getMobileLinks(role, links), [role, links]);
   const home = roleHome[role] ?? "/dashboard";
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 h-[56px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:left-[236px]">
-        <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => setMobileOpen((open) => !open)}
-            className="grid h-10 w-10 place-items-center rounded-[12px] text-[#172235] transition hover:bg-[var(--accent-soft)] lg:hidden"
-            aria-label={mobileOpen ? "Мәзірді жабу" : "Мәзірді ашу"}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+      <header className="fixed inset-x-0 top-0 z-40 h-[60px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:left-[236px] lg:h-[56px]">
+        <div className="flex h-full items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] text-[#172235] transition hover:bg-[var(--accent-soft)] lg:hidden"
+              aria-label={mobileOpen ? "Мәзірді жабу" : "Мәзірді ашу"}
+              aria-expanded={mobileOpen}
+              aria-controls="shyraq-mobile-sidebar"
+            >
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <Link href={home} className="lg:hidden" aria-label="Shyraq басты беті">
+              <Wordmark compact />
+            </Link>
+          </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5">
             {role === "STUDENT" ? <NotificationBell /> : null}
             <UserChip name={userName} role={role} />
           </div>
@@ -195,14 +280,15 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       </header>
 
       <aside
+        id="shyraq-mobile-sidebar"
         className={[
-          "fixed inset-y-0 left-0 z-50 w-[236px] border-r border-[#E8E3DD] bg-[#FAF9F7] px-4 py-5",
+          "fixed inset-y-0 left-0 z-50 w-[min(86vw,300px)] border-r border-[#E8E3DD] bg-[#FAF9F7] px-3.5 py-4 shadow-[14px_0_40px_rgba(23,34,53,.08)] sm:px-4 sm:py-5",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "transition-transform duration-200 ease-out",
         ].join(" ")}
       >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between px-2">
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="flex shrink-0 items-center justify-between px-2">
             <Link href={home} onClick={() => setMobileOpen(false)} aria-label="Shyraq басты беті">
               <Wordmark />
             </Link>
@@ -211,8 +297,9 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
             </span>
           </div>
 
-          <NavLinks links={links} pathname={pathname} close={() => setMobileOpen(false)} />
-
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+            <NavLinks links={links} pathname={pathname} close={() => setMobileOpen(false)} />
+          </div>
         </div>
       </aside>
 
@@ -221,9 +308,11 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           type="button"
           aria-label="Мәзірді жабу"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-[#172235]/15 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-45 bg-[#172235]/15 backdrop-blur-[1px] lg:hidden"
         />
       ) : null}
+
+      <MobileBottomNav links={mobileLinks} pathname={pathname} />
     </>
   );
 }
@@ -246,18 +335,20 @@ export function AppShell({
   hideHeader?: boolean;
 }) {
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen min-w-0 bg-[var(--background)] text-[var(--foreground)]">
       <AppNav role={role} userName={userName} />
-      <div className="pt-[56px] lg:ml-[236px]">
+      <div className="min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:ml-[236px] lg:pb-0 lg:pt-[56px]">
         {!hideHeader ? (
           <div className="border-b border-[#E8E3DD] bg-[#FAF9F7]/92 backdrop-blur">
-            <div className="mx-auto flex min-h-[82px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-              <div className="min-w-0">
-                <h1 className="truncate text-[22px] font-extrabold tracking-[-.04em] text-[#172235]">
+            <div className="mx-auto flex min-h-[76px] max-w-[1320px] flex-col items-start justify-center gap-2 px-3.5 py-3.5 sm:min-h-[82px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
+              <div className="min-w-0 max-w-full">
+                <h1 className="line-clamp-2 text-[19px] font-extrabold leading-tight tracking-[-.04em] text-[#172235] sm:text-[22px]">
                   {title}
                 </h1>
                 {description ? (
-                  <p className="mt-1 truncate text-[11px] font-medium text-[#857B72]">{description}</p>
+                  <p className="mt-1 line-clamp-2 text-[10px] font-medium leading-4 text-[#857B72] sm:text-[11px]">
+                    {description}
+                  </p>
                 ) : null}
               </div>
               {right ? <div className="shrink-0">{right}</div> : null}
@@ -272,7 +363,7 @@ export function AppShell({
 
 export function UserChip({ name, role }: { name?: string; role?: string }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex min-w-0 items-center gap-2.5">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
         {initials(name)}
       </span>
