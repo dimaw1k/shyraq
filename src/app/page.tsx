@@ -263,7 +263,7 @@ function BenefitCard({
   return (
     <div className={`group h-full rounded-[28px] border border-[#ebe6df] ${tone} p-5 shadow-[0_14px_38px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(20,20,20,.08)] sm:p-6`}>
       <div className="flex items-center justify-between">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#172235] text-white transition-transform duration-300 group-hover:scale-105">
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
           <Icon size={20} />
         </div>
         <span className="text-[10px] font-extrabold tracking-[.18em] text-[#a49b92]">{eyebrow}</span>
@@ -391,7 +391,7 @@ export default function HomePage() {
               {days.map(([number, title, text], index) => (
                 <Reveal key={number} delay={index * 100}>
                   <div className="group relative grid gap-5 rounded-[28px] border border-[#ebe5dd] bg-white p-5 shadow-[0_12px_34px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
-                    <div className="relative z-10 grid h-14 w-14 place-items-center rounded-2xl bg-[#172235] text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(20,20,20,.12)]">
+                    <div className="relative z-10 grid h-14 w-14 place-items-center rounded-2xl bg-[#eef1f6] text-xs font-extrabold text-[#172235] shadow-[0_10px_24px_rgba(20,20,20,.08)]">
                       {number}
                     </div>
 
@@ -483,7 +483,7 @@ export default function HomePage() {
                       ))}
                     </div>
 
-                    <div className="mt-4 rounded-2xl bg-[#172235] p-4 text-white">
+                    <div className="mt-4 rounded-2xl bg-[#eef1f6] p-4 text-[#172235]">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-white/50">Осы аптадағы прогресс</span>
                         <span className="font-extrabold">72%</span>
