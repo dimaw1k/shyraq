@@ -41,7 +41,6 @@ export default async function LeaderPage() {
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "MENTOR"),
     supabase.from("teams").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
     supabase.from("team_members").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
-    supabase.from("attendance_records").select("attendance_percent"),
     supabase.from("daily_reports").select("*", { count: "exact", head: true }).eq("status", "SUBMITTED"),
     supabase.from("lessons").select("*", { count: "exact", head: true }),
     supabase.from("tasks").select("*", { count: "exact", head: true }).eq("active", true),
