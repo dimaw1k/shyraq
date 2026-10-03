@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
+import { Camera, Eye, EyeOff, Loader2 } from "lucide-react";
 import { uiLabel } from "@/lib/ui-labels";
-import { Camera, Loader2 } from "lucide-react";
+import { formatKzPhone } from "@/lib/phone";
 
 type Profile = {
   id: string;
@@ -15,36 +16,66 @@ type Profile = {
   status: string;
   role: string;
   avatar_url?: string | null;
-  team_name?: string | null;
+  team_names?: string[];
   mentor_name?: string | null;
 };
 
 const inputClass =
   "mt-2 w-full rounded-[14px] border border-[#E8E1DA] bg-[#FFFCF9] px-3.5 py-3 text-xs font-medium text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
+const educationOptions = [
+  { value: "SCHOOL", label: "Мектеп" },
+  { value: "COLLEGE", label: "Колледж" },
+  { value: "UNIVERSITY", label: "Университет" },
+  { value: "OTHER", label: "Басқа" },
+];
+
+const roleLabels: Record<string, string> = {
+  STUDENT: "Оқушы",
+  MENTOR: "Ментор",
+  CHIEF_MENTOR: "Бас ментор",
+  LEADER: "Жетекші",
+};
+
 export function ProfileClient() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [form, setForm] = useState({ fullName: "", phone: "", age: "", educationType: "" });
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    age: "",
+    educationType: "OTHER",
+    currentPassword: "",
+    newPassword: "",
+  });
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"ok" | "error">("ok");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   async function load() {
-    const response = await fetch("/api/student/profile");
+    const response = await fetch("/api/profile", { cache: "no-store" });
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      setMessageTone("error");
       setMessage(data.error ?? "Профиль жүктелмеді.");
       return;
     }
 
     setProfile(data.profile);
-    setForm({
+    setForm((current) => ({
+      ...current,
       fullName: data.profile.full_name ?? "",
+      email: data.profile.email ?? "",
       phone: data.profile.phone ?? "",
       age: String(data.profile.age ?? ""),
       educationType: data.profile.education_type ?? "OTHER",
-    });
+      currentPassword: "",
+      newPassword: "",
+    }));
   }
 
   useEffect(() => {
@@ -52,24 +83,39 @@ export function ProfileClient() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((state) => ({ ...state, [key]: value }));
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const response = await fetch("/api/student/profile", {
+      const response = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, age: Number(form.age) }),
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          age: Number(form.age),
+          educationType: form.educationType,
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+        }),
       });
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) throw new Error(data.error ?? "Профиль жаңартылмады.");
 
       setProfile(data.profile);
+      setForm((current) => ({ ...current, currentPassword: "", newPassword: "" }));
+      setMessageTone("ok");
       setMessage("Профиль жаңартылды.");
     } catch (error) {
+      setMessageTone("error");
       setMessage(error instanceof Error ? error.message : "Қате.");
     } finally {
       setLoading(false);
@@ -84,21 +130,25 @@ export function ProfileClient() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/student/avatar", { method: "POST", body: formData });
+      const response = await fetch("/api/profile/avatar", { method: "POST", body: formData });
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) throw new Error(data.error ?? "Фото жүктелмеді.");
 
       setProfile((current) => current ? { ...current, avatar_url: data.avatarUrl } : current);
+      setMessageTone("ok");
       setMessage("Профиль суреті жаңартылды.");
     } catch (error) {
+      setMessageTone("error");
       setMessage(error instanceof Error ? error.message : "Фото жүктелмеді.");
     } finally {
       setUploading(false);
     }
   }
 
-  if (!profile) return <div className="text-sm font-semibold text-[#8B8179]">Профиль жүктелуде...</div>;
+  if (!profile) {
+    return <div className="text-sm font-semibold text-[#8B8179]">Профиль жүктелуде...</div>;
+  }
 
   const initials = profile.full_name
     .split(" ")
@@ -107,14 +157,16 @@ export function ProfileClient() {
     .map((item) => item[0]?.toUpperCase())
     .join("") || "S";
 
+  const teamText = profile.team_names?.length ? profile.team_names.join(", ") : "Тағайындалмаған";
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="relative">
+      <div className="flex flex-col gap-5 rounded-[18px] border border-[#EEE7E0] bg-[#FFFCF9] p-5 sm:flex-row sm:items-center">
+        <div className="relative shrink-0">
           {profile.avatar_url ? (
             <Image
               src={profile.avatar_url}
-              alt=""
+              alt="Профиль суреті"
               width={96}
               height={96}
               className="h-24 w-24 rounded-[28px] object-cover ring-4 ring-[#FFF1E2]"
@@ -141,49 +193,130 @@ export function ProfileClient() {
           </label>
         </div>
 
-        <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">ПРОФИЛЬ</p>
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">ЖЕКЕ ПРОФИЛЬ</p>
           <h2 className="mt-1 text-xl font-extrabold text-[#172235]">{profile.full_name}</h2>
-          <p className="mt-1 text-xs text-[#8B8179]">{profile.email} · {uiLabel(profile.status)}</p>
-          <p className="mt-1 text-[10px] font-semibold text-[#8B8179]">
-            Команда: {profile.team_name ?? "Күтілуде"} · Ментор: {profile.mentor_name ?? "Тағайындалмаған"}
-          </p>
+          <p className="mt-1 text-xs text-[#8B8179]">{roleLabels[profile.role] ?? profile.role} · {uiLabel(profile.status)}</p>
+          <div className="mt-3 grid gap-1.5 text-[10px] font-semibold text-[#8B8179] sm:grid-cols-2 sm:gap-x-6">
+            <p>Команда: {teamText}</p>
+            {profile.mentor_name ? <p>Ментор: {profile.mentor_name}</p> : null}
+          </div>
         </div>
       </div>
 
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
         <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
           Аты-жөні
-          <input required value={form.fullName} onChange={(event) => setForm((s) => ({ ...s, fullName: event.target.value }))} className={inputClass} />
+          <input
+            required
+            value={form.fullName}
+            onChange={(event) => setField("fullName", event.target.value)}
+            className={inputClass}
+          />
+        </label>
+
+        <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
+          Электрондық пошта
+          <input
+            required
+            type="email"
+            value={form.email}
+            onChange={(event) => setField("email", event.target.value)}
+            className={inputClass}
+          />
+          <span className="mt-1.5 block text-[10px] font-medium text-[#9A9189]">Email өзгерсе, жаңа мекенжай Auth аккаунтына да жаңартылады.</span>
         </label>
 
         <label className="text-[11px] font-extrabold text-[#3F3832]">
           Телефон
-          <input required value={form.phone} onChange={(event) => setForm((s) => ({ ...s, phone: event.target.value }))} className={inputClass} />
+          <input
+            required
+            value={formatKzPhone(form.phone)}
+            onChange={(event) => setField("phone", formatKzPhone(event.target.value))}
+            className={inputClass}
+            inputMode="tel"
+          />
         </label>
 
         <label className="text-[11px] font-extrabold text-[#3F3832]">
           Жасы
-          <input required min="10" max="100" type="number" value={form.age} onChange={(event) => setForm((s) => ({ ...s, age: event.target.value }))} className={inputClass} />
+          <input
+            required
+            min="10"
+            max="100"
+            type="number"
+            value={form.age}
+            onChange={(event) => setField("age", event.target.value)}
+            className={inputClass}
+          />
         </label>
 
         <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
           Білім алу деңгейі
-          <select value={form.educationType} onChange={(event) => setForm((s) => ({ ...s, educationType: event.target.value }))} className={inputClass}>
-            <option value="SCHOOL">Мектеп</option>
-            <option value="COLLEGE">Колледж</option>
-            <option value="UNIVERSITY">Университет</option>
-            <option value="OTHER">Басқа</option>
+          <select
+            value={form.educationType}
+            onChange={(event) => setField("educationType", event.target.value)}
+            className={inputClass}
+          >
+            {educationOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
         </label>
 
+        <div className="sm:col-span-2 rounded-[16px] border border-[#E8E1DA] bg-[#FAF7F3] p-4">
+          <p className="text-[11px] font-extrabold text-[#172235]">Құпиясөз</p>
+          <p className="mt-1 text-[10px] font-medium text-[#8B8179]">Құпиясөзді өзгерту үшін қазіргі құпиясөзді де енгізіңіз.</p>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="text-[10px] font-extrabold text-[#5B534C]">
+              Қазіргі құпиясөз
+              <div className="relative">
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={form.currentPassword}
+                  onChange={(event) => setField("currentPassword", event.target.value)}
+                  className={inputClass + " pr-12"}
+                  autoComplete="current-password"
+                />
+                <button type="button" onClick={() => setShowCurrentPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B8179]" aria-label="Құпиясөзді көрсету">
+                  {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </label>
+
+            <label className="text-[10px] font-extrabold text-[#5B534C]">
+              Жаңа құпиясөз
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={form.newPassword}
+                  onChange={(event) => setField("newPassword", event.target.value)}
+                  className={inputClass + " pr-12"}
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+                <button type="button" onClick={() => setShowNewPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B8179]" aria-label="Жаңа құпиясөзді көрсету">
+                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </label>
+          </div>
+        </div>
+
         {message ? (
-          <div className="rounded-[14px] border border-[#E8E1DA] bg-[#FFFCF9] p-3 text-xs font-semibold text-[#5C5149] sm:col-span-2">
+          <div className={[
+            "rounded-[14px] border px-4 py-3 text-xs font-semibold sm:col-span-2",
+            messageTone === "ok"
+              ? "border-[#D9EEDF] bg-[#F2FAF4] text-[#2E7E58]"
+              : "border-[#F2D8D1] bg-[#FFF5F2] text-[#B54D2B]",
+          ].join(" ")}>
             {message}
           </div>
         ) : null}
 
         <button
+          type="submit"
           disabled={loading}
           className="sm:col-span-2 rounded-[14px] bg-[#FF8000] px-4 py-3 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(255,128,0,.16)] transition hover:bg-[#E56F00] disabled:opacity-50"
         >
