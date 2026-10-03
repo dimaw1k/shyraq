@@ -30,7 +30,6 @@ export default async function ChiefMentorPage() {
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "MENTOR").eq("status", "ACTIVE"),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "STUDENT"),
     supabase.from("teams").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
-    supabase.from("attendance_records").select("attendance_percent"),
   ]);
 
   return (
@@ -42,7 +41,7 @@ export default async function ChiefMentorPage() {
             title="Басты бет"
             description="Менторлар, командалар және оқу процесінің негізгі көрсеткіштері."
           />
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <MetricCard label="МЕНТОР" value={String(mentorCount ?? 0)} hint="белсенді" icon={<Users size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint="белсенді" icon={<UsersRound size={17} />} />
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint="барлығы" icon={<Users size={17} />} />
