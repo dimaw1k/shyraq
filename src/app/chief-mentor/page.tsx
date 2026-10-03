@@ -26,17 +26,12 @@ export default async function ChiefMentorPage() {
     { count: mentorCount },
     { count: studentCount },
     { count: teamCount },
-    { data: attendance },
   ] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "MENTOR").eq("status", "ACTIVE"),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "STUDENT"),
     supabase.from("teams").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
     supabase.from("attendance_records").select("attendance_percent"),
   ]);
-
-  const averageAttendance = attendance?.length
-    ? attendance.reduce((sum, row) => sum + Number(row.attendance_percent ?? 0), 0) / attendance.length
-    : 0;
 
   return (
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Басты бет" description="Бас ментордың операциялық кабинеті.">
@@ -51,7 +46,7 @@ export default async function ChiefMentorPage() {
             <MetricCard label="МЕНТОР" value={String(mentorCount ?? 0)} hint="белсенді" icon={<Users size={17} />} />
             <MetricCard label="КОМАНДА" value={String(teamCount ?? 0)} hint="белсенді" icon={<UsersRound size={17} />} />
             <MetricCard label="ОҚУШЫ" value={String(studentCount ?? 0)} hint="барлығы" icon={<Users size={17} />} />
-            <MetricCard label="ҚАТЫСУ" value={averageAttendance ? averageAttendance.toFixed(1) + "%" : "—"} hint="орташа қатысу" icon={<BarChart3 size={17} />} />
+} />
           </section>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {modules.map(([title, href, description, Icon]) => (
