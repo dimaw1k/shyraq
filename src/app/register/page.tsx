@@ -1,17 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
-
-const montserrat = Montserrat({
-  subsets: ["cyrillic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
 
 type FormState = {
   phone: string;
@@ -131,7 +124,7 @@ export default function RegisterPage() {
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
 
   return (
-    <main className={montserrat.className + " min-h-[100dvh] bg-[#FAF9F7] text-[#172235]"}>
+    <main className="min-h-[100dvh] bg-[#FAF9F7] text-[#172235]">
       <div className="flex min-h-[100dvh] items-center justify-center px-3.5 py-5 sm:px-6">
         <div className="w-full max-w-[760px]">
           <div className="mb-6 flex items-center justify-between">
