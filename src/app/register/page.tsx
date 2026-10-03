@@ -131,8 +131,8 @@ export default function RegisterPage() {
     errors[key] ? <p className="mt-1.5 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
 
   return (
-    <main className={montserrat.className + " min-h-screen bg-[#FAF9F7] text-[#172235]"}>
-      <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
+    <main className={montserrat.className + " min-h-[100dvh] bg-[#FAF9F7] text-[#172235]"}>
+      <div className="flex min-h-[100dvh] items-center justify-center px-3.5 py-5 sm:px-6">
         <div className="w-full max-w-[760px]">
           <div className="mb-6 flex items-center justify-between">
             <Brand />
@@ -144,9 +144,9 @@ export default function RegisterPage() {
             </Link>
           </div>
 
-          <section className="rounded-[28px] border border-[#E7E0D8] bg-white p-6 shadow-[0_24px_70px_rgba(23,34,53,.08)] sm:p-8">
+          <section className="rounded-[24px] border border-[#E7E0D8] bg-white p-5 shadow-[0_24px_70px_rgba(23,34,53,.08)] sm:p-8">
             <p className="text-[11px] font-extrabold uppercase tracking-[.18em] text-[#FF8000]">ТІРКЕЛУ</p>
-            <h1 className="mt-2 text-[30px] font-extrabold tracking-[-.045em] sm:text-[36px]">Аккаунт ашыңыз.</h1>
+            <h1 className="mt-2 text-[28px] font-extrabold tracking-[-.045em] sm:text-[36px]">Аккаунт ашыңыз.</h1>
             <p className="mt-2 text-sm font-medium leading-6 text-[#766E66]">
               Деректеріңізді енгізіп, Shyraq платформасына қосылыңыз.
             </p>
