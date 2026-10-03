@@ -64,7 +64,7 @@ export default async function ChiefMentorLessonsPage({
                   className={[
                     "rounded-[15px] px-4 py-3 text-center transition-all",
                     activeWeek.week === week.week
-                      ? "bg-[#172235] text-white shadow-[0_8px_18px_rgba(23,34,53,.12)]"
+                      ? "border border-[#FFD9B3] bg-[#FFF1E2] text-[#B95D00] shadow-[0_6px_18px_rgba(255,128,0,.08)]"
                       : "text-[#786F67] hover:bg-[#FAF8F5] hover:text-[#172235]",
                   ].join(" ")}
                 >
@@ -131,7 +131,7 @@ export default async function ChiefMentorLessonsPage({
                     <div className="p-4 sm:p-5">
                       <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
                         <div className="flex min-w-0 flex-1 gap-3">
-                          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-[#172235] text-white">
+                          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-[#FFF1E2] text-[#B95D00] ring-1 ring-[#FFDDBB]">
                             <span className="text-[9px] font-extrabold">
                               {String(index + 1).padStart(2, "0")}
                             </span>
