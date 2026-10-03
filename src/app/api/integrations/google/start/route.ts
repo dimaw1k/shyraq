@@ -36,9 +36,15 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/dashboard?google=not_configured", request.url));
   }
 
+  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/dashboard";
+  const returnTo =
+    requestedReturnTo.startsWith("/") && !requestedReturnTo.startsWith("//")
+      ? requestedReturnTo
+      : "/dashboard";
+
   const state = crypto.randomBytes(24).toString("base64url");
   const response = NextResponse.redirect(
-    "https://accounts.google.com/o/oauth2/v2/auth?" +
+    "https://accounts.google.com/o/oauth2/v2/auth?"
       new URLSearchParams({
         client_id: clientId,
         redirect_uri: redirectUri,
@@ -51,6 +57,14 @@ export async function GET(request: Request) {
   );
 
   response.cookies.set("shyraq_google_oauth_state", state, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 600,
+    path: "/",
+  });
+
+  response.cookies.set("shyraq_google_return_to", returnTo, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
