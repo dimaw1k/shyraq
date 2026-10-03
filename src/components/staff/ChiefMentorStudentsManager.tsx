@@ -327,7 +327,6 @@ export function ChiefMentorStudentsManager({
 
             <div className="grid grid-cols-2 gap-2">
               {[
-                ["Meet", row.attendance ? row.attendance.toFixed(1) + "%" : "—"],
                 ["Бейне", row.video ? row.video.toFixed(1) + "%" : "—"],
                 ["Ұпай", String(row.score || 0)],
                 ["Тапсырма", String(row.task_count || 0)],
