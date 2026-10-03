@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 
   const state = crypto.randomBytes(24).toString("base64url");
   const response = NextResponse.redirect(
-    "https://accounts.google.com/o/oauth2/v2/auth?"
+    "https://accounts.google.com/o/oauth2/v2/auth?" +
       new URLSearchParams({
         client_id: clientId,
         redirect_uri: redirectUri,
@@ -53,6 +53,7 @@ export async function GET(request: Request) {
         prompt: "consent",
         scope,
         state,
+        include_granted_scopes: "true",
       }),
   );
 
