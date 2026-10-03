@@ -21,6 +21,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 import { formatKzDateTime } from "@/lib/datetime";
 
+const PAGE_RENDERED_AT = Date.now();
+
 function weekForDay(day: number) {
   return MARATHON_WEEKS.find((week) => day >= week.startDay && day <= week.endDay) ?? MARATHON_WEEKS[0];
 }
@@ -70,7 +72,7 @@ export default async function LessonsPage({
     return day >= activeWeek.startDay && day <= activeWeek.endDay;
   });
   const featured = weekLessons[0] ?? visibleLessons[0] ?? null;
-  const now = Date.now();
+  const now = PAGE_RENDERED_AT;
 
   return (
     <AppShell
