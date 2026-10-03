@@ -175,7 +175,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 h-[64px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:left-[236px]">
+      <header className="fixed inset-x-0 top-0 z-40 h-[56px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:left-[236px]">
         <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -248,7 +248,7 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <AppNav role={role} userName={userName} />
-      <div className="pt-[64px] lg:ml-[236px]">
+      <div className="pt-[56px] lg:ml-[236px]">
         {!hideHeader ? (
           <div className="border-b border-[#E8E3DD] bg-[#FAF9F7]/92 backdrop-blur">
             <div className="mx-auto flex min-h-[82px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
