@@ -18,7 +18,7 @@ const labels: Record<string, string> = {
   STUDENT: "Оқушы",
   LEADER: "Жетекші",
   CHIEF_MENTOR: "Бас ментор",
-  ACCOUNT: "Тіркелгі",
+  ACCOUNT: "Аккаунт",
   TECHNICAL: "Техникалық мәселе",
   OTHER: "Басқа",
   SCORE: "ҰПАЙ",
