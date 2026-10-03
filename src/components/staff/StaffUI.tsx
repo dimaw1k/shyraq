@@ -86,6 +86,21 @@ export function StaffDateTimeField({
   );
 }
 
+
+function containModalWheel(event: React.WheelEvent<HTMLDivElement>) {
+  const element = event.currentTarget;
+  const atTop = element.scrollTop <= 0;
+  const atBottom = Math.ceil(element.scrollTop + element.clientHeight) >= element.scrollHeight;
+  const scrollingPastTop = event.deltaY < 0 && atTop;
+  const scrollingPastBottom = event.deltaY > 0 && atBottom;
+
+  if (scrollingPastTop || scrollingPastBottom) {
+    event.preventDefault();
+  }
+
+  event.stopPropagation();
+}
+
 export function StaffModal({
   open,
   title,
@@ -140,7 +155,11 @@ export function StaffModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 [scrollbar-gutter:stable]">
+        <div
+          onWheelCapture={containModalWheel}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 [scrollbar-gutter:stable]"
+          style={{ overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}
+        >
           {children}
         </div>
       </div>
