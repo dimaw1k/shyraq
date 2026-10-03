@@ -8,7 +8,7 @@ import { getMentorPageData } from "@/lib/mentor/auth";
 import { uiLabel } from "@/lib/ui-labels";
 
 export default async function MentorTeamPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
-  const { profile, workspace } = await getMentorPageData();
+  const { profile, workspace, supabase } = await getMentorPageData();
 
   const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
   const studentIds = workspace?.students.map((student) => student.id) ?? [];
