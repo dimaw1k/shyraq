@@ -216,7 +216,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           <div className="mt-auto rounded-[18px] border border-[#E8E3DD] bg-white p-3.5 shadow-[0_10px_28px_rgba(23,34,53,.04)]">
             <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#A19890]">Профиль</p>
             <div className="mt-2.5 flex items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
                 {initials(userName)}
               </span>
               <div className="min-w-0">
