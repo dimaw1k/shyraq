@@ -110,8 +110,14 @@ export async function POST(request: Request) {
         );
       }
 
+      console.error("[auth/register] createUser failed", {
+        status: error.status,
+        code: error.code,
+        message: error.message,
+      });
+
       return NextResponse.json(
-        { field: "form", error: error.message },
+        { field: "form", error: "Тіркелу кезінде қате болды. Қайта көріңіз." },
         { status: 400 },
       );
     }
