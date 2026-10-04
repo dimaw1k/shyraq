@@ -164,9 +164,6 @@ export default async function LessonsPage({
                       ].join(" ")}
                     />
                   </div>
-                  <p className="mt-3 text-[8px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
-                    21 КҮН
-                  </p>
                   <h2 className="mt-1 text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
                     {week.subtitle}
                   </h2>
@@ -208,9 +205,6 @@ export default async function LessonsPage({
 
               <div className="min-w-0">
                 <div className="mb-2.5">
-                  <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
-                    {activeWeek.week}-АПТА
-                  </p>
                   <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
                     {activeDay}-күн
                   </h2>
@@ -309,14 +303,6 @@ export default async function LessonsPage({
                   </section>
 
                   <section className="min-w-0">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
-                        ТАПСЫРМАЛАР
-                      </p>
-                      <span className="text-[8px] font-bold text-[#9A9189]">
-                        {dayTasks.length}
-                      </span>
-                    </div>
 
                     {!dayTasks.length ? (
                       <Card className="p-7 text-center">
