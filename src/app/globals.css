@@ -261,14 +261,15 @@ iframe {
 @media (max-width: 767px) {
   .shyraq-horizontal-rail {
     display: flex !important;
+    flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: stretch;
     width: calc(100vw - 20px);
     max-width: calc(100vw - 20px);
     min-width: 0;
     margin-inline: -1px;
-    gap: 14px;
-    padding: 2px 2px 12px;
+    gap: 12px;
+    padding: 2px 2px 8px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
