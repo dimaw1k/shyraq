@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type DashboardBannerItem = {
   id: string;
@@ -14,120 +14,88 @@ export type DashboardBannerItem = {
 };
 
 export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] }) {
-  const [index, setIndex] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (banners.length < 2) return;
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % banners.length);
-    }, 7000);
-    return () => window.clearInterval(timer);
-  }, [banners.length]);
+  const scroll = (direction: "prev" | "next") => {
+    const track = trackRef.current;
+    if (!track) return;
 
-  if (!banners.length) {
-    return (
-      <div className="overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-white">
-        <div className="flex min-h-[150px] items-center px-5 py-5 sm:min-h-[170px] sm:px-7">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-              SHYRAQ MARATHON
-            </p>
-            <h2 className="mt-2 max-w-xl text-2xl font-extrabold leading-[1.05] tracking-[-.045em] text-[#172235] sm:text-3xl">
-              21 күн. 1 бағыт. Күн сайын бір қадам.
-            </h2>
-            <p className="mt-2 max-w-lg text-xs leading-5 text-[#8B8179]">
-              Маңызды хабарламалар осы жерде көрсетіледі.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    track.scrollBy({
+      left: direction === "next" ? track.clientWidth * 0.84 : -track.clientWidth * 0.84,
+      behavior: "smooth",
+    });
+  };
 
-  const current = banners[index];
+  const imageBanners = banners.filter((banner) => Boolean(banner.imageUrl));
 
-  const content = (
-    <div className="relative overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-white">
-      <div className="grid min-h-[150px] sm:min-h-[170px] lg:grid-cols-[1.05fr_1.45fr]">
-        <div className="order-2 flex min-w-0 items-center px-5 py-5 sm:px-7 lg:order-1">
-          <div className="min-w-0">
-            {current.title && !/^image\s*\(?\d*\)?$/i.test(current.title.trim()) ? (
-              <h2 className="line-clamp-2 text-xl font-extrabold leading-[1.05] tracking-[-.04em] text-[#172235] sm:text-2xl">
-                {current.title}
-              </h2>
-            ) : null}
-            {current.description ? (
-              <p className="mt-2 line-clamp-2 max-w-xl text-[11px] font-medium leading-5 text-[#8B8179] sm:text-xs">
-                {current.description}
-              </p>
-            ) : null}
-            {current.href ? (
-              <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-[#FF8000]">
-                Толығырақ <ArrowRight size={13} />
-              </span>
-            ) : null}
-          </div>
-        </div>
+  if (!imageBanners.length) return null;
 
-        <div className="relative order-1 min-h-[130px] bg-[#F4F1EC] lg:order-2 lg:min-h-0">
-          {current.imageUrl ? (
-            <Image
-              src={current.imageUrl}
-              alt=""
-              fill
-              sizes="(max-width: 1024px) 100vw, 55vw"
-              className="object-cover"
-            />
+  return (
+    <section className="relative w-full" aria-label="Shyraq баннерлері">
+      <div
+        ref={trackRef}
+        className="flex w-full gap-4 overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory pb-1 pr-1"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {imageBanners.map((banner) => {
+          const content = (
+            <div className="relative aspect-[16/9] w-[82vw] max-w-[620px] shrink-0 snap-start overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-[#F4F1EC] shadow-[0_10px_28px_rgba(23,34,53,.04)] sm:w-[calc(50vw-28px)] lg:w-[calc((100vw-360px)/2)] xl:w-[calc((100vw-384px)/2)]">
+              <Image
+                src={banner.imageUrl!}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 82vw, (max-width: 1280px) 48vw, 46vw"
+                className="object-cover"
+                draggable={false}
+                priority={imageBanners.indexOf(banner) < 2}
+              />
+            </div>
+          );
+
+          if (!banner.href) return <div key={banner.id}>{content}</div>;
+
+          const external =
+            banner.href.startsWith("http://") || banner.href.startsWith("https://");
+
+          return external ? (
+            <a
+              key={banner.id}
+              href={banner.href}
+              target="_blank"
+              rel="noreferrer"
+              className="block shrink-0"
+              aria-label="Баннерді ашу"
+            >
+              {content}
+            </a>
           ) : (
-            <div className="h-full w-full bg-[#FFF1E2]" />
-          )}
-        </div>
+            <Link key={banner.id} href={banner.href} className="block shrink-0" aria-label="Баннерді ашу">
+              {content}
+            </Link>
+          );
+        })}
       </div>
 
-      {banners.length > 1 ? (
-        <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+      {imageBanners.length > 2 ? (
+        <>
           <button
             type="button"
-            aria-label="Алдыңғы баннер"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              setIndex((itemIndex) => (itemIndex - 1 + banners.length) % banners.length);
-            }}
-            className="grid h-7 w-7 place-items-center rounded-full border border-[#E8E1DA] bg-white text-[#5F5750] shadow-[0_3px_10px_rgba(23,34,53,.06)] transition hover:border-[#FFB067] hover:text-[#FF8000]"
+            aria-label="Алдыңғы баннерлер"
+            onClick={() => scroll("prev")}
+            className="absolute left-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/95 text-[#172235] shadow-[0_8px_22px_rgba(23,34,53,.12)] transition hover:scale-105 hover:text-[#FF8000]"
           >
-            <ChevronLeft size={14} />
+            <ChevronLeft size={17} />
           </button>
-          <span className="rounded-full border border-[#E8E1DA] bg-white px-2.5 py-1 text-[8px] font-extrabold text-[#7A7068]">
-            {index + 1}/{banners.length}
-          </span>
           <button
             type="button"
-            aria-label="Келесі баннер"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              setIndex((itemIndex) => (itemIndex + 1) % banners.length);
-            }}
-            className="grid h-7 w-7 place-items-center rounded-full border border-[#E8E1DA] bg-white text-[#5F5750] shadow-[0_3px_10px_rgba(23,34,53,.06)] transition hover:border-[#FFB067] hover:text-[#FF8000]"
+            aria-label="Келесі баннерлер"
+            onClick={() => scroll("next")}
+            className="absolute right-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/95 text-[#172235] shadow-[0_8px_22px_rgba(23,34,53,.12)] transition hover:scale-105 hover:text-[#FF8000]"
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={17} />
           </button>
-        </div>
+        </>
       ) : null}
-    </div>
-  );
-
-  if (!current.href) return content;
-
-  const external =
-    current.href.startsWith("http://") || current.href.startsWith("https://");
-
-  return external ? (
-    <a href={current.href} target="_blank" rel="noreferrer">
-      {content}
-    </a>
-  ) : (
-    <Link href={current.href}>{content}</Link>
+    </section>
   );
 }
