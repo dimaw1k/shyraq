@@ -77,17 +77,6 @@ const DURATION_OPTIONS = [
 
 const SECTIONS = ["Таңертең", "Күндіз", "Кешке", "Басқа"] as const;
 
-const ICONS = {
-  Sparkles,
-  BookOpen,
-  Dumbbell,
-  ListTodo,
-  Library,
-  PenLine,
-  Moon,
-  Smartphone,
-} as const;
-
 function validDate(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
