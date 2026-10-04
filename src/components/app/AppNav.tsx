@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -266,6 +267,28 @@ function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: stri
 export function AppNav({ role, userName }: { role: string; userName?: string }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileName, setProfileName] = useState(userName ?? "");
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/profile", { cache: "no-store" })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload?.profile || !active) return;
+
+        setProfileName(payload.profile.full_name ?? "");
+        setProfileAvatarUrl(payload.profile.avatar_url ?? null);
+      })
+      .catch(() => {
+        // Keep the server-provided fallback when the profile request fails.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const links = useMemo(() => {
     if (role === "LEADER") return leaderLinks;
@@ -311,7 +334,11 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
           <div className="flex shrink-0 items-center gap-1.5">
             {role === "STUDENT" ? <NotificationBell /> : null}
-            <UserChip name={userName} role={role} />
+            <UserChip
+              name={profileName || userName}
+              role={role}
+              avatarUrl={profileAvatarUrl}
+            />
           </div>
         </div>
       </header>
@@ -404,12 +431,31 @@ export function AppShell({
   );
 }
 
-export function UserChip({ name, role }: { name?: string; role?: string }) {
+export function UserChip({
+  name,
+  role,
+  avatarUrl,
+}: {
+  name?: string;
+  role?: string;
+  avatarUrl?: string | null;
+}) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
-        {initials(name)}
-      </span>
+      {avatarUrl ? (
+        <Image
+          src={avatarUrl}
+          alt=""
+          width={36}
+          height={36}
+          unoptimized
+          className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-[rgba(255,128,0,.14)]"
+        />
+      ) : (
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[10px] font-extrabold text-[var(--accent)] ring-1 ring-[rgba(255,128,0,.14)]">
+          {initials(name)}
+        </span>
+      )}
       <div className="hidden max-w-40 min-w-0 sm:block">
         <p className="truncate text-[10px] font-extrabold text-[#172235]">{name ?? "Shyraq"}</p>
         {role ? (
