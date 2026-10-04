@@ -103,11 +103,14 @@ export default async function LessonsPage({
     (lesson) => Number(lesson.marathon_day) === activeDay,
   );
 
-  const dayTasks = visibleTasks.filter(
-    (task) => Number(task.marathon_day) === activeDay,
-  );
-
   const now = Date.now();
+
+  const dayTasks = visibleTasks.filter((task) => {
+    const sameDay = Number(task.marathon_day) === activeDay;
+    const isOpened =
+      !task.starts_at || new Date(task.starts_at).getTime() <= now;
+    return sameDay && isOpened;
+  });
 
   return (
     <AppShell
@@ -233,7 +236,7 @@ export default async function LessonsPage({
                                 aria-disabled={locked}
                                 className={[
                                   "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
-                                  locked ? "pointer-events-none opacity-60" : "",
+
                                 ].join(" ")}
                               >
                                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
@@ -270,11 +273,7 @@ export default async function LessonsPage({
                                   </span>
                                 </span>
 
-                                {locked ? (
-                                  <LockKeyhole size={14} className="shrink-0 text-[#B0A79F]" />
-                                ) : (
-                                  <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
-                                )}
+                                <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
                               </Link>
 
                               <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
@@ -307,9 +306,6 @@ export default async function LessonsPage({
                     ) : (
                       <div className="grid gap-2.5">
                         {dayTasks.map((task, index) => {
-                          const locked =
-                            Boolean(task.starts_at) &&
-                            new Date(task.starts_at!).getTime() > now;
                           const submission = submissionMap.get(task.id);
                           const done = submission?.status === "REVIEWED";
 
@@ -329,8 +325,6 @@ export default async function LessonsPage({
                                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
                                   {done ? (
                                     <CheckCircle2 size={15} />
-                                  ) : locked ? (
-                                    <LockKeyhole size={15} />
                                   ) : (
                                     <ClipboardList size={15} />
                                   )}
@@ -351,7 +345,7 @@ export default async function LessonsPage({
                                             : "bg-[#FFF1E2] text-[#B95D00]",
                                       ].join(" ")}
                                     >
-                                      {done ? "Орындалды" : locked ? "Жабық" : "Тапсырма"}
+                                      {done ? "Орындалды" : "Тапсырма"}
                                     </span>
                                   </span>
 
