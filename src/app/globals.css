@@ -241,7 +241,8 @@ iframe {
 }
 
 .shyraq-horizontal-rail--journey,
-.shyraq-horizontal-rail--routine {
+.shyraq-horizontal-rail--routine,
+.shyraq-horizontal-rail--proof {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -321,7 +322,7 @@ iframe {
     position: relative;
     min-height: 0 !important;
     width: 100%;
-    height: 270px !important;
+    height: 250px !important;
     align-self: flex-start;
     align-content: start;
     border-radius: 24px;
@@ -336,7 +337,17 @@ iframe {
   .shyraq-horizontal-rail--journey .shyraq-journey-card {
     display: grid;
     grid-template-rows: auto auto 1fr;
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .shyraq-horizontal-rail--proof .shyraq-proof-card {
+    position: relative;
+    min-height: 0 !important;
+    height: 190px !important;
+    width: 100%;
+    border-radius: 24px;
+    padding: 18px;
+    overflow: hidden;
   }
 
   .shyraq-horizontal-rail--routine .shyraq-routine-card {
@@ -394,7 +405,7 @@ iframe {
   }
 
   .shyraq-horizontal-rail--journey .shyraq-journey-card > p {
-    margin-top: 8px;
+    margin-top: 4px;
   }
 
   .shyraq-horizontal-rail--journey .shyraq-journey-card > div:first-child {
