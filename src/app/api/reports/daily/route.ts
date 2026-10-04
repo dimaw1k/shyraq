@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { todayInTimezone } from "@/lib/streak";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
+
+function shiftDateKey(value: string, delta: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + delta));
+  return date.toISOString().slice(0, 10);
+}
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -28,6 +35,14 @@ export async function POST(request: Request) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
     return NextResponse.json(
       { error: "Есеп күні дұрыс емес." },
+      { status: 400 },
+    );
+  }
+
+  const today = todayInTimezone("Asia/Almaty");
+  if (reportDate !== today) {
+    return NextResponse.json(
+      { error: "Күндік есепті тек бүгінгі күнге жіберуге болады." },
       { status: 400 },
     );
   }
@@ -78,8 +93,51 @@ export async function POST(request: Request) {
     );
   }
 
-  const studyMinutes = Number(body?.studyMinutes ?? 0);
-  const completedTaskCount = Number(body?.completedTaskCount ?? 0);
+  const startOfDay = `${reportDate}T00:00:00+05:00`;
+  const startOfNextDay = `${shiftDateKey(reportDate, 1)}T00:00:00+05:00`;
+
+  const [{ data: attendanceRows, error: attendanceError }, { count: completedTaskCount, error: taskCountError }] =
+    await Promise.all([
+      supabase
+        .from("attendance_records")
+        .select("attended_seconds,started_at,ended_at")
+        .eq("student_id", user.id)
+        .gte("started_at", startOfDay)
+        .lt("started_at", startOfNextDay),
+      supabase
+        .from("task_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", user.id)
+        .in("status", ["SUBMITTED", "REVIEWED"])
+        .gte("submitted_at", startOfDay)
+        .lt("submitted_at", startOfNextDay),
+    ]);
+
+  if (attendanceError || taskCountError) {
+    return NextResponse.json(
+      { error: "Study Time немесе тапсырма статистикасын есептеу мүмкін болмады." },
+      { status: 500 },
+    );
+  }
+
+  const studyMinutes = Math.round(
+    (attendanceRows ?? [])
+      .filter((row) => {
+        const stamp = row.started_at ?? row.ended_at;
+        if (!stamp) return false;
+        const hour = Number(
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Almaty",
+            hour: "2-digit",
+            hour12: false,
+          }).format(new Date(stamp)),
+        );
+        return reportType === "MORNING" ? hour < 14 : hour >= 14;
+      })
+      .reduce((sum, row) => sum + Number(row.attended_seconds ?? 0), 0) / 60,
+  );
+
+  const derivedCompletedTaskCount = Math.max(0, Number(completedTaskCount ?? 0));
 
   const { data, error } = await supabase
     .from("daily_reports")
@@ -89,12 +147,8 @@ export async function POST(request: Request) {
         report_date: reportDate,
         report_type: reportType,
         marathon_day: marathonDay,
-        study_minutes: Number.isFinite(studyMinutes)
-          ? Math.max(0, Math.floor(studyMinutes))
-          : 0,
-        completed_task_count: Number.isFinite(completedTaskCount)
-          ? Math.max(0, Math.floor(completedTaskCount))
-          : 0,
+        study_minutes: Math.max(0, Math.floor(studyMinutes)),
+        completed_task_count: derivedCompletedTaskCount,
         reflection:
           typeof body?.reflection === "string"
             ? body.reflection.trim() || null
