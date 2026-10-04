@@ -164,9 +164,12 @@ export default async function LessonsPage({
                       ].join(" ")}
                     />
                   </div>
-                  <h2 className="mt-3 text-center text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
-                    {week.subtitle}
-                  </h2>
+
+                  <div className="mt-4 flex items-center justify-center">
+                    <h2 className="text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
+                      {week.subtitle}
+                    </h2>
+                  </div>
                 </Card>
               </Link>
             ))}
