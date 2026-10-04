@@ -389,12 +389,6 @@ export default async function DashboardPage() {
                     {completedToday}
                   </span>
                 </div>
-                <Link
-                  href="/tasks"
-                  className="mt-2.5 inline-flex items-center gap-1 text-[9px] font-semibold text-[#FF8000] hover:underline"
-                >
-                  Барлығын көру <ArrowRight size={12} />
-                </Link>
               </Card>
             </aside>
           </section>
