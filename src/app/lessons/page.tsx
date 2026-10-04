@@ -244,22 +244,22 @@ export default async function LessonsPage({
                           return (
                             <Card
                               key={lesson.id}
-                              className="overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
+                              className="shrq-day-item-card overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
                             >
                               <Link
                                 href={locked ? "#" : "/lessons/" + lesson.id}
                                 aria-disabled={locked}
                                 className={[
-                                  "flex min-h-[76px] items-center gap-3 px-3.5 py-3",
+                                  "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
                                   locked ? "pointer-events-none opacity-60" : "",
                                 ].join(" ")}
                               >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00]">
+                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
                                   {locked ? <LockKeyhole size={15} /> : <BookOpen size={15} />}
                                 </span>
 
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-center gap-2">
+                                <span className="min-w-0 flex-1 pt-0.5">
+                                  <span className="flex h-4 items-center gap-2">
                                     <span className="text-[7px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                                       {String(index + 1).padStart(2, "0")}
                                     </span>
@@ -275,11 +275,11 @@ export default async function LessonsPage({
                                     </span>
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[12px] font-extrabold tracking-[-.02em] text-[#172235]">
+                                  <span className="mt-1.5 block truncate text-[12px] font-extrabold leading-[1.25] tracking-[-.02em] text-[#172235]">
                                     {lesson.title}
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[8px] font-medium text-[#8B8179]">
+                                  <span className="mt-1 block truncate text-[8px] font-medium leading-4 text-[#8B8179]">
                                     {Math.max(
                                       1,
                                       Math.ceil(Number(lesson.duration_seconds ?? 0) / 60),
@@ -295,7 +295,7 @@ export default async function LessonsPage({
                                 )}
                               </Link>
 
-                              <div className="flex items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5 py-2">
+                              <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
                                 <CheckCircle2 size={11} className="text-[#AAA198]" />
                                 <span className="text-[7px] font-semibold text-[#9A9189]">
                                   Бейне → тест
@@ -337,17 +337,17 @@ export default async function LessonsPage({
                           return (
                             <Card
                               key={task.id}
-                              className="overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
+                              className="shrq-day-item-card overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
                             >
                               <Link
                                 href={locked ? "#" : "/tasks/" + task.id}
                                 aria-disabled={locked}
                                 className={[
-                                  "flex min-h-[76px] items-center gap-3 px-3.5 py-3",
+                                  "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
                                   locked ? "pointer-events-none opacity-60" : "",
                                 ].join(" ")}
                               >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00]">
+                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
                                   {done ? (
                                     <CheckCircle2 size={15} />
                                   ) : locked ? (
@@ -357,8 +357,8 @@ export default async function LessonsPage({
                                   )}
                                 </span>
 
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-center gap-2">
+                                <span className="min-w-0 flex-1 pt-0.5">
+                                  <span className="flex h-4 items-center gap-2">
                                     <span className="text-[7px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                                       {String(index + 1).padStart(2, "0")}
                                     </span>
@@ -376,11 +376,11 @@ export default async function LessonsPage({
                                     </span>
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[12px] font-extrabold tracking-[-.02em] text-[#172235]">
+                                  <span className="mt-1.5 block truncate text-[12px] font-extrabold leading-[1.25] tracking-[-.02em] text-[#172235]">
                                     {task.title}
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[8px] font-medium text-[#8B8179]">
+                                  <span className="mt-1 block truncate text-[8px] font-medium leading-4 text-[#8B8179]">
                                     {task.points} ұпай
                                     {task.deadline
                                       ? " · " + new Date(task.deadline).toLocaleDateString("kk-KZ")
@@ -395,7 +395,7 @@ export default async function LessonsPage({
                                 )}
                               </Link>
 
-                              <div className="flex items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5 py-2">
+                              <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
                                 <span className="text-[7px] font-semibold text-[#9A9189]">
                                   {done ? "Тексерілді" : "Тапсырманы ашу"}
                                 </span>
