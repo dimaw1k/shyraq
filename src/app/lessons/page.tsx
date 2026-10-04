@@ -144,20 +144,20 @@ export default async function LessonsPage({
               >
                 <Card
                   className={[
-                    "h-full p-4 transition duration-200",
+                    "relative h-[108px] px-4 py-3 transition duration-200",
                     activeWeek.week === week.week
                       ? "border-[#F3C7B0] bg-[#FFFDFB]"
                       : "hover:-translate-y-0.5 hover:border-[#F3C7B0]",
                   ].join(" ")}
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-start justify-between">
                     <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF1E2] text-[9px] font-extrabold text-[#B95D00]">
                       {String(week.week).padStart(2, "0")}
                     </span>
                     <ArrowRight
                       size={14}
                       className={[
-                        "transition",
+                        "mt-1 transition",
                         activeWeek.week === week.week
                           ? "text-[#FF8000]"
                           : "text-[#B6AEA6] group-hover:text-[#FF8000]",
@@ -165,11 +165,9 @@ export default async function LessonsPage({
                     />
                   </div>
 
-                  <div className="mt-4 flex items-center justify-center">
-                    <h2 className="text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
-                      {week.subtitle}
-                    </h2>
-                  </div>
+                  <h2 className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
+                    {week.subtitle}
+                  </h2>
                 </Card>
               </Link>
             ))}
