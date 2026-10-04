@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { todayInTimezone } from "@/lib/streak";
+import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
 
@@ -40,6 +41,37 @@ export async function POST(request: Request) {
   }
 
   const today = todayInTimezone("Asia/Almaty");
+
+  const { data: reportSettings, error: reportSettingsError } = await supabase
+    .from("marathon_settings")
+    .select("morning_report_open_time,evening_report_open_time")
+    .eq("id", true)
+    .maybeSingle();
+
+  if (reportSettingsError || !reportSettings) {
+    return NextResponse.json(
+      { error: "Есеп уақытының баптауларын жүктеу мүмкін болмады." },
+      { status: 500 },
+    );
+  }
+
+  const openTime =
+    reportType === "MORNING"
+      ? reportSettings.morning_report_open_time
+      : reportSettings.evening_report_open_time;
+
+  if (!isReportOpen(openTime)) {
+    return NextResponse.json(
+      {
+        error:
+          (reportType === "MORNING" ? "Таңғы" : "Кешкі") +
+          " есеп " +
+          formatReportOpenTime(openTime) +
+          " бастап ашылады.",
+      },
+      { status: 423 },
+    );
+  }
   if (reportDate !== today) {
     return NextResponse.json(
       { error: "Күндік есепті тек бүгінгі күнге жіберуге болады." },
