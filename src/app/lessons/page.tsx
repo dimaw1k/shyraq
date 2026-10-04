@@ -164,14 +164,9 @@ export default async function LessonsPage({
                       ].join(" ")}
                     />
                   </div>
-                  <div className="mt-3">
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
-                      {week.week}-АПТА
-                    </p>
-                    <h2 className="mt-1 text-[17px] font-extrabold leading-none tracking-[-.035em] text-[#172235]">
-                      {week.startDay}–{week.endDay} КҮН
-                    </h2>
-                  </div>
+                  <h2 className="mt-3 text-center text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
+                    {week.subtitle}
+                  </h2>
                 </Card>
               </Link>
             ))}
