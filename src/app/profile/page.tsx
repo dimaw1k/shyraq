@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
+import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ProfileClient } from "@/components/student/ProfileClient";
 
@@ -23,12 +23,7 @@ export default async function ProfilePage() {
       hideHeader
     >
       <PageContainer className="max-w-5xl">
-        <div className="space-y-5">
-          <SectionHeader
-            eyebrow="АККАУНТ"
-            title="Профиль"
-            description="Жеке деректеріңді және профиль суретіңді басқар."
-          />
+        <div>
           <Card className="p-5 sm:p-6">
             <ProfileClient />
           </Card>
