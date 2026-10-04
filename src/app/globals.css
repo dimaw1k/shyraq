@@ -818,3 +818,37 @@ iframe {
   .shrq-dashboard-banner-arrow--prev { left: 2px; }
   .shrq-dashboard-banner-arrow--next { right: 2px; }
 }
+
+
+/* Lessons: fixed compact day rail + lesson content on the same row. */
+.shrq-lessons-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+}
+
+.shrq-lessons-layout > :first-child {
+  width: 180px;
+  min-width: 180px;
+  align-self: start;
+}
+
+.shrq-lessons-layout > :last-child {
+  min-width: 0;
+  width: 100%;
+  align-self: start;
+}
+
+@media (max-width: 1023px) {
+  .shrq-lessons-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shrq-lessons-layout > :first-child,
+  .shrq-lessons-layout > :last-child {
+    width: 100%;
+    min-width: 0;
+  }
+}
