@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
   const { data: report } = await supabase
     .from("daily_reports")
-    .select("id,student_id")
+    .select("id,student_id,status")
     .eq("id", reportId)
     .eq("student_id", user.id)
     .maybeSingle();
@@ -64,6 +64,19 @@ export async function POST(request: Request) {
   if (!report) {
     return NextResponse.json({ error: "Есеп табылмады." }, { status: 404 });
   }
+
+  if (report.status === "REVIEWED") {
+    return NextResponse.json(
+      { error: "Тексерілген есепке файл қосуға болмайды." },
+      { status: 409 },
+    );
+  }
+
+  const { data: existingFiles } = await supabase
+    .from("report_files")
+    .select("id,storage_path")
+    .eq("report_id", reportId)
+    .eq("slot", slot);
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const storagePath =
@@ -113,6 +126,13 @@ export async function POST(request: Request) {
       { error: "Фото туралы дерек сақталмады." },
       { status: 400 },
     );
+  }
+
+  if (existingFiles?.length) {
+    const oldIds = existingFiles.map((item) => item.id);
+    const oldPaths = existingFiles.map((item) => item.storage_path);
+    await supabase.from("report_files").delete().in("id", oldIds);
+    await admin.storage.from("submissions").remove(oldPaths);
   }
 
   return NextResponse.json({ file: record });
