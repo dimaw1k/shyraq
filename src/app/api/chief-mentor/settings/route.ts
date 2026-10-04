@@ -13,13 +13,24 @@ export async function GET(){
 
 export async function PATCH(request:Request){
  const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");const body=await request.json().catch(()=>null);const admin=createAdminSupabaseClient();
+ const validReportTime=(value:unknown)=>{
+  if(typeof value!=="string" || !/^\d{2}:\d{2}$/.test(value)) return false;
+  const [hour,minute]=value.split(":").map(Number);
+  return hour>=0 && hour<=23 && minute>=0 && minute<=59;
+ };
  if(body?.settings){
   const next={};
   if(typeof body.settings.name==="string"&&body.settings.name.trim())Object.assign(next,{name:body.settings.name.trim()});
   if(typeof body.settings.defaultVideoWatchPercent==="number")Object.assign(next,{default_video_watch_percent:Math.min(100,Math.max(0,body.settings.defaultVideoWatchPercent))});
   if(typeof body.settings.defaultTeamCapacity==="number")Object.assign(next,{default_team_capacity:Math.max(1,Math.floor(body.settings.defaultTeamCapacity))});
-  if(typeof body.settings.morningReportOpenTime==="string" && /^\d{2}:\d{2}$/.test(body.settings.morningReportOpenTime))Object.assign(next,{morning_report_open_time:body.settings.morningReportOpenTime});
-  if(typeof body.settings.eveningReportOpenTime==="string" && /^\d{2}:\d{2}$/.test(body.settings.eveningReportOpenTime))Object.assign(next,{evening_report_open_time:body.settings.eveningReportOpenTime});
+  if(typeof body.settings.morningReportOpenTime!=="undefined"){
+   if(!validReportTime(body.settings.morningReportOpenTime))return NextResponse.json({error:"Таңғы есеп уақыты дұрыс емес."},{status:400});
+   Object.assign(next,{morning_report_open_time:body.settings.morningReportOpenTime});
+  }
+  if(typeof body.settings.eveningReportOpenTime!=="undefined"){
+   if(!validReportTime(body.settings.eveningReportOpenTime))return NextResponse.json({error:"Кешкі есеп уақыты дұрыс емес."},{status:400});
+   Object.assign(next,{evening_report_open_time:body.settings.eveningReportOpenTime});
+  }
   if(Object.keys(next).length)await admin.from("marathon_settings").update({...next,updated_at:new Date().toISOString()}).eq("id",true);
  }
  if(Array.isArray(body?.rules)){
