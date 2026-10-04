@@ -271,15 +271,16 @@ function ReportModal({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [files, setFiles] = useState<PhotoSlot[]>(EMPTY_SLOTS);
-  const [loadingQuestions, setLoadingQuestions] = useState(true);
+  const [loadedQuestionsKey, setLoadedQuestionsKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const questionsRequestKey = String(marathonDay ?? 0) + ":" + reportType;
+  const loadingQuestions = loadedQuestionsKey !== questionsRequestKey;
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    setLoadingQuestions(true);
-    setError("");
 
     fetch(
       "/api/reports/questions?day=" +
@@ -293,11 +294,15 @@ function ReportModal({
         if (!response.ok) {
           throw new Error(payload?.error ?? "Сұрақтар жүктелмеді.");
         }
-        if (active) setQuestions(payload.questions ?? []);
+        if (active) {
+          setQuestions(payload.questions ?? []);
+          setLoadedQuestionsKey(questionsRequestKey);
+        }
       })
       .catch((reason) => {
         if (active) {
           setError(reason instanceof Error ? reason.message : "Сұрақтар жүктелмеді.");
+          setLoadedQuestionsKey(questionsRequestKey);
         }
       })
       .finally(() => {
@@ -307,7 +312,7 @@ function ReportModal({
     return () => {
       active = false;
     };
-  }, [marathonDay, reportType]);
+  }, [questionsRequestKey, marathonDay, reportType]);
 
   useEffect(() => {
     if (!openBodyLock()) return undefined;
@@ -470,7 +475,10 @@ function ReportModal({
               <button
                 key={type}
                 type="button"
-                onClick={() => onReportTypeChange(type)}
+                onClick={() => {
+                  setError("");
+                  onReportTypeChange(type);
+                }}
                 className={[
                   "h-9 rounded-[10px] text-[9px] font-extrabold transition",
                   reportType === type
