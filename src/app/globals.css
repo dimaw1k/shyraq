@@ -229,67 +229,134 @@ iframe {
 
 
 
-/* Landing mobile layout: related cards become compact horizontal rails instead of tall stacked essays. */
+/* Shared horizontal rails: mobile uses real drag/swipe, desktop keeps its natural layout. */
+.shyraq-horizontal-rail {
+  min-width: 0;
+}
+
+.shyraq-horizontal-rail--benefit {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.shyraq-horizontal-rail--journey {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@keyframes shrq-rail-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (max-width: 767px) {
-  .shyraq-benefit-rail,
-  .shyraq-journey-rail {
+  .shyraq-horizontal-rail {
     display: flex !important;
     flex-wrap: nowrap !important;
     align-items: stretch;
     width: calc(100vw - 20px);
     max-width: calc(100vw - 20px);
+    min-width: 0;
     margin-inline: -1px;
+    gap: 14px;
+    padding: 2px 2px 12px;
+    overflow-x: auto;
+    overflow-y: visible;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 2px;
+    scroll-behavior: smooth;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    touch-action: auto;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    animation: shrq-rail-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: scroll-position;
   }
 
-  .shyraq-benefit-rail::-webkit-scrollbar,
-  .shyraq-journey-rail::-webkit-scrollbar {
+  .shyraq-horizontal-rail.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .shyraq-horizontal-rail::-webkit-scrollbar {
     display: none;
   }
 
-  .shyraq-benefit-rail > *,
-  .shyraq-journey-rail > * {
+  .shyraq-horizontal-rail > * {
     flex: 0 0 min(82vw, 340px);
     width: min(82vw, 340px);
     min-width: min(82vw, 340px);
     max-width: min(82vw, 340px);
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    transform: translateZ(0);
+    transition:
+      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 180ms ease;
   }
 
-  .shyraq-benefit-card {
+  .shyraq-horizontal-rail > *:nth-child(1) {
+    animation-delay: 20ms;
+  }
+
+  .shyraq-horizontal-rail > *:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .shyraq-horizontal-rail > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  .shyraq-horizontal-rail > *:nth-child(4) {
+    animation-delay: 170ms;
+  }
+
+  .shyraq-horizontal-rail.is-dragging > * {
+    transition: none;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
+    min-height: 280px;
+    height: 100%;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card {
     min-height: 300px;
     height: 100%;
   }
 
-  .shyraq-benefit-card p {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  .shyraq-journey-card {
-    min-height: 300px;
-  }
-
+  .shyraq-benefit-card p,
   .shyraq-journey-card > p {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
+  }
+
+  .shyraq-benefit-card p {
+    -webkit-line-clamp: 3;
+  }
+
+  .shyraq-journey-card > p {
     -webkit-line-clamp: 4;
   }
 
-  /* Remove the large "breathing room" around the journey and routine transition. */
-  #marathon > div,
-  .bg-white > div {
-    scroll-margin-top: 76px;
+  /* Keep page scrolling vertical unless the finger gesture is clearly horizontal.
+     The HorizontalRail component takes over only after horizontal intent is detected. */
+  .shyraq-horizontal-rail > * {
+    touch-action: pan-y;
   }
 
   #marathon > div {
@@ -297,7 +364,6 @@ iframe {
     padding-bottom: 36px !important;
   }
 
-  /* Compact footer: brand spans full width, links sit beside each other. */
   .shyraq-footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 18px !important;
@@ -312,14 +378,14 @@ iframe {
     min-width: 0;
   }
 
-  footer .shyraq-footer-grid .space-y-1\.5 {
+  footer .shyraq-footer-grid .space-y-1\\.5 {
     margin-top: 8px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shyraq-benefit-rail,
-  .shyraq-journey-rail {
+  .shyraq-horizontal-rail {
+    animation: none !important;
     scroll-behavior: auto !important;
   }
 }
