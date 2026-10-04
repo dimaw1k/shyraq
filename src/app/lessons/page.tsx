@@ -103,9 +103,7 @@ export default async function LessonsPage({
             <h1 className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
               Сабақтар
             </h1>
-            <span className="rounded-full bg-[#FFF1E2] px-3 py-1.5 text-[9px] font-extrabold text-[#B95D00]">
-              {activeWeek.subtitle}
-            </span>
+
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
@@ -189,9 +187,7 @@ export default async function LessonsPage({
                       {activeDay}-күн
                     </h2>
                   </div>
-                  <span className="rounded-full border border-[#E7E0D8] bg-white px-3 py-1.5 text-[8px] font-extrabold text-[#766E66]">
-                    {dayLessons.length} сабақ
-                  </span>
+
                 </div>
 
                 {!dayLessons.length ? (
