@@ -59,7 +59,7 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: auto;
   text-rendering: optimizeLegibility;
 }
 
@@ -157,11 +157,6 @@ section {
 }
 
 
-[class~="text-[7px]"] { font-size: 10px !important; }
-[class~="text-[8px]"] { font-size: 10px !important; }
-[class~="text-[9px]"] { font-size: 11px !important; }
-[class~="text-[10px]"] { font-size: 12px !important; }
-[class~="text-[11px]"] { font-size: 12px !important; }
 button, a { -webkit-tap-highlight-color: transparent; }
 
 
