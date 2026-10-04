@@ -8,8 +8,8 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (me?.role !== "MENTOR" && me?.role !== "LEADER") return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
+  const { data: me } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
+  if (me?.status !== "ACTIVE" || (me.role !== "MENTOR" && me.role !== "LEADER")) return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
 
   const body = await request.json().catch(() => null);
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
