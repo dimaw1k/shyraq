@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { Clock3, LockKeyhole } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardList, Clock3, LockKeyhole } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { KinescopeLessonPlayer } from "@/components/lessons/KinescopeLessonPlayer";
@@ -47,48 +47,225 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       ))
     : [];
 
-  const { data: progress } = await supabase.from("video_progress")
-    .select("watched_ranges,watched_percent,test_unlocked")
-    .eq("lesson_id", lessonId)
-    .eq("student_id", user.id)
-    .maybeSingle();
+  const [{ data: progress }, { data: teamTasks }, { data: submissions }] = await Promise.all([
+    supabase
+      .from("video_progress")
+      .select("watched_ranges,watched_percent,test_unlocked")
+      .eq("lesson_id", lessonId)
+      .eq("student_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("tasks")
+      .select("id,title,description,instructions,deadline,starts_at,points,marathon_day,task_order,team_id,active")
+      .eq("active", true)
+      .eq("marathon_day", lesson.marathon_day)
+      .order("task_order"),
+    supabase
+      .from("task_submissions")
+      .select("task_id,status,submitted_late,submitted_at")
+      .eq("student_id", user.id),
+  ]);
 
-  const initialRanges = Array.isArray(progress?.watched_ranges) ? (progress.watched_ranges as { start: number; end: number }[]) : [];
+  const visibleTasks =
+    role === "STUDENT"
+      ? (teamTasks ?? []).filter(
+          (task) => !task.team_id || task.team_id === membership?.team_id,
+        )
+      : teamTasks ?? [];
+
+  const submissionMap = new Map(
+    (submissions ?? []).map((submission) => [submission.task_id, submission]),
+  );
+
+  const initialRanges = Array.isArray(progress?.watched_ranges)
+    ? (progress.watched_ranges as { start: number; end: number }[])
+    : [];
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ") : (hasTest ? "Бейне → тест" : "Бейне сабақ")}>
-      <main className="mx-auto w-full max-w-5xl px-3.5 py-4 sm:px-6 sm:py-7">
-        <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-          <section className="min-w-0">
-            {lesson.description ? <p className="mb-4 text-sm leading-6 text-gray-500">{lesson.description}</p> : null}
-            <KinescopeLessonPlayer lessonId={lesson.id} videoId={lesson.kinescope_video_id} durationSeconds={lesson.duration_seconds} requiredWatchPercent={lesson.required_watch_percent} initialRanges={initialRanges} testHref={hasTest ? "/tests/lesson/" + lesson.id : undefined} initialTestUnlocked={Boolean(progress?.test_unlocked)} trackProgress={hasTest} />
+    <AppShell
+      role={role}
+      userName={profile?.full_name ?? undefined}
+      title={lesson.title}
+      description={
+        lesson.marathon_day
+          ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ")
+          : hasTest
+            ? "Бейне → тест"
+            : "Бейне сабақ"
+      }
+    >
+      <main className="mx-auto w-full max-w-[1280px] px-3.5 py-4 sm:px-6 sm:py-6">
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+          <section className="min-w-0 rounded-[20px] border border-[#E7E0D8] bg-white p-3.5 shadow-[0_10px_30px_rgba(23,34,53,.035)] sm:p-4">
+            <div className="mb-3">
+              <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">
+                ВИДЕО САБАҚ
+              </p>
+              <h1 className="mt-1 text-[18px] font-extrabold tracking-[-.035em] text-[#172235] sm:text-[20px]">
+                {lesson.title}
+              </h1>
+              {lesson.description ? (
+                <p className="mt-1.5 text-[10px] leading-5 text-[#857B72]">
+                  {lesson.description}
+                </p>
+              ) : null}
+            </div>
+
+            <KinescopeLessonPlayer
+              lessonId={lesson.id}
+              videoId={lesson.kinescope_video_id}
+              durationSeconds={lesson.duration_seconds}
+              requiredWatchPercent={lesson.required_watch_percent}
+              initialRanges={initialRanges}
+              testHref={hasTest ? "/tests/lesson/" + lesson.id : undefined}
+              initialTestUnlocked={Boolean(progress?.test_unlocked)}
+              trackProgress={hasTest}
+            />
+
+            {materials.length ? (
+              <div className="mt-3 rounded-[14px] border border-[#EEE8E2] bg-[#FFFCF9] p-3.5">
+                <p className="text-[8px] font-extrabold uppercase tracking-[.13em] text-[#FF8000]">
+                  МАТЕРИАЛДАР
+                </p>
+                <div className="mt-2 space-y-2">
+                  {materials.map((material, index) => {
+                    const label = material.label ?? material.title ?? "Материал";
+                    return material.url ? (
+                      <a
+                        key={material.url + index}
+                        href={material.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block rounded-[10px] bg-white px-3 py-2.5 text-[10px] font-bold text-[#4B433C] transition hover:text-[#FF8000]"
+                      >
+                        <span>{label}</span>
+                        {material.description ? (
+                          <span className="mt-1 block text-[9px] font-medium leading-4 text-[#8B8179]">
+                            {material.description}
+                          </span>
+                        ) : null}
+                      </a>
+                    ) : (
+                      <div key={label + index} className="rounded-[10px] bg-white px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-[#4B433C]">{label}</p>
+                        {material.description ? (
+                          <p className="mt-1 text-[9px] font-medium leading-4 text-[#8B8179]">
+                            {material.description}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </section>
-          <aside className="h-fit min-w-0 rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C25100]">КЕЛЕСІ ҚАДАМ</p>
-            <h2 className="mt-1.5 text-sm font-semibold text-gray-900">Тест</h2>
-            <p className="mt-1 text-xs leading-5 text-gray-500">YouTube сабақтарында тестке видео блогының астындағы батырма арқылы өтесіз. Kinescope сабақтарында тест {lesson.required_watch_percent}% бірегей көруден кейін ашылады.</p>
-            <div className="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-gray-500 shadow-soft">Видео мен тест сабақтың completion логикасын құрайды.</div>
-          {materials.length ? (
-            <div className="mt-4 rounded-xl bg-white p-3 shadow-soft">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#C25100]">МАТЕРИАЛДАР</p>
-              <div className="mt-2 space-y-2">
-                {materials.map((material,index) => {
-                  const label=material.label ?? material.title ?? "Материал";
-                  return material.url ? (
-                    <a key={material.url+index} href={material.url} target="_blank" rel="noreferrer" className="block rounded-[10px] bg-[#FFFCF9] px-3 py-2.5 text-[10px] font-bold text-[#4B433C] hover:text-[#C25100]">
-                      <span>{label}</span>
-                      {material.description ? <span className="mt-1 block text-[10px] font-medium leading-4 text-[#8B8179]">{material.description}</span> : null}
-                    </a>
-                  ) : (
-                    <div key={label+index} className="rounded-[10px] bg-[#FFFCF9] px-3 py-2.5">
-                      <p className="text-[10px] font-bold text-[#4B433C]">{label}</p>
-                      {material.description ? <p className="mt-1 text-[10px] font-medium leading-4 text-[#8B8179]">{material.description}</p> : null}
-                    </div>
+
+          <aside className="min-w-0 rounded-[20px] border border-[#E7E0D8] bg-[#FAF9F7] p-3.5 shadow-[0_10px_30px_rgba(23,34,53,.025)] lg:sticky lg:top-[72px] sm:p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">
+                  БҮГІНГІ ТАПСЫРМАЛАР
+                </p>
+                <h2 className="mt-1 text-[18px] font-extrabold tracking-[-.035em] text-[#172235]">
+                  {lesson.marathon_day}-күн
+                </h2>
+              </div>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-extrabold text-[#766E66] ring-1 ring-[#E8E1DA]">
+                {visibleTasks.length}
+              </span>
+            </div>
+
+            {visibleTasks.length ? (
+              <div className="mt-3 space-y-2.5">
+                {visibleTasks.map((task, index) => {
+                  const locked = Boolean(
+                    task.starts_at && new Date(task.starts_at).getTime() > Date.now(),
+                  );
+                  const submission = submissionMap.get(task.id);
+                  const done = submission?.status === "REVIEWED";
+
+                  return (
+                    <Link
+                      key={task.id}
+                      href={locked ? "#" : "/tasks/" + task.id}
+                      aria-disabled={locked}
+                      className={[
+                        "block rounded-[14px] border bg-white p-3.5 transition",
+                        done
+                          ? "border-[#CFE7D8]"
+                          : "border-[#E8E1DA] hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_8px_20px_rgba(23,34,53,.04)]",
+                        locked ? "pointer-events-none opacity-60" : "",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00]">
+                          {done ? (
+                            <CheckCircle2 size={15} />
+                          ) : locked ? (
+                            <LockKeyhole size={15} />
+                          ) : (
+                            <ClipboardList size={15} />
+                          )}
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-2">
+                            <span className="text-[8px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span
+                              className={[
+                                "rounded-full px-2 py-0.5 text-[7px] font-extrabold",
+                                done
+                                  ? "bg-[#EAF7F0] text-[#2E7E58]"
+                                  : locked
+                                    ? "bg-[#F4F1EC] text-[#857B72]"
+                                    : "bg-[#FFF1E2] text-[#B95D00]",
+                              ].join(" ")}
+                            >
+                              {done ? "ОРЫНДАЛДЫ" : locked ? "ЖАБЫҚ" : "ТАПСЫРМА"}
+                            </span>
+                          </span>
+
+                          <span className="mt-1 block text-[12px] font-extrabold leading-5 text-[#172235]">
+                            {task.title}
+                          </span>
+
+                          <span className="mt-1 block line-clamp-2 text-[9px] leading-4 text-[#8B8179]">
+                            {locked
+                              ? "Тапсырма әзірге ашылған жоқ."
+                              : task.description || task.instructions || "Тапсырманы орындап, нәтижені жібер."
+                            }
+                          </span>
+
+                          <span className="mt-2 flex items-center justify-between gap-2 text-[8px] font-semibold text-[#A19890]">
+                            <span>
+                              {task.points} ұпай
+                              {task.deadline
+                                ? " · " + new Date(task.deadline).toLocaleDateString("kk-KZ")
+                                : ""}
+                            </span>
+                            {locked ? (
+                              <LockKeyhole size={12} />
+                            ) : (
+                              <ArrowRight size={12} className="text-[#FF8000]" />
+                            )}
+                          </span>
+                        </span>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
-            </div>
-          ) : null}
+            ) : (
+              <div className="mt-3 rounded-[14px] border border-dashed border-[#DCD4CC] bg-white px-4 py-10 text-center">
+                <ClipboardList size={18} className="mx-auto text-[#B5ABA2]" />
+                <p className="mt-2 text-[11px] font-extrabold text-[#172235]">
+                  Бұл күнге тапсырма жоқ
+                </p>
+              </div>
+            )}
           </aside>
         </div>
       </main>
