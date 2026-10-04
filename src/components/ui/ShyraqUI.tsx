@@ -23,7 +23,7 @@ export function PageContainer({
         className
       }
     >
-      {children}
+      <div className="shrq-page-enter min-w-0">{children}</div>
     </main>
   );
 }
