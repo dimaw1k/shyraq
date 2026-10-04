@@ -305,10 +305,6 @@ function ReportModal({
           setLoadedQuestionsKey(questionsRequestKey);
         }
       })
-      .finally(() => {
-        if (active) setLoadingQuestions(false);
-      });
-
     return () => {
       active = false;
     };
