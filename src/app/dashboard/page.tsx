@@ -12,9 +12,10 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { MARATHON_WEEKS } from "@/lib/marathon";
+import { MARATHON_WEEKS, marathonDayFromDate } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
+import { StudyTimeCard } from "@/components/student/StudyTimeCard";
 
 function currentTimestampMs() {
   return Date.now();
@@ -59,6 +60,8 @@ export default async function DashboardPage() {
     { data: tasks },
     { data: submissions },
     { data: meetSpace },
+    { data: attendance },
+    { data: marathonStartRow },
   ] = await Promise.all([
     admin
       .from("marathon_banners")
@@ -68,7 +71,7 @@ export default async function DashboardPage() {
       .limit(8),
     supabase
       .from("daily_reports")
-      .select("report_date,status,completed_task_count")
+      .select("report_date,report_type,status,completed_task_count")
       .eq("student_id", user.id)
       .order("report_date", { ascending: false })
       .limit(370),
@@ -105,6 +108,23 @@ export default async function DashboardPage() {
           .eq("active", true)
           .maybeSingle();
       }),
+    teamId
+      ? supabase
+          .from("attendance_records")
+          .select("attended_seconds,started_at,ended_at,attendance_percent,status")
+          .eq("student_id", user.id)
+          .eq("team_id", teamId)
+          .order("started_at", { ascending: false })
+          .limit(20)
+      : Promise.resolve({ data: [] }),
+    supabase
+      .from("tasks")
+      .select("starts_at")
+      .eq("marathon_day", 1)
+      .not("starts_at", "is", null)
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const bannerItems = (
@@ -179,6 +199,50 @@ export default async function DashboardPage() {
     | undefined;
   const meetingData = meeting?.data ?? null;
 
+  const marathonStart = marathonStartRow?.starts_at ?? null;
+  const marathonDay = marathonStart
+    ? marathonDayFromDate(today, marathonStart)
+    : null;
+
+  const attendanceRows = attendance ?? [];
+  const classifyAttendance = (row: {
+    attended_seconds: number | null;
+    started_at: string | null;
+    ended_at: string | null;
+  }) => {
+    const stamp = row.started_at ?? row.ended_at;
+    if (!stamp) return null;
+    const hour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Almaty",
+        hour: "2-digit",
+        hour12: false,
+      }).format(new Date(stamp)),
+    );
+    const dateKey = kzDateKey(stamp);
+    if (dateKey !== today) return null;
+    return hour < 14 ? "MORNING" : "EVENING";
+  };
+
+  const morningMinutes = Math.round(
+    attendanceRows
+      .filter((row) => classifyAttendance(row) === "MORNING")
+      .reduce((sum, row) => sum + Number(row.attended_seconds ?? 0), 0) / 60,
+  );
+
+  const eveningMinutes = Math.round(
+    attendanceRows
+      .filter((row) => classifyAttendance(row) === "EVENING")
+      .reduce((sum, row) => sum + Number(row.attended_seconds ?? 0), 0) / 60,
+  );
+
+  const todayReports = (reports ?? [])
+    .filter((report) => report.report_date === today)
+    .map((report) => ({
+      report_type: report.report_type as "MORNING" | "EVENING",
+      status: String(report.status ?? ""),
+    }));
+
   return (
     <AppShell
       role={role}
@@ -239,6 +303,15 @@ export default async function DashboardPage() {
                 ))}
               </div>
 
+              <StudyTimeCard
+                meetingUrl={meetingData?.meeting_url ?? null}
+                meetingName={meetingData?.display_name ?? "Google Meet"}
+                today={today}
+                marathonDay={marathonDay}
+                morningMinutes={morningMinutes}
+                eveningMinutes={eveningMinutes}
+                reports={todayReports}
+              />
             </div>
 
             <aside className="grid gap-3 xl:sticky xl:top-[72px]">
