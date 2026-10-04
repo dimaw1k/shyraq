@@ -804,3 +804,23 @@ iframe {
   .shrq-dashboard-banner-arrow--prev { left: 2px; }
   .shrq-dashboard-banner-arrow--next { right: 2px; }
 }
+
+
+.shrq-dashboard-banner-item {
+  display: block;
+  flex: 0 0 calc(50% - 8px);
+  width: calc(50% - 8px);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.shrq-dashboard-banner-item .shrq-dashboard-banner-card {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .shrq-dashboard-banner-item {
+    flex-basis: 84vw;
+    width: 84vw;
+  }
+}
