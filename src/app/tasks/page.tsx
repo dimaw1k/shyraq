@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, ClipboardList, LockKeyhole } from "lucide-react";
+import { ArrowRight, ClipboardList } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -23,9 +23,13 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   const role = profile?.role ?? "STUDENT";
   const teamId = membership?.team_id ?? null;
   const visibleTasks = role === "STUDENT"
-    ? (tasks ?? []).filter((task) => !task.team_id || task.team_id === teamId)
+    ? (tasks ?? []).filter((task) => {
+        const sameTeam = !task.team_id || task.team_id === teamId;
+        const isOpened =
+          !task.starts_at || new Date(task.starts_at).getTime() <= now;
+        return sameTeam && isOpened;
+      })
     : (tasks ?? []);
-  const now = new Date().getTime();
   const submissionMap = new Map((submissions ?? []).map((item) => [item.task_id, item]));
 
   return (
@@ -47,22 +51,21 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
                 </div>
                 <div className="space-y-3">
                   {weekTasks.map((task) => {
-                    const locked = Boolean(task.starts_at && new Date(task.starts_at).getTime() > now);
                     const submission = submissionMap.get(task.id);
                     return (
-                      <Link key={task.id} href={locked ? "#" : "/tasks/" + task.id} aria-disabled={locked} className={locked ? "pointer-events-none block" : "block"}>
-                        <Card className={"p-4 transition sm:p-5 " + (locked ? "bg-[#F8F5F1]" : "hover:-translate-y-0.5 hover:border-[#F3C7B0]")}>
+                      <Link key={task.id} href={"/tasks/" + task.id} className="block">
+                        <Card className="p-4 transition sm:p-5 hover:-translate-y-0.5 hover:border-[#F3C7B0]">
                           <div className="flex items-start gap-4">
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#FFF0E8] text-[#FF6F2C]">{locked ? <LockKeyhole size={17} /> : <ClipboardList size={17} />}</span>
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#FFF0E8] text-[#FF6F2C]"><ClipboardList size={17} /></span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <h2 className="text-[14px] font-extrabold text-[#172235] sm:text-[15px]">{task.title}</h2>
                                 {task.marathon_day ? <StatusPill tone="neutral">{task.marathon_day}-КҮН</StatusPill> : null}
-                                <StatusPill tone={submission?.status === "REVIEWED" ? "green" : submission?.submitted_late ? "orange" : "neutral"}>{locked ? "КҮТІЛУДЕ" : (submission?.status ?? "ТАПСЫРЫЛМАҒАН")}</StatusPill>
+                                <StatusPill tone={submission?.status === "REVIEWED" ? "green" : submission?.submitted_late ? "orange" : "neutral"}>{submission?.status ?? "ТАПСЫРЫЛМАҒАН"}</StatusPill>
                               </div>
-                              <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-[#766E66]">{locked ? "Тапсырма ашылу уақытына дейін мазмұны жабық." : task.description}</p>
+                              <p className="mt-2 line-clamp-2 text-xs font-medium leading-5 text-[#766E66]">{task.description}</p>
                               <p className="mt-3 text-[10px] font-semibold text-[#9A9189]">
-                                {locked ? "Ашылады: " + new Date(task.starts_at!).toLocaleString("kk-KZ") : (task.deadline ? "Соңғы мерзім: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ") + " · " + task.points + " ұпай"}
+                                {(task.deadline ? "Соңғы мерзім: " + new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ") + " · " + task.points + " ұпай"}
                                 {submission?.submitted_late ? " · КЕШ ТАПСЫРЫЛДЫ" : ""}
                               </p>
                             </div>
