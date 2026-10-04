@@ -12,7 +12,7 @@ import {
   CalendarCheck2,
   ClipboardCheck,
   ClipboardList,
-  CheckSquare2,
+  CheckCircle2,
   FileClock,
   FileText,
   LayoutDashboard,
@@ -33,7 +33,7 @@ const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
   { label: "Сабақтар", href: "/lessons", icon: BookOpen },
   { label: "Тапсырмалар", href: "/tasks", icon: ClipboardList },
-  { label: "Әдеттер", href: "/habits", icon: CheckSquare2 },
+  { label: "Әдеттер", href: "/habits", icon: CheckCircle2 },
   { label: "Профиль", href: "/profile", icon: Users },
   { label: "Баптаулар", href: "/settings", icon: Settings },
 ];
