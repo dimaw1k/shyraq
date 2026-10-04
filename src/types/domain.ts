@@ -7,9 +7,7 @@ export type StudentLookupResult = {
   full_name: string;
   email: string;
   phone: string;
-  age: number;
   education_type: EducationType;
-  education_place: string;
   status: ProfileStatus;
   assigned_team_id: string | null;
 };
