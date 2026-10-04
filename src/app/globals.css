@@ -466,6 +466,63 @@ iframe {
   }
 }
 
+/* Desktop benefit cards: equal size, compact internal rhythm. */
+@media (min-width: 768px) {
+  .shyraq-horizontal-rail--benefit {
+    align-items: stretch;
+  }
+
+  .shyraq-horizontal-rail--benefit > * {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    height: 420px;
+    min-height: 420px;
+    max-height: 420px;
+    flex-direction: column;
+    padding: 20px !important;
+    overflow: hidden;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card > div:first-child {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card > p:first-of-type {
+    margin-top: 16px;
+    line-height: 1.2;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card h3 {
+    margin-top: 5px;
+    max-width: 100%;
+    min-height: 66px;
+    line-height: 1.08;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card > p:last-of-type {
+    margin-top: 14px;
+    max-width: 100%;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+}
+
 /* Desktop rail layout: keep featured cards in one row, compact, and equal-height. */
 @media (min-width: 768px) {
   .shyraq-horizontal-rail--journey {
