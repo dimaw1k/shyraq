@@ -6,7 +6,7 @@ create table if not exists public.habits (
   icon text not null default 'Sparkles' check (icon in (
     'BookOpen',
     'ListTodo',
-    'SmartphoneOff',
+    'Smartphone',
     'Library',
     'PenLine',
     'Moon',
