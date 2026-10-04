@@ -316,59 +316,53 @@ iframe {
     animation-delay: 170ms;
   }
 
-  /* Mobile rail cards share one compact visual frame. */
+  /* Equal-size mobile cards without artificial empty blocks. */
+  .shyraq-horizontal-rail > * {
+    align-self: stretch;
+    display: flex;
+  }
+
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card,
-  .shyraq-horizontal-rail--journey .shyraq-journey-card {
+  .shyraq-horizontal-rail--journey .shyraq-journey-card,
+  .shyraq-horizontal-rail--proof .shyraq-proof-card,
+  .shyraq-horizontal-rail--routine .shyraq-routine-card {
     position: relative;
     min-height: 0 !important;
     width: 100%;
-    height: 250px !important;
-    align-self: flex-start;
+    height: auto !important;
+    align-self: stretch;
     align-content: start;
     border-radius: 24px;
-    padding: 18px;
     overflow: hidden;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
+    flex: 1;
     display: block;
+    padding: 18px;
   }
 
   .shyraq-horizontal-rail--journey .shyraq-journey-card {
+    flex: 1;
     display: grid;
     grid-template-rows: auto auto 1fr;
     gap: 6px;
+    padding: 18px;
   }
 
   .shyraq-horizontal-rail--proof .shyraq-proof-card {
-    position: relative;
-    min-height: 0 !important;
-    height: 190px !important;
-    width: 100%;
-    border-radius: 24px;
+    flex: 1;
+    display: block;
     padding: 18px;
-    overflow: hidden;
   }
 
   .shyraq-horizontal-rail--routine .shyraq-routine-card {
-    position: relative;
-    min-height: 0 !important;
-    height: 150px !important;
-    align-self: flex-start;
-    border-radius: 22px;
-    padding: 16px;
-    overflow: hidden;
-  }
-
-  .shyraq-horizontal-rail--routine .shyraq-routine-card {
+    flex: 1;
     display: grid;
     grid-template-columns: 48px 1fr auto;
     gap: 14px;
     align-items: center;
-  }
-
-  .shyraq-horizontal-rail > * {
-    align-self: flex-start;
+    padding: 16px;
   }
 
   .shyraq-benefit-card p,
@@ -444,6 +438,24 @@ iframe {
   .shyraq-footer-grid > :nth-child(2),
   .shyraq-footer-grid > :nth-child(3) {
     min-width: 0;
+  }
+
+  /* Compact mobile section rhythm: avoid large blank bands between content blocks. */
+  main > section:not(#top) > div {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  #features > div,
+  #marathon > div,
+  #how-it-works > div {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  #marathon > div {
+    padding-top: 36px !important;
+    padding-bottom: 32px !important;
   }
 
   /* Existing dashboard card rails use the same native scrolling rules. */
