@@ -122,10 +122,16 @@ The `main` branch is connected to the Shyraq Vercel project.
 Current audited GitHub `main` head:
 
 ```text
-f86fa0a5984e330d7c9adca724802c2f0bae2282
+009465a5bec9c15ec3a132b4af22cc515838f86c
 ```
 
-The latest Vercel production deployment inspected during the audit is still based on the older `2df68da544...` commit and is `ERROR` with `next build`/lint-or-type failure metadata. A subsequent Vercel status check on the newer `c4d22c82...` commit reported a `build-rate-limit` failure. Therefore the production deployment has not yet been verified against the audited `main` head.
+The latest responsive mobile-web changes are included in this head, covering the shared mobile app shell, role-aware slide-out navigation, bottom navigation, safe-area handling, mobile spacing, table overflow handling, viewport metadata, and mobile-safe authentication/lesson screens.
+
+Production URL:
+
+```text
+https://shyraq-nu.vercel.app
+```
 
 Production health endpoint:
 
@@ -137,12 +143,11 @@ https://shyraq-nu.vercel.app/api/health
 
 The repository includes GitHub Actions for typecheck, lint and production build on pushes and pull requests.
 
-The current execution environment cannot reliably clone the GitHub repository from the public network, so local build execution has not been claimed as verified. Vercel's connected integration is currently blocked by its reported build-rate limit, so the final production deployment check must be completed after the rate limit clears.
+The responsive mobile changes were verified by CI with successful typecheck, lint and production build before the current Vercel deployment.
 
 For security, enable Supabase Auth leaked-password protection before the production release. The connected Supabase advisor currently reports this as a warning.
 
-
-<!-- Vercel deployment sync: current main includes daily week/day staff navigation and review flows. -->
+<!-- Vercel deployment sync: current main includes responsive mobile web UI changes. -->
 
 ## Mobile web UI
 
