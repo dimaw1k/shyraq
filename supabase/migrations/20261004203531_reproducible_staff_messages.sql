@@ -1,4 +1,4 @@
--- Chief Mentor private staff-to-staff messaging
+-- Preserve the staff message table in fresh databases as well as production.
 create table if not exists public.staff_messages (
   id uuid primary key default gen_random_uuid(),
   sender_id uuid not null references public.profiles(id) on delete cascade,
