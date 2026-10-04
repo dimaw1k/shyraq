@@ -30,15 +30,15 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
   if (!imageBanners.length) return null;
 
   return (
-    <section className="relative w-full" aria-label="Shyraq баннерлері">
+    <section className="shrq-dashboard-banner" aria-label="Shyraq баннерлері">
       <div
         ref={trackRef}
-        className="flex w-full gap-4 overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory pb-1 pr-1"
+        className="shrq-dashboard-banner-track"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {imageBanners.map((banner) => {
           const content = (
-            <div className="relative aspect-[16/9] w-[82vw] max-w-[720px] shrink-0 snap-start overflow-hidden rounded-[18px] border border-[#E7E0D8] bg-[#F4F1EC] shadow-[0_8px_24px_rgba(23,34,53,.05)] sm:w-[calc(50vw_-_28px)] lg:w-[calc(50%_-_8px)]">
+            <div className="shrq-dashboard-banner-card">
               <img
                 src={banner.imageUrl!}
                 alt=""
@@ -81,7 +81,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
             type="button"
             aria-label="Алдыңғы баннерлер"
             onClick={() => scroll("prev")}
-            className="absolute left-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/95 text-[#172235] shadow-[0_8px_22px_rgba(23,34,53,.12)] transition hover:scale-105 hover:text-[#FF8000]"
+            className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--prev"
           >
             <ChevronLeft size={17} />
           </button>
@@ -89,7 +89,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
             type="button"
             aria-label="Келесі баннерлер"
             onClick={() => scroll("next")}
-            className="absolute right-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/95 text-[#172235] shadow-[0_8px_22px_rgba(23,34,53,.12)] transition hover:scale-105 hover:text-[#FF8000]"
+            className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--next"
           >
             <ChevronRight size={17} />
           </button>
