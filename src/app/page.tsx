@@ -1,5 +1,6 @@
 /* Shyraq landing production build marker */
 import Link from "next/link";
+import { HorizontalRail } from "@/components/ui/HorizontalRail";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { StickyNav } from "@/components/ui/StickyNav";
@@ -336,13 +337,17 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <div className="shyraq-benefit-rail mt-8 grid gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-4">
+          <HorizontalRail
+            variant="benefit"
+            className="mt-8 lg:mt-10"
+            ariaLabel="Шырақ марафонының мүмкіндіктері"
+          >
             {benefits.map((item, index) => (
               <Reveal key={item.title} delay={index * 90}>
                 <BenefitCard {...item} />
               </Reveal>
             ))}
-          </div>
+          </HorizontalRail>
         </div>
       </section>
 
@@ -362,10 +367,14 @@ export default function HomePage() {
           <div className="relative mt-8">
             <div className="absolute left-6 top-8 hidden h-[calc(100%-64px)] w-px bg-gradient-to-b from-[#FF8000] via-[#ffd1b8] to-transparent sm:block" />
 
-            <div className="shyraq-journey-rail flex gap-4 overflow-x-auto pb-3">
+            <HorizontalRail
+              variant="journey"
+              className="mt-0"
+              ariaLabel="21 күндік марафон кезеңдері"
+            >
               {days.map(([number, title, text], index) => (
                 <Reveal key={number} delay={index * 100}>
-                  <div className="shyraq-journey-card group relative grid shrink-0 gap-4 rounded-[24px] border border-[#ebe5dd] bg-white p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
+                  <div className="shyraq-journey-card group relative grid gap-4 rounded-[24px] border border-[#ebe5dd] bg-white p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
                     <div className="relative z-10 grid h-14 w-14 place-items-center rounded-2xl bg-[#eef1f6] text-xs font-extrabold text-[#172235] shadow-[0_10px_24px_rgba(20,20,20,.08)]">
                       {number}
                     </div>
@@ -383,7 +392,7 @@ export default function HomePage() {
                   </div>
                 </Reveal>
               ))}
-            </div>
+            </HorizontalRail>
           </div>
         </div>
       </section>
