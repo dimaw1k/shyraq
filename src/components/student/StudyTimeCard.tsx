@@ -135,7 +135,7 @@ export function StudyTimeCard({
               target="_blank"
               rel="noreferrer"
               aria-label={meetingName + " — таңғы Meet"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
               Таңғы Meet-ке кіру
@@ -147,7 +147,7 @@ export function StudyTimeCard({
               target="_blank"
               rel="noreferrer"
               aria-label={meetingName + " — кешкі Meet"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
               Кешкі Meet-ке кіру
