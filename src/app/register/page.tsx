@@ -3,15 +3,15 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarDays, Eye, EyeOff, LockKeyhole, Mail, Phone, User, UserPlus } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, User, UserPlus } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 
 type FormState = {
   phone: string;
   email: string;
   firstName: string;
   lastName: string;
-  age: string;
   password: string;
   confirmPassword: string;
 };
@@ -23,7 +23,6 @@ const initialForm: FormState = {
   email: "",
   firstName: "",
   lastName: "",
-  age: "",
   password: "",
   confirmPassword: "",
 };
@@ -49,8 +48,6 @@ export default function RegisterPage() {
     if (form.firstName.trim().length < 2) next.firstName = "Атыңызды дұрыс енгізіңіз.";
     if (form.lastName.trim().length < 2) next.lastName = "Тегіңізді дұрыс енгізіңіз.";
 
-    const age = Number(form.age);
-    if (!Number.isInteger(age) || age < 10 || age > 100) next.age = "Жасыңызды дұрыс енгізіңіз.";
     if (form.password.length < 8) next.password = "Құпиясөз кемінде 8 таңба болуы керек.";
     if (form.password !== form.confirmPassword) next.confirmPassword = "Құпиясөздер сәйкес емес.";
 
@@ -78,7 +75,6 @@ export default function RegisterPage() {
           email: form.email,
           firstName: form.firstName,
           lastName: form.lastName,
-          age: form.age,
           password: form.password,
         }),
       });
@@ -133,7 +129,9 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-3.5">
+          <div className="mt-6"><SocialAuthButtons /></div>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-3.5">
             <label className="block">
               <span className="sr-only">Аты</span>
               <div className="relative">
@@ -201,25 +199,7 @@ export default function RegisterPage() {
               {errorText("email")}
             </label>
 
-            <label className="block">
-              <span className="sr-only">Жасы</span>
-              <div className="relative">
-                <CalendarDays className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
-                <input
-                  required
-                  min={10}
-                  max={100}
-                  type="number"
-                  value={form.age}
-                  onChange={(event) => updateField("age", event.target.value)}
-                  placeholder="Жасы"
-                  className={inputClass("age")}
-                />
-              </div>
-              {errorText("age")}
-            </label>
-
-            <label className="block">
+                        <label className="block">
               <span className="sr-only">Құпиясөз</span>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
