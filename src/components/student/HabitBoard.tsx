@@ -162,6 +162,7 @@ export function HabitBoard({
   const [checkins, setCheckins] = useState(initialCheckins);
   const [soundOn, setSoundOn] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createInstance, setCreateInstance] = useState(0);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
   const checkSound = useRef<HTMLAudioElement | null>(null);
@@ -405,7 +406,10 @@ export function HabitBoard({
 
           <button
             type="button"
-            onClick={() => setCreateOpen(true)}
+            onClick={() => {
+              setCreateInstance((value) => value + 1);
+              setCreateOpen(true);
+            }}
             className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] bg-[#FF8000] px-3.5 text-[9px] font-extrabold text-white shadow-[0_7px_18px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.97]"
           >
             <Plus size={14} />
@@ -666,6 +670,7 @@ export function HabitBoard({
       </section>
 
       <HabitCreateModal
+        key={createInstance}
         open={createOpen}
         today={today}
         onClose={() => setCreateOpen(false)}
