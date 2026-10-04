@@ -498,17 +498,25 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
+          <HorizontalRail
+            variant="proof"
+            className="mt-8 lg:mt-10"
+            ariaLabel="Shyraq қалай жұмыс істейді"
+          >
             {sampleQuotes.map((quote, index) => (
               <Reveal key={quote} delay={index * 90}>
-                <article className="h-full rounded-[28px] border border-[#e9e4dc] bg-white p-6 shadow-[0_14px_38px_rgba(20,20,20,.04)]">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFF1E2] text-[10px] font-extrabold text-[#FF8000]">{String(index + 1).padStart(2, "0")}</div>
-                  <p className="mt-5 text-lg font-extrabold tracking-[-.03em] text-[#172235]">{quote}</p>
+                <article className="shyraq-proof-card group relative rounded-[24px] border border-[#e9e4dc] bg-white p-5 shadow-[0_12px_30px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(20,20,20,.07)]">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#FFF1E2] text-[10px] font-extrabold text-[#FF8000]">
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+                  <p className="mt-7 text-[20px] font-extrabold leading-[1.1] tracking-[-.035em] text-[#172235]">
+                    {quote}
+                  </p>
                   <p className="mt-2 text-xs font-medium text-[#8B8179]">Shyraq ішінде</p>
                 </article>
               </Reveal>
             ))}
-          </div>
+          </HorizontalRail>
         </div>
       </section>
 
