@@ -33,6 +33,9 @@ alter table public.report_files
       or slot in ('MORNING_MEET','PLAN','SCREEN_TIME','PROCESS')
     );
 
+alter table public.daily_reports
+  drop constraint if exists daily_reports_student_id_report_date_key;
+
 create unique index if not exists daily_reports_student_date_type_uidx
   on public.daily_reports(student_id, report_date, report_type);
 
