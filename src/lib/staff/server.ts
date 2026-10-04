@@ -19,7 +19,7 @@ export async function getAuthenticatedStaff(required: AppRole | AppRole[]) {
   const roles = Array.isArray(required) ? required : [required];
   const role = profile?.role as AppRole | undefined;
 
-  if (!profile || !role || !roles.includes(role)) {
+  if (!profile || !role || !roles.includes(role) || profile.status !== "ACTIVE") {
     redirect("/dashboard");
   }
 
