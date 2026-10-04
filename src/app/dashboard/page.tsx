@@ -268,7 +268,7 @@ export default async function DashboardPage() {
                 {MARATHON_WEEKS.map((week) => (
                   <Link
                     key={week.week}
-                    href={"/marathon/week/" + week.week}
+                    href={"/lessons?week=" + week.week}
                     className="group min-w-0"
                   >
                     <Card className="h-full p-4 transition duration-200 group-hover:-translate-y-0.5 group-hover:border-[#F3C7B0]">
