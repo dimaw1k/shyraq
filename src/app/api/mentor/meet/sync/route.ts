@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Google Meet sync failed", error);
     return NextResponse.json({
-      error: error instanceof Error ? error.message : "Google Meet sync failed",
+      error: "Google Meet синхрондауы сәтсіз аяқталды. Кейінірек қайта көріңіз.",
     }, { status: 500 });
   }
 }
