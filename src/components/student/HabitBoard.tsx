@@ -9,7 +9,7 @@ import {
   Moon,
   PenLine,
   Plus,
-  SmartphoneOff,
+  Smartphone,
   Sparkles,
   Trash2,
   Volume2,
@@ -41,7 +41,7 @@ type Props = {
 const ICONS = {
   BookOpen,
   ListTodo,
-  SmartphoneOff,
+  Smartphone,
   Library,
   PenLine,
   Moon,
