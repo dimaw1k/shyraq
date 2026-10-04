@@ -120,7 +120,7 @@ export async function PATCH(
 
   const { data: updated, error } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,role,status,age,education_type,created_at")
+    .select("id,full_name,email,phone,role,status,education_type,created_at")
     .eq("id", id)
     .maybeSingle();
 
