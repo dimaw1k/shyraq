@@ -129,33 +129,17 @@ textarea::placeholder {
 }
 
 .shrq-reveal {
-  opacity: 0.12;
-  transform: translate3d(0, 18px, 0) scale(0.995);
-  filter: blur(1px);
-  transition:
-    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 560ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform, filter;
-  backface-visibility: hidden;
+  opacity: 0;
+  transition: opacity 260ms ease;
 }
 
 .shrq-reveal.is-visible {
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
-  filter: blur(0);
 }
 
 section {
   scroll-margin-top: 96px;
 }
-
-@media (max-width: 767px) {
-  .shrq-reveal {
-    transform: translate3d(0, 14px, 0) scale(0.995);
-  }
-}
-
 
 button, a { -webkit-tap-highlight-color: transparent; }
 
@@ -599,14 +583,8 @@ iframe {
 
 /* Mobile motion + swipe rails */
 @keyframes shrq-page-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes shrq-mobile-nav-in {
@@ -621,8 +599,7 @@ iframe {
 }
 
 .shrq-page-enter {
-  animation: shrq-page-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform;
+  animation: shrq-page-in 260ms ease both;
 }
 
 @media (max-width: 767px) {
@@ -694,14 +671,8 @@ iframe {
 }
 
 @keyframes shrq-card-in {
-  from {
-    opacity: 0;
-    transform: translate3d(18px, 0, 0) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (min-width: 768px) {
