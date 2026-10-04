@@ -59,9 +59,6 @@ export default async function DashboardPage() {
     { data: membership },
     { data: tasks },
     { data: submissions },
-    { data: meetSpace },
-    { data: attendance },
-    { data: marathonStartRow },
   ] = await Promise.all([
     admin
       .from("marathon_banners")
@@ -93,36 +90,35 @@ export default async function DashboardPage() {
       .select("task_id,status,submitted_at")
       .eq("student_id", user.id)
       .limit(100),
-    supabase
-      .from("team_members")
-      .select("team_id")
-      .eq("student_id", user.id)
-      .eq("status", "ACTIVE")
-      .maybeSingle()
-      .then(async ({ data }) => {
-        if (!data?.team_id) return { data: null };
-        return supabase
-          .from("meet_spaces")
-          .select("meeting_url,display_name,active")
-          .eq("team_id", data.team_id)
-          .eq("active", true)
-          .maybeSingle();
-      }),
-    supabase
-      .from("attendance_records")
-      .select("attended_seconds,started_at,ended_at,attendance_percent,status")
-      .eq("student_id", user.id)
-      .order("started_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("tasks")
-      .select("starts_at")
-      .eq("marathon_day", 1)
-      .not("starts_at", "is", null)
-      .order("starts_at", { ascending: true })
-      .limit(1)
-      .maybeSingle(),
   ]);
+
+  const teamIdFromMembership = membership?.team_id ?? null;
+
+  const [{ data: meetSpace }, { data: attendance }, { data: marathonStartRow }] =
+    await Promise.all([
+      teamIdFromMembership
+        ? supabase
+            .from("meet_spaces")
+            .select("meeting_url,display_name,active")
+            .eq("team_id", teamIdFromMembership)
+            .eq("active", true)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("attendance_records")
+        .select("attended_seconds,started_at,ended_at,attendance_percent,status")
+        .eq("student_id", user.id)
+        .order("started_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("tasks")
+        .select("starts_at")
+        .eq("marathon_day", 1)
+        .not("starts_at", "is", null)
+        .order("starts_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
   const bannerItems = (
     await Promise.all(
