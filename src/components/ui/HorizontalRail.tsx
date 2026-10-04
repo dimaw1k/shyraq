@@ -4,7 +4,7 @@ import { Children, type ReactNode } from "react";
 
 type HorizontalRailProps = {
   children: ReactNode;
-  variant?: "benefit" | "journey" | "routine";
+  variant?: "benefit" | "journey" | "routine" | "proof";
   className?: string;
   ariaLabel?: string;
 };
