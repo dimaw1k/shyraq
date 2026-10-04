@@ -145,9 +145,9 @@ export async function PATCH(request: Request) {
   const profileUpdate = {
     full_name: fullName,
     phone,
-    email,
     education_type: educationType,
     updated_at: new Date().toISOString(),
+    ...(email !== current.email ? { email } : {}),
   };
 
   const { error: profileError } = await admin
@@ -156,7 +156,17 @@ export async function PATCH(request: Request) {
     .eq("id", user.id);
 
   if (profileError) {
-    return NextResponse.json({ error: "Профильді сақтау сәтсіз аяқталды." }, { status: 400 });
+    console.error("[profile] profile update failed", {
+      code: profileError.code,
+      message: profileError.message,
+      details: profileError.details,
+      hint: profileError.hint,
+    });
+
+    return NextResponse.json(
+      { error: "Профильді сақтау сәтсіз аяқталды." },
+      { status: 400 },
+    );
   }
 
   if (email !== current.email || newPassword || fullName !== current.full_name || phone !== current.phone) {
