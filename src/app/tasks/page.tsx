@@ -22,6 +22,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
 
   const role = profile?.role ?? "STUDENT";
   const teamId = membership?.team_id ?? null;
+  const now = Date.now();
   const visibleTasks = role === "STUDENT"
     ? (tasks ?? []).filter((task) => {
         const sameTeam = !task.team_id || task.team_id === teamId;
