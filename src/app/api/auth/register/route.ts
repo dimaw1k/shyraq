@@ -8,11 +8,8 @@ type RegisterPayload = {
   firstName?: unknown;
   lastName?: unknown;
   age?: unknown;
-  educationType?: unknown;
   password?: unknown;
 };
-
-const allowedEducationTypes = new Set(["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"]);
 
 function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -26,8 +23,7 @@ export async function POST(request: Request) {
     const email = text(body.email).toLowerCase();
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
-    const educationType = text(body.educationType);
-    const password = typeof body.password === "string" ? body.password : "";
+        const password = typeof body.password === "string" ? body.password : "";
     const age = Number(body.age);
 
     if (!isValidKzPhone(phone)) {
@@ -48,10 +44,6 @@ export async function POST(request: Request) {
 
     if (!Number.isInteger(age) || age < 10 || age > 100) {
       return NextResponse.json({ field: "age", error: "Жасыңызды дұрыс енгізіңіз." }, { status: 400 });
-    }
-
-    if (!allowedEducationTypes.has(educationType)) {
-      return NextResponse.json({ field: "educationType", error: "Оқу түрін таңдаңыз." }, { status: 400 });
     }
 
 
@@ -97,7 +89,6 @@ export async function POST(request: Request) {
         phone: normalizedPhone,
         full_name: [firstName, lastName].join(" "),
         age,
-        education_type: educationType,
       },
     });
 
