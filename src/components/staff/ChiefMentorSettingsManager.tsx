@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { Card } from "@/components/ui/ShyraqUI";
 
-type Settings = { name: string; default_video_watch_percent: number; default_team_capacity: number; updated_at: string };
+type Settings = {
+  name: string;
+  default_video_watch_percent: number;
+  default_team_capacity: number;
+  morning_report_open_time: string;
+  evening_report_open_time: string;
+  updated_at: string;
+};
 type Rule = { id: string; code: string; label: string; weight: number; active: boolean; updated_at: string };
 
 function normalizeRules(items: Rule[]) {
@@ -59,6 +66,8 @@ export function ChiefMentorSettingsManager() {
             name: settings.name,
             defaultVideoWatchPercent: Number(settings.default_video_watch_percent),
             defaultTeamCapacity: Number(settings.default_team_capacity),
+            morningReportOpenTime: settings.morning_report_open_time,
+            eveningReportOpenTime: settings.evening_report_open_time,
           },
           rules,
         }),
@@ -99,7 +108,7 @@ export function ChiefMentorSettingsManager() {
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="text-[10px] font-extrabold text-[#5B534C]">
             Атауы
             <input
@@ -128,6 +137,36 @@ export function ChiefMentorSettingsManager() {
               onChange={(event) => setSettings({ ...settings, default_team_capacity: Number(event.target.value) })}
               className="mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[11px] outline-none focus:border-[var(--accent)]"
             />
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Таңғы есеп ашылатын уақыт
+            <input
+              type="time"
+              value={settings.morning_report_open_time}
+              onChange={(event) =>
+                setSettings({ ...settings, morning_report_open_time: event.target.value })
+              }
+              className="mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-semibold outline-none focus:border-[var(--accent)]"
+            />
+            <span className="mt-1 block text-[8px] font-medium text-[#9A9189]">
+              Осы уақытқа дейін оқушының батырмасы құлыптаулы.
+            </span>
+          </label>
+
+          <label className="text-[10px] font-extrabold text-[#5B534C]">
+            Кешкі есеп ашылатын уақыт
+            <input
+              type="time"
+              value={settings.evening_report_open_time}
+              onChange={(event) =>
+                setSettings({ ...settings, evening_report_open_time: event.target.value })
+              }
+              className="mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-semibold outline-none focus:border-[var(--accent)]"
+            />
+            <span className="mt-1 block text-[8px] font-medium text-[#9A9189]">
+              Осы уақытқа дейін оқушының батырмасы құлыптаулы.
+            </span>
           </label>
         </div>
 
