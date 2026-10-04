@@ -852,3 +852,129 @@ iframe {
     min-width: 0;
   }
 }
+
+
+/* Lessons reference-style workspace */
+.shrq-lessons-reference {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: start;
+}
+
+.shrq-lessons-reference-sidebar,
+.shrq-lessons-reference-main,
+.shrq-lessons-reference-right {
+  min-width: 0;
+}
+
+.shrq-lessons-reference-sidebar {
+  border: 1px solid #E7E0D8;
+  border-radius: 18px;
+  background: #FFFFFF;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(23,34,53,.025);
+}
+
+.shrq-lessons-reference-tools {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #EFE8E1;
+}
+
+.shrq-lessons-tool {
+  display: grid;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  color: #8B8179;
+  transition: background-color .16s ease, color .16s ease;
+}
+
+.shrq-lessons-tool:hover {
+  background: #FAF8F5;
+  color: #172235;
+}
+
+.shrq-lessons-tool.active {
+  background: #FFF1E2;
+  color: #FF8000;
+}
+
+.shrq-lessons-side-section {
+  padding: 11px 2px;
+}
+
+.shrq-lessons-side-divider {
+  height: 1px;
+  background: #EFE8E1;
+}
+
+.shrq-lessons-reference-main {
+  min-width: 0;
+}
+
+.shrq-lessons-reference-toolbar {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 13px;
+  margin-bottom: 10px;
+  border: 1px solid #E7E0D8;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(23,34,53,.02);
+}
+
+.shrq-lessons-reference-right {
+  display: grid;
+  gap: 10px;
+  position: sticky;
+  top: 72px;
+}
+
+@media (max-width: 1199px) {
+  .shrq-lessons-reference {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .shrq-lessons-reference-right {
+    grid-column: 1 / -1;
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .shrq-lessons-reference {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .shrq-lessons-reference-sidebar {
+    order: 1;
+  }
+
+  .shrq-lessons-reference-main {
+    order: 2;
+  }
+
+  .shrq-lessons-reference-right {
+    order: 3;
+    grid-template-columns: 1fr;
+    position: static;
+  }
+
+  .shrq-lessons-reference-tools {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .shrq-lessons-reference-sidebar {
+    padding: 8px;
+    border-radius: 16px;
+  }
+}
