@@ -8,7 +8,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, EmptyState, PageContainer } from "@/components/ui/ShyraqUI";
+import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 
@@ -315,11 +315,7 @@ export default async function LessonsPage({
                             >
                               <Link
                                 href={"/tasks/" + task.id}
-                                aria-disabled={locked}
-                                className={[
-                                  "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
-                                  locked ? "pointer-events-none opacity-60" : "",
-                                ].join(" ")}
+                                className="flex min-h-[82px] items-start gap-3 px-3.5 py-3.5"
                               >
                                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
                                   {done ? (
