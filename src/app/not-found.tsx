@@ -1,18 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Montserrat } from "next/font/google";
 import { ArrowLeft, SearchX } from "lucide-react";
-
-const montserrat = Montserrat({
-  subsets: ["cyrillic", "latin"],
-  weight: ["500", "600", "700", "800"],
-  display: "swap",
-});
 
 export default function NotFound() {
   return (
-    <main className={montserrat.className + " min-h-screen bg-[#FAF9F7] text-[#172235]"}>
+    <main className="min-h-screen bg-[#FAF9F7] text-[#172235] font-[Montserrat,ui-sans-serif,system-ui,sans-serif]">
       <div className="flex min-h-screen items-center justify-center px-5">
         <section className="w-full max-w-lg rounded-[28px] border border-[#E8E3DD] bg-white p-7 text-center shadow-[0_22px_65px_rgba(23,34,53,.06)] sm:p-9">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-[18px] bg-[#FFF1E2] text-[#FF8000]">
