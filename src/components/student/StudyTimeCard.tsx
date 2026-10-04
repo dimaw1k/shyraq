@@ -134,12 +134,16 @@ export function StudyTimeCard({
           label="Таңғы Study Time"
           minutes={morningMinutes}
           submitted={submitted.has("MORNING")}
+          open={morningOpen}
+          openTime={morningReportOpenTime}
           onReport={() => openReport("MORNING")}
         />
         <SessionRow
           label="Кешкі Study Time"
           minutes={eveningMinutes}
           submitted={submitted.has("EVENING")}
+          open={eveningOpen}
+          openTime={eveningReportOpenTime}
           onReport={() => openReport("EVENING")}
         />
       </div>
@@ -192,7 +196,11 @@ export function StudyTimeCard({
           eveningMinutes={eveningMinutes}
           completedTaskCount={completedTaskCount}
           reportType={reportType}
-          onReportTypeChange={setReportType}
+          openTime={
+            reportType === "MORNING"
+              ? morningReportOpenTime
+              : eveningReportOpenTime
+          }
           onClose={() => setOpen(false)}
           onSubmitted={() => {
             setOpen(false);
@@ -208,8 +216,8 @@ function SessionRow({
   label,
   minutes,
   submitted,
-  open: boolean;
-  openTime: string;
+  open,
+  openTime,
   onReport,
 }: {
   label: string;
@@ -277,6 +285,7 @@ function ReportModal({
   eveningMinutes,
   completedTaskCount,
   reportType,
+  openTime,
   onClose,
   onSubmitted,
 }: {
@@ -287,6 +296,7 @@ function ReportModal({
   eveningMinutes: number;
   completedTaskCount: number;
   reportType: ReportType;
+  openTime: string;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
@@ -498,7 +508,7 @@ function ReportModal({
           </div>
           <div className="mt-2 flex items-center justify-between gap-2">
             <span className="text-[8px] font-semibold text-[#8B8179]">
-              Есеп ашылған уақыт: {formatReportOpenTime(reportType === "MORNING" ? "08:00" : "19:00")}
+              Есеп ашылған уақыт: {formatReportOpenTime(openTime)}
             </span>
             {meetingUrl ? (
               <a
