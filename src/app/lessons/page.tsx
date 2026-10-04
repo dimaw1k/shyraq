@@ -97,8 +97,8 @@ export default async function LessonsPage({
       title="Сабақтар"
       hideHeader
     >
-      <PageContainer className="max-w-[1380px] pb-8 pt-5">
-        <div className="space-y-4">
+      <PageContainer className="max-w-[1380px] pb-8 pt-4">
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between">
             <h1 className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
               Сабақтар
@@ -152,40 +152,44 @@ export default async function LessonsPage({
             <EmptyState title="Әзірге жарияланған сабақ жоқ." />
           ) : (
             <section className="shrq-lessons-layout">
-              <div className="shrq-day-selector">
-                {Array.from(
-                  { length: activeWeek.endDay - activeWeek.startDay + 1 },
-                  (_, index) => activeWeek.startDay + index,
-                ).map((day) => {
-                  const active = day === activeDay;
+              <aside className="shrq-day-rail" aria-label="Күндер">
+                <div className="shrq-day-rail-label">КҮН</div>
+                <div className="shrq-day-selector">
+                  {Array.from(
+                    { length: activeWeek.endDay - activeWeek.startDay + 1 },
+                    (_, index) => activeWeek.startDay + index,
+                  ).map((day) => {
+                    const active = day === activeDay;
 
-                  return (
-                    <Link
-                      key={day}
-                      href={"/lessons?week=" + activeWeek.week + "&day=" + day}
-                      aria-label={day + "-күн"}
-                      className={[
-                        "shrq-day-tile",
-                        active ? "is-active" : "",
-                      ].join(" ")}
-                    >
-                      <span>{String(day).padStart(2, "0")}</span>
-                    </Link>
-                  );
-                })}
-              </div>
+                    return (
+                      <Link
+                        key={day}
+                        href={"/lessons?week=" + activeWeek.week + "&day=" + day}
+                        aria-label={day + "-күн"}
+                        aria-current={active ? "page" : undefined}
+                        className={[
+                          "shrq-day-tile",
+                          active ? "is-active" : "",
+                        ].join(" ")}
+                      >
+                        <span>{String(day).padStart(2, "0")}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </aside>
 
-                            <div className="min-w-0">
-                <div className="mb-3 flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <div className="mb-2.5 flex items-end justify-between gap-3">
                   <div>
                     <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
                       {activeWeek.week}-АПТА
                     </p>
-                    <h2 className="mt-1 text-[20px] font-extrabold tracking-[-.04em] text-[#172235]">
+                    <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
                       {activeDay}-күн
                     </h2>
                   </div>
-                  <span className="rounded-full bg-[#F4F1EC] px-3 py-1.5 text-[8px] font-extrabold text-[#766E66]">
+                  <span className="rounded-full border border-[#E7E0D8] bg-white px-3 py-1.5 text-[8px] font-extrabold text-[#766E66]">
                     {dayLessons.length} сабақ
                   </span>
                 </div>
@@ -209,17 +213,17 @@ export default async function LessonsPage({
                       return (
                         <Card
                           key={lesson.id}
-                          className="overflow-hidden p-0 transition hover:border-[#F2C8A8]"
+                          className="overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
                         >
                           <Link
                             href={locked ? "#" : "/lessons/" + lesson.id}
                             aria-disabled={locked}
                             className={[
-                              "flex items-center gap-3 px-4 py-3.5 sm:px-5",
+                              "flex min-h-[74px] items-center gap-3 px-4 py-3.5 sm:px-4.5",
                               locked ? "pointer-events-none opacity-60" : "",
                             ].join(" ")}
                           >
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#B95D00]">
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#B95D00]">
                               {locked ? (
                                 <LockKeyhole size={16} />
                               ) : (
@@ -229,7 +233,7 @@ export default async function LessonsPage({
 
                             <span className="min-w-0 flex-1">
                               <span className="flex items-center gap-2">
-                                <span className="text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
+                                <span className="text-[8px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                                   {String(index + 1).padStart(2, "0")}
                                 </span>
                                 <span
@@ -244,11 +248,11 @@ export default async function LessonsPage({
                                 </span>
                               </span>
 
-                              <span className="mt-1 block truncate text-[13px] font-extrabold tracking-[-.02em] text-[#172235]">
+                              <span className="mt-1 block truncate text-[13px] font-extrabold tracking-[-.02em] text-[#172235] sm:text-[14px]">
                                 {lesson.title}
                               </span>
 
-                              <span className="mt-1 block text-[9px] font-medium text-[#8B8179]">
+                              <span className="mt-1 block truncate text-[9px] font-medium text-[#8B8179]">
                                 {Math.max(
                                   1,
                                   Math.ceil(Number(lesson.duration_seconds ?? 0) / 60),
@@ -258,14 +262,14 @@ export default async function LessonsPage({
                             </span>
 
                             {locked ? (
-                              <LockKeyhole size={15} className="shrink-0 text-[#AAA097]" />
+                              <LockKeyhole size={15} className="shrink-0 text-[#B0A79F]" />
                             ) : (
                               <ArrowRight size={16} className="shrink-0 text-[#FF8000]" />
                             )}
                           </Link>
 
-                          <div className="flex items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-4 py-2.5 sm:px-5">
-                            <CheckCircle2 size={13} className="text-[#9A9189]" />
+                          <div className="flex items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-4 py-2.5">
+                            <CheckCircle2 size={12} className="text-[#AAA198]" />
                             <span className="text-[8px] font-semibold text-[#9A9189]">
                               Бейне → тест → тапсырма
                             </span>
