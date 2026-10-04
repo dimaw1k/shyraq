@@ -234,21 +234,31 @@ function BenefitCard({
   tone: string;
 }) {
   return (
-    <div className={`shyraq-benefit-card group rounded-[24px] border border-[#ebe6df] ${tone} p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(20,20,20,.07)] sm:p-6`}>
-      <div className="flex items-center justify-between">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
+    <div className={`shyraq-benefit-card group relative rounded-[24px] border border-[#ebe6df] ${tone} p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(20,20,20,.07)] sm:p-6`}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
           <Icon size={20} />
         </div>
-        <span className="text-[10px] font-extrabold tracking-[.18em] text-[#a49b92]">{eyebrow}</span>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#faf7f2] text-[#a49b92] text-[10px] font-extrabold">
+          {eyebrow}
+        </span>
       </div>
 
-      <h3 className="mt-4 max-w-[17rem] text-[17px] font-extrabold leading-[1.12] tracking-[-.03em] text-[#172235] sm:mt-6 sm:text-lg">{title}</h3>
-      <p className="mt-2 max-w-[18rem] text-[13px] font-medium leading-[1.55] text-[#655c54] sm:text-[14px] sm:leading-6">{text}</p>
+      <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.17em] text-[#FF8000]">
+        КЕЗЕҢ
+      </p>
+      <h3 className="mt-1 max-w-[20rem] text-[20px] font-extrabold leading-[1.08] tracking-[-.035em] text-[#172235]">
+        {title}
+      </h3>
+      <p className="mt-5 max-w-[24rem] text-[14px] font-medium leading-[1.65] text-[#655c54] sm:text-[15px] sm:leading-7">
+        {text}
+      </p>
 
-      <div className="mt-4 inline-flex items-center gap-2 text-[11px] font-extrabold text-[#172235] sm:mt-5 sm:text-xs">
-        Толығырақ
-        <ArrowRight size={14} className="text-[#FF8000] transition-transform group-hover:translate-x-0.5" />
-      </div>
+      <ArrowRight
+        size={15}
+        className="absolute right-5 top-6 text-[#a79e95] transition-all group-hover:translate-x-0.5 group-hover:text-[#FF8000]"
+        aria-hidden="true"
+      />
     </div>
   );
 }
