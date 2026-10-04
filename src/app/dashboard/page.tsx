@@ -16,6 +16,10 @@ import { MARATHON_WEEKS } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
 
+function currentTimestampMs() {
+  return currentTimestampMs();
+}
+
 function kzDateKey(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Almaty",
@@ -107,7 +111,7 @@ export default async function DashboardPage() {
     await Promise.all(
       (banners ?? [])
         .filter((banner) => {
-          const now = Date.now();
+          const now = currentTimestampMs();
           const startsOk = !banner.starts_at || new Date(banner.starts_at).getTime() <= now;
           const endsOk = !banner.ends_at || new Date(banner.ends_at).getTime() >= now;
           return startsOk && endsOk;
