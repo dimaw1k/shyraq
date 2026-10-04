@@ -33,7 +33,6 @@ type NavItem = { label: string; href: string; icon: LucideIcon };
 const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
   { label: "Сабақтар", href: "/lessons", icon: BookOpen },
-  { label: "Тапсырмалар", href: "/tasks", icon: ClipboardList },
   { label: "Әдеттер", href: "/habits", icon: CheckCircle2 },
   { label: "Профиль", href: "/profile", icon: Users },
   { label: "Баптаулар", href: "/settings", icon: Settings },
@@ -204,7 +203,7 @@ function NavLinks({
 
 function getMobileLinks(role: string, links: NavItem[]) {
   const preferredByRole: Record<string, string[]> = {
-    STUDENT: ["/dashboard", "/lessons", "/tasks", "/habits", "/profile"],
+    STUDENT: ["/dashboard", "/lessons", "/habits", "/profile"],
     MENTOR: ["/mentor", "/mentor/team", "/mentor/tasks", "/mentor/reports", "/profile"],
     CHIEF_MENTOR: [
       "/chief-mentor",
@@ -227,7 +226,7 @@ function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: stri
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
       aria-label="Мобильді навигация"
     >
-      <div className="mx-auto grid max-w-[520px] grid-cols-5 px-1">
+      <div className={["mx-auto grid max-w-[520px] px-1", links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
         {links.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
