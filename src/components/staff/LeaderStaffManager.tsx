@@ -13,7 +13,6 @@ type StaffRow = {
   phone: string;
   role: string;
   status: string;
-  age?: number | null;
   education_type?: string | null;
 };
 
@@ -284,7 +283,6 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ["Телефон", lookup.phone],
-                  ["Жасы", String(lookup.age ?? "—")],
                   ["Білім деңгейі", lookup.education_label ?? educationLabel(lookup.education_type)],
                   ["Қазіргі рөл", roleLabel(lookup.role)],
                   ["Команда", lookup.team_name ?? "Тағайындалмаған"],
