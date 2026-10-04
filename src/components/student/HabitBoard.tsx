@@ -162,7 +162,7 @@ export function HabitBoard({
     if (!soundOn || !checkedNow || typeof window === "undefined") return;
 
     const audio =
-      checkSound.current ?? new Audio("public/sounds/apple-pay-succes.mp3");
+      checkSound.current ?? new Audio("/sounds/apple-pay-succes.mp3");
 
     checkSound.current = audio;
     audio.volume = 0.45;
