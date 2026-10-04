@@ -216,32 +216,6 @@ export default async function DashboardPage() {
                 ))}
               </div>
 
-              {meetingData?.meeting_url ? (
-                <section className="mt-4 flex flex-col gap-3 rounded-[16px] border border-[#E8E1DA] bg-white px-4 py-3.5 shadow-[0_8px_22px_rgba(23,34,53,.025)] sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#EAF7F0] text-[#2E7E58]">
-                      <Bell size={14} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#2E7E58]">
-                        БЕЙНЕ КЕЗДЕСУ
-                      </p>
-                      <p className="mt-0.5 truncate text-[12px] font-extrabold text-[#172235]">
-                        {meetingData.display_name || "Meet – STUDY STREAM"}
-                      </p>
-                    </div>
-                  </div>
-                  <a
-                    href={meetingData.meeting_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-[#FF8000] px-4 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
-                  >
-                    Кездесуге кіру
-                    <ArrowUpRight size={13} />
-                  </a>
-                </section>
-              ) : null}
             </div>
 
             <aside className="grid gap-3 xl:sticky xl:top-[72px]">
