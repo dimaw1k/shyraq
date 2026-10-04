@@ -162,7 +162,7 @@ export default async function LessonsPage({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-3">
+                <div className="flex flex-col items-center gap-2">
                   {Array.from(
                     { length: activeWeek.endDay - activeWeek.startDay + 1 },
                     (_, index) => activeWeek.startDay + index,
@@ -178,10 +178,10 @@ export default async function LessonsPage({
                         href={"/lessons?week=" + activeWeek.week + "&day=" + day}
                         aria-label={day + "-күн, " + count + " сабақ"}
                         className={[
-                          "group grid h-12 w-12 place-items-center rounded-[14px] border text-center transition",
+                          "group grid h-[56px] w-[56px] place-items-center rounded-[15px] border text-center transition shadow-[0_2px_8px_rgba(23,34,53,.03)]",
                           active
-                            ? "border-[#FFD2A9] bg-[#FFF1E2] text-[#FF8000] shadow-[0_6px_18px_rgba(255,128,0,.08)]"
-                            : "border-[#E8E1DA] bg-white text-[#6F665E] hover:border-[#FFD2A9] hover:bg-[#FFF9F4] hover:text-[#FF8000]",
+                            ? "border-[#FF8000] bg-[#FFF1E2] text-[#FF8000] shadow-[0_6px_18px_rgba(255,128,0,.10)]"
+                            : "border-[#E4DED7] bg-white text-[#172235] hover:border-[#FFB366] hover:bg-[#FFF9F4] hover:text-[#FF8000]",
                         ].join(" ")}
                       >
                         <span className="block text-[11px] font-extrabold leading-none">
