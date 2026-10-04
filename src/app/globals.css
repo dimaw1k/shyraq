@@ -227,6 +227,98 @@ iframe {
 }
 
 
+
+
+/* Landing mobile layout: related cards become compact horizontal rails instead of tall stacked essays. */
+@media (max-width: 767px) {
+  .shyraq-benefit-rail,
+  .shyraq-journey-rail {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    margin-inline: -1px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 2px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .shyraq-benefit-rail::-webkit-scrollbar,
+  .shyraq-journey-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shyraq-benefit-rail > *,
+  .shyraq-journey-rail > * {
+    flex: 0 0 min(82vw, 340px);
+    width: min(82vw, 340px);
+    min-width: min(82vw, 340px);
+    max-width: min(82vw, 340px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .shyraq-benefit-card {
+    min-height: 244px;
+  }
+
+  .shyraq-benefit-card p {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .shyraq-journey-card {
+    min-height: 300px;
+  }
+
+  .shyraq-journey-card > p {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  /* Remove the large "breathing room" around the journey and routine transition. */
+  #marathon > div,
+  .bg-white > div {
+    scroll-margin-top: 76px;
+  }
+
+  #marathon > div {
+    padding-top: 48px !important;
+    padding-bottom: 36px !important;
+  }
+
+  /* Compact footer: brand spans full width, links sit beside each other. */
+  .shyraq-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+  }
+
+  .shyraq-footer-grid > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .shyraq-footer-grid > :nth-child(2),
+  .shyraq-footer-grid > :nth-child(3) {
+    min-width: 0;
+  }
+
+  footer .shyraq-footer-grid .space-y-1\.5 {
+    margin-top: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shyraq-benefit-rail,
+  .shyraq-journey-rail {
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Mobile motion + swipe rails */
 @keyframes shrq-page-in {
   from {
