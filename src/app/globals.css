@@ -229,7 +229,7 @@ iframe {
 
 
 
-/* Shared horizontal rails: mobile uses real drag/swipe, desktop keeps its natural layout. */
+/* Shared horizontal rails: native mobile scrolling + snap, without blocking page scroll. */
 .shyraq-horizontal-rail {
   min-width: 0;
 }
@@ -240,7 +240,8 @@ iframe {
   gap: 16px;
 }
 
-.shyraq-horizontal-rail--journey {
+.shyraq-horizontal-rail--journey,
+.shyraq-horizontal-rail--routine {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -249,7 +250,7 @@ iframe {
 @keyframes shrq-rail-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 8px, 0);
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
@@ -269,26 +270,17 @@ iframe {
     gap: 14px;
     padding: 2px 2px 12px;
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
+    scroll-snap-stop: normal;
     scroll-padding-inline: 2px;
     scroll-behavior: smooth;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: grab;
+    touch-action: pan-x pan-y;
     animation: shrq-rail-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: scroll-position;
-  }
-
-  .shyraq-horizontal-rail.is-dragging {
-    cursor: grabbing;
-    scroll-snap-type: none;
-    scroll-behavior: auto;
   }
 
   .shyraq-horizontal-rail::-webkit-scrollbar {
@@ -303,9 +295,7 @@ iframe {
     scroll-snap-align: start;
     scroll-snap-stop: always;
     transform: translateZ(0);
-    transition:
-      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 180ms ease;
+    animation: shrq-rail-in 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .shyraq-horizontal-rail > *:nth-child(1) {
@@ -324,10 +314,6 @@ iframe {
     animation-delay: 170ms;
   }
 
-  .shyraq-horizontal-rail.is-dragging > * {
-    transition: none;
-  }
-
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
     min-height: 280px;
     height: 100%;
@@ -338,8 +324,15 @@ iframe {
     height: 100%;
   }
 
+  .shyraq-horizontal-rail--routine .shyraq-routine-card {
+    min-height: 150px;
+    height: 100%;
+    align-items: flex-start;
+  }
+
   .shyraq-benefit-card p,
-  .shyraq-journey-card > p {
+  .shyraq-journey-card > p,
+  .shyraq-routine-card p {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -353,10 +346,8 @@ iframe {
     -webkit-line-clamp: 4;
   }
 
-  /* Keep page scrolling vertical unless the finger gesture is clearly horizontal.
-     The HorizontalRail component takes over only after horizontal intent is detected. */
-  .shyraq-horizontal-rail > * {
-    touch-action: pan-y;
+  .shyraq-routine-card p {
+    -webkit-line-clamp: 3;
   }
 
   #marathon > div {
@@ -378,10 +369,17 @@ iframe {
     min-width: 0;
   }
 
+  /* Existing dashboard card rails use the same native scrolling rules. */
+  section.grid:has(.shrq-card) {
+    touch-action: pan-x pan-y;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shyraq-horizontal-rail {
+  .shyraq-horizontal-rail,
+  .shyraq-horizontal-rail > * {
     animation: none !important;
     scroll-behavior: auto !important;
   }
