@@ -378,9 +378,6 @@ iframe {
     min-width: 0;
   }
 
-  footer .shyraq-footer-grid .space-y-1\\.5 {
-    margin-top: 8px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
