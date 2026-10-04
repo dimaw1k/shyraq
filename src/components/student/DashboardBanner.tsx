@@ -39,16 +39,15 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
       >
         {imageBanners.map((banner) => {
           const content = (
-            <div className="relative aspect-[16/9] w-[82vw] max-w-[620px] shrink-0 snap-start overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-[#F4F1EC] shadow-[0_10px_28px_rgba(23,34,53,.04)] sm:w-[calc(50vw_-_28px)] lg:w-[calc(50%_-_8px)]">
-              <Image
+            <div className="relative aspect-[16/9] w-[82vw] max-w-[720px] shrink-0 snap-start overflow-hidden rounded-[18px] border border-[#E7E0D8] bg-[#F4F1EC] shadow-[0_8px_24px_rgba(23,34,53,.05)] sm:w-[calc(50vw_-_28px)] lg:w-[calc(50%_-_8px)]">
+              <img
                 src={banner.imageUrl!}
                 alt=""
-                fill
-                sizes="(max-width: 640px) 82vw, (max-width: 1280px) 48vw, 46vw"
-                className="object-cover"
+                loading="eager"
+                decoding="async"
+                fetchPriority={imageBanners.indexOf(banner) < 2 ? "high" : "auto"}
+                className="absolute inset-0 h-full w-full object-cover"
                 draggable={false}
-                priority={imageBanners.indexOf(banner) < 2}
-                unoptimized
               />
             </div>
           );
@@ -77,7 +76,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
         })}
       </div>
 
-      {imageBanners.length > 2 ? (
+      {imageBanners.length > 1 ? (
         <>
           <button
             type="button"
