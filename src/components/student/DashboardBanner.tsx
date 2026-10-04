@@ -39,7 +39,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
       >
         {imageBanners.map((banner) => {
           const content = (
-            <div className="relative aspect-[16/9] w-[82vw] max-w-[620px] shrink-0 snap-start overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-[#F4F1EC] shadow-[0_10px_28px_rgba(23,34,53,.04)] sm:w-[calc(50vw-28px)] lg:w-[calc(50%-8px)]">
+            <div className="relative aspect-[16/9] w-[82vw] max-w-[620px] shrink-0 snap-start overflow-hidden rounded-[22px] border border-[#E8E1DA] bg-[#F4F1EC] shadow-[0_10px_28px_rgba(23,34,53,.04)] sm:w-[calc(50vw_-_28px)] lg:w-[calc(50%_-_8px)]">
               <Image
                 src={banner.imageUrl!}
                 alt=""
