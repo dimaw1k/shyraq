@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   ArrowUpRight,
-  Clock3,
   Video,
   Flame,
   Trophy,
