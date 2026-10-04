@@ -64,23 +64,33 @@ function shiftDate(value: string, delta: number) {
   return date.toISOString().slice(0, 10);
 }
 
-function dayLabel(value: string) {
-  return new Intl.DateTimeFormat("kk-KZ", {
-    timeZone: "Asia/Almaty",
-    weekday: "short",
-  })
-    .format(new Date(value + "T12:00:00+05:00"))
-    .replace(".", "")
-    .slice(0, 2)
-    .toUpperCase();
+const WEEKDAY_LABELS = [
+  "Дүйсенбі",
+  "Сейсенбі",
+  "Сәрсенбі",
+  "Бейсенбі",
+  "Жұма",
+  "Сенбі",
+  "Жексенбі",
+] as const;
+
+function weekLabel(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const mondayOffset = (date.getUTCDay() + 6) % 7;
+  return WEEKDAY_LABELS[mondayOffset];
 }
 
 function iconFor(value: string) {
   return ICONS[value as keyof typeof ICONS] ?? Sparkles;
 }
 
-function buildLastSeven(today: string) {
-  return Array.from({ length: 7 }, (_, index) => shiftDate(today, index - 6));
+function buildCurrentWeek(today: string) {
+  const [year, month, day] = today.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const mondayOffset = (date.getUTCDay() + 6) % 7;
+  const monday = shiftDate(today, -mondayOffset);
+  return Array.from({ length: 7 }, (_, index) => shiftDate(monday, index));
 }
 
 export function HabitBoard({
@@ -92,6 +102,7 @@ export function HabitBoard({
   const [checkins, setCheckins] = useState(initialCheckins);
   const [soundOn, setSoundOn] = useState(true);
   const [adding, setAdding] = useState(false);
+  const checkSound = useRef<HTMLAudioElement | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -99,7 +110,7 @@ export function HabitBoard({
   const [error, setError] = useState("");
   const audioContext = useRef<AudioContext | null>(null);
 
-  const dates = useMemo(() => buildLastSeven(today), [today]);
+  const dates = useMemo(() => buildCurrentWeek(today), [today]);
 
   const checked = useMemo(
     () =>
@@ -148,59 +159,26 @@ export function HabitBoard({
   );
 
   function playClick(checkedNow: boolean) {
-    if (!soundOn || typeof window === "undefined") return;
+    if (!soundOn || !checkedNow || typeof window === "undefined") return;
 
-    const Context = window.AudioContext;
-    if (!Context) return;
+    const audio =
+      checkSound.current ?? new Audio("/sounds/apple-pay-success.mp3");
 
-    const ctx = audioContext.current ?? new Context();
-    audioContext.current = ctx;
-
-    if (ctx.state === "suspended") void ctx.resume();
-
-    const now = ctx.currentTime;
-
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.type = checkedNow ? "square" : "triangle";
-    oscillator.frequency.setValueAtTime(checkedNow ? 880 : 620, now);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      checkedNow ? 420 : 260,
-      now + 0.075,
-    );
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(
-      checkedNow ? 0.12 : 0.075,
-      now + 0.008,
-    );
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
-
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.095);
-
-    const snap = ctx.createOscillator();
-    const snapGain = ctx.createGain();
-
-    snap.type = "sine";
-    snap.frequency.setValueAtTime(checkedNow ? 1480 : 1060, now);
-    snap.frequency.exponentialRampToValueAtTime(720, now + 0.045);
-
-    snapGain.gain.setValueAtTime(0.0001, now);
-    snapGain.gain.exponentialRampToValueAtTime(0.055, now + 0.006);
-    snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-
-    snap.connect(snapGain);
-    snapGain.connect(ctx.destination);
-    snap.start(now);
-    snap.stop(now + 0.055);
+    checkSound.current = audio;
+    audio.volume = 0.45;
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
   }
 
   async function toggleHabit(habitId: string, dateKey = today) {
     if (saving) return;
+
+    const key = habitId + ":" + dateKey;
+    const willCheck = !checkins.some(
+      (item) => item.habit_id + ":" + item.completed_date === key,
+    );
+
+    if (willCheck) playClick(true);
 
     setSaving(habitId);
     setError("");
@@ -219,8 +197,6 @@ export function HabitBoard({
       return;
     }
 
-    const key = habitId + ":" + dateKey;
-
     if (payload.checked) {
       setCheckins((current) =>
         current.some(
@@ -237,7 +213,6 @@ export function HabitBoard({
       );
     }
 
-    playClick(Boolean(payload.checked));
     setSaving(null);
   }
 
@@ -419,7 +394,7 @@ export function HabitBoard({
                     active ? "text-[#FF8000]" : "text-[#9A9189]",
                   ].join(" ")}
                 >
-                  {dayLabel(date)}
+                  <span className="block truncate">{weekLabel(date)}</span>
                 </p>
                 <p
                   className={[
