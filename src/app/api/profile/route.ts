@@ -163,6 +163,26 @@ export async function PATCH(request: Request) {
       hint: profileError.hint,
     });
 
+    if (
+      profileError.code === "23505" &&
+      profileError.message.includes("profiles_phone_unique")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Бұл телефон нөмірі Shyraq платформасында бұрын тіркелген. Басқа нөмір енгізіңіз.",
+        },
+        { status: 409 },
+      );
+    }
+
+    if (profileError.code === "23505") {
+      return NextResponse.json(
+        { error: "Бұл деректердің біреуі платформада бұрын тіркелген." },
+        { status: 409 },
+      );
+    }
+
     return NextResponse.json(
       { error: "Профильді сақтау сәтсіз аяқталды." },
       { status: 400 },
