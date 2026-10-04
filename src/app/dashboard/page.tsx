@@ -11,6 +11,7 @@ import {
 import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
@@ -43,6 +44,8 @@ export default async function DashboardPage() {
   if (role === "MENTOR") redirect("/mentor");
   if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
   if (role === "LEADER") redirect("/leader");
+
+  const admin = createAdminSupabaseClient();
 
   const [
     { data: banners },
