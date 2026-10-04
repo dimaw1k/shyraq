@@ -257,12 +257,6 @@ export default async function DashboardPage() {
                     Шырақ марафоны
                   </h1>
                 </div>
-                <Link
-                  href="/lessons"
-                  className="text-[9px] font-extrabold text-[#FF8000] hover:underline"
-                >
-                  Сабақтар →
-                </Link>
               </div>
 
               <div className="grid gap-3 md:grid-cols-3">
