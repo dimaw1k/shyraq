@@ -92,22 +92,12 @@ export default async function LessonsPage({
     return day >= activeWeek.startDay && day <= activeWeek.endDay;
   });
 
-  const availableDays = Array.from(
-    new Set(weekLessons.map((lesson) => Number(lesson.marathon_day))),
-  )
-    .filter(
-      (day) => day >= activeWeek.startDay && day <= activeWeek.endDay,
-    )
-    .sort((a, b) => a - b);
-
-  const requestedDay = Number(
-    params.day ?? availableDays[0] ?? activeWeek.startDay,
-  );
+  const requestedDay = Number(params.day ?? activeWeek.startDay);
 
   const activeDay =
-    availableDays.includes(requestedDay) || !weekLessons.length
+    requestedDay >= activeWeek.startDay && requestedDay <= activeWeek.endDay
       ? requestedDay
-      : availableDays[0] ?? activeWeek.startDay;
+      : activeWeek.startDay;
 
   const dayLessons = weekLessons.filter(
     (lesson) => Number(lesson.marathon_day) === activeDay,
@@ -173,10 +163,7 @@ export default async function LessonsPage({
             ))}
           </div>
 
-          {!visibleLessons.length ? (
-            <EmptyState title="Әзірге жарияланған сабақ жоқ." />
-          ) : (
-            <section className="shrq-lessons-layout">
+          <section className="shrq-lessons-layout">
               <aside className="shrq-day-rail" aria-label="Күндер">
                 <div className="shrq-day-rail-label">КҮН</div>
                 <div className="shrq-day-selector">
@@ -401,7 +388,6 @@ export default async function LessonsPage({
                 </div>
               </div>
             </section>
-          )}
         </div>
       </PageContainer>
     </AppShell>
