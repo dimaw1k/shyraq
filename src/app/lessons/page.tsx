@@ -152,31 +152,24 @@ export default async function LessonsPage({
             <EmptyState title="Әзірге жарияланған сабақ жоқ." />
           ) : (
             <section className="shrq-lessons-layout">
-              <div className="flex flex-col items-center gap-1.5 pt-1">
+              <div className="shrq-day-selector">
                 {Array.from(
                   { length: activeWeek.endDay - activeWeek.startDay + 1 },
                   (_, index) => activeWeek.startDay + index,
                 ).map((day) => {
-                  const count = weekLessons.filter(
-                    (lesson) => Number(lesson.marathon_day) === day,
-                  ).length;
                   const active = day === activeDay;
 
                   return (
                     <Link
                       key={day}
                       href={"/lessons?week=" + activeWeek.week + "&day=" + day}
-                      aria-label={day + "-күн, " + count + " сабақ"}
+                      aria-label={day + "-күн"}
                       className={[
-                        "group grid h-10 w-10 place-items-center rounded-[10px] border text-center transition",
-                        active
-                          ? "border-[#FF8000] bg-[#FFF1E2] text-[#FF8000] shadow-[0_4px_12px_rgba(255,128,0,.10)]"
-                          : "border-[#E6E0D9] bg-transparent text-[#172235] hover:border-[#FFB366] hover:bg-[#FFF9F4] hover:text-[#FF8000]",
+                        "shrq-day-tile",
+                        active ? "is-active" : "",
                       ].join(" ")}
                     >
-                      <span className="text-[10px] font-extrabold leading-none">
-                        {String(day).padStart(2, "0")}
-                      </span>
+                      <span>{String(day).padStart(2, "0")}</span>
                     </Link>
                   );
                 })}
