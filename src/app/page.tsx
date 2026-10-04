@@ -332,7 +332,7 @@ export default function HomePage() {
 
       {/* BENEFIT BENTO */}
       <section id="features" className="bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-[72px] lg:px-8">
           <Reveal>
             <div className="max-w-3xl">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">МАРАФОННЫҢ МӘНІ</p>
@@ -362,7 +362,7 @@ export default function HomePage() {
 
       {/* 21 DAY JOURNEY */}
       <section id="marathon" className="bg-[#fbfaf7]">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-[72px] lg:px-8">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">21 КҮНДЕ НЕ ӨЗГЕРЕДІ?</p>
@@ -408,7 +408,7 @@ export default function HomePage() {
 
       {/* PRODUCT / DAILY ROUTINE */}
       <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-[72px] lg:px-8">
           <div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
             <Reveal>
               <div>
@@ -496,7 +496,7 @@ export default function HomePage() {
 
       {/* SOCIAL PROOF / DEMO */}
       <section id="how-it-works" className="bg-[#fbfaf7]">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-[72px] lg:px-8">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">SHYRAQ ҚАЛАЙ ЖҰМЫС ІСТЕЙДІ?</p>
@@ -533,7 +533,7 @@ export default function HomePage() {
 
       {/* FINAL CTA */}
       <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-[72px] lg:px-8">
           <Reveal>
             <div className="relative overflow-hidden rounded-[38px] bg-gradient-to-br from-[#ffe0cf] via-[#fff0e7] to-[#f0e9ff] p-6 sm:p-9 lg:p-12">
               <div className="absolute right-[-80px] top-[-120px] h-[300px] w-[300px] rounded-full bg-white/40 blur-3xl" />
