@@ -1,4 +1,4 @@
-// Student marathon week structure: 1–7, 8–13, 14–21.
+// Student marathon week structure: 1–7, 8–14, 15–21.
 export type MarathonWeek = {
   week: 1 | 2 | 3;
   startDay: number;
@@ -9,8 +9,8 @@ export type MarathonWeek = {
 
 export const MARATHON_WEEKS: MarathonWeek[] = [
   { week: 1, startDay: 1, endDay: 7, title: "Шырақ марафоны", subtitle: "1-апта · 1–7 күн" },
-  { week: 2, startDay: 8, endDay: 13, title: "Шырақ марафоны", subtitle: "2-апта · 8–13 күн" },
-  { week: 3, startDay: 14, endDay: 21, title: "Шырақ марафоны", subtitle: "3-апта · 14–21 күн" },
+  { week: 2, startDay: 8, endDay: 14, title: "Шырақ марафоны", subtitle: "2-апта · 8–14 күн" },
+  { week: 3, startDay: 15, endDay: 21, title: "Шырақ марафоны", subtitle: "3-апта · 15–21 күн" },
 ];
 
 export function getMarathonWeek(week: number) {
