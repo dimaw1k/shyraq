@@ -51,7 +51,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
             </div>
           );
 
-          if (!banner.href) return <div key={banner.id}>{content}</div>;
+          if (!banner.href) return <div key={banner.id} className="shrq-dashboard-banner-item">{content}</div>;
 
           const external =
             banner.href.startsWith("http://") || banner.href.startsWith("https://");
@@ -62,13 +62,13 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
               href={banner.href}
               target="_blank"
               rel="noreferrer"
-              className="block shrink-0"
+              className="shrq-dashboard-banner-item"
               aria-label="Баннерді ашу"
             >
               {content}
             </a>
           ) : (
-            <Link key={banner.id} href={banner.href} className="block shrink-0" aria-label="Баннерді ашу">
+            <Link key={banner.id} href={banner.href} className="shrq-dashboard-banner-item" aria-label="Баннерді ашу">
               {content}
             </Link>
           );
