@@ -168,12 +168,6 @@ export default async function DashboardPage() {
     ? membership.teams[0]
     : membership?.teams;
   const teamId = membership?.team_id ?? null;
-  const todayReport = (reports ?? []).find((report) => report.report_date === today);
-  const completedToday = Math.max(
-    0,
-    Number(todayReport?.completed_task_count ?? 0),
-  );
-
   const submittedTaskIds = new Set(
     (submissions ?? [])
       .filter((item) => ["SUBMITTED", "REVIEWED"].includes(String(item.status)))
@@ -186,10 +180,10 @@ export default async function DashboardPage() {
     return Boolean(startsToday || deadlineToday);
   });
 
-  const openTodayTasks = todayTasks.filter(
-    (task) => !submittedTaskIds.has(task.id),
-  );
-  const taskCount = openTodayTasks.length || todayTasks.length;
+  const completedToday = todayTasks.filter((task) =>
+    submittedTaskIds.has(task.id),
+  ).length;
+  const taskCount = todayTasks.length;
 
   const meeting = meetSpace as
     | { data: { meeting_url: string; display_name: string | null; active: boolean } | null }
