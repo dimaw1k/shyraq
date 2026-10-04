@@ -30,10 +30,49 @@ const initialForm: FormState = {
 
 function Brand() {
   return (
-    <Link href="/" aria-label="Shyraq" className="inline-flex items-center">
-      <span className="text-[28px] font-extrabold tracking-[-0.075em] text-[#172235]">
-        SHYR<span className="text-[#ff6f2c]">A</span>Q
-      </span>
+    <Link href="/" aria-label="Shyraq" className="inline-flex shrink-0 items-center">
+      <svg
+        width="116"
+        height="34"
+        viewBox="0 0 116 34"
+        role="img"
+        aria-label="SHYRAQ"
+        className="block h-[28px] w-auto"
+      >
+        <text
+          x="0"
+          y="26"
+          fill="#172235"
+          fontSize="27"
+          fontWeight="800"
+          letterSpacing="-0.35"
+          fontFamily="Montserrat, Arial, Helvetica, sans-serif"
+        >
+          SHYR
+        </text>
+        <g transform="translate(-15 0)">
+          <path
+            d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
+            fill="#FF8000"
+          />
+          <path
+            d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
+            fill="#FFF7F1"
+          />
+          <circle cx="100" cy="25.1" r="1.3" fill="#FF8000" />
+        </g>
+        <text
+          x="93"
+          y="25"
+          fill="#172235"
+          fontSize="27"
+          fontWeight="800"
+          letterSpacing="-1.15"
+          fontFamily="Montserrat, Arial, Helvetica, sans-serif"
+        >
+          Q
+        </text>
+      </svg>
     </Link>
   );
 }
