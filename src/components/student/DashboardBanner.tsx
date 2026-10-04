@@ -14,47 +14,45 @@ export type DashboardBannerItem = {
 
 export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const imageBanners = banners.filter((banner) => Boolean(banner.imageUrl));
 
   const scroll = (direction: "prev" | "next") => {
     const track = trackRef.current;
     if (!track) return;
-
     track.scrollBy({
-      left: direction === "next" ? track.clientWidth * 0.84 : -track.clientWidth * 0.84,
+      left: direction === "next" ? track.clientWidth * 0.92 : -track.clientWidth * 0.92,
       behavior: "smooth",
     });
   };
-
-  const imageBanners = banners.filter((banner) => Boolean(banner.imageUrl));
 
   if (!imageBanners.length) return null;
 
   return (
     <section className="shrq-dashboard-banner" aria-label="Shyraq баннерлері">
-      <div
-        ref={trackRef}
-        className="shrq-dashboard-banner-track"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
+      <div ref={trackRef} className="shrq-dashboard-banner-track">
         {imageBanners.map((banner) => {
-          const content = (
+          const card = (
             <div className="shrq-dashboard-banner-card">
               <img
                 src={banner.imageUrl!}
                 alt=""
                 loading="eager"
                 decoding="async"
-                fetchPriority={imageBanners.indexOf(banner) < 2 ? "high" : "auto"}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="shrq-dashboard-banner-image"
                 draggable={false}
               />
             </div>
           );
 
-          if (!banner.href) return <div key={banner.id} className="shrq-dashboard-banner-item">{content}</div>;
+          if (!banner.href) {
+            return (
+              <div key={banner.id} className="shrq-dashboard-banner-item">
+                {card}
+              </div>
+            );
+          }
 
-          const external =
-            banner.href.startsWith("http://") || banner.href.startsWith("https://");
+          const external = banner.href.startsWith("http://") || banner.href.startsWith("https://");
 
           return external ? (
             <a
@@ -65,11 +63,16 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
               className="shrq-dashboard-banner-item"
               aria-label="Баннерді ашу"
             >
-              {content}
+              {card}
             </a>
           ) : (
-            <Link key={banner.id} href={banner.href} className="shrq-dashboard-banner-item" aria-label="Баннерді ашу">
-              {content}
+            <Link
+              key={banner.id}
+              href={banner.href}
+              className="shrq-dashboard-banner-item"
+              aria-label="Баннерді ашу"
+            >
+              {card}
             </Link>
           );
         })}
@@ -79,19 +82,19 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
         <>
           <button
             type="button"
-            aria-label="Алдыңғы баннерлер"
+            aria-label="Алдыңғы баннер"
             onClick={() => scroll("prev")}
             className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--prev"
           >
-            <ChevronLeft size={17} />
+            <ChevronLeft size={17} strokeWidth={2.2} />
           </button>
           <button
             type="button"
-            aria-label="Келесі баннерлер"
+            aria-label="Келесі баннер"
             onClick={() => scroll("next")}
             className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--next"
           >
-            <ChevronRight size={17} />
+            <ChevronRight size={17} strokeWidth={2.2} />
           </button>
         </>
       ) : null}
