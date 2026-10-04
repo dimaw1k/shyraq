@@ -106,7 +106,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
     <Link
       href="/"
       aria-label="Shyraq"
-      className="inline-flex shrink-0 items-center gap-1"
+      className="inline-flex shrink-0 items-center gap-0.5"
     >
       <span
         className="font-extrabold tracking-[-0.065em]"
@@ -116,7 +116,7 @@ function Logo({ dark = false }: { dark?: boolean }) {
       </span>
       <span
         aria-hidden="true"
-        className="-ml-0.5 grid h-6 w-[18px] shrink-0 place-items-center"
+        className="grid h-6 w-[18px] shrink-0 place-items-center"
       >
         <svg viewBox="0 0 18 24" width="18" height="24" fill="none">
           <path
