@@ -182,6 +182,9 @@ export function StudyTimeCard({
           today={today}
           marathonDay={marathonDay}
           meetingUrl={meetingUrl}
+          morningMinutes={morningMinutes}
+          eveningMinutes={eveningMinutes}
+          completedTaskCount={completedTaskCount}
           reportType={reportType}
           onReportTypeChange={setReportType}
           onClose={() => setOpen(false)}
