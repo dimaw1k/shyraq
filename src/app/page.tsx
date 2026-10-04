@@ -10,9 +10,7 @@ import {
   BookOpen,
   Check,
   ChevronRight,
-  Clock3,
   Flame,
-  Sparkles,
   Target,
   Trophy,
 } from "lucide-react";
