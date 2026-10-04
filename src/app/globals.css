@@ -315,13 +315,14 @@ iframe {
     animation-delay: 170ms;
   }
 
-  /* All mobile rails share the same visual rhythm as the 21-day journey cards. */
+  /* Keep every rail card content-sized: no artificial empty vertical space. */
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card,
   .shyraq-horizontal-rail--journey .shyraq-journey-card,
   .shyraq-horizontal-rail--routine .shyraq-routine-card {
     position: relative;
-    min-height: 300px;
-    height: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: flex-start;
     align-content: start;
     border-radius: 24px;
     padding: 20px;
@@ -336,13 +337,10 @@ iframe {
     grid-template-columns: 48px 1fr auto;
     gap: 14px;
     align-items: center;
-    min-height: 0 !important;
-    height: auto !important;
-    align-self: flex-start;
     padding: 16px;
   }
 
-  .shyraq-horizontal-rail--routine > * {
+  .shyraq-horizontal-rail > * {
     align-self: flex-start;
   }
 
