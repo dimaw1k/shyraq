@@ -75,41 +75,49 @@ export function StickyNav() {
               : "border-white/55 bg-white/78 shadow-[0_10px_30px_rgba(20,20,20,.06)] backdrop-blur-xl",
           ].join(" ")}
         >
-          <Link
-            href="/#top"
-            aria-label="Shyraq"
-            className="inline-flex shrink-0 items-center gap-[2px]"
-          >
-            <span
-              className="font-extrabold tracking-[-0.065em]"
-              style={{ color: "#172235", fontSize: "27px", lineHeight: 1 }}
+          <Link href="/#top" aria-label="Shyraq" className="shrink-0">
+            <svg
+              width="116"
+              height="34"
+              viewBox="0 0 116 34"
+              role="img"
+              aria-label="SHYRAQ"
+              className="block h-[30px] w-auto sm:h-[34px]"
             >
-              SHYR
-            </span>
-            <span
-              aria-hidden="true"
-              className="grid h-6 w-[18px] shrink-0 place-items-center"
-            >
-              <svg viewBox="0 0 18 24" width="18" height="24" fill="none">
+              <text
+                x="0"
+                y="26"
+                fill="#172235"
+                fontSize="27"
+                fontWeight="800"
+                letterSpacing="-1.15"
+                fontFamily="Montserrat, Arial, Helvetica, sans-serif"
+              >
+                SHYR
+              </text>
+              <g transform="translate(-12 0)">
                 <path
-                  d="M9 22c-3.1-4-5.4-7.2-5.4-11.1A5.4 5.4 0 0 1 9 5.5a5.4 5.4 0 0 1 5.4 5.4C14.4 14.8 12.1 18 9 22Z"
+                  d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
                   fill="#FF8000"
                 />
-                <circle cx="9" cy="10.8" r="1.9" fill="#FFF7F1" />
                 <path
-                  d="M6.6 16.2c1.5 1.2 3.3 1.2 4.8 0"
-                  stroke="#FFF7F1"
-                  strokeWidth="1.35"
-                  strokeLinecap="round"
+                  d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
+                  fill="#FFF7F1"
                 />
-              </svg>
-            </span>
-            <span
-              className="font-extrabold tracking-[-0.065em]"
-              style={{ color: "#172235", fontSize: "27px", lineHeight: 1 }}
-            >
-              Q
-            </span>
+                <circle cx="100" cy="25.1" r="1.3" fill="#FF8000" />
+              </g>
+              <text
+                x="94"
+                y="26"
+                fill="#172235"
+                fontSize="27"
+                fontWeight="800"
+                letterSpacing="-1.15"
+                fontFamily="Montserrat, Arial, Helvetica, sans-serif"
+              >
+                Q
+              </text>
+            </svg>
           </Link>
 
           <nav className="relative hidden overflow-hidden rounded-full bg-[#eef1f6] p-1 sm:flex">
