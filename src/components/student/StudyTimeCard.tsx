@@ -5,12 +5,14 @@ import {
   Camera,
   Check,
   ImagePlus,
+  LockKeyhole,
   Send,
   Sparkles,
   Upload,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { formatReportOpenTime, isReportOpen } from "@/lib/report-schedule";
 
 type ReportType = "MORNING" | "EVENING";
 
@@ -45,6 +47,8 @@ type Props = {
   eveningMinutes: number;
   reports: ExistingReport[];
   completedTaskCount: number;
+  morningReportOpenTime: string;
+  eveningReportOpenTime: string;
 };
 
 const SLOT_CONFIG: Omit<PhotoSlot, "file" | "preview">[] = [
@@ -96,14 +100,27 @@ export function StudyTimeCard({
   eveningMinutes,
   reports,
   completedTaskCount,
+  morningReportOpenTime,
+  eveningReportOpenTime,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [reportType, setReportType] = useState<ReportType>("MORNING");
+  const [now, setNow] = useState(0);
 
   const submitted = useMemo(
     () => new Set(reports.map((report) => report.report_type)),
     [reports],
   );
+
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const currentTime = now ? new Date(now) : new Date(0);
+  const morningOpen = isReportOpen(morningReportOpenTime, currentTime);
+  const eveningOpen = isReportOpen(eveningReportOpenTime, currentTime);
 
   function openReport(type: ReportType) {
     setReportType(type);
@@ -191,11 +208,15 @@ function SessionRow({
   label,
   minutes,
   submitted,
+  open: boolean;
+  openTime: string;
   onReport,
 }: {
   label: string;
   minutes: number;
   submitted: boolean;
+  open: boolean;
+  openTime: string;
   onReport: () => void;
 }) {
   return (
@@ -225,9 +246,23 @@ function SessionRow({
         <button
           type="button"
           onClick={onReport}
-          className="rounded-[10px] bg-white px-2.5 py-2 text-[8px] font-extrabold text-[#FF8000] shadow-[0_2px_10px_rgba(23,34,53,.05)]"
+          disabled={!open}
+          className={[
+            "inline-flex min-w-[92px] items-center justify-center gap-1.5 rounded-[10px] px-2.5 py-2 text-[8px] font-semibold shadow-[0_2px_10px_rgba(23,34,53,.05)] transition",
+            open
+              ? "bg-white text-[#FF8000] hover:bg-[#FFF8F2]"
+              : "cursor-not-allowed bg-[#F4F0EB] text-[#AAA19A]",
+          ].join(" ")}
+          title={open ? undefined : formatReportOpenTime(openTime) + " бастап ашылады"}
         >
-          {submitted ? "Қайта ашу" : "Есеп беру"}
+          {open ? (
+            submitted ? "Қайта ашу" : "Есеп беру"
+          ) : (
+            <>
+              <LockKeyhole size={10} />
+              {formatReportOpenTime(openTime)}
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -242,7 +277,6 @@ function ReportModal({
   eveningMinutes,
   completedTaskCount,
   reportType,
-  onReportTypeChange,
   onClose,
   onSubmitted,
 }: {
@@ -253,7 +287,6 @@ function ReportModal({
   eveningMinutes: number;
   completedTaskCount: number;
   reportType: ReportType;
-  onReportTypeChange: (value: ReportType) => void;
   onClose: () => void;
   onSubmitted: () => void;
 }) {
@@ -455,37 +488,24 @@ function ReportModal({
         </div>
 
         <div className="border-b border-[#E8E3DD] bg-white px-4 py-3 sm:px-5">
-          <div className="grid grid-cols-2 gap-1.5 rounded-[12px] bg-[#F4F0EB] p-1">
-            {(["MORNING", "EVENING"] as ReportType[]).map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => {
-                  setError("");
-                  onReportTypeChange(type);
-                }}
-                className={[
-                  "h-9 rounded-[10px] text-[9px] font-extrabold transition",
-                  reportType === type
-                    ? "bg-[#FF8000] text-white shadow-[0_5px_14px_rgba(255,128,0,.16)]"
-                    : "text-[#81786F] hover:bg-white",
-                ].join(" ")}
-              >
-                {type === "MORNING" ? "Таңғы" : "Кешкі"}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="rounded-full bg-[#FFF1E2] px-2.5 py-1 text-[8px] font-extrabold text-[#C15F00]">
+              {reportType === "MORNING" ? "Таңғы есеп" : "Кешкі есеп"}
+            </span>
             <span className="text-[8px] font-semibold text-[#8B8179]">
               4 фото + қысқа жауаптар
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className="text-[8px] font-semibold text-[#8B8179]">
+              Есеп ашылған уақыт: {formatReportOpenTime(reportType === "MORNING" ? "08:00" : "19:00")}
             </span>
             {meetingUrl ? (
               <a
                 href={meetingUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[8px] font-extrabold text-[#FF8000]"
+                className="inline-flex items-center gap-1.5 text-[8px] font-semibold text-[#FF8000]"
               >
                 Meet-ке кіру <ArrowUpRight size={11} />
               </a>
