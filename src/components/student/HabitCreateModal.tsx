@@ -236,9 +236,9 @@ export function HabitCreateModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="habit-create-title"
-        className="max-h-[94vh] w-full overflow-hidden rounded-t-[28px] bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)] sm:max-w-[720px] sm:rounded-[28px]"
+        className="flex max-h-[calc(100dvh-24px)] w-full min-h-0 flex-col overflow-hidden rounded-t-[24px] bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)] sm:max-h-[calc(100dvh-40px)] sm:max-w-[720px] sm:rounded-[24px]"
       >
-        <div className="flex items-center gap-3 border-b border-[#E8E3DD] bg-white px-4 py-3.5 sm:px-5">
+        <div className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-[#E8E3DD] bg-white px-4 py-3 sm:px-5">
           <button
             type="button"
             onClick={onClose}
@@ -272,7 +272,7 @@ export function HabitCreateModal({
           </button>
         </div>
 
-        <div className="max-h-[calc(94vh-68px)] overflow-y-auto px-3.5 py-3.5 sm:px-5 sm:py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3.5 py-3 sm:px-5 sm:py-4">
           <div className="space-y-3">
             <section className="rounded-[18px] border border-[#E8E3DD] bg-white p-4">
               <div className="grid gap-2.5">
@@ -589,12 +589,12 @@ export function HabitCreateModal({
           </div>
         </div>
 
-        <div className="border-t border-[#E8E3DD] bg-white p-3.5 sm:p-4">
+        <div className="sticky bottom-0 z-10 shrink-0 border-t border-[#E8E3DD] bg-white/95 p-3.5 backdrop-blur sm:p-4">
           <button
             type="button"
             onClick={() => void saveHabit()}
             disabled={saving}
-            className="h-12 w-full rounded-[13px] bg-[#FF8000] px-4 text-[11px] font-extrabold text-white shadow-[0_10px_22px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 w-full rounded-[12px] bg-[#FF8000] px-4 text-[11px] font-semibold text-white shadow-[0_10px_22px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Сақталуда…" : "Әдетті сақтау"}
           </button>
