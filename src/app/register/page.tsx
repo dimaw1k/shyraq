@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, User, UserPlus } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
-import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 
 type FormState = {
   phone: string;
@@ -128,8 +127,6 @@ export default function RegisterPage() {
               Shyraq платформасына қосылу үшін деректеріңізді енгізіңіз.
             </p>
           </div>
-
-          <div className="mt-6"><SocialAuthButtons /></div>
 
           <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-3.5">
             <label className="block">
