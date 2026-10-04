@@ -23,7 +23,6 @@ type Lookup = {
   full_name: string;
   email: string;
   phone: string;
-  age: number | null;
   status: string;
   role: string;
   team_name: string | null;
@@ -109,7 +108,7 @@ export function ChiefMentorMentorManager({ initialMentors }: { initialMentors: M
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
-                  ["Телефон",lookup.phone],["Жасы",String(lookup.age??"—")],["Қазіргі статус",lookup.status],["Команда",lookup.team_name??"—"]
+                  ["Телефон",lookup.phone],["Қазіргі статус",lookup.status],["Команда",lookup.team_name??"—"]
                 ].map(([label,value])=><div key={label} className="rounded-[11px] bg-white px-3 py-2.5"><p className="text-[8px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">{label}</p><p className="mt-1 truncate text-[10px] font-bold text-[#172235]">{value}</p></div>)}
               </div>
               <button type="button" disabled={savingId===lookup.id} onClick={()=>void addMentor()} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#172235] px-4 py-3 text-[10px] font-extrabold text-white">
