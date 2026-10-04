@@ -272,7 +272,7 @@ function SessionRow({
           ) : (
             <>
               <LockKeyhole size={10} />
-              {formatReportOpenTime(openTime)}
+              Есеп беру
             </>
           )}
         </button>
