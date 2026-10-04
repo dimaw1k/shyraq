@@ -9,7 +9,7 @@ async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
   const { data: profile, error } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,age,education_type,status,role,avatar_path,created_at,updated_at")
+    .select("id,full_name,email,phone,education_type,status,role,avatar_path,created_at,updated_at")
     .eq("id", userId)
     .single();
 
@@ -87,7 +87,7 @@ export async function PATCH(request: Request) {
   const admin = createAdminSupabaseClient();
   const { data: current, error: currentError } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,age,education_type,role,status,avatar_path")
+    .select("id,full_name,email,phone,education_type,role,status,avatar_path")
     .eq("id", user.id)
     .single();
 
@@ -98,7 +98,6 @@ export async function PATCH(request: Request) {
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : current.full_name;
   const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : current.phone;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : current.email;
-  const age = body.age === undefined ? current.age : Number(body.age);
   const educationType =
     typeof body.educationType === "string"
       ? body.educationType.trim().toUpperCase()
@@ -116,9 +115,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Электрондық пошта дұрыс емес." }, { status: 400 });
   }
 
-  if (!Number.isInteger(age) || age < 10 || age > 100) {
-    return NextResponse.json({ error: "Жас 10–100 аралығында болуы керек." }, { status: 400 });
-  }
 
   if (!EDUCATION_TYPES.has(educationType)) {
     return NextResponse.json({ error: "Білім алу деңгейі дұрыс емес." }, { status: 400 });
@@ -150,7 +146,6 @@ export async function PATCH(request: Request) {
     full_name: fullName,
     phone,
     email,
-    age,
     education_type: educationType,
     updated_at: new Date().toISOString(),
   };
@@ -172,7 +167,6 @@ export async function PATCH(request: Request) {
         ...(user.user_metadata ?? {}),
         full_name: fullName,
         phone,
-        age,
         education_type: educationType,
       },
     });
@@ -182,7 +176,6 @@ export async function PATCH(request: Request) {
         full_name: current.full_name,
         phone: current.phone,
         email: current.email,
-        age: current.age,
         education_type: current.education_type,
         updated_at: new Date().toISOString(),
       }).eq("id", user.id);
