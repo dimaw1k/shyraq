@@ -7,7 +7,6 @@ type RegisterPayload = {
   email?: unknown;
   firstName?: unknown;
   lastName?: unknown;
-  age?: unknown;
   password?: unknown;
 };
 
@@ -24,7 +23,6 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
         const password = typeof body.password === "string" ? body.password : "";
-    const age = Number(body.age);
 
     if (!isValidKzPhone(phone)) {
       return NextResponse.json({ field: "phone", error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
@@ -42,9 +40,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "lastName", error: "Тегіңізді дұрыс енгізіңіз." }, { status: 400 });
     }
 
-    if (!Number.isInteger(age) || age < 10 || age > 100) {
-      return NextResponse.json({ field: "age", error: "Жасыңызды дұрыс енгізіңіз." }, { status: 400 });
-    }
 
 
     if (password.length < 8) {
