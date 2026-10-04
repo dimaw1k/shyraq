@@ -16,10 +16,19 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   return (
-    <AppShell role={profile?.role ?? "STUDENT"} userName={profile?.full_name ?? undefined} title="Профиль">
+    <AppShell
+      role={profile?.role ?? "STUDENT"}
+      userName={profile?.full_name ?? undefined}
+      title="Профиль"
+      hideHeader
+    >
       <PageContainer className="max-w-5xl">
         <div className="space-y-5">
-          <SectionHeader eyebrow="АККАУНТ" title="Профиль" description="Жеке деректеріңді және профиль суретіңді басқар." />
+          <SectionHeader
+            eyebrow="АККАУНТ"
+            title="Профиль"
+            description="Жеке деректеріңді және профиль суретіңді басқар."
+          />
           <Card className="p-5 sm:p-6">
             <ProfileClient />
           </Card>
