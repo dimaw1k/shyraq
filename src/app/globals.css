@@ -466,6 +466,77 @@ iframe {
   }
 }
 
+/* Desktop rail layout: keep featured cards in one row, compact, and equal-height. */
+@media (min-width: 768px) {
+  .shyraq-horizontal-rail--journey {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  #marathon .relative > .absolute {
+    display: none !important;
+  }
+
+  .shyraq-horizontal-rail--journey > *,
+  .shyraq-horizontal-rail--proof > * {
+    display: flex;
+    min-width: 0;
+    height: auto;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card {
+    display: flex !important;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0 !important;
+    height: 100%;
+    gap: 0 !important;
+    padding: 20px !important;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card > div:first-child {
+    width: 48px;
+    height: 48px;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card > div:nth-child(2) {
+    margin-top: 14px;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card > p {
+    max-width: none;
+    margin-top: 12px;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card > span {
+    top: 16px;
+    right: 16px;
+  }
+
+  .shyraq-horizontal-rail--proof {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .shyraq-horizontal-rail--proof .shyraq-proof-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0 !important;
+    height: 100%;
+    padding: 20px !important;
+  }
+
+  .shyraq-horizontal-rail--proof .shyraq-proof-card > p:first-of-type {
+    margin-top: 14px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shyraq-horizontal-rail,
   .shyraq-horizontal-rail > * {
