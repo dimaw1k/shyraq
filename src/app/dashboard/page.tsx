@@ -94,7 +94,7 @@ export default async function DashboardPage() {
 
   const teamIdFromMembership = membership?.team_id ?? null;
 
-  const [{ data: meetSpace }, { data: attendance }, { data: marathonStartRow }] =
+  const [{ data: meetSpace }, { data: attendance }, { data: marathonStartRow }, { data: reportSettings }] =
     await Promise.all([
       teamIdFromMembership
         ? supabase
@@ -117,6 +117,11 @@ export default async function DashboardPage() {
         .not("starts_at", "is", null)
         .order("starts_at", { ascending: true })
         .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("marathon_settings")
+        .select("morning_report_open_time,evening_report_open_time")
+        .eq("id", true)
         .maybeSingle(),
     ]);
 
@@ -299,6 +304,8 @@ export default async function DashboardPage() {
                 eveningMinutes={eveningMinutes}
                 reports={todayReports}
                 completedTaskCount={completedToday}
+                morningReportOpenTime={reportSettings?.morning_report_open_time ?? "08:00"}
+                eveningReportOpenTime={reportSettings?.evening_report_open_time ?? "19:00"}
               />
             </div>
 
