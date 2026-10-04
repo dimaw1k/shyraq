@@ -40,6 +40,7 @@ export function Card({
   return (
     <section
       className={[
+        "shrq-card",
         baseCard,
         shadow,
         dark
