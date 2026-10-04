@@ -113,9 +113,13 @@ export function StudyTimeCard({
   );
 
   useEffect(() => {
-    setNow(Date.now());
+    const initialTimer = window.setTimeout(() => setNow(Date.now()), 0);
     const timer = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(timer);
+
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
   }, []);
 
   const currentTime = now ? new Date(now) : new Date(0);
