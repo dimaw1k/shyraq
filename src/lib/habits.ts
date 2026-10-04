@@ -14,7 +14,7 @@ export const DEFAULT_HABITS = [
   {
     name: "Телефонсыз 30 минут",
     description: "Оқу кезінде алаңдататын хабарламалардан үзіліс жаса.",
-    icon: "SmartphoneOff",
+    icon: "Smartphone",
     sort_order: 30,
   },
   {
@@ -40,7 +40,7 @@ export const DEFAULT_HABITS = [
 export const HABIT_ICONS = [
   "BookOpen",
   "ListTodo",
-  "SmartphoneOff",
+  "Smartphone",
   "Library",
   "PenLine",
   "Moon",
