@@ -358,7 +358,7 @@ export default async function DashboardPage() {
                     href={meetingData.meeting_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+                    className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
                   >
                     Кездесуге кіру
                     <ArrowUpRight size={12} />
@@ -390,7 +390,7 @@ export default async function DashboardPage() {
                 </div>
                 <Link
                   href="/tasks"
-                  className="mt-2.5 inline-flex items-center gap-1 text-[9px] font-extrabold text-[#FF8000] hover:underline"
+                  className="mt-2.5 inline-flex items-center gap-1 text-[9px] font-semibold text-[#FF8000] hover:underline"
                 >
                   Барлығын көру <ArrowRight size={12} />
                 </Link>
