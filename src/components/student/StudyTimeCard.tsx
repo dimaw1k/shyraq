@@ -45,6 +45,7 @@ type Props = {
   morningMinutes: number;
   eveningMinutes: number;
   reports: ExistingReport[];
+  completedTaskCount: number;
 };
 
 const SLOT_CONFIG: Omit<PhotoSlot, "file" | "preview">[] = [
@@ -92,6 +93,7 @@ export function StudyTimeCard({
   morningMinutes,
   eveningMinutes,
   reports,
+  completedTaskCount,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [reportType, setReportType] = useState<ReportType>("MORNING");
@@ -244,6 +246,9 @@ function ReportModal({
   today,
   marathonDay,
   meetingUrl,
+  morningMinutes,
+  eveningMinutes,
+  completedTaskCount,
   reportType,
   onReportTypeChange,
   onClose,
@@ -252,6 +257,9 @@ function ReportModal({
   today: string;
   marathonDay: number | null;
   meetingUrl: string | null;
+  morningMinutes: number;
+  eveningMinutes: number;
+  completedTaskCount: number;
   reportType: ReportType;
   onReportTypeChange: (value: ReportType) => void;
   onClose: () => void;
@@ -364,8 +372,9 @@ function ReportModal({
           reportDate: today,
           reportType,
           marathonDay,
-          studyMinutes: 0,
-          completedTaskCount: 0,
+          studyMinutes:
+            reportType === "MORNING" ? morningMinutes : eveningMinutes,
+          completedTaskCount,
           answers,
         }),
       });
