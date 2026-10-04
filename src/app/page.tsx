@@ -407,14 +407,18 @@ export default function HomePage() {
                   <span className="block text-[#FF8000]">Саған орындау ғана қалады.</span>
                 </h2>
 
-                <div className="mt-5 space-y-3">
+                <HorizontalRail
+                  variant="routine"
+                  className="mt-5"
+                  ariaLabel="Шырақтың күн тәртібі"
+                >
                   {[
                     ["01", "Таңғы бастау", "05:00 — ояну, таңғы әдеттер және 05:30–06:30 алғашқы оқу."],
                     ["02", "Негізгі оқу", "06:30–08:00 — негізгі оқу мен жоспар; кешке 17:30–20:00 — екінші оқу уақыты."],
                     ["03", "Күнді қорытындылау", "20:00–21:00 — күнді қорытындылау, ашық чат және рейтинг. 22:00 — ұйқы."],
                   ].map(([number, title, text], index) => (
                     <Reveal key={number} delay={index * 80}>
-                      <div className="group flex items-center gap-4 rounded-[22px] border border-[#ece6de] bg-[#faf9f6] p-4 transition hover:bg-white hover:shadow-[0_16px_40px_rgba(20,20,20,.06)]">
+                      <div className="shyraq-routine-card group flex items-center gap-4 rounded-[22px] border border-[#ece6de] bg-[#faf9f6] p-4 transition duration-300 hover:bg-white hover:shadow-[0_16px_40px_rgba(20,20,20,.06)]">
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#172235] text-[10px] font-extrabold text-white">
                           {number}
                         </span>
@@ -426,7 +430,7 @@ export default function HomePage() {
                       </div>
                     </Reveal>
                   ))}
-                </div>
+                </HorizontalRail>
               </div>
             </Reveal>
 
