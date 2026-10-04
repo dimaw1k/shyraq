@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const email = text(body.email).toLowerCase();
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
-        const password = typeof body.password === "string" ? body.password : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
     if (!isValidKzPhone(phone)) {
       return NextResponse.json({ field: "phone", error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
@@ -83,7 +83,6 @@ export async function POST(request: Request) {
       user_metadata: {
         phone: normalizedPhone,
         full_name: [firstName, lastName].join(" "),
-        age,
       },
     });
 
