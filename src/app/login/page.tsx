@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, AtSign, Eye, EyeOff, LockKeyhole, LogIn } from "lucide-react";
 import { formatKzPhone } from "@/lib/phone";
-import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 
 function Brand() {
   return (
@@ -118,8 +117,6 @@ export default function LoginPage() {
               Электрондық пошта немесе телефон арқылы кіріңіз.
             </p>
           </div>
-
-          <div className="mt-6"><SocialAuthButtons /></div>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
             <label className="block">
