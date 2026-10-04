@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -33,11 +34,12 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
         {imageBanners.map((banner) => {
           const card = (
             <div className="shrq-dashboard-banner-card">
-              <img
+              <Image
                 src={banner.imageUrl!}
                 alt=""
-                loading="eager"
-                decoding="async"
+                fill
+                sizes="(max-width: 767px) 84vw, 50vw"
+                priority
                 className="shrq-dashboard-banner-image"
                 draggable={false}
               />
