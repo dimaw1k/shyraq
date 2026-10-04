@@ -93,20 +93,9 @@ export function StickyNav() {
                 letterSpacing="-1.15"
                 fontFamily="Montserrat, Arial, Helvetica, sans-serif"
               >
-                SHY
+                SHYR
               </text>
-              <text
-                x="49"
-                y="26"
-                fill="#172235"
-                fontSize="27"
-                fontWeight="800"
-                letterSpacing="-1.15"
-                fontFamily="Montserrat, Arial, Helvetica, sans-serif"
-              >
-                R
-              </text>
-              <g transform="translate(-18 0)">
+              <g transform="translate(-12 0)">
                 <path
                   d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
                   fill="#FF8000"
@@ -118,7 +107,7 @@ export function StickyNav() {
                 <circle cx="100" cy="25.1" r="1.3" fill="#FF8000" />
               </g>
               <text
-                x="98"
+                x="94"
                 y="26"
                 fill="#172235"
                 fontSize="27"
