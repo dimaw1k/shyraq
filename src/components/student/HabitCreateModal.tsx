@@ -108,25 +108,6 @@ export function HabitCreateModal({
 
   useEffect(() => {
     if (!open) return;
-    setName("");
-    setDescription("");
-    setIcon("Sparkles");
-    setFrequency("DAILY");
-    setWeekdays([1, 2, 3, 4, 5, 6, 7]);
-    setGoal("");
-    setStartDate(today);
-    setDuration("forever");
-    setCustomDays("");
-    setSection("Күндіз");
-    setReminderEnabled(false);
-    setReminderTime("20:00");
-    setRepeatInterval("1");
-    setRepeatUnit("DAY");
-    setError("");
-  }, [open, today]);
-
-  useEffect(() => {
-    if (!open) return;
 
     const previousOverflow = document.body.style.overflow;
     const onKeyDown = (event: KeyboardEvent) => {
