@@ -336,6 +336,14 @@ iframe {
     grid-template-columns: 48px 1fr auto;
     gap: 14px;
     align-items: center;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: flex-start;
+    padding: 16px;
+  }
+
+  .shyraq-horizontal-rail--routine > * {
+    align-self: flex-start;
   }
 
   .shyraq-benefit-card p,
