@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 
 function currentTimestampMs() {
-  return currentTimestampMs();
+  return Date.now();
 }
 
 export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
