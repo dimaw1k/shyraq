@@ -103,22 +103,35 @@ export default async function DashboardPage() {
       }),
   ]);
 
-  const bannerItems = (banners ?? [])
-    .filter((banner) => {
-      const now = Date.now();
-      const startsOk = !banner.starts_at || new Date(banner.starts_at).getTime() <= now;
-      const endsOk = !banner.ends_at || new Date(banner.ends_at).getTime() >= now;
-      return startsOk && endsOk;
-    })
-    .map((banner) => ({
-      id: banner.id,
-      title: banner.title,
-      description: banner.description,
-      href: banner.href,
-      imageUrl: banner.image_path
-      ? `https://sqjjqnisnndulkzcqfwb.supabase.co/storage/v1/object/public/banners/${banner.image_path}`
-      : null,
-    }));
+  const bannerItems = (
+    await Promise.all(
+      (banners ?? [])
+        .filter((banner) => {
+          const now = Date.now();
+          const startsOk = !banner.starts_at || new Date(banner.starts_at).getTime() <= now;
+          const endsOk = !banner.ends_at || new Date(banner.ends_at).getTime() >= now;
+          return startsOk && endsOk;
+        })
+        .map(async (banner) => {
+          let imageUrl: string | null = null;
+
+          if (banner.image_path) {
+            const { data } = await admin.storage
+              .from("banners")
+              .createSignedUrl(banner.image_path, 60 * 60);
+            imageUrl = data?.signedUrl ?? null;
+          }
+
+          return {
+            id: banner.id,
+            title: banner.title,
+            description: banner.description,
+            href: banner.href,
+            imageUrl,
+          };
+        }),
+    )
+  ).filter((banner) => Boolean(banner.imageUrl));
 
   const today = todayInTimezone("Asia/Almaty");
   const streak = calculateCurrentStreak(
