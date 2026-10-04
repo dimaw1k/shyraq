@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BookOpen,
-  CalendarDays,
   CheckCircle2,
   LockKeyhole,
-  Clock3,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, EmptyState, PageContainer } from "@/components/ui/ShyraqUI";
@@ -51,7 +49,6 @@ export default async function LessonsPage({
 
   const role = profile?.role ?? "STUDENT";
   const teamId = membership?.team_id ?? null;
-
   const visibleLessons =
     role === "STUDENT"
       ? (lessons ?? []).filter(
@@ -71,17 +68,17 @@ export default async function LessonsPage({
   });
 
   const availableDays = Array.from(
-    new Set(
-      weekLessons
-        .map((lesson) => Number(lesson.marathon_day))
-        .filter(
-          (day) =>
-            day >= activeWeek.startDay && day <= activeWeek.endDay,
-        ),
-    ),
-  ).sort((a, b) => a - b);
+    new Set(weekLessons.map((lesson) => Number(lesson.marathon_day))),
+  )
+    .filter(
+      (day) => day >= activeWeek.startDay && day <= activeWeek.endDay,
+    )
+    .sort((a, b) => a - b);
 
-  const requestedDay = Number(params.day ?? availableDays[0] ?? activeWeek.startDay);
+  const requestedDay = Number(
+    params.day ?? availableDays[0] ?? activeWeek.startDay,
+  );
+
   const activeDay =
     availableDays.includes(requestedDay) || !weekLessons.length
       ? requestedDay
@@ -98,61 +95,74 @@ export default async function LessonsPage({
       role={role}
       userName={profile?.full_name ?? undefined}
       title="Сабақтар"
-      description="Аптаны таңда → күнді таңда → сол күннің сабақтарын орында."
+      hideHeader
     >
-      <PageContainer className="pb-8">
+      <PageContainer className="max-w-[1380px] pb-8 pt-5">
         <div className="space-y-4">
-          <header>
-            <p className="text-[9px] font-extrabold uppercase tracking-[.17em] text-[#FF8000]">
-              ОҚУ
-            </p>
-            <h1 className="mt-1 text-[24px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[28px]">
+          <div className="flex items-center justify-between">
+            <h1 className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
               Сабақтар
             </h1>
-            <p className="mt-1.5 max-w-2xl text-[11px] font-medium leading-5 text-[#857B72]">
-              Әр апта бөлек. Әр күннің ішінде тек сол күнге тиесілі сабақтар көрсетіледі.
-            </p>
-          </header>
+            <span className="rounded-full bg-[#FFF1E2] px-3 py-1.5 text-[9px] font-extrabold text-[#B95D00]">
+              {activeWeek.subtitle}
+            </span>
+          </div>
 
-          <Card className="p-2.5">
-            <div className="grid gap-2 md:grid-cols-3">
-              {MARATHON_WEEKS.map((week) => (
-                <Link
-                  key={week.week}
-                  href={"/lessons?week=" + week.week}
+          <div className="grid gap-3 md:grid-cols-3">
+            {MARATHON_WEEKS.map((week) => (
+              <Link
+                key={week.week}
+                href={"/lessons?week=" + week.week}
+                className="group min-w-0"
+              >
+                <Card
                   className={[
-                    "rounded-[13px] border px-4 py-3.5 transition",
+                    "h-full p-4 transition duration-200",
                     activeWeek.week === week.week
-                      ? "border-[#FFD5AD] bg-[#FFF1E2] text-[#B95D00]"
-                      : "border-transparent bg-[#FAF8F5] text-[#6F665E] hover:border-[#E8E1DA] hover:bg-white hover:text-[#172235]",
+                      ? "border-[#F3C7B0] bg-[#FFFDFB]"
+                      : "hover:-translate-y-0.5 hover:border-[#F3C7B0]",
                   ].join(" ")}
                 >
-                  <span className="block text-[9px] font-extrabold uppercase tracking-[.12em]">
-                    {week.week}-АПТА
-                  </span>
-                  <span className="mt-1 block text-[14px] font-extrabold tracking-[-.02em]">
-                    {week.subtitle.replace(" · ", " • ")}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </Card>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF1E2] text-[9px] font-extrabold text-[#B95D00]">
+                      {String(week.week).padStart(2, "0")}
+                    </span>
+                    <ArrowRight
+                      size={14}
+                      className={[
+                        "transition",
+                        activeWeek.week === week.week
+                          ? "text-[#FF8000]"
+                          : "text-[#B6AEA6] group-hover:text-[#FF8000]",
+                      ].join(" ")}
+                    />
+                  </div>
+                  <p className="mt-3 text-[8px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
+                    21 КҮН
+                  </p>
+                  <h2 className="mt-1 text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
+                    {week.subtitle}
+                  </h2>
+                </Card>
+              </Link>
+            ))}
+          </div>
 
           {!visibleLessons.length ? (
             <EmptyState title="Әзірге жарияланған сабақ жоқ." />
           ) : (
-            <section className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-              <Card className="h-fit overflow-hidden p-2">
-                <div className="border-b border-[#EFE8E1] px-3 py-3">
-                  <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
-                    {activeWeek.title}
-                  </p>
-                  <p className="mt-1 text-[14px] font-extrabold text-[#172235]">
+            <section className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)]">
+              <Card className="h-fit p-3">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[9px] font-extrabold text-[#172235]">
                     Күндер
-                  </p>
+                  </span>
+                  <span className="text-[8px] font-semibold text-[#9A9189]">
+                    {activeWeek.startDay}–{activeWeek.endDay}
+                  </span>
                 </div>
 
-                <div className="space-y-1.5 p-1.5">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 lg:grid-cols-3">
                   {Array.from(
                     { length: activeWeek.endDay - activeWeek.startDay + 1 },
                     (_, index) => activeWeek.startDay + index,
@@ -166,25 +176,21 @@ export default async function LessonsPage({
                       <Link
                         key={day}
                         href={"/lessons?week=" + activeWeek.week + "&day=" + day}
+                        aria-label={day + "-күн, " + count + " сабақ"}
                         className={[
-                          "flex items-center justify-between rounded-[11px] px-3 py-2.5 transition",
+                          "group grid h-12 w-12 place-items-center rounded-[14px] border text-center transition",
                           active
-                            ? "bg-[#FFF1E2] text-[#B95D00]"
-                            : "text-[#6F665E] hover:bg-[#FAF8F5] hover:text-[#172235]",
+                            ? "border-[#FFD2A9] bg-[#FFF1E2] text-[#FF8000] shadow-[0_6px_18px_rgba(255,128,0,.08)]"
+                            : "border-[#E8E1DA] bg-white text-[#6F665E] hover:border-[#FFD2A9] hover:bg-[#FFF9F4] hover:text-[#FF8000]",
                         ].join(" ")}
                       >
-                        <span className="flex items-center gap-2">
-                          <CalendarDays size={14} />
-                          <span className="text-[10px] font-extrabold">
-                            {day}-күн
-                          </span>
+                        <span className="block text-[11px] font-extrabold leading-none">
+                          {String(day).padStart(2, "0")}
                         </span>
                         <span
                           className={[
-                            "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[8px] font-extrabold",
-                            active
-                              ? "bg-white text-[#B95D00]"
-                              : "bg-[#F4F1EC] text-[#9A9189]",
+                            "mt-1 text-[7px] font-extrabold",
+                            active ? "text-[#B95D00]" : "text-[#A19890]",
                           ].join(" ")}
                         >
                           {count}
@@ -198,31 +204,26 @@ export default async function LessonsPage({
               <div className="min-w-0">
                 <div className="mb-3 flex items-end justify-between gap-3">
                   <div>
-                    <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                    <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
                       {activeWeek.week}-АПТА
                     </p>
                     <h2 className="mt-1 text-[20px] font-extrabold tracking-[-.04em] text-[#172235]">
-                      {activeDay}-күннің сабақтары
+                      {activeDay}-күн
                     </h2>
                   </div>
-                  <span className="rounded-full bg-[#F4F1EC] px-3 py-1.5 text-[9px] font-extrabold text-[#766E66]">
+                  <span className="rounded-full bg-[#F4F1EC] px-3 py-1.5 text-[8px] font-extrabold text-[#766E66]">
                     {dayLessons.length} сабақ
                   </span>
                 </div>
 
                 {!dayLessons.length ? (
-                  <Card className="p-8">
-                    <div className="mx-auto max-w-sm text-center">
-                      <span className="mx-auto grid h-11 w-11 place-items-center rounded-[14px] bg-[#FFF1E2] text-[#FF8000]">
-                        <BookOpen size={18} />
-                      </span>
-                      <p className="mt-3 text-[13px] font-extrabold text-[#172235]">
-                        Бұл күні сабақ жоқ.
-                      </p>
-                      <p className="mt-1 text-[10px] leading-5 text-[#8B8179]">
-                        Сол аптаның басқа күнін таңдаңыз.
-                      </p>
-                    </div>
+                  <Card className="p-8 text-center">
+                    <span className="mx-auto grid h-11 w-11 place-items-center rounded-[14px] bg-[#FFF1E2] text-[#FF8000]">
+                      <BookOpen size={18} />
+                    </span>
+                    <p className="mt-3 text-[13px] font-extrabold text-[#172235]">
+                      Бұл күні сабақ жоқ
+                    </p>
                   </Card>
                 ) : (
                   <div className="grid gap-2.5">
@@ -241,7 +242,7 @@ export default async function LessonsPage({
                             aria-disabled={locked}
                             className={[
                               "flex items-center gap-3 px-4 py-3.5 sm:px-5",
-                              locked ? "pointer-events-none opacity-65" : "",
+                              locked ? "pointer-events-none opacity-60" : "",
                             ].join(" ")}
                           >
                             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#B95D00]">
@@ -253,33 +254,32 @@ export default async function LessonsPage({
                             </span>
 
                             <span className="min-w-0 flex-1">
-                              <span className="flex flex-wrap items-center gap-2">
+                              <span className="flex items-center gap-2">
                                 <span className="text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
-                                  {String(index + 1).padStart(2, "0")} • {activeDay}-КҮН
+                                  {String(index + 1).padStart(2, "0")}
                                 </span>
-                                {locked ? (
-                                  <span className="rounded-full bg-[#F4F1EC] px-2 py-1 text-[8px] font-extrabold text-[#857B72]">
-                                    Жабық
-                                  </span>
-                                ) : (
-                                  <span className="rounded-full bg-[#EAF7F0] px-2 py-1 text-[8px] font-extrabold text-[#2E7E58]">
-                                    Ашық
-                                  </span>
-                                )}
+                                <span
+                                  className={[
+                                    "rounded-full px-2 py-0.5 text-[7px] font-extrabold",
+                                    locked
+                                      ? "bg-[#F4F1EC] text-[#857B72]"
+                                      : "bg-[#EAF7F0] text-[#2E7E58]",
+                                  ].join(" ")}
+                                >
+                                  {locked ? "Жабық" : "Ашық"}
+                                </span>
                               </span>
 
                               <span className="mt-1 block truncate text-[13px] font-extrabold tracking-[-.02em] text-[#172235]">
                                 {lesson.title}
                               </span>
 
-                              <span className="mt-1 flex flex-wrap items-center gap-2 text-[9px] font-medium text-[#8B8179]">
-                                <span>
-                                  {Math.max(1, Math.ceil(Number(lesson.duration_seconds ?? 0) / 60))} мин
-                                </span>
-                                <span>•</span>
-                                <span>
-                                  Тестке өту үшін {Number(lesson.required_watch_percent ?? 85)}% көру керек
-                                </span>
+                              <span className="mt-1 block text-[9px] font-medium text-[#8B8179]">
+                                {Math.max(
+                                  1,
+                                  Math.ceil(Number(lesson.duration_seconds ?? 0) / 60),
+                                )}{" "}
+                                мин · {Number(lesson.required_watch_percent ?? 85)}% көру
                               </span>
                             </span>
 
@@ -294,10 +294,6 @@ export default async function LessonsPage({
                             <CheckCircle2 size={13} className="text-[#9A9189]" />
                             <span className="text-[8px] font-semibold text-[#9A9189]">
                               Бейне → тест → тапсырма
-                            </span>
-                            <span className="ml-auto inline-flex items-center gap-1 text-[8px] font-semibold text-[#9A9189]">
-                              <Clock3 size={11} />
-                              {Number(lesson.lesson_order ?? index + 1)}
                             </span>
                           </div>
                         </Card>
