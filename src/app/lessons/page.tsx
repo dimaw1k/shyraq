@@ -233,7 +233,6 @@ export default async function LessonsPage({
                             >
                               <Link
                                 href={locked ? "#" : "/lessons/" + lesson.id}
-                                aria-disabled={locked}
                                 className={[
                                   "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
 
@@ -315,7 +314,7 @@ export default async function LessonsPage({
                               className="shrq-day-item-card overflow-hidden border-[#E6E0D9] bg-white p-0 transition duration-200 hover:-translate-y-0.5 hover:border-[#F2C8A8] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]"
                             >
                               <Link
-                                href={locked ? "#" : "/tasks/" + task.id}
+                                href={"/tasks/" + task.id}
                                 aria-disabled={locked}
                                 className={[
                                   "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
@@ -340,9 +339,7 @@ export default async function LessonsPage({
                                         "rounded-full px-2 py-0.5 text-[7px] font-extrabold",
                                         done
                                           ? "bg-[#EAF7F0] text-[#2E7E58]"
-                                          : locked
-                                            ? "bg-[#F4F1EC] text-[#857B72]"
-                                            : "bg-[#FFF1E2] text-[#B95D00]",
+                                          : "bg-[#FFF1E2] text-[#B95D00]",
                                       ].join(" ")}
                                     >
                                       {done ? "Орындалды" : "Тапсырма"}
@@ -361,11 +358,7 @@ export default async function LessonsPage({
                                   </span>
                                 </span>
 
-                                {locked ? (
-                                  <LockKeyhole size={14} className="shrink-0 text-[#B0A79F]" />
-                                ) : (
-                                  <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
-                                )}
+                                <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
                               </Link>
 
                               <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
