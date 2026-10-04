@@ -11,7 +11,6 @@ type Profile = {
   full_name: string;
   email: string;
   phone: string;
-  age: number;
   education_type: string;
   status: string;
   role: string;
@@ -43,7 +42,6 @@ export function ProfileClient() {
     fullName: "",
     email: "",
     phone: "",
-    age: "",
     educationType: "OTHER",
     currentPassword: "",
     newPassword: "",
@@ -71,7 +69,6 @@ export function ProfileClient() {
       fullName: data.profile.full_name ?? "",
       email: data.profile.email ?? "",
       phone: data.profile.phone ?? "",
-      age: String(data.profile.age ?? ""),
       educationType: data.profile.education_type ?? "OTHER",
       currentPassword: "",
       newPassword: "",
@@ -100,7 +97,6 @@ export function ProfileClient() {
           fullName: form.fullName,
           email: form.email,
           phone: form.phone,
-          age: Number(form.age),
           educationType: form.educationType,
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
@@ -235,19 +231,6 @@ export function ProfileClient() {
             onChange={(event) => setField("phone", formatKzPhone(event.target.value))}
             className={inputClass}
             inputMode="tel"
-          />
-        </label>
-
-        <label className="text-[11px] font-extrabold text-[#3F3832]">
-          Жасы
-          <input
-            required
-            min="10"
-            max="100"
-            type="number"
-            value={form.age}
-            onChange={(event) => setField("age", event.target.value)}
-            className={inputClass}
           />
         </label>
 
