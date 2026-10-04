@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin.from("profiles")
-    .select("id,full_name,email,phone,age,status,role")
+    .select("id,full_name,email,phone,status,role")
     .eq("phone", normalizePhone(rawPhone))
     .maybeSingle();
 
