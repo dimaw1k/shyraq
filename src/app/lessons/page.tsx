@@ -144,7 +144,7 @@ export default async function LessonsPage({
               >
                 <Card
                   className={[
-                    "relative h-[108px] px-4 py-3 transition duration-200",
+                    "relative h-[88px] px-4 py-3 transition duration-200",
                     activeWeek.week === week.week
                       ? "border-[#F3C7B0] bg-[#FFFDFB]"
                       : "hover:-translate-y-0.5 hover:border-[#F3C7B0]",
@@ -165,7 +165,7 @@ export default async function LessonsPage({
                     />
                   </div>
 
-                  <h2 className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
+                  <h2 className="absolute inset-x-0 top-[58%] -translate-y-1/2 text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
                     {week.subtitle}
                   </h2>
                 </Card>
