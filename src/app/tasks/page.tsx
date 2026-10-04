@@ -6,6 +6,10 @@ import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/co
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 
+function currentTimestampMs() {
+  return currentTimestampMs();
+}
+
 export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -22,7 +26,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
 
   const role = profile?.role ?? "STUDENT";
   const teamId = membership?.team_id ?? null;
-  const now = Date.now();
+  const now = currentTimestampMs();
   const visibleTasks = role === "STUDENT"
     ? (tasks ?? []).filter((task) => {
         const sameTeam = !task.team_id || task.team_id === teamId;
