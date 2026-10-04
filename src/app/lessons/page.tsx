@@ -151,7 +151,7 @@ export default async function LessonsPage({
           {!visibleLessons.length ? (
             <EmptyState title="Әзірге жарияланған сабақ жоқ." />
           ) : (
-            <section className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)]">
+            <section className="shrq-lessons-layout">
               <Card className="h-fit p-3">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-[9px] font-extrabold text-[#172235]">
