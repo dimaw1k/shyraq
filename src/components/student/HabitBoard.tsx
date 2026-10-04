@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   BookOpen,
   Check,
   Dumbbell,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useMemo, useRef, useState } from "react";
+import { HabitCreateModal } from "@/components/student/HabitCreateModal";
 
 type Habit = {
   id: string;
@@ -25,6 +27,15 @@ type Habit = {
   icon: string;
   is_default: boolean;
   sort_order: number;
+  frequency: "DAILY" | "WEEKLY" | "REPEAT";
+  weekdays: number[];
+  goal: string | null;
+  start_date: string;
+  goal_days: number | null;
+  section: string;
+  reminder_time: string | null;
+  repeat_interval: number;
+  repeat_unit: "DAY" | "WEEK";
 };
 
 type Checkin = {
@@ -49,21 +60,6 @@ const ICONS = {
   Sparkles,
 } as const;
 
-const ICON_OPTIONS = [
-  ["Sparkles", Sparkles],
-  ["BookOpen", BookOpen],
-  ["Dumbbell", Dumbbell],
-  ["ListTodo", ListTodo],
-  ["Moon", Moon],
-] as const;
-
-function shiftDate(value: string, delta: number) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  date.setUTCDate(date.getUTCDate() + delta);
-  return date.toISOString().slice(0, 10);
-}
-
 const WEEKDAY_LABELS = [
   "Дүйсенбі",
   "Сейсенбі",
@@ -74,11 +70,29 @@ const WEEKDAY_LABELS = [
   "Жексенбі",
 ] as const;
 
-function weekLabel(value: string) {
+function shiftDate(value: string, delta: number) {
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
-  const mondayOffset = (date.getUTCDay() + 6) % 7;
-  return WEEKDAY_LABELS[mondayOffset];
+  date.setUTCDate(date.getUTCDate() + delta);
+  return date.toISOString().slice(0, 10);
+}
+
+function dayDiff(start: string, end: string) {
+  const [sy, sm, sd] = start.split("-").map(Number);
+  const [ey, em, ed] = end.split("-").map(Number);
+  return Math.floor(
+    (Date.UTC(ey, em - 1, ed) - Date.UTC(sy, sm - 1, sd)) / 86_400_000,
+  );
+}
+
+function weekdayOneBased(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return ((date.getUTCDay() + 6) % 7) + 1;
+}
+
+function weekLabel(value: string) {
+  return WEEKDAY_LABELS[weekdayOneBased(value) - 1];
 }
 
 function iconFor(value: string) {
@@ -86,11 +100,57 @@ function iconFor(value: string) {
 }
 
 function buildCurrentWeek(today: string) {
-  const [year, month, day] = today.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  const mondayOffset = (date.getUTCDay() + 6) % 7;
-  const monday = shiftDate(today, -mondayOffset);
+  const monday = shiftDate(today, -(weekdayOneBased(today) - 1));
   return Array.from({ length: 7 }, (_, index) => shiftDate(monday, index));
+}
+
+function isScheduled(habit: Habit, dateKey: string) {
+  if (dateKey < habit.start_date) return false;
+
+  const elapsed = dayDiff(habit.start_date, dateKey);
+  if (habit.goal_days !== null && elapsed >= habit.goal_days) return false;
+
+  if (habit.frequency === "DAILY") return true;
+
+  if (habit.frequency === "WEEKLY") {
+    return habit.weekdays.includes(weekdayOneBased(dateKey));
+  }
+
+  const intervalDays =
+    habit.repeat_unit === "WEEK"
+      ? habit.repeat_interval * 7
+      : habit.repeat_interval;
+
+  return elapsed % intervalDays === 0;
+}
+
+function scheduleLabel(habit: Habit) {
+  if (habit.frequency === "DAILY") return "Күн сайын";
+
+  if (habit.frequency === "REPEAT") {
+    return (
+      "Әр " +
+      habit.repeat_interval +
+      " " +
+      (habit.repeat_unit === "WEEK" ? "апта" : "күн")
+    );
+  }
+
+  const shortDays = ["Дс", "Сс", "Ср", "Бс", "Жм", "Сб", "Жс"];
+  const selected = habit.weekdays
+    .filter((day) => day >= 1 && day <= 7)
+    .map((day) => shortDays[day - 1]);
+
+  return selected.length ? "Апта: " + selected.join(", ") : "Апта сайын";
+}
+
+function durationLabel(habit: Habit) {
+  return habit.goal_days === null ? "Мәңгі" : habit.goal_days + " күн";
+}
+
+function formatDate(value: string) {
+  const [year, month, day] = value.split("-");
+  return day + "." + month + "." + year;
 }
 
 export function HabitBoard({
@@ -101,14 +161,10 @@ export function HabitBoard({
   const [habits, setHabits] = useState(initialHabits);
   const [checkins, setCheckins] = useState(initialCheckins);
   const [soundOn, setSoundOn] = useState(true);
-  const [adding, setAdding] = useState(false);
-  const checkSound = useRef<HTMLAudioElement | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newIcon, setNewIcon] = useState("Sparkles");
   const [error, setError] = useState("");
-  const audioContext = useRef<AudioContext | null>(null);
+  const checkSound = useRef<HTMLAudioElement | null>(null);
 
   const dates = useMemo(() => buildCurrentWeek(today), [today]);
 
@@ -150,16 +206,19 @@ export function HabitBoard({
       [...habits]
         .map((habit) => ({
           habit,
-          count: dates.filter((date) =>
-            checked.has(habit.id + ":" + date),
+          count: dates.filter(
+            (date) =>
+              date <= today &&
+              isScheduled(habit, date) &&
+              checked.has(habit.id + ":" + date),
           ).length,
         }))
         .sort((a, b) => b.count - a.count)[0],
-    [checked, dates, habits],
+    [checked, dates, habits, today],
   );
 
-  function playClick(checkedNow: boolean) {
-    if (!soundOn || !checkedNow || typeof window === "undefined") return;
+  function playCheckSound() {
+    if (!soundOn || typeof window === "undefined") return;
 
     const audio =
       checkSound.current ?? new Audio("/sounds/apple-pay-succes.mp3");
@@ -170,96 +229,79 @@ export function HabitBoard({
     void audio.play().catch(() => undefined);
   }
 
-  async function toggleHabit(habitId: string, dateKey = today) {
-    if (saving) return;
+  async function toggleHabit(habit: Habit, dateKey = today) {
+    if (saving || dateKey > today || !isScheduled(habit, dateKey)) return;
 
-    const key = habitId + ":" + dateKey;
-    const willCheck = !checkins.some(
-      (item) => item.habit_id + ":" + item.completed_date === key,
-    );
+    const key = habit.id + ":" + dateKey;
+    const isCurrentlyChecked = checked.has(key);
 
-    if (willCheck) playClick(true);
-
-    setSaving(habitId);
+    setSaving(habit.id);
     setError("");
 
-    const response = await fetch("/api/habits/" + habitId + "/check", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ dateKey }),
-    });
+    try {
+      const response = await fetch(
+        "/api/habits/" + habit.id + "/check",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ dateKey }),
+        },
+      );
 
-    const payload = await response.json().catch(() => null);
+      const payload = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      setError(payload?.error ?? "Әдетті белгілеу мүмкін болмады.");
+      if (!response.ok) {
+        setError(payload?.error ?? "Әдетті белгілеу мүмкін болмады.");
+        return;
+      }
+
+      if (payload.checked) {
+        setCheckins((current) =>
+          current.some(
+            (item) => item.habit_id + ":" + item.completed_date === key,
+          )
+            ? current
+            : [...current, { habit_id: habit.id, completed_date: dateKey }],
+        );
+
+        if (!isCurrentlyChecked) playCheckSound();
+      } else {
+        setCheckins((current) =>
+          current.filter(
+            (item) => item.habit_id + ":" + item.completed_date !== key,
+          ),
+        );
+      }
+    } catch {
+      setError("Сервермен байланыс үзілді. Қайта байқап көр.");
+    } finally {
       setSaving(null);
-      return;
     }
-
-    if (payload.checked) {
-      setCheckins((current) =>
-        current.some(
-          (item) => item.habit_id + ":" + item.completed_date === key,
-        )
-          ? current
-          : [...current, { habit_id: habitId, completed_date: dateKey }],
-      );
-    } else {
-      setCheckins((current) =>
-        current.filter(
-          (item) => item.habit_id + ":" + item.completed_date !== key,
-        ),
-      );
-    }
-
-    setSaving(null);
   }
 
-  async function addHabit() {
-    if (saving) return;
+  async function removeHabit(habit: Habit) {
+    if (!window.confirm("«" + habit.name + "» әдетін өшіру керек пе?")) return;
 
     setError("");
 
-    const response = await fetch("/api/habits", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        name: newName,
-        description: newDescription,
-        icon: newIcon,
-      }),
-    });
+    try {
+      const response = await fetch("/api/habits/" + habit.id, {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => null);
 
-    const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(payload?.error ?? "Әдетті өшіру мүмкін болмады.");
+        return;
+      }
 
-    if (!response.ok) {
-      setError(payload?.error ?? "Әдетті қосу мүмкін болмады.");
-      return;
+      setHabits((current) => current.filter((item) => item.id !== habit.id));
+      setCheckins((current) =>
+        current.filter((item) => item.habit_id !== habit.id),
+      );
+    } catch {
+      setError("Сервермен байланыс үзілді. Қайта байқап көр.");
     }
-
-    setHabits((current) => [...current, payload.habit]);
-    setNewName("");
-    setNewDescription("");
-    setNewIcon("Sparkles");
-    setAdding(false);
-  }
-
-  async function removeHabit(habitId: string) {
-    if (!window.confirm("Бұл әдетті өшіру керек пе?")) return;
-
-    const response = await fetch("/api/habits/" + habitId, {
-      method: "DELETE",
-    });
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(payload?.error ?? "Әдетті өшіру мүмкін болмады.");
-      return;
-    }
-
-    setHabits((current) => current.filter((habit) => habit.id !== habitId));
-    setCheckins((current) => current.filter((item) => item.habit_id !== habitId));
   }
 
   return (
@@ -327,7 +369,9 @@ export function HabitBoard({
           <p className="mt-6 text-[34px] font-extrabold leading-none tracking-[-.06em] text-[#172235]">
             {streak}
           </p>
-          <p className="mt-1 text-[9px] font-bold text-[#8B8179]">күн қатарынан</p>
+          <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
+            күн қатарынан
+          </p>
         </div>
 
         <div className="shrq-habit-stat rounded-[22px] border border-[#E8E3DD] bg-white p-5">
@@ -355,13 +399,13 @@ export function HabitBoard({
               7 КҮНДІК ЫРҒАҚ
             </p>
             <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">
-              Әр нүкте — сол күндегі орындалған әдет.
+              Дүйсенбі → Жексенбі
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => setAdding((value) => !value)}
+            onClick={() => setCreateOpen(true)}
             className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] bg-[#FF8000] px-3.5 text-[9px] font-extrabold text-white shadow-[0_7px_18px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.97]"
           >
             <Plus size={14} />
@@ -373,10 +417,16 @@ export function HabitBoard({
           {dates.map((date) => {
             const count = habits.reduce(
               (total, habit) =>
-                total + Number(checked.has(habit.id + ":" + date)),
+                total +
+                Number(
+                  date <= today &&
+                    isScheduled(habit, date) &&
+                    checked.has(habit.id + ":" + date),
+                ),
               0,
             );
             const active = date === today;
+            const future = date > today;
 
             return (
               <div
@@ -385,7 +435,9 @@ export function HabitBoard({
                   "rounded-[12px] border px-1.5 py-2.5 text-center transition",
                   active
                     ? "border-[#F3C7B0] bg-white shadow-sm"
-                    : "border-transparent bg-white/60",
+                    : future
+                      ? "border-transparent bg-white/40 opacity-55"
+                      : "border-transparent bg-white/60",
                 ].join(" ")}
               >
                 <p
@@ -409,69 +461,6 @@ export function HabitBoard({
           })}
         </div>
       </section>
-
-      {adding ? (
-        <section className="shrq-habit-add rounded-[20px] border border-[#F3C7B0] bg-white p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-extrabold text-[#172235]">Жаңа әдет</p>
-              <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">
-                Өзіңе лайық бір қарапайым әдет қос.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setAdding(false)}
-              className="text-[9px] font-extrabold text-[#9A9189] hover:text-[#172235]"
-            >
-              Жабу
-            </button>
-          </div>
-
-          <div className="mt-3 grid gap-2.5 md:grid-cols-[1fr_1.2fr_auto]">
-            <input
-              value={newName}
-              onChange={(event) => setNewName(event.target.value)}
-              maxLength={60}
-              placeholder="Мысалы: 15 минут қайталау"
-              className="h-10 rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] px-3 text-[10px] font-semibold outline-none transition focus:border-[#F3C7B0] focus:bg-white"
-            />
-            <input
-              value={newDescription}
-              onChange={(event) => setNewDescription(event.target.value)}
-              maxLength={140}
-              placeholder="Қысқа сипаттама"
-              className="h-10 rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] px-3 text-[10px] font-semibold outline-none transition focus:border-[#F3C7B0] focus:bg-white"
-            />
-            <button
-              type="button"
-              onClick={() => void addHabit()}
-              className="h-10 rounded-[11px] bg-[#172235] px-4 text-[9px] font-extrabold text-white transition hover:bg-[#24344F] active:scale-[.98]"
-            >
-              Сақтау
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {ICON_OPTIONS.map(([value, Icon]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setNewIcon(value)}
-                className={[
-                  "grid h-8 w-8 place-items-center rounded-[9px] border transition",
-                  newIcon === value
-                    ? "border-[#F3C7B0] bg-[#FFF1E2] text-[#FF8000]"
-                    : "border-[#E8E3DD] bg-[#FAF9F7] text-[#8B8179]",
-                ].join(" ")}
-                aria-label={value}
-              >
-                <Icon size={14} />
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       {error ? (
         <div className="rounded-[12px] border border-[#F5CBC8] bg-[#FFF8F7] px-3.5 py-2.5 text-[9px] font-bold text-[#B94B44]">
@@ -498,8 +487,12 @@ export function HabitBoard({
           {habits.map((habit, index) => {
             const Icon = iconFor(habit.icon);
             const doneToday = checked.has(habit.id + ":" + today);
-            const weekCount = dates.filter((date) =>
-              checked.has(habit.id + ":" + date),
+            const scheduledToday = isScheduled(habit, today);
+            const weekCount = dates.filter(
+              (date) =>
+                date <= today &&
+                isScheduled(habit, date) &&
+                checked.has(habit.id + ":" + date),
             ).length;
             const isSaving = saving === habit.id;
 
@@ -513,9 +506,7 @@ export function HabitBoard({
                     : "border-[#E8E3DD] hover:-translate-y-0.5 hover:border-[#F3C7B0] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]",
                 ].join(" ")}
                 style={
-                  {
-                    "--habit-delay": index * 45 + "ms",
-                  } as CSSProperties
+                  { "--habit-delay": index * 45 + "ms" } as CSSProperties
                 }
               >
                 {doneToday ? (
@@ -548,7 +539,7 @@ export function HabitBoard({
                       {!habit.is_default ? (
                         <button
                           type="button"
-                          onClick={() => void removeHabit(habit.id)}
+                          onClick={() => void removeHabit(habit)}
                           className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] text-[#B4AAA1] opacity-70 transition hover:bg-[#FFF4F2] hover:text-[#C94D45] sm:opacity-0 sm:group-hover:opacity-100"
                           aria-label={habit.name + " өшіру"}
                         >
@@ -560,44 +551,78 @@ export function HabitBoard({
 
                   <button
                     type="button"
-                    onClick={() => void toggleHabit(habit.id)}
-                    disabled={isSaving}
+                    onClick={() => void toggleHabit(habit)}
+                    disabled={isSaving || !scheduledToday}
                     aria-pressed={doneToday}
                     aria-label={
-                      doneToday
-                        ? habit.name + " — орындалды"
-                        : habit.name + " — орындадым деп белгілеу"
+                      !scheduledToday
+                        ? habit.name + " — бүгін кестеде жоқ"
+                        : doneToday
+                          ? habit.name + " — орындалды"
+                          : habit.name + " — орындадым деп белгілеу"
                     }
                     className={[
                       "shrq-habit-check shrink-0",
                       doneToday ? "is-checked" : "",
                       isSaving ? "is-saving" : "",
+                      !scheduledToday ? "opacity-35" : "",
                     ].join(" ")}
                   >
-                    {doneToday ? <Check size={17} strokeWidth={3} /> : <span />}
+                    {doneToday ? (
+                      <Check size={17} strokeWidth={3} />
+                    ) : (
+                      <span />
+                    )}
                   </button>
                 </div>
 
-                <div className="relative mt-4 grid grid-cols-7 gap-1.5">
+                <div className="relative mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
+                    {scheduleLabel(habit)}
+                  </span>
+                  <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
+                    {durationLabel(habit)}
+                  </span>
+                  <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
+                    {habit.section}
+                  </span>
+                  {habit.reminder_time ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF1E2] px-2 py-1 text-[7px] font-extrabold text-[#C15F00]">
+                      <Bell size={9} />
+                      {habit.reminder_time.slice(0, 5)}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="relative mt-3 grid grid-cols-7 gap-1.5">
                   {dates.map((date) => {
-                    const done = checked.has(habit.id + ":" + date);
+                    const done =
+                      date <= today &&
+                      isScheduled(habit, date) &&
+                      checked.has(habit.id + ":" + date);
+                    const available =
+                      date <= today && isScheduled(habit, date);
 
                     return (
                       <button
                         key={date}
                         type="button"
-                        onClick={() => void toggleHabit(habit.id, date)}
-                        disabled={isSaving}
-                        className="group/day min-w-0"
-                        aria-label={habit.name + ": " + date}
+                        onClick={() => void toggleHabit(habit, date)}
+                        disabled={isSaving || !available}
+                        className="group/day min-w-0 disabled:cursor-default"
+                        aria-label={
+                          habit.name + ": " + formatDate(date)
+                        }
                       >
                         <span
                           className={[
                             "block h-1.5 rounded-full transition-all duration-200",
                             done
                               ? "bg-[#FF8000] shadow-[0_0_8px_rgba(255,128,0,.28)]"
-                              : "bg-[#EDE8E2] group-hover/day:bg-[#DDD6CF]",
-                            date === today && !done
+                              : available
+                                ? "bg-[#EDE8E2] group-hover/day:bg-[#DDD6CF]"
+                                : "bg-[#F1EDE8]",
+                            date === today && available && !done
                               ? "ring-1 ring-[#F3C7B0] ring-offset-1 ring-offset-white"
                               : "",
                           ].join(" ")}
@@ -614,17 +639,38 @@ export function HabitBoard({
                   <span
                     className={[
                       "text-[8px] font-extrabold",
-                      doneToday ? "text-[#D56700]" : "text-[#9A9189]",
+                      doneToday
+                        ? "text-[#D56700]"
+                        : scheduledToday
+                          ? "text-[#9A9189]"
+                          : "text-[#B8AEA5]",
                     ].join(" ")}
                   >
-                    {doneToday ? "БҮГІН ДАЙЫН" : "БҮГІНГЕ ҚАДАМ"}
+                    {doneToday
+                      ? "БҮГІН ДАЙЫН"
+                      : scheduledToday
+                        ? "БҮГІНГЕ ҚАДАМ"
+                        : "БҮГІН КЕСТЕДЕ ЖОҚ"}
                   </span>
                 </div>
+
+                {habit.goal ? (
+                  <p className="relative mt-2 truncate text-[8px] font-semibold text-[#A19890]">
+                    Мақсат: {habit.goal}
+                  </p>
+                ) : null}
               </article>
             );
           })}
         </div>
       </section>
+
+      <HabitCreateModal
+        open={createOpen}
+        today={today}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(habit) => setHabits((current) => [...current, habit])}
+      />
     </div>
   );
 }
