@@ -303,6 +303,11 @@ export default async function LessonsPage({
                   </section>
 
                   <section className="min-w-0">
+                    <div className="mb-2">
+                      <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
+                        ТАПСЫРМАЛАР
+                      </p>
+                    </div>
 
                     {!dayTasks.length ? (
                       <Card className="p-7 text-center">
