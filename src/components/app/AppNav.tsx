@@ -12,6 +12,7 @@ import {
   CalendarCheck2,
   ClipboardCheck,
   ClipboardList,
+  CheckSquare2,
   FileClock,
   FileText,
   LayoutDashboard,
@@ -32,6 +33,7 @@ const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
   { label: "Сабақтар", href: "/lessons", icon: BookOpen },
   { label: "Тапсырмалар", href: "/tasks", icon: ClipboardList },
+  { label: "Әдеттер", href: "/habits", icon: CheckSquare2 },
   { label: "Профиль", href: "/profile", icon: Users },
   { label: "Баптаулар", href: "/settings", icon: Settings },
 ];
@@ -201,7 +203,7 @@ function NavLinks({
 
 function getMobileLinks(role: string, links: NavItem[]) {
   const preferredByRole: Record<string, string[]> = {
-    STUDENT: ["/dashboard", "/lessons", "/tasks", "/profile", "/settings"],
+    STUDENT: ["/dashboard", "/lessons", "/tasks", "/habits", "/profile"],
     MENTOR: ["/mentor", "/mentor/team", "/mentor/tasks", "/mentor/reports", "/profile"],
     CHIEF_MENTOR: [
       "/chief-mentor",
