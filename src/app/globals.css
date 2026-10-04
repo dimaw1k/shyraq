@@ -466,18 +466,16 @@ iframe {
   }
 }
 
-/* Desktop benefit cards: equal-width, natural equal-height row with compact content. */
+/* Desktop benefit cards: compact, equal-height row without artificial whitespace. */
 @media (min-width: 768px) {
   .shyraq-horizontal-rail--benefit {
     align-items: stretch;
-    grid-auto-rows: auto;
   }
 
   .shyraq-horizontal-rail--benefit > * {
     display: flex;
     min-width: 0;
     align-items: stretch;
-    height: auto;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
@@ -488,32 +486,40 @@ iframe {
     min-height: 0;
     max-height: none;
     flex-direction: column;
-    padding: 18px 20px 20px !important;
+    padding: 16px 18px 18px !important;
     overflow: hidden;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card > div:first-child {
-    width: 60px;
-    height: 60px;
-    flex: 0 0 60px;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card > p:first-of-type {
-    margin-top: 14px;
-    line-height: 1.15;
+    margin-top: 12px;
+    line-height: 1.1;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card h3 {
-    margin-top: 5px;
+    margin-top: 4px;
     max-width: 100%;
     min-height: 0;
-    line-height: 1.08;
+    line-height: 1.05;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
   }
 
   .shyraq-horizontal-rail--benefit .shyraq-benefit-card > p:last-of-type {
-    margin-top: 12px;
+    margin-top: 10px;
     max-width: 100%;
-    line-height: 1.5;
+    line-height: 1.42;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
   }
 }
 
