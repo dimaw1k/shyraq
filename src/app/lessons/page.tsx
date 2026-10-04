@@ -165,7 +165,7 @@ export default async function LessonsPage({
                     />
                   </div>
 
-                  <h2 className="absolute inset-0 flex items-center justify-center text-center text-[16px] font-extrabold leading-none tracking-[-.03em] text-[#172235]">
+                  <h2 className="absolute inset-0 flex items-center justify-center text-center text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
                     {week.subtitle}
                   </h2>
                 </Card>
