@@ -235,17 +235,12 @@ function BenefitCard({
 }) {
   return (
     <div className={`shyraq-benefit-card group relative rounded-[24px] border border-[#ebe6df] ${tone} p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(20,20,20,.07)] sm:p-6`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
-          <Icon size={20} />
-        </div>
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#faf7f2] text-[#a49b92] text-[10px] font-extrabold">
-          {eyebrow}
-        </span>
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
+        <Icon size={20} />
       </div>
 
       <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.17em] text-[#FF8000]">
-        КЕЗЕҢ
+        КЕЗЕҢ {eyebrow}
       </p>
       <h3 className="mt-1 max-w-[20rem] text-[20px] font-extrabold leading-[1.08] tracking-[-.035em] text-[#172235]">
         {title}
