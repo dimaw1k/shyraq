@@ -356,13 +356,10 @@ export default function HomePage() {
                 Күн сайын бір қадам.
                 <span className="block text-[#FF8000]">21 күнде тұрақты әдет.</span>
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#776f67] sm:text-base">
-                Әр күннің мақсаты, тапсырмасы және қорытындысы бар.
-              </p>
             </div>
           </Reveal>
 
-          <div className="relative mt-12">
+          <div className="relative mt-8">
             <div className="absolute left-6 top-8 hidden h-[calc(100%-64px)] w-px bg-gradient-to-b from-[#FF8000] via-[#ffd1b8] to-transparent sm:block" />
 
             <div className="shyraq-journey-rail flex gap-4 overflow-x-auto pb-3">
@@ -402,11 +399,8 @@ export default function HomePage() {
                   Күн жоспары дайын.
                   <span className="block text-[#FF8000]">Саған орындау ғана қалады.</span>
                 </h2>
-                <p className="mt-5 max-w-lg text-[15px] font-medium leading-7 text-[#5f574f] sm:text-base">
-                  Күндік жоспар, оқу және есеп бір экранда.
-                </p>
 
-                <div className="mt-7 space-y-3">
+                <div className="mt-5 space-y-3">
                   {[
                     ["01", "Таңғы бастау", "05:00 — ояну, таңғы әдеттер және 05:30–06:30 алғашқы оқу."],
                     ["02", "Негізгі оқу", "06:30–08:00 — негізгі оқу мен жоспар; кешке 17:30–20:00 — екінші оқу уақыты."],
