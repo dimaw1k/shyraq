@@ -231,14 +231,14 @@ export function HabitCreateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#172235]/35 p-0 backdrop-blur-[5px] sm:items-center sm:p-5">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#172235]/35 p-3 backdrop-blur-[5px] sm:items-center sm:p-6">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="habit-create-title"
-        className="flex max-h-[calc(100dvh-24px)] w-full min-h-0 flex-col overflow-hidden rounded-t-[24px] bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)] sm:max-h-[calc(100dvh-40px)] sm:max-w-[720px] sm:rounded-[24px]"
+        className="flex max-h-[calc(100dvh-56px)] w-full min-h-0 flex-col overflow-hidden rounded-[22px] bg-[#FAF9F7] shadow-[0_30px_90px_rgba(23,34,53,.22)] sm:max-h-[calc(100dvh-72px)] sm:max-w-[760px] sm:rounded-[22px]"
       >
-        <div className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-[#E8E3DD] bg-white px-4 py-3 sm:px-5">
+        <div className="flex shrink-0 items-center gap-3 border-b border-[#E8E3DD] bg-white px-4 py-3 sm:px-5">
           <button
             type="button"
             onClick={onClose}
@@ -589,7 +589,7 @@ export function HabitCreateModal({
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-10 shrink-0 border-t border-[#E8E3DD] bg-white/95 p-3.5 backdrop-blur sm:p-4">
+        <div className="shrink-0 border-t border-[#E8E3DD] bg-white p-3.5 sm:p-4">
           <button
             type="button"
             onClick={() => void saveHabit()}
