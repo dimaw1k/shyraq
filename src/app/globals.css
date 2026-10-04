@@ -314,20 +314,27 @@ iframe {
     animation-delay: 170ms;
   }
 
-  .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
-    min-height: 280px;
-    height: 100%;
-  }
-
-  .shyraq-horizontal-rail--journey .shyraq-journey-card {
+  /* All mobile rails share the same visual rhythm as the 21-day journey cards. */
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card,
+  .shyraq-horizontal-rail--journey .shyraq-journey-card,
+  .shyraq-horizontal-rail--routine .shyraq-routine-card {
+    position: relative;
     min-height: 300px;
     height: 100%;
+    align-content: start;
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card {
+    display: block;
   }
 
   .shyraq-horizontal-rail--routine .shyraq-routine-card {
-    min-height: 150px;
-    height: 100%;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 14px;
+    align-items: center;
   }
 
   .shyraq-benefit-card p,
@@ -348,6 +355,22 @@ iframe {
 
   .shyraq-routine-card p {
     -webkit-line-clamp: 3;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card h3 {
+    margin-top: 8px;
+  }
+
+  .shyraq-horizontal-rail--benefit .shyraq-benefit-card > p {
+    margin-top: 18px;
+  }
+
+  .shyraq-horizontal-rail--journey .shyraq-journey-card > p {
+    margin-top: 18px;
+  }
+
+  .shyraq-horizontal-rail--routine .shyraq-routine-card > div:nth-child(2) p:first-child {
+    line-height: 1.15;
   }
 
   #marathon > div {
