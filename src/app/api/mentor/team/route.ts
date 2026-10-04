@@ -13,7 +13,7 @@ export async function GET() {
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
   const { data: members } = await supabase.from("team_members")
-    .select("student_id,assigned_at,profiles(id,full_name,phone,email,age,status)")
+    .select("student_id,assigned_at,profiles(id,full_name,phone,email,status)")
     .eq("team_id", team.id).eq("status", "ACTIVE");
 
   const students = (members ?? []).map((item) => {
