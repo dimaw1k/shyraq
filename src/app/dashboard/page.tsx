@@ -3,11 +3,8 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   ArrowUpRight,
-  Bell,
-  BookOpen,
   Clock3,
   Flame,
-  ListChecks,
   Trophy,
   UsersRound,
 } from "lucide-react";
@@ -174,10 +171,9 @@ export default async function DashboardPage() {
     >
       <PageContainer className="max-w-[1380px] pb-5 lg:pb-6">
         <div className="space-y-5">
-          <DashboardBanner banners={bannerItems} />
-
           <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-            <div className="min-w-0">
+            <div className="min-w-0 space-y-4">
+              <DashboardBanner banners={bannerItems} />
               <div className="mb-2.5 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
