@@ -48,6 +48,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
                 className="object-cover"
                 draggable={false}
                 priority={imageBanners.indexOf(banner) < 2}
+                unoptimized
               />
             </div>
           );
