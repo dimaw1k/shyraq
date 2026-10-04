@@ -17,7 +17,7 @@ import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from
 import { DashboardBanner } from "@/components/student/DashboardBanner";
 
 function currentTimestampMs() {
-  return currentTimestampMs();
+  return Date.now();
 }
 
 function kzDateKey(value: string) {
