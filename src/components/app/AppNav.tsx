@@ -284,7 +284,12 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 h-[60px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:left-[236px] lg:h-[56px]">
+      <header
+        className={[
+          "fixed inset-x-0 top-0 z-40 h-[60px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:h-[56px]",
+          role === "STUDENT" ? "lg:left-[330px]" : "lg:left-[236px]",
+        ].join(" ")}
+      >
         <div className="flex h-full items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-1.5">
             <button
@@ -312,7 +317,8 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       <aside
         id="shyraq-mobile-sidebar"
         className={[
-          "fixed inset-y-0 left-0 z-50 w-[min(86vw,300px)] border-r border-[#E8E3DD] bg-[#FAF9F7] px-3.5 py-4 shadow-[14px_0_40px_rgba(23,34,53,.08)] sm:px-4 sm:py-5",
+          "fixed inset-y-0 left-0 z-50 border-r border-[#E8E3DD] bg-[#FAF9F7] px-3.5 py-4 shadow-[14px_0_40px_rgba(23,34,53,.08)] sm:px-4 sm:py-5",
+          role === "STUDENT" ? "w-[min(86vw,300px)] lg:w-[330px]" : "w-[min(86vw,300px)] lg:w-[236px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "transition-transform duration-200 ease-out",
         ].join(" ")}
@@ -367,7 +373,12 @@ export function AppShell({
   return (
     <div className="min-h-screen min-w-0 bg-[var(--background)] text-[var(--foreground)]">
       <AppNav role={role} userName={userName} />
-      <div className="min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:ml-[236px] lg:pb-0 lg:pt-[56px]">
+      <div
+        className={[
+          "min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:pb-0 lg:pt-[56px]",
+          role === "STUDENT" ? "lg:ml-[330px]" : "lg:ml-[236px]",
+        ].join(" ")}
+      >
         {!hideHeader ? (
           <div className="border-b border-[#E8E3DD] bg-[#FAF9F7]/92 backdrop-blur">
             <div className="mx-auto flex min-h-[76px] max-w-[1320px] flex-col items-start justify-center gap-2 px-3.5 py-3.5 sm:min-h-[82px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
