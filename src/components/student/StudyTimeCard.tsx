@@ -112,61 +112,59 @@ export function StudyTimeCard({
 
   return (
     <>
-      <section className="rounded-[22px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-5">
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <SessionRow
-            label="Таңғы Study Time"
-            minutes={morningMinutes}
-            submitted={submitted.has("MORNING")}
-            onReport={() => openReport("MORNING")}
-          />
-          <SessionRow
-            label="Кешкі Study Time"
-            minutes={eveningMinutes}
-            submitted={submitted.has("EVENING")}
-            onReport={() => openReport("EVENING")}
-          />
-        </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <SessionRow
+          label="Таңғы Study Time"
+          minutes={morningMinutes}
+          submitted={submitted.has("MORNING")}
+          onReport={() => openReport("MORNING")}
+        />
+        <SessionRow
+          label="Кешкі Study Time"
+          minutes={eveningMinutes}
+          submitted={submitted.has("EVENING")}
+          onReport={() => openReport("EVENING")}
+        />
+      </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {meetingUrl ? (
-            <>
-              <a
-                href={meetingUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={meetingName + " — таңғы Meet"}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
-              >
-                <Camera size={14} />
-                Таңғы Meet-ке кіру
-                <ArrowUpRight size={12} />
-              </a>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {meetingUrl ? (
+          <>
+            <a
+              href={meetingUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={meetingName + " — таңғы Meet"}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+            >
+              <Camera size={14} />
+              Таңғы Meet-ке кіру
+              <ArrowUpRight size={12} />
+            </a>
 
-              <a
-                href={meetingUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={meetingName + " — кешкі Meet"}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
-              >
-                <Camera size={14} />
-                Кешкі Meet-ке кіру
-                <ArrowUpRight size={12} />
-              </a>
-            </>
-          ) : (
-            <>
-              <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
-                Таңғы Meet сілтемесі қосылмаған
-              </div>
-              <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
-                Кешкі Meet сілтемесі қосылмаған
-              </div>
-            </>
-          )}
-        </div>
-      </section>
+            <a
+              href={meetingUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={meetingName + " — кешкі Meet"}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+            >
+              <Camera size={14} />
+              Кешкі Meet-ке кіру
+              <ArrowUpRight size={12} />
+            </a>
+          </>
+        ) : (
+          <>
+            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+              Таңғы Meet сілтемесі қосылмаған
+            </div>
+            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+              Кешкі Meet сілтемесі қосылмаған
+            </div>
+          </>
+        )}
+      </div>
 
       {open ? (
         <ReportModal
