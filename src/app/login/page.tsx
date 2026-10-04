@@ -159,6 +159,15 @@ export default function LoginPage() {
               </div>
             </label>
 
+            <div className="-mt-1 flex justify-end">
+              <Link
+                href="/reset-password"
+                className="text-[11px] font-bold text-[#8A7D73] transition hover:text-[#FF8000] hover:underline"
+              >
+                Құпиясөзді ұмыттыңыз ба?
+              </Link>
+            </div>
+
             {error ? (
               <div className="rounded-[13px] border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold leading-4 text-red-700">
                 {error}
