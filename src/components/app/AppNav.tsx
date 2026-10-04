@@ -287,7 +287,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       <header
         className={[
           "fixed inset-x-0 top-0 z-40 h-[60px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:h-[56px]",
-          role === "STUDENT" ? "lg:left-[330px]" : "lg:left-[236px]",
+          role === "STUDENT" ? "lg:left-[248px]" : "lg:left-[236px]",
         ].join(" ")}
       >
         <div className="flex h-full items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
@@ -318,7 +318,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
         id="shyraq-mobile-sidebar"
         className={[
           "fixed inset-y-0 left-0 z-50 border-r border-[#E8E3DD] bg-[#FAF9F7] px-3.5 py-4 shadow-[14px_0_40px_rgba(23,34,53,.08)] sm:px-4 sm:py-5",
-          role === "STUDENT" ? "w-[min(86vw,300px)] lg:w-[330px]" : "w-[min(86vw,300px)] lg:w-[236px]",
+          role === "STUDENT" ? "w-[min(86vw,300px)] lg:w-[248px] lg:border-r-0" : "w-[min(86vw,300px)] lg:w-[236px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "transition-transform duration-200 ease-out",
         ].join(" ")}
@@ -376,7 +376,7 @@ export function AppShell({
       <div
         className={[
           "min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:pb-0 lg:pt-[56px]",
-          role === "STUDENT" ? "lg:ml-[330px]" : "lg:ml-[236px]",
+          role === "STUDENT" ? "lg:ml-[248px]" : "lg:ml-[236px]",
         ].join(" ")}
       >
         {!hideHeader ? (
