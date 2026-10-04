@@ -12,6 +12,10 @@ import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 
+function currentTimestampMs() {
+  return currentTimestampMs();
+}
+
 export default async function LessonsPage({
   searchParams,
 }: {
@@ -103,7 +107,7 @@ export default async function LessonsPage({
     (lesson) => Number(lesson.marathon_day) === activeDay,
   );
 
-  const now = Date.now();
+  const now = currentTimestampMs();
 
   const dayTasks = visibleTasks.filter((task) => {
     const sameDay = Number(task.marathon_day) === activeDay;
