@@ -3,303 +3,309 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BookOpen,
+  CalendarDays,
   CheckCircle2,
-  ChevronRight,
-  Clock3,
   LockKeyhole,
-  Search,
+  Clock3,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import {
-  Card,
-  EmptyState,
-  PageContainer,
-  SectionHeader,
-  StatusPill,
-} from "@/components/ui/ShyraqUI";
+import { Card, EmptyState, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
-import { formatKzDateTime } from "@/lib/datetime";
-
-const PAGE_RENDERED_AT = Date.now();
-
-function weekForDay(day: number) {
-  return MARATHON_WEEKS.find((week) => day >= week.startDay && day <= week.endDay) ?? MARATHON_WEEKS[0];
-}
 
 export default async function LessonsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ week?: string }>;
+  searchParams?: Promise<{ week?: string; day?: string }>;
 }) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: membership }, { data: lessons }] = await Promise.all([
-    supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
-    supabase
-      .from("team_members")
-      .select("team_id")
-      .eq("student_id", user.id)
-      .eq("status", "ACTIVE")
-      .maybeSingle(),
-    supabase
-      .from("lessons")
-      .select(
-        "id,title,description,duration_seconds,required_watch_percent,marathon_day,lesson_order,team_id,starts_at,published",
-      )
-      .eq("published", true)
-      .order("marathon_day")
-      .order("lesson_order")
-      .limit(100),
-  ]);
+  const [{ data: profile }, { data: membership }, { data: lessons }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name,role")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("student_id", user.id)
+        .eq("status", "ACTIVE")
+        .maybeSingle(),
+      supabase
+        .from("lessons")
+        .select(
+          "id,title,description,duration_seconds,required_watch_percent,marathon_day,lesson_order,team_id,starts_at,published",
+        )
+        .eq("published", true)
+        .order("marathon_day")
+        .order("lesson_order")
+        .limit(200),
+    ]);
 
   const role = profile?.role ?? "STUDENT";
   const teamId = membership?.team_id ?? null;
+
   const visibleLessons =
     role === "STUDENT"
-      ? (lessons ?? []).filter((lesson) => !lesson.team_id || lesson.team_id === teamId)
+      ? (lessons ?? []).filter(
+          (lesson) => !lesson.team_id || lesson.team_id === teamId,
+        )
       : lessons ?? [];
 
-  const selectedWeek = Number((await searchParams)?.week ?? 1);
+  const params = (await searchParams) ?? {};
+  const requestedWeek = Number(params.week ?? 1);
   const activeWeek =
-    MARATHON_WEEKS.find((week) => week.week === selectedWeek) ?? MARATHON_WEEKS[0];
+    MARATHON_WEEKS.find((week) => week.week === requestedWeek) ??
+    MARATHON_WEEKS[0];
+
   const weekLessons = visibleLessons.filter((lesson) => {
     const day = Number(lesson.marathon_day ?? 0);
     return day >= activeWeek.startDay && day <= activeWeek.endDay;
   });
-  const featured = weekLessons[0] ?? visibleLessons[0] ?? null;
-  const now = PAGE_RENDERED_AT;
+
+  const availableDays = Array.from(
+    new Set(
+      weekLessons
+        .map((lesson) => Number(lesson.marathon_day))
+        .filter(
+          (day) =>
+            day >= activeWeek.startDay && day <= activeWeek.endDay,
+        ),
+    ),
+  ).sort((a, b) => a - b);
+
+  const requestedDay = Number(params.day ?? availableDays[0] ?? activeWeek.startDay);
+  const activeDay =
+    availableDays.includes(requestedDay) || !weekLessons.length
+      ? requestedDay
+      : availableDays[0] ?? activeWeek.startDay;
+
+  const dayLessons = weekLessons.filter(
+    (lesson) => Number(lesson.marathon_day) === activeDay,
+  );
+
+  const now = Date.now();
 
   return (
     <AppShell
       role={role}
       userName={profile?.full_name ?? undefined}
       title="Сабақтар"
-      description="21 күндік оқу жоспарын бір жерден бақыла."
+      description="Аптаны таңда → күнді таңда → сол күннің сабақтарын орында."
     >
-      <PageContainer>
-        <div className="space-y-5" data-shyraq-ui="lessons-v2">
-          <SectionHeader
-            eyebrow="ОҚУ"
-            title="Сабақтар"
-            description="Аптаны таңда, тақырыпты аш және сабақтың бүкіл статусын бірден көр."
-          />
+      <PageContainer className="pb-8">
+        <div className="space-y-4">
+          <header>
+            <p className="text-[9px] font-extrabold uppercase tracking-[.17em] text-[#FF8000]">
+              ОҚУ
+            </p>
+            <h1 className="mt-1 text-[24px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[28px]">
+              Сабақтар
+            </h1>
+            <p className="mt-1.5 max-w-2xl text-[11px] font-medium leading-5 text-[#857B72]">
+              Әр апта бөлек. Әр күннің ішінде тек сол күнге тиесілі сабақтар көрсетіледі.
+            </p>
+          </header>
 
-          <div className="overflow-x-auto rounded-[22px] border border-[#E8E1DA] bg-white p-2 shadow-[0_10px_30px_rgba(23,34,53,.035)]">
-            <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+          <Card className="p-2.5">
+            <div className="grid gap-2 md:grid-cols-3">
               {MARATHON_WEEKS.map((week) => (
                 <Link
                   key={week.week}
                   href={"/lessons?week=" + week.week}
                   className={[
-                    "rounded-[15px] px-4 py-3 text-center transition-all",
+                    "rounded-[13px] border px-4 py-3.5 transition",
                     activeWeek.week === week.week
-                      ? "border border-[#FFD9B3] bg-[#FFF1E2] text-[#B95D00] shadow-[0_6px_18px_rgba(255,128,0,.08)]"
-                      : "text-[#786F67] hover:bg-[#FAF8F5] hover:text-[#172235]",
+                      ? "border-[#FFD5AD] bg-[#FFF1E2] text-[#B95D00]"
+                      : "border-transparent bg-[#FAF8F5] text-[#6F665E] hover:border-[#E8E1DA] hover:bg-white hover:text-[#172235]",
                   ].join(" ")}
                 >
-                  <span className="block text-[9px] font-extrabold uppercase tracking-[.14em]">
-                    {week.week}-апта
+                  <span className="block text-[9px] font-extrabold uppercase tracking-[.12em]">
+                    {week.week}-АПТА
                   </span>
-                  <span className="mt-1 block text-[10px] font-semibold">
-                    {week.subtitle}
+                  <span className="mt-1 block text-[14px] font-extrabold tracking-[-.02em]">
+                    {week.subtitle.replace(" · ", " • ")}
                   </span>
                 </Link>
               ))}
             </div>
-          </div>
+          </Card>
 
           {!visibleLessons.length ? (
-            <EmptyState title="Жарияланған сабақ жоқ." />
+            <EmptyState title="Әзірге жарияланған сабақ жоқ." />
           ) : (
-            <section className="grid gap-4 xl:grid-cols-[300px_1fr]">
-              <Card className="overflow-hidden">
-                <div className="border-b border-[#EFE8E1] bg-[#FFFCF9] px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-                        {activeWeek.title}
-                      </p>
-                      <p className="mt-1 text-[13px] font-extrabold text-[#172235]">
-                        Тақырыптар
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-[#FFF1E2] px-2.5 py-1 text-[8px] font-extrabold text-[#B95D00]">
-                      {weekLessons.length} сабақ
-                    </span>
-                  </div>
-
-                  <div className="relative mt-3">
-                    <Search
-                      size={13}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A19890]"
-                    />
-                    <div className="rounded-[11px] border border-[#E8E1DA] bg-white px-3 py-2 pl-9 text-[9px] font-semibold text-[#A19890]">
-                      Сабақтар бойынша іздеу
-                    </div>
-                  </div>
+            <section className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+              <Card className="h-fit overflow-hidden p-2">
+                <div className="border-b border-[#EFE8E1] px-3 py-3">
+                  <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
+                    {activeWeek.title}
+                  </p>
+                  <p className="mt-1 text-[14px] font-extrabold text-[#172235]">
+                    Күндер
+                  </p>
                 </div>
 
-                <div className="divide-y divide-[#EFE8E1]">
-                  {weekLessons.map((lesson, index) => {
-                    const locked =
-                      Boolean(lesson.starts_at) &&
-                      new Date(lesson.starts_at!).getTime() > now;
+                <div className="space-y-1.5 p-1.5">
+                  {Array.from(
+                    { length: activeWeek.endDay - activeWeek.startDay + 1 },
+                    (_, index) => activeWeek.startDay + index,
+                  ).map((day) => {
+                    const count = weekLessons.filter(
+                      (lesson) => Number(lesson.marathon_day) === day,
+                    ).length;
+                    const active = day === activeDay;
 
                     return (
                       <Link
-                        key={lesson.id}
-                        href={locked ? "#" : "/lessons/" + lesson.id}
-                        aria-disabled={locked}
+                        key={day}
+                        href={"/lessons?week=" + activeWeek.week + "&day=" + day}
                         className={[
-                          "flex items-center gap-3 px-4 py-3.5 transition",
-                          index === 0 ? "bg-[#FFF7F0]" : "hover:bg-[#FFFCF9]",
-                          locked ? "pointer-events-none opacity-65" : "",
+                          "flex items-center justify-between rounded-[11px] px-3 py-2.5 transition",
+                          active
+                            ? "bg-[#FFF1E2] text-[#B95D00]"
+                            : "text-[#6F665E] hover:bg-[#FAF8F5] hover:text-[#172235]",
                         ].join(" ")}
                       >
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[9px] font-extrabold text-[#B95D00] ring-1 ring-[#FFDDBB]">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[10px] font-extrabold text-[#263247]">
-                            {lesson.title}
-                          </span>
-                          <span className="mt-1 block text-[8px] font-semibold text-[#A19890]">
-                            {lesson.marathon_day}-күн · {locked ? "Әлі ашылмаған" : "Лекция"}
+                        <span className="flex items-center gap-2">
+                          <CalendarDays size={14} />
+                          <span className="text-[10px] font-extrabold">
+                            {day}-күн
                           </span>
                         </span>
-                        {locked ? (
-                          <LockKeyhole size={14} className="shrink-0 text-[#A19890]" />
-                        ) : (
-                          <ChevronRight size={14} className="shrink-0 text-[#A19890]" />
-                        )}
+                        <span
+                          className={[
+                            "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[8px] font-extrabold",
+                            active
+                              ? "bg-white text-[#B95D00]"
+                              : "bg-[#F4F1EC] text-[#9A9189]",
+                          ].join(" ")}
+                        >
+                          {count}
+                        </span>
                       </Link>
                     );
                   })}
-                  {!weekLessons.length ? (
-                    <div className="p-7 text-center text-[10px] font-semibold text-[#8B8179]">
-                      Бұл аптада сабақ жоқ.
-                    </div>
-                  ) : null}
                 </div>
               </Card>
 
-              {featured ? (
-                <Card className="overflow-hidden">
-                  <div className="grid gap-5 p-5 sm:p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <StatusPill tone="orange">{featured.marathon_day}-КҮН</StatusPill>
-                          <span className="text-[9px] font-semibold text-[#A19890]">
-                            {weekForDay(Number(featured.marathon_day ?? 1)).subtitle}
-                          </span>
-                        </div>
-                        <h2 className="mt-3 text-[25px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[30px]">
-                          {featured.title}
-                        </h2>
-                        <p className="mt-2 max-w-2xl text-xs font-medium leading-6 text-[#766E66]">
-                          {featured.description ?? "Сабақты ашып, видеоны ретімен қарап шығыңыз."}
-                        </p>
-                      </div>
+              <div className="min-w-0">
+                <div className="mb-3 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                      {activeWeek.week}-АПТА
+                    </p>
+                    <h2 className="mt-1 text-[20px] font-extrabold tracking-[-.04em] text-[#172235]">
+                      {activeDay}-күннің сабақтары
+                    </h2>
+                  </div>
+                  <span className="rounded-full bg-[#F4F1EC] px-3 py-1.5 text-[9px] font-extrabold text-[#766E66]">
+                    {dayLessons.length} сабақ
+                  </span>
+                </div>
 
-                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[16px] bg-[#FFF1E2] text-[#FF8000]">
-                        <BookOpen size={19} />
+                {!dayLessons.length ? (
+                  <Card className="p-8">
+                    <div className="mx-auto max-w-sm text-center">
+                      <span className="mx-auto grid h-11 w-11 place-items-center rounded-[14px] bg-[#FFF1E2] text-[#FF8000]">
+                        <BookOpen size={18} />
                       </span>
-                    </div>
-
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                      {([
-                        ["САБАҚ", "Лекция", BookOpen],
-                        ["БЕЙНЕ КӨРУ", featured.required_watch_percent + "%+", CheckCircle2],
-                        [
-                          "ҰЗАҚТЫҒЫ",
-                          Math.ceil(featured.duration_seconds / 60) + " мин",
-                          Clock3,
-                        ],
-                        [
-                          "СТАТУС",
-                          featured.starts_at && new Date(featured.starts_at).getTime() > now
-                            ? "Күтілуде"
-                            : "Ашық",
-                          featured.starts_at && new Date(featured.starts_at).getTime() > now
-                            ? LockKeyhole
-                            : CheckCircle2,
-                        ],
-                      ] as Array<[string, string, typeof BookOpen]>).map(([label, value, Icon]) => {
-                        const MetaIcon = Icon as typeof BookOpen;
-                        return (
-                          <div
-                            key={String(label)}
-                            className="rounded-[16px] border border-[#ECE7E2] bg-[#FAF8F5] px-3.5 py-3"
-                          >
-                            <p className="text-[8px] font-extrabold uppercase tracking-[.13em] text-[#A19890]">
-                              {label}
-                            </p>
-                            <div className="mt-2 flex items-center gap-2">
-                              <MetaIcon size={13} className="text-[#FF8000]" />
-                              <p className="text-[11px] font-extrabold text-[#334054]">
-                                {String(value)}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="rounded-[20px] border border-[#E8E1DA] bg-[#FFFCF9] p-4 sm:p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
-                            КЕЛЕСІ ҚАДАМ
-                          </p>
-                          <p className="mt-1 text-[14px] font-extrabold text-[#172235]">
-                            Видеоны толық қарап, тестке өту
-                          </p>
-                        </div>
-                        <ArrowRight size={17} className="shrink-0 text-[#FF8000]" />
-                      </div>
-                      <p className="mt-2 text-[10px] font-semibold leading-5 text-[#8B8179]">
-                        {featured.starts_at && new Date(featured.starts_at).getTime() > now
-                          ? "Сабақ ашылған кезде осы беттен бірден кіре аласыз."
-                          : "85% талап орындалғанда сабақ тесті backend арқылы ашылады."}
+                      <p className="mt-3 text-[13px] font-extrabold text-[#172235]">
+                        Бұл күні сабақ жоқ.
+                      </p>
+                      <p className="mt-1 text-[10px] leading-5 text-[#8B8179]">
+                        Сол аптаның басқа күнін таңдаңыз.
                       </p>
                     </div>
+                  </Card>
+                ) : (
+                  <div className="grid gap-2.5">
+                    {dayLessons.map((lesson, index) => {
+                      const locked =
+                        Boolean(lesson.starts_at) &&
+                        new Date(lesson.starts_at!).getTime() > now;
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EFE8E1] pt-4">
-                      <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold text-[#8B8179]">
-                        <Clock3 size={12} />
-                        {featured.starts_at
-                          ? "Ашылуы: " + formatKzDateTime(featured.starts_at)
-                          : "Уақыт белгіленбеген"}
-                      </span>
-
-                      {featured.starts_at && new Date(featured.starts_at).getTime() > now ? (
-                        <span className="inline-flex items-center gap-2 rounded-[12px] bg-[#F4F1EC] px-3.5 py-2.5 text-[9px] font-extrabold text-[#7F756D]">
-                          <LockKeyhole size={13} />
-                          Әзірге жабық
-                        </span>
-                      ) : (
-                        <Link
-                          href={"/lessons/" + featured.id}
-                          className="inline-flex items-center gap-2 rounded-[12px] bg-[#FF8000] px-4 py-2.5 text-[9px] font-extrabold text-white shadow-[0_8px_20px_rgba(255,128,0,.16)] transition hover:-translate-y-0.5"
+                      return (
+                        <Card
+                          key={lesson.id}
+                          className="overflow-hidden p-0 transition hover:border-[#F2C8A8]"
                         >
-                          Сабақты ашу
-                          <ArrowRight size={13} />
-                        </Link>
-                      )}
-                    </div>
+                          <Link
+                            href={locked ? "#" : "/lessons/" + lesson.id}
+                            aria-disabled={locked}
+                            className={[
+                              "flex items-center gap-3 px-4 py-3.5 sm:px-5",
+                              locked ? "pointer-events-none opacity-65" : "",
+                            ].join(" ")}
+                          >
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#B95D00]">
+                              {locked ? (
+                                <LockKeyhole size={16} />
+                              ) : (
+                                <BookOpen size={16} />
+                              )}
+                            </span>
+
+                            <span className="min-w-0 flex-1">
+                              <span className="flex flex-wrap items-center gap-2">
+                                <span className="text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
+                                  {String(index + 1).padStart(2, "0")} • {activeDay}-КҮН
+                                </span>
+                                {locked ? (
+                                  <span className="rounded-full bg-[#F4F1EC] px-2 py-1 text-[8px] font-extrabold text-[#857B72]">
+                                    Жабық
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-[#EAF7F0] px-2 py-1 text-[8px] font-extrabold text-[#2E7E58]">
+                                    Ашық
+                                  </span>
+                                )}
+                              </span>
+
+                              <span className="mt-1 block truncate text-[13px] font-extrabold tracking-[-.02em] text-[#172235]">
+                                {lesson.title}
+                              </span>
+
+                              <span className="mt-1 flex flex-wrap items-center gap-2 text-[9px] font-medium text-[#8B8179]">
+                                <span>
+                                  {Math.max(1, Math.ceil(Number(lesson.duration_seconds ?? 0) / 60))} мин
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  Тестке өту үшін {Number(lesson.required_watch_percent ?? 85)}% көру керек
+                                </span>
+                              </span>
+                            </span>
+
+                            {locked ? (
+                              <LockKeyhole size={15} className="shrink-0 text-[#AAA097]" />
+                            ) : (
+                              <ArrowRight size={16} className="shrink-0 text-[#FF8000]" />
+                            )}
+                          </Link>
+
+                          <div className="flex items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-4 py-2.5 sm:px-5">
+                            <CheckCircle2 size={13} className="text-[#9A9189]" />
+                            <span className="text-[8px] font-semibold text-[#9A9189]">
+                              Бейне → тест → тапсырма
+                            </span>
+                            <span className="ml-auto inline-flex items-center gap-1 text-[8px] font-semibold text-[#9A9189]">
+                              <Clock3 size={11} />
+                              {Number(lesson.lesson_order ?? index + 1)}
+                            </span>
+                          </div>
+                        </Card>
+                      );
+                    })}
                   </div>
-                </Card>
-              ) : (
-                <Card className="p-8">
-                  <EmptyState title="Сабақ таңдаңыз." />
-                </Card>
-              )}
+                )}
+              </div>
             </section>
           )}
         </div>
