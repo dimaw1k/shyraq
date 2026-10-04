@@ -304,6 +304,7 @@ export default async function DashboardPage() {
                 morningMinutes={morningMinutes}
                 eveningMinutes={eveningMinutes}
                 reports={todayReports}
+                completedTaskCount={completedToday}
               />
             </div>
 
