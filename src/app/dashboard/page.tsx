@@ -14,6 +14,7 @@ import {
 import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
@@ -47,6 +48,8 @@ export default async function DashboardPage() {
   if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
   if (role === "LEADER") redirect("/leader");
 
+  const admin = createAdminSupabaseClient();
+
   const [
     { data: banners },
     { data: reports },
@@ -56,9 +59,9 @@ export default async function DashboardPage() {
     { data: submissions },
     { data: meetSpace },
   ] = await Promise.all([
-    supabase
+    admin
       .from("marathon_banners")
-      .select("id,title,description,image_path,href")
+      .select("id,title,description,image_path,href,published,starts_at,ends_at,sort_order")
       .eq("published", true)
       .order("sort_order")
       .limit(8),
@@ -103,15 +106,22 @@ export default async function DashboardPage() {
       }),
   ]);
 
-  const bannerItems = (banners ?? []).map((banner) => ({
-    id: banner.id,
-    title: banner.title,
-    description: banner.description,
-    href: banner.href,
-    imageUrl: banner.image_path
-      ? supabase.storage.from("banners").getPublicUrl(banner.image_path).data.publicUrl
-      : null,
-  }));
+  const bannerItems = (banners ?? [])
+    .filter((banner) => {
+      const now = Date.now();
+      const startsOk = !banner.starts_at || new Date(banner.starts_at).getTime() <= now;
+      const endsOk = !banner.ends_at || new Date(banner.ends_at).getTime() >= now;
+      return startsOk && endsOk;
+    })
+    .map((banner) => ({
+      id: banner.id,
+      title: banner.title,
+      description: banner.description,
+      href: banner.href,
+      imageUrl: banner.image_path
+        ? admin.storage.from("banners").getPublicUrl(banner.image_path).data.publicUrl
+        : null,
+    }));
 
   const today = todayInTimezone("Asia/Almaty");
   const streak = calculateCurrentStreak(
