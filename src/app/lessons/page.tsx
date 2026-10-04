@@ -178,16 +178,13 @@ export default async function LessonsPage({
               </aside>
 
               <div className="min-w-0">
-                <div className="mb-2.5 flex items-end justify-between gap-3">
-                  <div>
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
-                      {activeWeek.week}-АПТА
-                    </p>
-                    <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
-                      {activeDay}-күн
-                    </h2>
-                  </div>
-
+                <div className="mb-2.5">
+                  <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#FF8000]">
+                    {activeWeek.week}-АПТА
+                  </p>
+                  <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
+                    {activeDay}-күн
+                  </h2>
                 </div>
 
                 {!dayLessons.length ? (
