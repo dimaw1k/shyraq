@@ -103,49 +103,41 @@ function SocialIcon({ type }: { type: "instagram" | "tiktok" | "telegram" }) {
 
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
-    <Link href="/" aria-label="Shyraq" className="shrink-0">
-      <svg
-        width="116"
-        height="34"
-        viewBox="0 0 116 34"
-        role="img"
-        aria-label="SHYRAQ"
-        className="block h-[30px] w-auto sm:h-[34px]"
+    <Link
+      href="/"
+      aria-label="Shyraq"
+      className="inline-flex shrink-0 items-center gap-1"
+    >
+      <span
+        className="font-extrabold tracking-[-0.065em]"
+        style={{ color: dark ? "#ffffff" : "#172235", fontSize: "27px", lineHeight: 1 }}
       >
-        <text
-          x="0"
-          y="26"
-          fill={dark ? "#ffffff" : "#172235"}
-          fontSize="27"
-          fontWeight="800"
-          letterSpacing="-1.15"
-          fontFamily="Montserrat, Arial, sans-serif"
-        >
-          SHYR
-        </text>
-        <g transform="translate(-12 0)">
+        SHYR
+      </span>
+      <span
+        aria-hidden="true"
+        className="-ml-0.5 grid h-6 w-[18px] shrink-0 place-items-center"
+      >
+        <svg viewBox="0 0 18 24" width="18" height="24" fill="none">
           <path
-            d="M100 25.8c-3.8-4.8-6.8-8.2-6.8-12.9 0-4.2 3-7.5 6.8-7.5s6.8 3.3 6.8 7.5c0 4.7-3 8.1-6.8 12.9Z"
+            d="M9 22c-3.1-4-5.4-7.2-5.4-11.1A5.4 5.4 0 0 1 9 5.5a5.4 5.4 0 0 1 5.4 5.4C14.4 14.8 12.1 18 9 22Z"
             fill="#FF8000"
           />
+          <circle cx="9" cy="10.8" r="1.9" fill={dark ? "#0b1423" : "#FFF7F1"} />
           <path
-            d="M100 20.4c-1.7-2.3-2.9-4.3-2.9-6.5 0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3c0 2.2-1.2 4.2-2.9 6.5Z"
-            fill={dark ? "#0b1423" : "#FFF7F1"}
+            d="M6.6 16.2c1.5 1.2 3.3 1.2 4.8 0"
+            stroke={dark ? "#0b1423" : "#FFF7F1"}
+            strokeWidth="1.35"
+            strokeLinecap="round"
           />
-          <circle cx="100" cy="25.1" r="1.3" fill="#FF8000" />
-        </g>
-        <text
-          x="94"
-          y="26"
-          fill={dark ? "#ffffff" : "#172235"}
-          fontSize="27"
-          fontWeight="800"
-          letterSpacing="-1.15"
-          fontFamily="Montserrat, Arial, sans-serif"
-        >
-          Q
-        </text>
-      </svg>
+        </svg>
+      </span>
+      <span
+        className="font-extrabold tracking-[-0.065em]"
+        style={{ color: dark ? "#ffffff" : "#172235", fontSize: "27px", lineHeight: 1 }}
+      >
+        Q
+      </span>
     </Link>
   );
 }
@@ -217,25 +209,6 @@ function DashboardMockup() {
             </div>
           </div>
 
-          <div className="mt-3 grid gap-3 lg:grid-cols-3">
-            {[
-              ["Бүгінгі тапсырма", "Математика практикасы", "25 ұпай"],
-              ["Күндік есеп", "Бүгінгі оқу қорытындысы", "1 минут"],
-              ["Кешкі сабақ", "Бейне кездесу", "18:00"],
-            ].map(([label, title, meta]) => (
-              <div key={label} className="rounded-[20px] border border-[#ebe6df] bg-white p-4">
-                <p className="text-[10px] text-[#a19a91]">{label}</p>
-                <p className="mt-1.5 text-sm font-bold text-[#172235]">{title}</p>
-                <div className="mt-3 flex items-center justify-between text-[10px] text-[#999087]">
-                  <span className="inline-flex items-center gap-1">
-                    <Clock3 size={11} />
-                    {meta}
-                  </span>
-                  <ChevronRight size={13} />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -261,7 +234,7 @@ function BenefitCard({
   tone: string;
 }) {
   return (
-    <div className={`group h-full rounded-[28px] border border-[#ebe6df] ${tone} p-5 shadow-[0_14px_38px_rgba(20,20,20,.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(20,20,20,.08)] sm:p-6`}>
+    <div className={`shyraq-benefit-card group rounded-[24px] border border-[#ebe6df] ${tone} p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(20,20,20,.07)] sm:p-6`}>
       <div className="flex items-center justify-between">
         <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eef1f6] text-[#172235] transition-transform duration-300 group-hover:scale-105">
           <Icon size={20} />
@@ -269,10 +242,10 @@ function BenefitCard({
         <span className="text-[10px] font-extrabold tracking-[.18em] text-[#a49b92]">{eyebrow}</span>
       </div>
 
-      <h3 className="mt-6 max-w-xs text-lg font-extrabold leading-tight tracking-[-.03em] text-[#172235]">{title}</h3>
-      <p className="mt-2 max-w-sm text-[14px] font-medium leading-6 text-[#655c54]">{text}</p>
+      <h3 className="mt-4 max-w-[17rem] text-[17px] font-extrabold leading-[1.12] tracking-[-.03em] text-[#172235] sm:mt-6 sm:text-lg">{title}</h3>
+      <p className="mt-2 max-w-[18rem] text-[13px] font-medium leading-[1.55] text-[#655c54] sm:text-[14px] sm:leading-6">{text}</p>
 
-      <div className="mt-5 inline-flex items-center gap-2 text-xs font-extrabold text-[#172235]">
+      <div className="mt-4 inline-flex items-center gap-2 text-[11px] font-extrabold text-[#172235] sm:mt-5 sm:text-xs">
         Толығырақ
         <ArrowRight size={14} className="text-[#FF8000] transition-transform group-hover:translate-x-0.5" />
       </div>
@@ -344,7 +317,7 @@ export default function HomePage() {
 
       {/* BENEFIT BENTO */}
       <section id="features" className="bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-24 lg:px-8">
           <Reveal>
             <div className="max-w-3xl">
               <p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">МАРАФОННЫҢ МӘНІ</p>
@@ -358,7 +331,7 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="shyraq-benefit-rail mt-8 grid gap-4 md:grid-cols-2 lg:mt-10 lg:grid-cols-4">
             {benefits.map((item, index) => (
               <Reveal key={item.title} delay={index * 90}>
                 <BenefitCard {...item} />
@@ -387,10 +360,10 @@ export default function HomePage() {
           <div className="relative mt-12">
             <div className="absolute left-6 top-8 hidden h-[calc(100%-64px)] w-px bg-gradient-to-b from-[#FF8000] via-[#ffd1b8] to-transparent sm:block" />
 
-            <div className="space-y-4">
+            <div className="shyraq-journey-rail flex gap-4 overflow-x-auto pb-3">
               {days.map(([number, title, text], index) => (
                 <Reveal key={number} delay={index * 100}>
-                  <div className="group relative grid gap-5 rounded-[28px] border border-[#ebe5dd] bg-white p-5 shadow-[0_12px_34px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
+                  <div className="shyraq-journey-card group relative grid shrink-0 gap-4 rounded-[24px] border border-[#ebe5dd] bg-white p-4 shadow-[0_12px_30px_rgba(20,20,20,.035)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(20,20,20,.08)] sm:grid-cols-[76px_180px_1fr] sm:items-center sm:p-6">
                     <div className="relative z-10 grid h-14 w-14 place-items-center rounded-2xl bg-[#eef1f6] text-xs font-extrabold text-[#172235] shadow-[0_10px_24px_rgba(20,20,20,.08)]">
                       {number}
                     </div>
@@ -400,7 +373,7 @@ export default function HomePage() {
                       <p className="mt-1 text-lg font-extrabold text-[#172235]">{title}</p>
                     </div>
 
-                    <p className="max-w-2xl text-[15px] font-medium leading-7 text-[#5f574f]">{text}</p>
+                    <p className="max-w-[24rem] text-[13px] font-medium leading-[1.6] text-[#5f574f] sm:text-[15px] sm:leading-7">{text}</p>
 
                     <span className="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full bg-[#faf7f2] text-[#a79e95] transition-all group-hover:bg-[#fff0e2] group-hover:text-[#FF8000]">
                       <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
@@ -415,7 +388,7 @@ export default function HomePage() {
 
       {/* PRODUCT / DAILY ROUTINE */}
       <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-24 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
             <Reveal>
               <div>
@@ -581,8 +554,8 @@ export default function HomePage() {
       </section>
 
       <footer className="bg-[#0b1423] text-white/55">
-        <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-9 lg:px-8">
-          <div className="grid gap-7 md:grid-cols-[1.5fr_.8fr_.8fr] md:gap-10">
+        <div className="mx-auto max-w-6xl px-5 py-6 sm:px-6 sm:py-9 lg:px-8">
+          <div className="shyraq-footer-grid grid gap-5 md:grid-cols-[1.5fr_.8fr_.8fr] md:gap-10">
             <div>
               <div className="origin-left scale-[.88] sm:scale-[.92]">
                 <Logo dark />
@@ -646,7 +619,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-7 flex flex-col gap-2 border-t border-white/8 pt-4 text-[9px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-5 flex flex-col gap-2 border-t border-white/8 pt-4 text-[9px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
             <span>© 2026 Shyraq. Барлық құқықтар қорғалған.</span>
             <span className="hidden sm:block">21 күн. Бір шешім. Бір қадамнан баста.</span>
           </div>
