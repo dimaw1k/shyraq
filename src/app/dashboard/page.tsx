@@ -108,15 +108,12 @@ export default async function DashboardPage() {
           .eq("active", true)
           .maybeSingle();
       }),
-    teamId
-      ? supabase
-          .from("attendance_records")
-          .select("attended_seconds,started_at,ended_at,attendance_percent,status")
-          .eq("student_id", user.id)
-          .eq("team_id", teamId)
-          .order("started_at", { ascending: false })
-          .limit(20)
-      : Promise.resolve({ data: [] }),
+    supabase
+      .from("attendance_records")
+      .select("attended_seconds,started_at,ended_at,attendance_percent,status")
+      .eq("student_id", user.id)
+      .order("started_at", { ascending: false })
+      .limit(20),
     supabase
       .from("tasks")
       .select("starts_at")
