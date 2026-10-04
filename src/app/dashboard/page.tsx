@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Clock3,
+  Video,
   Flame,
   Trophy,
   UsersRound,
@@ -11,7 +12,6 @@ import {
 import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { MARATHON_WEEKS } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
@@ -44,8 +44,6 @@ export default async function DashboardPage() {
   if (role === "MENTOR") redirect("/mentor");
   if (role === "CHIEF_MENTOR") redirect("/chief-mentor");
   if (role === "LEADER") redirect("/leader");
-
-  const admin = createAdminSupabaseClient();
 
   const [
     { data: banners },
@@ -116,8 +114,8 @@ export default async function DashboardPage() {
       description: banner.description,
       href: banner.href,
       imageUrl: banner.image_path
-        ? admin.storage.from("banners").getPublicUrl(banner.image_path).data.publicUrl
-        : null,
+      ? `https://sqjjqnisnndulkzcqfwb.supabase.co/storage/v1/object/public/banners/${banner.image_path}`
+      : null,
     }));
 
   const today = todayInTimezone("Asia/Almaty");
@@ -270,7 +268,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#EAF7F0] text-[#2E7E58]">
-                      <Clock3 size={14} />
+                      <Video size={14} />
                     </span>
                   </div>
                   <p className="mt-2 text-[9px] leading-4 text-[#8B8179]">
