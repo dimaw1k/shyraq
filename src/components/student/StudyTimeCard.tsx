@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   Camera,
   Check,
-  Clock3,
   ImagePlus,
   Send,
   Sparkles,
@@ -79,10 +78,13 @@ const EMPTY_SLOTS: PhotoSlot[] = SLOT_CONFIG.map((slot) => ({
 
 function formatMinutes(value: number) {
   const minutes = Math.max(0, Math.round(value));
-  if (minutes < 60) return minutes + " мин";
+  if (minutes < 60) return minutes + " минут";
+
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest ? hours + " сағ " + rest + " мин" : hours + " сағ";
+
+  if (rest === 0) return hours + " сағат";
+  return hours + " сағат " + String(rest).padStart(2, "0") + " минут";
 }
 
 export function StudyTimeCard({
@@ -119,9 +121,6 @@ export function StudyTimeCard({
             <h2 className="mt-1 text-[17px] font-extrabold tracking-[-.04em] text-[#172235]">
               Күннің оқу ырғағы
             </h2>
-            <p className="mt-1 text-[9px] font-semibold leading-4 text-[#8B8179]">
-              Google Meet → оқу → күндік есеп. Барлығы бір жерден.
-            </p>
           </div>
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
             <Sparkles size={16} />
@@ -143,37 +142,43 @@ export function StudyTimeCard({
           />
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {meetingUrl ? (
-            <a
-              href={meetingUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
-            >
-              <Camera size={14} />
-              {meetingName || "Google Meet-ке кіру"}
-              <ArrowUpRight size={12} />
-            </a>
+            <>
+              <a
+                href={meetingUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={meetingName + " — таңғы Meet"}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+              >
+                <Camera size={14} />
+                Таңғы Meet-ке кіру
+                <ArrowUpRight size={12} />
+              </a>
+
+              <a
+                href={meetingUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={meetingName + " — кешкі Meet"}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-extrabold text-white transition hover:bg-[#E56F00]"
+              >
+                <Camera size={14} />
+                Кешкі Meet-ке кіру
+                <ArrowUpRight size={12} />
+              </a>
+            </>
           ) : (
-            <div className="flex h-10 flex-1 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
-              Meet сілтемесі әлі қосылмаған
-            </div>
+            <>
+              <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+                Таңғы Meet сілтемесі қосылмаған
+              </div>
+              <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+                Кешкі Meet сілтемесі қосылмаған
+              </div>
+            </>
           )}
-
-          <button
-            type="button"
-            onClick={() => openReport(reportType)}
-            className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[11px] border border-[#E8E3DD] bg-[#FFFCF9] px-3 text-[9px] font-extrabold text-[#3F3832] transition hover:border-[#F3C7B0] hover:text-[#FF8000]"
-          >
-            <Send size={13} />
-            Есеп тапсыру
-          </button>
-        </div>
-
-        <div className="mt-3 flex items-center gap-2 rounded-[12px] bg-[#FFF9F3] px-3 py-2.5 text-[8px] font-semibold text-[#7C6C5D]">
-          <Clock3 size={12} className="shrink-0 text-[#FF8000]" />
-          Study Time минуттары Meet қатысуынан автоматты есептеледі.
         </div>
       </section>
 
