@@ -7,6 +7,9 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shiftDate, todayInTimezone } from "@/lib/streak";
 
+const HABIT_SELECT =
+  "id,name,description,icon,is_default,sort_order,frequency,weekdays,goal,start_date,goal_days,section,reminder_time,repeat_interval,repeat_unit";
+
 export default async function HabitsPage() {
   const supabase = await createServerSupabaseClient();
   const {
@@ -39,7 +42,7 @@ export default async function HabitsPage() {
 
   const { data: existingHabits } = await supabase
     .from("habits")
-    .select("id,name,description,icon,is_default,sort_order")
+    .select(HABIT_SELECT)
     .eq("student_id", user.id)
     .eq("active", true)
     .order("sort_order")
@@ -57,6 +60,15 @@ export default async function HabitsPage() {
         is_default: true,
         active: true,
         sort_order: habit.sort_order,
+        frequency: habit.frequency,
+        weekdays: habit.weekdays,
+        goal: habit.goal,
+        start_date: today,
+        goal_days: null,
+        section: habit.section,
+        reminder_time: null,
+        repeat_interval: 1,
+        repeat_unit: "DAY",
       })),
       { onConflict: "student_id,name", ignoreDuplicates: true },
     );
@@ -65,7 +77,7 @@ export default async function HabitsPage() {
   const [{ data: habits }, { data: checkins }] = await Promise.all([
     supabase
       .from("habits")
-      .select("id,name,description,icon,is_default,sort_order")
+      .select(HABIT_SELECT)
       .eq("student_id", user.id)
       .eq("active", true)
       .order("sort_order")
