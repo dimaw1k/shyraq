@@ -113,20 +113,6 @@ export function StudyTimeCard({
   return (
     <>
       <section className="rounded-[22px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-              STUDY TIME
-            </p>
-            <h2 className="mt-1 text-[17px] font-extrabold tracking-[-.04em] text-[#172235]">
-              Күннің оқу ырғағы
-            </h2>
-          </div>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
-            <Sparkles size={16} />
-          </span>
-        </div>
-
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <SessionRow
             label="Таңғы Study Time"
