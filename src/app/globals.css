@@ -233,6 +233,9 @@ iframe {
 @media (max-width: 767px) {
   .shyraq-benefit-rail,
   .shyraq-journey-rail {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
     width: calc(100vw - 20px);
     max-width: calc(100vw - 20px);
     margin-inline: -1px;
@@ -260,7 +263,8 @@ iframe {
   }
 
   .shyraq-benefit-card {
-    min-height: 244px;
+    min-height: 300px;
+    height: 100%;
   }
 
   .shyraq-benefit-card p {
