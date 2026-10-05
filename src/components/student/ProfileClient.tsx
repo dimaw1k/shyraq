@@ -360,30 +360,28 @@ export function ProfileClient() {
 
         <div className="sm:col-span-2 flex flex-col gap-2 rounded-[14px] border border-[#E8E1DA] bg-[#FAF7F3] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-white text-[#FF8000]">
-              <Languages size={15} />
-            </span>
-            <p className="text-[11px] font-extrabold text-[#172235]">{t("language")}</p>
+            <p className="text-[10px] font-extrabold text-[#172235]">{t("language")}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:min-w-[280px] sm:max-w-[380px]">
+          <div className="inline-flex items-center rounded-full border border-[#E7E0D8] bg-white p-0.5 shadow-[0_2px_10px_rgba(23,34,53,.03)]">
             {([
-              ["kk", t("kazakh")],
-              ["ru", t("russian")],
-              ["en", t("english")],
+              ["ru", "RU"],
+              ["kk", "KZ"],
+              ["en", "ENG"],
             ] as Array<[StudentLanguage, string]>).map(([value, label]) => (
               <button
                 key={value}
                 type="button"
+                aria-pressed={language === value}
                 onClick={() => {
                   setStudentLanguage(value);
                   void persistLanguage(value);
                 }}
                 className={[
-                  "rounded-[11px] border px-2.5 py-2.5 text-[10px] font-extrabold transition",
+                  "min-w-[42px] rounded-full px-2.5 py-1.5 text-[9px] font-extrabold tracking-[.02em] transition",
                   language === value
-                    ? "border-[#FF8000] bg-[#FFF1E2] text-[#D56600]"
-                    : "border-[#E7E0D8] bg-white text-[#6F665E] hover:border-[#FFB366]",
+                    ? "bg-[#FFF1E2] text-[#D56600] shadow-sm"
+                    : "text-[#8B8179] hover:bg-[#FAF7F3] hover:text-[#172235]",
                 ].join(" ")}
               >
                 {label}
