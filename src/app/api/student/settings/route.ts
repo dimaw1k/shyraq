@@ -97,7 +97,7 @@ export async function PUT(request: Request) {
       },
       { onConflict: "user_id" },
     )
-    .select("language,theme,reminders,notifications_enabled")
+    .select("language,reminders,notifications_enabled")
     .single();
 
   if (error) {
@@ -138,7 +138,7 @@ export async function PATCH(request: Request) {
       },
       { onConflict: "user_id" },
     )
-    .select("language,theme,reminders,notifications_enabled")
+    .select("language,reminders,notifications_enabled")
     .single();
 
   if (error) {
