@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { formatReportOpenTime, isReportOpen } from "@/lib/report-schedule";
+import { useStudentLanguage } from "@/lib/student-language";
 
 type ReportType = "MORNING" | "EVENING";
 
@@ -54,23 +55,23 @@ type Props = {
 const SLOT_CONFIG: Omit<PhotoSlot, "file" | "preview">[] = [
   {
     key: "MORNING_MEET",
-    label: "Study Time",
-    hint: "Миттегі қатысу / экран",
+    label: t("studyTime"),
+    hint: t("meetAttendance"),
   },
   {
     key: "PLAN",
-    label: "Жоспар",
-    hint: "Бүгінгі жоспарың",
+    label: t("plan"),
+    hint: t("todayPlan"),
   },
   {
     key: "SCREEN_TIME",
-    label: "Screen Time",
-    hint: "Күннің экран статистикасы",
+    label: t("screenTime"),
+    hint: t("screenStats"),
   },
   {
     key: "PROCESS",
-    label: "Процесс",
-    hint: "Бүгінгі оқу барысы",
+    label: t("process"),
+    hint: t("studyProgress"),
   },
 ];
 
@@ -103,8 +104,11 @@ export function StudyTimeCard({
   morningReportOpenTime,
   eveningReportOpenTime,
 }: Props) {
+  const { t } = useStudentLanguage("kk");
   const [open, setOpen] = useState(false);
+  const { t } = useStudentLanguage("kk");
   const [reportType, setReportType] = useState<ReportType>("MORNING");
+  const { t } = useStudentLanguage("kk");
   const [now, setNow] = useState(0);
 
   const submitted = useMemo(
@@ -135,7 +139,7 @@ export function StudyTimeCard({
     <>
       <div className="grid gap-2 sm:grid-cols-2">
         <SessionRow
-          label="Таңғы Study Time"
+          label=t("morningStudy")
           minutes={morningMinutes}
           submitted={submitted.has("MORNING")}
           open={morningOpen}
@@ -143,7 +147,7 @@ export function StudyTimeCard({
           onReport={() => openReport("MORNING")}
         />
         <SessionRow
-          label="Кешкі Study Time"
+          label=t("eveningStudy")
           minutes={eveningMinutes}
           submitted={submitted.has("EVENING")}
           open={eveningOpen}
@@ -159,7 +163,7 @@ export function StudyTimeCard({
               href={meetingUrl}
               target="_blank"
               rel="noreferrer"
-              aria-label={meetingName + " — таңғы Meet"}
+              aria-label={meetingName + " — " + t("morningMeet")}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
@@ -171,7 +175,7 @@ export function StudyTimeCard({
               href={meetingUrl}
               target="_blank"
               rel="noreferrer"
-              aria-label={meetingName + " — кешкі Meet"}
+              aria-label={meetingName + " — " + t("eveningMeet")}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
@@ -243,7 +247,7 @@ function SessionRow({
               : "bg-[#FFF1E2] text-[#C15F00]",
           ].join(" ")}
         >
-          {submitted ? "Есеп дайын" : "Күтілуде"}
+          {submitted ? t("reportReady") : t("pending")}
         </span>
       </div>
       <div className="mt-2 flex items-end justify-between gap-3">
@@ -265,10 +269,10 @@ function SessionRow({
               ? "bg-white text-[#FF8000] hover:bg-[#FFF8F2]"
               : "cursor-not-allowed bg-[#F4F0EB] text-[#AAA19A]",
           ].join(" ")}
-          title={open ? undefined : formatReportOpenTime(openTime) + " бастап ашылады"}
+          title={open ? undefined : formatReportOpenTime(openTime) + " " + t("reportOpensAt")}
         >
           {open ? (
-            submitted ? "Қайта ашу" : "Есеп беру"
+            submitted ? t("reopen") : t("reportSubmit")
           ) : (
             <>
               <LockKeyhole size={10} />
@@ -304,15 +308,22 @@ function ReportModal({
   onClose: () => void;
   onSubmitted: () => void;
 }) {
+  const { t } = useStudentLanguage("kk");
   const [questions, setQuestions] = useState<Question[]>([]);
+  const { t } = useStudentLanguage("kk");
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const { t } = useStudentLanguage("kk");
   const [files, setFiles] = useState<PhotoSlot[]>(EMPTY_SLOTS);
+  const { t } = useStudentLanguage("kk");
   const [loadedQuestionsKey, setLoadedQuestionsKey] = useState<string | null>(null);
+  const { t } = useStudentLanguage("kk");
   const [saving, setSaving] = useState(false);
 
   const questionsRequestKey = String(marathonDay ?? 0) + ":" + reportType;
   const loadingQuestions = loadedQuestionsKey !== questionsRequestKey;
+  const { t } = useStudentLanguage("kk");
   const [notice, setNotice] = useState("");
+  const { t } = useStudentLanguage("kk");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -328,7 +339,7 @@ function ReportModal({
       .then(async (response) => {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(payload?.error ?? "Сұрақтар жүктелмеді.");
+          throw new Error(payload?.error ?? t("reportQuestionLoadFailed"));
         }
         if (active) {
           setQuestions(payload.questions ?? []);
@@ -337,7 +348,7 @@ function ReportModal({
       })
       .catch((reason) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : "Сұрақтар жүктелмеді.");
+          setError(reason instanceof Error ? reason.message : t("reportQuestionLoadFailed"));
           setLoadedQuestionsKey(questionsRequestKey);
         }
       })
@@ -355,12 +366,12 @@ function ReportModal({
     if (!file) return;
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Фото JPG, PNG немесе WebP болуы керек.");
+      setError(t("photoFormatError"));
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("Бір фото 10 MB-тан аспауы керек.");
+      setError(t("photoSizeError"));
       return;
     }
 
@@ -422,7 +433,7 @@ function ReportModal({
       const reportPayload = await reportResponse.json().catch(() => ({}));
 
       if (!reportResponse.ok || !reportPayload?.report?.id) {
-        throw new Error(reportPayload?.error ?? "Есепті сақтау мүмкін болмады.");
+        throw new Error(reportPayload?.error ?? t("reportSaveFailed"));
       }
 
       const uploadResults = await Promise.all(
@@ -447,13 +458,13 @@ function ReportModal({
       );
 
       if (!uploadResults.length) {
-        throw new Error("Файлдар жүктелмеді.");
+        throw new Error(t("filesLoadFailed"));
       }
 
       setNotice(
         reportType === "MORNING"
-          ? "Таңғы есеп сәтті жіберілді."
-          : "Кешкі есеп сәтті жіберілді.",
+          ? t("reportSentMorning")
+          : t("reportSentEvening"),
       );
 
       window.setTimeout(onSubmitted, 500);
@@ -461,14 +472,14 @@ function ReportModal({
       setError(
         reason instanceof Error
           ? reason.message
-          : "Есепті жіберу кезінде қате шықты.",
+          : t("reportSendFailed"),
       );
     } finally {
       setSaving(false);
     }
   }
 
-  const title = reportType === "MORNING" ? "Таңғы есеп" : "Кешкі есеп";
+  const title = reportType === "MORNING" ? t("morningReport") : t("eveningReport");
   const subtitle =
     reportType === "MORNING"
       ? "Study Time-нан кейінгі қысқа старт есебі"
@@ -495,7 +506,7 @@ function ReportModal({
             onClick={onClose}
             disabled={saving}
             className="grid h-9 w-9 place-items-center rounded-[11px] text-[#8B8179] hover:bg-[#F3EEE9] disabled:opacity-50"
-            aria-label="Жабу"
+            aria-label=t("close")
           >
             <X size={17} />
           </button>
@@ -504,7 +515,7 @@ function ReportModal({
         <div className="border-b border-[#E8E3DD] bg-white px-4 py-3 sm:px-5">
           <div className="flex items-center justify-between gap-2">
             <span className="rounded-full bg-[#FFF1E2] px-2.5 py-1 text-[8px] font-extrabold text-[#C15F00]">
-              {reportType === "MORNING" ? "Таңғы есеп" : "Кешкі есеп"}
+              {reportType === "MORNING" ? t("morningReport") : t("eveningReport")}
             </span>
             <span className="text-[8px] font-semibold text-[#8B8179]">
               4 фото + қысқа жауаптар
@@ -597,7 +608,7 @@ function ReportModal({
                             }))
                           }
                           className="mt-1.5 w-full rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] px-3 py-2.5 text-[10px] font-semibold leading-5 text-[#172235] outline-none focus:border-[#F3C7B0] focus:bg-white"
-                          placeholder="Жауабыңды жаз..."
+                          placeholder=t("answerPlaceholder")
                         />
                       )}
                     </label>
@@ -628,7 +639,7 @@ function ReportModal({
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[13px] bg-[#FF8000] px-4 text-[10px] font-extrabold text-white shadow-[0_10px_22px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-55"
           >
             {saving ? (
-              "Жіберілуде..."
+              t("submitting")
             ) : (
               <>
                 <Send size={14} />
