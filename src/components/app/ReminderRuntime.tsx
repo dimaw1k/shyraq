@@ -67,7 +67,11 @@ function firedKey(date: string, key: ReminderKey, time: string) {
 export function ReminderRuntime() {
   useEffect(() => {
     function check() {
-      if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+      if (
+        typeof Notification === "undefined" ||
+        Notification.permission !== "granted" ||
+        window.localStorage.getItem("shyraq:notifications-enabled") !== "1"
+      ) {
         return;
       }
 
