@@ -64,7 +64,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   function handleIdentifierChange(value: string) {
-    if (/^[+\\d\\s()\\-]*$/.test(value) && /\\d/.test(value)) {
+    if (/^[+\d\s()\-]*$/.test(value) && /\d/.test(value)) {
       setIdentifier(formatKzPhone(value));
       return;
     }
@@ -113,9 +113,6 @@ export default function LoginPage() {
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
               Аккаунтқа кіріңіз.
             </h1>
-            <p className="mt-3 max-w-[330px] text-[13px] font-medium leading-5 text-[#766E66]">
-              Электрондық пошта немесе телефон арқылы кіріңіз.
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
