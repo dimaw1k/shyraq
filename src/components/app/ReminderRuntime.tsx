@@ -90,7 +90,7 @@ export function ReminderRuntime() {
         String(now.getMinutes()).padStart(2, "0"),
       ].join(":");
 
-      for (const key of Object.keys(REMINDER_TEXTS.kk) as ReminderKey[]) {
+      for (const key of Object.keys(studentTranslations.kk) as ReminderKey[]) {
         const enabled = Boolean(settings[key]);
         const timeKey = (key + "Time") as keyof ReminderSettings;
         const time = settings[timeKey];
