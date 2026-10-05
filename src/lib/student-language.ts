@@ -178,29 +178,33 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
   },
 };
 
-function readStoredLanguage(): StudentLanguage {
-  if (typeof window === "undefined") return "kk";
-  const value = window.localStorage.getItem(STUDENT_LANGUAGE_KEY);
-  return value === "ru" || value === "en" ? value : "kk";
-}
-
 export function setStudentLanguage(language: StudentLanguage) {
   window.localStorage.setItem(STUDENT_LANGUAGE_KEY, language);
   window.dispatchEvent(new CustomEvent(STUDENT_LANGUAGE_EVENT, { detail: language }));
   document.documentElement.lang = language;
 }
 
-export function useStudentLanguage() {
-  const [language, setLanguage] = useState<StudentLanguage>(readStoredLanguage);
+export function useStudentLanguage(initialLanguage: StudentLanguage = "kk") {
+  const [language, setLanguage] = useState<StudentLanguage>(initialLanguage);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const stored = window.localStorage.getItem(STUDENT_LANGUAGE_KEY);
+      if (stored === "kk" || stored === "ru" || stored === "en") {
+        setLanguage(stored);
+      }
+    }, 0);
+
     const onChange = (event: Event) => {
       const next = (event as CustomEvent<StudentLanguage>).detail;
       if (next === "kk" || next === "ru" || next === "en") setLanguage(next);
     };
 
     window.addEventListener(STUDENT_LANGUAGE_EVENT, onChange);
-    return () => window.removeEventListener(STUDENT_LANGUAGE_EVENT, onChange);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(STUDENT_LANGUAGE_EVENT, onChange);
+    };
   }, []);
 
   return {
