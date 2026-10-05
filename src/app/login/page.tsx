@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, AtSign, Eye, EyeOff, LockKeyhole, LogIn } from "lucide-react";
 import { formatKzPhone } from "@/lib/phone";
+import { useStudentLanguage } from "@/lib/student-language";
+import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
 function Brand() {
   return (
@@ -57,6 +59,7 @@ function Brand() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useStudentLanguage("kk");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -87,7 +90,7 @@ export default function LoginPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error ?? "Кіру кезінде қате болды.");
+        setError(result.error ?? t("loginError"));
         setLoading(false);
         return;
       }
@@ -95,7 +98,7 @@ export default function LoginPage() {
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Кіру кезінде байланыс қатесі болды. Қайта көріңіз.");
+      setError(t("loginConnectionError"));
       setLoading(false);
     }
   }
@@ -105,19 +108,20 @@ export default function LoginPage() {
       <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
         <section className="w-full max-w-[430px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
           <div className="flex flex-col items-center text-center">
+            <AuthLanguagePicker />
             <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
               <LogIn size={24} strokeWidth={2.2} />
             </div>
 
-            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">КІРУ</p>
+            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("loginUpper")}</p>
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
-              Аккаунтқа кіріңіз.
+              {t("loginHeading")}
             </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
             <label className="block">
-              <span className="sr-only">Электрондық пошта немесе телефон</span>
+              <span className="sr-only">{t("emailOrPhone")}</span>
               <div className="relative">
                 <AtSign className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -126,13 +130,13 @@ export default function LoginPage() {
                   value={identifier}
                   onChange={(event) => handleIdentifierChange(event.target.value)}
                   className="w-full rounded-[15px] border border-[#E7E0D8] bg-[#FCFBF9] py-3.5 pl-11 pr-4 text-[14px] font-medium outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10"
-                  placeholder="Email немесе +7 (700) 000 00 00"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
             </label>
 
             <label className="block">
-              <span className="sr-only">Құпиясөз</span>
+              <span className="sr-only">{t("password")}</span>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -143,12 +147,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full rounded-[15px] border border-[#E7E0D8] bg-[#FCFBF9] py-3.5 pl-11 pr-12 text-[14px] font-medium outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10"
-                  placeholder="Құпиясөз"
+                  placeholder={t("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -161,7 +165,7 @@ export default function LoginPage() {
                 href="/reset-password"
                 className="text-[11px] font-bold text-[#8A7D73] transition hover:text-[#FF8000] hover:underline"
               >
-                Құпиясөзді ұмыттыңыз ба?
+                {t("forgotPassword")}
               </Link>
             </div>
 
@@ -176,15 +180,15 @@ export default function LoginPage() {
               type="submit"
               className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Кіру..." : "Кіру"}
+              {loading ? t("loggingIn") : t("login")}
               {!loading ? <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /> : null}
             </button>
           </form>
 
           <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
-            Аккаунтыңыз жоқ па?{" "}
+            {t("noAccount")}{" "}
             <Link href="/register" className="font-extrabold text-[#FF8000] hover:underline">
-              Тіркелу
+              {t("register")}
             </Link>
           </p>
         </section>
