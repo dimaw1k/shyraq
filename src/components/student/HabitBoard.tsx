@@ -581,7 +581,7 @@ export function HabitBoard({
                   ) : null}
                 </div>
 
-                <div className="relative mt-3 grid grid-cols-7 gap-1.5">
+                <div className="shrq-habit-week relative mt-3 grid grid-cols-7 gap-1.5">
                   {dates.map((date) => {
                     const done =
                       date <= today &&
