@@ -123,10 +123,10 @@ function scheduleLabel(habit: Habit, t: (key: string) => string) {
     return t("repeat") + " · " + habit.repeat_interval + " " +
       (habit.repeat_unit === "WEEK" ? t("week") : t("day"));
   }
-  const shortDays = ["Дс", "Сс", "Ср", "Бс", "Жм", "Сб", "Жс"];
+  const shortDayKeys = ["monShort", "tueShort", "wedShort", "thuShort", "friShort", "satShort", "sunShort"];
   const selected = habit.weekdays
     .filter((day) => day >= 1 && day <= 7)
-    .map((day) => shortDays[day - 1]);
+    .map((day) => t(shortDayKeys[day - 1]));
   return selected.length ? t("weekPrefix") + selected.join(", ") : t("weekly");
 }
 
