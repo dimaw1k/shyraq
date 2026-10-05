@@ -167,30 +167,34 @@ export function StudentSettingsClient({
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    const savedLanguage = window.localStorage.getItem(STORAGE.language) as Language | null;
-    const savedTheme = window.localStorage.getItem(STORAGE.theme) as ThemeMode | null;
-    const savedReminders = window.localStorage.getItem(STORAGE.reminders);
+    const timer = window.setTimeout(() => {
+      const savedLanguage = window.localStorage.getItem(STORAGE.language) as Language | null;
+      const savedTheme = window.localStorage.getItem(STORAGE.theme) as ThemeMode | null;
+      const savedReminders = window.localStorage.getItem(STORAGE.reminders);
 
-    if (savedLanguage === "kk" || savedLanguage === "ru" || savedLanguage === "en") {
-      setLanguage(savedLanguage);
-    }
+      if (savedLanguage === "kk" || savedLanguage === "ru" || savedLanguage === "en") {
+        setLanguage(savedLanguage);
+      }
 
-    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
-      setTheme(savedTheme);
-    }
+      if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
+        setTheme(savedTheme);
+      }
 
-    if (savedReminders) {
-      try {
-        const parsed = JSON.parse(savedReminders) as Partial<ReminderSettings>;
-        setReminders({ ...DEFAULT_REMINDERS, ...parsed });
-      } catch {}
-    }
+      if (savedReminders) {
+        try {
+          const parsed = JSON.parse(savedReminders) as Partial<ReminderSettings>;
+          setReminders({ ...DEFAULT_REMINDERS, ...parsed });
+        } catch {}
+      }
 
-    if (typeof Notification === "undefined") {
-      setNotificationPermission("unsupported");
-    } else {
-      setNotificationPermission(Notification.permission);
-    }
+      if (typeof Notification === "undefined") {
+        setNotificationPermission("unsupported");
+      } else {
+        setNotificationPermission(Notification.permission);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
