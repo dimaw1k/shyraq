@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Camera, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useStudentLanguage } from "@/lib/student-language";
+import { Camera, Eye, EyeOff, Languages, Loader2, LogOut } from "lucide-react";
+import { setStudentLanguage, useStudentLanguage, type StudentLanguage } from "@/lib/student-language";
 import { studentText } from "@/lib/student-translations";
 import { formatKzPhone } from "@/lib/phone";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { useRouter } from "next/navigation";
 
 type Profile = {
   id: string;
@@ -55,6 +57,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 }
 
 export function ProfileClient() {
+  const router = useRouter();
   const { language, t } = useStudentLanguage("kk");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState({
@@ -159,6 +162,24 @@ export function ProfileClient() {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function persistLanguage(nextLanguage: StudentLanguage) {
+    try {
+      await fetch("/api/student/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language: nextLanguage }),
+      });
+    } catch {
+      // The local language stays active even if persistence is temporarily unavailable.
+    }
+  }
+
+  async function logoutAllDevices() {
+    const supabase = createBrowserSupabaseClient();
+    const { error } = await supabase.auth.signOut();
+    if (!error) router.replace("/login");
   }
 
   if (!profile) {
@@ -331,6 +352,49 @@ export function ProfileClient() {
           className="sm:col-span-2 rounded-[14px] bg-[#FF8000] px-4 py-3 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(255,128,0,.16)] transition hover:bg-[#E56F00] disabled:opacity-50"
         >
           {loading ? t("saving") : t("saveChanges")}
+        </button>
+
+        <div className="sm:col-span-2 grid gap-2 rounded-[16px] border border-[#E8E1DA] bg-[#FAF7F3] p-4">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-white text-[#FF8000]">
+              <Languages size={15} />
+            </span>
+            <p className="text-[11px] font-extrabold text-[#172235]">{t("language")}</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1.5">
+            {([
+              ["kk", t("kazakh")],
+              ["ru", t("russian")],
+              ["en", t("english")],
+            ] as Array<[StudentLanguage, string]>).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => {
+                  setStudentLanguage(value);
+                  void persistLanguage(value);
+                }}
+                className={[
+                  "rounded-[11px] border px-2.5 py-2.5 text-[10px] font-extrabold transition",
+                  language === value
+                    ? "border-[#FF8000] bg-[#FFF1E2] text-[#D56600]"
+                    : "border-[#E7E0D8] bg-white text-[#6F665E] hover:border-[#FFB366]",
+                ].join(" ")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void logoutAllDevices()}
+          className="sm:col-span-2 flex items-center justify-center gap-2 rounded-[14px] border border-[#E7E0D8] bg-white px-4 py-3 text-xs font-extrabold text-[#B54D2B] transition hover:border-[#E8C2B6] hover:bg-[#FFF7F4]"
+        >
+          <LogOut size={15} />
+          {t("allDevices")}
         </button>
       </form>
     </div>
