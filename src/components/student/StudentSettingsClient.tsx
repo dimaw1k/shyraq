@@ -632,14 +632,14 @@ export function StudentSettingsClient({
                 aria-label={t("reminders")}
                 onClick={() => updateReminder("enabled", !reminders.enabled)}
                 className={[
-                  "relative h-5 w-9 shrink-0 rounded-full transition",
+                  "relative h-5 w-9 shrink-0 overflow-hidden rounded-full transition",
                   reminders.enabled ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
                 ].join(" ")}
               >
                 <span
                   className={[
-                    "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
-                    reminders.enabled ? "translate-x-[18px]" : "translate-x-[3px]",
+                    "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-[left,right]",
+                    reminders.enabled ? "right-[3px]" : "left-[3px]",
                   ].join(" ")}
                 />
               </button>
