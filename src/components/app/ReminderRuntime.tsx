@@ -23,7 +23,10 @@ type ReminderSettings = {
   habitsTime: string;
 };
 
+type StudentLanguage = "kk" | "ru" | "en";
+
 const STORAGE_KEY = "shyraq:reminders";
+const LANGUAGE_KEY = "shyraq:language";
 const FIRED_PREFIX = "shyraq:reminder-fired:";
 
 const DEFAULT_SETTINGS: ReminderSettings = {
@@ -40,13 +43,34 @@ const DEFAULT_SETTINGS: ReminderSettings = {
   habitsTime: "20:30",
 };
 
-const REMINDERS: Array<{ key: ReminderKey; label: string }> = [
-  { key: "morningMeet", label: "Таңғы Meet уақыты келді." },
-  { key: "morningReport", label: "Таңғы есепті тапсыруға уақыт келді." },
-  { key: "eveningMeet", label: "Кешкі Meet уақыты келді." },
-  { key: "eveningReport", label: "Кешкі есепті тапсыруға уақыт келді." },
-  { key: "habits", label: "Бүгінгі әдеттеріңізді белгілеуді ұмытпаңыз." },
-];
+const REMINDER_TEXTS: Record<StudentLanguage, Record<ReminderKey, string>> = {
+  kk: {
+    morningMeet: "Таңғы Meet басталуына аз уақыт қалды.",
+    morningReport: "Таңғы есепті тапсыратын уақыт келді.",
+    eveningMeet: "Кешкі Meet басталуына аз уақыт қалды.",
+    eveningReport: "Кешкі есепті тапсыратын уақыт келді.",
+    habits: "Бүгінгі әдеттеріңді белгілеуді ұмытпа.",
+  },
+  ru: {
+    morningMeet: "Скоро начнётся утренний Meet.",
+    morningReport: "Пора отправить утренний отчёт.",
+    eveningMeet: "Скоро начнётся вечерний Meet.",
+    eveningReport: "Пора отправить вечерний отчёт.",
+    habits: "Не забудь отметить привычки за сегодня.",
+  },
+  en: {
+    morningMeet: "Your morning Meet starts soon.",
+    morningReport: "It’s time to send your morning report.",
+    eveningMeet: "Your evening Meet starts soon.",
+    eveningReport: "It’s time to send your evening report.",
+    habits: "Don’t forget to check off today’s habits.",
+  },
+};
+
+function readLanguage(): StudentLanguage {
+  const value = window.localStorage.getItem(LANGUAGE_KEY);
+  return value === "ru" || value === "en" ? value : "kk";
+}
 
 function readSettings(): ReminderSettings {
   try {
@@ -89,22 +113,26 @@ export function ReminderRuntime() {
         String(now.getMinutes()).padStart(2, "0"),
       ].join(":");
 
-      for (const reminder of REMINDERS) {
-        const enabled = Boolean(settings[reminder.key]);
-        const timeKey = (reminder.key + "Time") as keyof ReminderSettings;
+      for (const key of Object.keys(REMINDER_TEXTS.kk) as ReminderKey[]) {
+        const enabled = Boolean(settings[key]);
+        const timeKey = (key + "Time") as keyof ReminderSettings;
         const time = settings[timeKey];
 
-        if (!enabled || typeof time !== "string" || time !== currentTime) continue;
+        if (!enabled || typeof time !== "string" || time !== currentTime) {
+          continue;
+        }
 
-        const key = firedKey(date, reminder.key, time);
-        if (window.localStorage.getItem(key) === "1") continue;
+        const keyForDate = firedKey(date, key, time);
+        if (window.localStorage.getItem(keyForDate) === "1") continue;
+
+        const language = readLanguage();
 
         new Notification("Shyraq", {
-          body: reminder.label,
-          tag: "shyraq-" + reminder.key,
+          body: REMINDER_TEXTS[language][key],
+          tag: "shyraq-" + key,
         });
 
-        window.localStorage.setItem(key, "1");
+        window.localStorage.setItem(keyForDate, "1");
       }
     }
 
