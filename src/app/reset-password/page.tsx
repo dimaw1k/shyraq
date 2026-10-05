@@ -26,7 +26,7 @@ function getResetErrorMessage(
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const { t } = useStudentLanguage("kk");
+  const { language, t } = useStudentLanguage("kk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [language]);
 
   async function requestReset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
