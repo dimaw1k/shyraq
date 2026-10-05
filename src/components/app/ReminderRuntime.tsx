@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { studentTranslations } from "@/lib/student-translations";
 
 type ReminderKey =
   | "morningMeet"
@@ -41,30 +42,6 @@ const DEFAULT_SETTINGS: ReminderSettings = {
   eveningReportTime: "21:00",
   habits: true,
   habitsTime: "20:30",
-};
-
-const REMINDER_TEXTS: Record<StudentLanguage, Record<ReminderKey, string>> = {
-  kk: {
-    morningMeet: "Таңғы Meet басталуына аз уақыт қалды.",
-    morningReport: "Таңғы есепті тапсыратын уақыт келді.",
-    eveningMeet: "Кешкі Meet басталуына аз уақыт қалды.",
-    eveningReport: "Кешкі есепті тапсыратын уақыт келді.",
-    habits: "Бүгінгі әдеттеріңді белгілеуді ұмытпа.",
-  },
-  ru: {
-    morningMeet: "Скоро начнётся утренний Meet.",
-    morningReport: "Пора отправить утренний отчёт.",
-    eveningMeet: "Скоро начнётся вечерний Meet.",
-    eveningReport: "Пора отправить вечерний отчёт.",
-    habits: "Не забудь отметить привычки за сегодня.",
-  },
-  en: {
-    morningMeet: "Your morning Meet starts soon.",
-    morningReport: "It’s time to send your morning report.",
-    eveningMeet: "Your evening Meet starts soon.",
-    eveningReport: "It’s time to send your evening report.",
-    habits: "Don’t forget to check off today’s habits.",
-  },
 };
 
 function readLanguage(): StudentLanguage {
@@ -126,13 +103,17 @@ export function ReminderRuntime() {
         if (window.localStorage.getItem(keyForDate) === "1") continue;
 
         const language = readLanguage();
+        const message = studentTranslations[language][key];
 
-        new Notification("Shyraq", {
-          body: REMINDER_TEXTS[language][key],
-          tag: "shyraq-" + key,
-        });
-
-        window.localStorage.setItem(keyForDate, "1");
+        try {
+          new Notification("Shyraq", {
+            body: message,
+            tag: "shyraq-" + key,
+          });
+          window.localStorage.setItem(keyForDate, "1");
+        } catch {
+          // Keep the reminder available for a later check if the browser blocks it.
+        }
       }
     }
 
