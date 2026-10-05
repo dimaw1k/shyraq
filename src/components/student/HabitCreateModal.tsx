@@ -310,10 +310,10 @@ export function HabitCreateModal({
                   <div className="mt-1.5 grid grid-cols-8 gap-1.5">
                     {ICON_OPTIONS.map(([value, Icon]) => (
                       <button
-                        key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
+                        key={value}
                         type="button"
                         onClick={() => setIcon(value)}
-                        aria-label={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
+                        aria-label={value}
                         className={[
                           "grid h-9 place-items-center rounded-[10px] border transition",
                           icon === value
@@ -340,7 +340,7 @@ export function HabitCreateModal({
                   ] as const
                 ).map(([value, label]) => (
                   <button
-                    key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
+                    key={value}
                     type="button"
                     onClick={() => setFrequency(value)}
                     className={[
@@ -366,12 +366,13 @@ export function HabitCreateModal({
                     </p>
                   </div>
                   <div className="mt-2 grid grid-cols-7 gap-1.5">
-                    {WEEKDAYS.map(([value, label]) => {
+                    {WEEKDAYS.map(([value, labelKey]) => {
+                      const label = t(labelKey);
                       const selected = weekdays.includes(value);
 
                       return (
                         <button
-                          key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
+                          key={value}
                           type="button"
                           onClick={() => toggleWeekday(value)}
                           className={[
@@ -420,7 +421,7 @@ export function HabitCreateModal({
                   <Check size={15} strokeWidth={3} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-extrabold text-[#172235]">Мақсат</p>
+                  <p className="text-[9px] font-extrabold text-[#172235]">{t("goal")}</p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
                     {t("goalQuestion")}
                   </p>
@@ -504,7 +505,7 @@ export function HabitCreateModal({
             <section className="rounded-[18px] border border-[#E8E3DD] bg-white p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[9px] font-extrabold text-[#172235]">Бөлім</p>
+                  <p className="text-[9px] font-extrabold text-[#172235]">{t("section")}</p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
                     {t("placeInRoutine")}
                   </p>
@@ -515,7 +516,7 @@ export function HabitCreateModal({
               <div className="mt-2 grid grid-cols-4 gap-1.5">
                 {SECTIONS.map((value) => (
                   <button
-                    key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
+                    key={value}
                     type="button"
                     onClick={() => setSection(value)}
                     className={[
@@ -545,7 +546,7 @@ export function HabitCreateModal({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] font-extrabold text-[#172235]">
-                    Еске салу
+                    {t("reminder")}
                   </p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
                     {t("reminderSaveTime")}
