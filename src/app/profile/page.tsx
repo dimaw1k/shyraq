@@ -24,9 +24,9 @@ export default async function ProfilePage() {
       title={t("profilePage")}
       hideHeader
     >
-      <PageContainer className="max-w-5xl">
+      <PageContainer className="max-w-[980px]">
         <div>
-          <Card className="p-5 sm:p-6">
+          <Card className="p-3 sm:p-4">
             <ProfileClient />
           </Card>
         </div>
