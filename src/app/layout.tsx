@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
 import { AppPreferences } from "@/components/app/AppPreferences";
+import { ReminderRuntime } from "@/components/app/ReminderRuntime";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="kk">
       <body className="min-h-screen">
         <AppPreferences />
+        <ReminderRuntime />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
