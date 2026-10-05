@@ -16,7 +16,6 @@ import {
   Palette,
   ShieldCheck,
   Sun,
-  Timer,
 } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
