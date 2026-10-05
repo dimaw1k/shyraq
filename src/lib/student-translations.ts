@@ -117,6 +117,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     lastName: "Тегі",
     confirmPassword: "Құпиясөзді қайталаңыз",
     updateSuccess: "Жаңартылды",
+    registrationDescription: "Shyraq платформасына қосылу үшін деректеріңізді енгізіңіз.",
   },
   ru: {
     settings: "Настройки",
@@ -234,6 +235,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     lastName: "Фамилия",
     confirmPassword: "Повторите пароль",
     updateSuccess: "Обновлено",
+    registrationDescription: "Введите данные, чтобы присоединиться к платформе Shyraq.",
   },
   en: {
     settings: "Settings",
@@ -351,6 +353,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     lastName: "Last name",
     confirmPassword: "Repeat password",
     updateSuccess: "Updated",
+    registrationDescription: "Enter your details to join Shyraq.",
   },
 };
 
