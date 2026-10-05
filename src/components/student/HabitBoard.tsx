@@ -19,6 +19,7 @@ import {
 import type { CSSProperties } from "react";
 import { useMemo, useRef, useState } from "react";
 import { HabitCreateModal } from "@/components/student/HabitCreateModal";
+import { useStudentLanguage } from "@/lib/student-language";
 
 type Habit = {
   id: string;
@@ -60,15 +61,7 @@ const ICONS = {
   Sparkles,
 } as const;
 
-const WEEKDAY_LABELS = [
-  "Дүйсенбі",
-  "Сейсенбі",
-  "Сәрсенбі",
-  "Бейсенбі",
-  "Жұма",
-  "Сенбі",
-  "Жексенбі",
-] as const;
+const WEEKDAY_KEYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as const;
 
 function shiftDate(value: string, delta: number) {
   const [year, month, day] = value.split("-").map(Number);
@@ -91,8 +84,8 @@ function weekdayOneBased(value: string) {
   return ((date.getUTCDay() + 6) % 7) + 1;
 }
 
-function weekLabel(value: string) {
-  return WEEKDAY_LABELS[weekdayOneBased(value) - 1];
+function weekLabel(value: string, t: (key: string) => string) {
+  return t(WEEKDAY_KEYS[weekdayOneBased(value) - 1]);
 }
 
 function iconFor(value: string) {
@@ -124,28 +117,21 @@ function isScheduled(habit: Habit, dateKey: string) {
   return elapsed % intervalDays === 0;
 }
 
-function scheduleLabel(habit: Habit) {
-  if (habit.frequency === "DAILY") return "Күн сайын";
-
+function scheduleLabel(habit: Habit, t: (key: string) => string) {
+  if (habit.frequency === "DAILY") return t("everyDay");
   if (habit.frequency === "REPEAT") {
-    return (
-      "Әр " +
-      habit.repeat_interval +
-      " " +
-      (habit.repeat_unit === "WEEK" ? "апта" : "күн")
-    );
+    return t("repeat") + " · " + habit.repeat_interval + " " +
+      (habit.repeat_unit === "WEEK" ? t("week") : t("day"));
   }
-
   const shortDays = ["Дс", "Сс", "Ср", "Бс", "Жм", "Сб", "Жс"];
   const selected = habit.weekdays
     .filter((day) => day >= 1 && day <= 7)
     .map((day) => shortDays[day - 1]);
-
-  return selected.length ? "Апта: " + selected.join(", ") : "Апта сайын";
+  return selected.length ? t("weekPrefix") + selected.join(", ") : t("weekly");
 }
 
-function durationLabel(habit: Habit) {
-  return habit.goal_days === null ? "Мәңгі" : habit.goal_days + " күн";
+function durationLabel(habit: Habit, t: (key: string) => string) {
+  return habit.goal_days === null ? t("always") : habit.goal_days + " " + t("daysLower");
 }
 
 function formatDate(value: string) {
@@ -158,6 +144,7 @@ export function HabitBoard({
   checkins: initialCheckins,
   today,
 }: Props) {
+  const { t } = useStudentLanguage("kk");
   const [habits, setHabits] = useState(initialHabits);
   const [checkins, setCheckins] = useState(initialCheckins);
   const [soundOn, setSoundOn] = useState(true);
@@ -252,7 +239,7 @@ export function HabitBoard({
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.error ?? "Әдетті белгілеу мүмкін болмады.");
+        setError(payload?.error ?? t("habitCheckFailed"));
         return;
       }
 
@@ -274,14 +261,14 @@ export function HabitBoard({
         );
       }
     } catch {
-      setError("Сервермен байланыс үзілді. Қайта байқап көр.");
+      setError(t("serverConnectionError"));
     } finally {
       setSaving(null);
     }
   }
 
   async function removeHabit(habit: Habit) {
-    if (!window.confirm("«" + habit.name + "» әдетін өшіру керек пе?")) return;
+    if (!window.confirm("«" + habit.name + "» " + t("habitDeleteQuestion"))) return;
 
     setError("");
 
@@ -292,7 +279,7 @@ export function HabitBoard({
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.error ?? "Әдетті өшіру мүмкін болмады.");
+        setError(payload?.error ?? t("habitDeleteFailed"));
         return;
       }
 
@@ -301,7 +288,7 @@ export function HabitBoard({
         current.filter((item) => item.habit_id !== habit.id),
       );
     } catch {
-      setError("Сервермен байланыс үзілді. Қайта байқап көр.");
+      setError(t("serverConnectionError"));
     }
   }
 
@@ -317,10 +304,10 @@ export function HabitBoard({
                   БҮГІНГІ ЫРҒАҚ
                 </p>
                 <h2 className="mt-1.5 text-[24px] font-extrabold tracking-[-.055em] text-[#172235]">
-                  Әдеттерді бекіт.
+                  {t("habitTitle")}
                 </h2>
                 <p className="mt-1.5 max-w-[520px] text-[10px] font-semibold leading-5 text-[#81786F]">
-                  Кішкентай әрекет күн сайын қайталанса, үлкен нәтижеге айналады.
+                  {t("smallAction")}
                 </p>
               </div>
 
@@ -328,8 +315,8 @@ export function HabitBoard({
                 type="button"
                 onClick={() => setSoundOn((value) => !value)}
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] text-[#6F665E] transition hover:border-[#F3C7B0] hover:text-[#FF8000]"
-                aria-label={soundOn ? "Дыбысты өшіру" : "Дыбысты қосу"}
-                title={soundOn ? "Дыбысты өшіру" : "Дыбысты қосу"}
+                aria-label={soundOn ? t("soundOff") : t("soundOn")}
+                title={soundOn ? t("soundOff") : t("soundOn")}
               >
                 {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
               </button>
@@ -385,10 +372,10 @@ export function HabitBoard({
             </span>
           </div>
           <p className="mt-6 truncate text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
-            {bestHabit?.habit.name ?? "Әзірге жоқ"}
+            {bestHabit?.habit.name ?? t("nothingYet")}
           </p>
           <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
-            {bestHabit?.count ?? 0}/7 күн
+            {bestHabit?.count ?? 0}/7 {t("day")}
           </p>
         </div>
       </section>
@@ -400,7 +387,7 @@ export function HabitBoard({
               7 КҮНДІК ЫРҒАҚ
             </p>
             <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">
-              Дүйсенбі → Жексенбі
+              {t("monSun")}
             </p>
           </div>
 
@@ -450,7 +437,7 @@ export function HabitBoard({
                     active ? "text-[#FF8000]" : "text-[#9A9189]",
                   ].join(" ")}
                 >
-                  <span className="block truncate">{weekLabel(date)}</span>
+                  <span className="block truncate">{weekLabel(date, t)}</span>
                 </p>
                 <p
                   className={[
@@ -475,15 +462,11 @@ export function HabitBoard({
       <section>
         <div className="mb-2.5 flex items-end justify-between gap-3">
           <div>
-            <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#172235]">
-              БҮГІН
-            </p>
-            <h2 className="mt-1 text-[19px] font-extrabold tracking-[-.045em] text-[#172235]">
-              Әдеттерің
-            </h2>
+            <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#172235]">{t("today").toUpperCase()}</p>
+            <h2 className="mt-1 text-[19px] font-extrabold tracking-[-.045em] text-[#172235]">{t("todayHabits")}</h2>
           </div>
           <p className="text-[9px] font-bold text-[#9A9189]">
-            {todayCompleted}/{habits.length} орындалды
+            {todayCompleted}/{habits.length} {t("doneCount")}
           </p>
         </div>
 
@@ -536,7 +519,7 @@ export function HabitBoard({
                           {habit.name}
                         </h3>
                         <p className="mt-1 line-clamp-2 min-h-[30px] text-[8px] font-medium leading-[1.65] text-[#948A82]">
-                          {habit.description ?? "Күн сайын қайталап көр."}
+                          {habit.description ?? t("dailyHabit")}
                         </p>
                       </div>
 
@@ -545,7 +528,7 @@ export function HabitBoard({
                           type="button"
                           onClick={() => void removeHabit(habit)}
                           className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] text-[#B4AAA1] opacity-70 transition hover:bg-[#FFF4F2] hover:text-[#C94D45] sm:opacity-0 sm:group-hover:opacity-100"
-                          aria-label={habit.name + " өшіру"}
+                          aria-label={habit.name + " " + t("habitDelete")}
                         >
                           <Trash2 size={13} />
                         </button>
@@ -560,10 +543,10 @@ export function HabitBoard({
                     aria-pressed={doneToday}
                     aria-label={
                       !scheduledToday
-                        ? habit.name + " — бүгін кестеде жоқ"
+                        ? habit.name + " — " + t("notScheduledToday")
                         : doneToday
-                          ? habit.name + " — орындалды"
-                          : habit.name + " — орындадым деп белгілеу"
+                          ? habit.name + " — " + t("completedDash")
+                          : habit.name + " — " + t("markCompleted")
                     }
                     className={[
                       "shrq-habit-check shrink-0",
@@ -582,10 +565,10 @@ export function HabitBoard({
 
                 <div className="relative mt-3 flex flex-wrap items-center gap-1.5">
                   <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
-                    {scheduleLabel(habit)}
+                    {scheduleLabel(habit, t)}
                   </span>
                   <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
-                    {durationLabel(habit)}
+                    {durationLabel(habit, t)}
                   </span>
                   <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
                     {habit.section}
@@ -638,7 +621,7 @@ export function HabitBoard({
 
                 <div className="relative mt-3 flex items-center justify-between">
                   <span className="text-[8px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
-                    7 КҮН: {weekCount}
+                    {t("week7")}: {weekCount}
                   </span>
                   <span
                     className={[
@@ -650,17 +633,13 @@ export function HabitBoard({
                           : "text-[#B8AEA5]",
                     ].join(" ")}
                   >
-                    {doneToday
-                      ? "БҮГІН ДАЙЫН"
-                      : scheduledToday
-                        ? "БҮГІНГЕ ҚАДАМ"
-                        : "БҮГІН КЕСТЕДЕ ЖОҚ"}
+                    {doneToday ? t("todayDone") : scheduledToday ? t("todayStep") : t("todayNotScheduled")}
                   </span>
                 </div>
 
                 {habit.goal ? (
                   <p className="relative mt-2 truncate text-[8px] font-semibold text-[#A19890]">
-                    Мақсат: {habit.goal}
+                    {t("goal")}: {habit.goal}
                   </p>
                 ) : null}
               </article>
