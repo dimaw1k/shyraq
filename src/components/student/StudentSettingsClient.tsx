@@ -6,7 +6,9 @@ import {
   Bell,
   BellRing,
   Check,
+  ChevronDown,
   ChevronRight,
+  Clock3,
   Languages,
   LogOut,
   MessageSquareText,
@@ -69,19 +71,19 @@ function Panel({
   return (
     <section
       className={[
-        "rounded-[18px] border border-[#E7E0D8] bg-white p-3.5 shadow-[0_7px_22px_rgba(23,34,53,.035)] sm:p-4",
+        "rounded-[15px] border border-[#E7E0D8] bg-white p-3 shadow-[0_6px_18px_rgba(23,34,53,.028)]",
         className,
       ].join(" ")}
     >
-      <div className="flex items-center gap-2.5">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#FF8000]">
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#FF8000]">
           {icon}
         </span>
-        <h2 className="text-[14px] font-extrabold tracking-[-.02em] text-[#172235]">
+        <h2 className="text-[13px] font-extrabold tracking-[-.02em] text-[#172235]">
           {title}
         </h2>
       </div>
-      <div className="mt-3">{children}</div>
+      <div className="mt-2.5">{children}</div>
     </section>
   );
 }
@@ -183,6 +185,169 @@ function Choice({
     >
       {label}
     </button>
+  );
+}
+
+function TimePicker({
+  value,
+  label,
+  onChange,
+  onOpenChange,
+  open,
+}: {
+  value: string;
+  label: string;
+  onChange: (value: string) => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+}) {
+  const [hourText, minuteText] = value.split(":");
+  const hour = Math.min(23, Math.max(0, Number.parseInt(hourText ?? "0", 10) || 0));
+  const minute = Math.min(59, Math.max(0, Number.parseInt(minuteText ?? "0", 10) || 0));
+
+  const update = (nextHour: number, nextMinute: number) => {
+    onChange(
+      String(nextHour).padStart(2, "0") +
+        ":" +
+        String(nextMinute).padStart(2, "0"),
+    );
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => onOpenChange(!open)}
+        className={[
+          "flex h-10 w-full items-center justify-between gap-2 rounded-[11px] border px-2.5 text-left transition",
+          open
+            ? "border-[#FF9A45] bg-white ring-3 ring-[#FF8000]/10"
+            : "border-[#E9E3DC] bg-[#FCFBF9] hover:border-[#FFB366] hover:bg-white",
+        ].join(" ")}
+      >
+        <span className="flex min-w-0 items-center gap-1.5">
+          <Clock3 size={13} className="shrink-0 text-[#9A9189]" />
+          <span className="font-mono text-[12px] font-bold tracking-[-.02em] text-[#172235]">
+            {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
+          </span>
+        </span>
+        <ChevronDown
+          size={13}
+          className={[
+            "shrink-0 text-[#9A9189] transition-transform",
+            open ? "rotate-180" : "",
+          ].join(" ")}
+        />
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 top-[calc(100%+6px)] z-[80] w-[188px] rounded-[14px] border border-[#E7E0D8] bg-white p-2 shadow-[0_16px_36px_rgba(23,34,53,.14)]">
+          <div className="mb-1.5 flex items-center justify-between px-1">
+            <span className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#A0978F]">
+              {label}
+            </span>
+            <span className="font-mono text-[10px] font-bold text-[#FF8000]">
+              {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+            <div>
+              <p className="mb-1 px-1 text-[8px] font-bold text-[#968C83]">HH</p>
+              <input
+                type="number"
+                min={0}
+                max={23}
+                step={1}
+                inputMode="numeric"
+                value={hour}
+                onChange={(event) => {
+                  const next = Math.min(23, Math.max(0, Number(event.target.value) || 0));
+                  update(next, minute);
+                }}
+                className="h-9 w-full rounded-[10px] border border-[#E8E1DA] bg-[#FAF8F5] px-2 text-center font-mono text-[13px] font-bold text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white"
+              />
+            </div>
+
+            <span className="mt-5 text-[15px] font-bold text-[#B0A69D]">:</span>
+
+            <div>
+              <p className="mb-1 px-1 text-[8px] font-bold text-[#968C83]">MM</p>
+              <input
+                type="number"
+                min={0}
+                max={59}
+                step={1}
+                inputMode="numeric"
+                value={minute}
+                onChange={(event) => {
+                  const next = Math.min(59, Math.max(0, Number(event.target.value) || 0));
+                  update(hour, next);
+                }}
+                className="h-9 w-full rounded-[10px] border border-[#E8E1DA] bg-[#FAF8F5] px-2 text-center font-mono text-[13px] font-bold text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ReminderEditor({
+  label,
+  checked,
+  time,
+  onToggle,
+  onTimeChange,
+}: {
+  label: string;
+  checked: boolean;
+  time: string;
+  onToggle: (value: boolean) => void;
+  onTimeChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-[12px] border border-[#E9E3DC] bg-[#FCFBF9] p-1.5">
+      <div className="grid grid-cols-[minmax(0,1fr)_96px] items-center gap-1.5">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          onClick={() => onToggle(!checked)}
+          className="flex min-w-0 items-center justify-between gap-2 rounded-[9px] px-2 py-1.5 text-left transition hover:bg-white"
+        >
+          <span className="truncate text-[10px] font-extrabold text-[#172235]">
+            {label}
+          </span>
+          <span
+            className={[
+              "relative h-5 w-9 shrink-0 rounded-full transition",
+              checked ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
+            ].join(" ")}
+          >
+            <span
+              className={[
+                "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+                checked ? "translate-x-[18px]" : "translate-x-[3px]",
+              ].join(" ")}
+            />
+          </span>
+        </button>
+
+        <TimePicker
+          value={time}
+          label={label}
+          open={open}
+          onOpenChange={setOpen}
+          onChange={onTimeChange}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -361,13 +526,13 @@ export function StudentSettingsClient({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[960px] space-y-3 pb-6">
-      <div className="flex items-end justify-between gap-3 px-1 pb-1">
+    <div className="mx-auto w-full max-w-[900px] space-y-2.5 pb-5">
+      <div className="flex items-end justify-between gap-3 px-1 pb-0.5">
         <div>
           <p className="text-[8px] font-extrabold uppercase tracking-[.18em] text-[#FF8000]">
             {t("settings")}
           </p>
-          <h1 className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[#172235]">
+          <h1 className="mt-0.5 text-[20px] font-extrabold tracking-[-.045em] text-[#172235]">
             {t("settings")}
           </h1>
         </div>
@@ -423,39 +588,25 @@ export function StudentSettingsClient({
           title={t("reminders")}
           className="md:col-span-2"
         >
-          <div className="grid gap-1.5 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Toggle
-                checked={reminders.enabled}
-                onChange={(value) => updateReminder("enabled", value)}
-                title={t("reminders") + " · " + enabledCount}
-              />
-            </div>
+          <div className="grid gap-1.5">
+            <Toggle
+              checked={reminders.enabled}
+              onChange={(value) => updateReminder("enabled", value)}
+              title={t("reminders") + " · " + enabledCount}
+            />
 
-            {REMINDER_ITEMS.map(([enabledKey, timeKey, labelKey]) => (
-              <div
-                key={enabledKey}
-                className="grid grid-cols-[minmax(0,1fr)_92px] gap-1.5"
-              >
-                <Toggle
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {REMINDER_ITEMS.map(([enabledKey, timeKey, labelKey]) => (
+                <ReminderEditor
+                  key={enabledKey}
+                  label={t(labelKey)}
                   checked={Boolean(reminders[enabledKey]) && reminders.enabled}
-                  onChange={(value) => updateReminder(enabledKey, value)}
-                  title={t(labelKey)}
+                  time={String(reminders[timeKey])}
+                  onToggle={(value) => updateReminder(enabledKey, value)}
+                  onTimeChange={(value) => updateReminder(timeKey, value)}
                 />
-                <label className="flex items-center rounded-[12px] border border-[#E9E3DC] bg-[#FCFBF9] px-2.5">
-                  <Timer size={13} className="mr-1.5 shrink-0 text-[#A49A90]" />
-                  <input
-                    type="time"
-                    aria-label={t(labelKey)}
-                    value={String(reminders[timeKey])}
-                    onChange={(event) =>
-                      updateReminder(timeKey, event.target.value)
-                    }
-                    className="w-full bg-transparent text-[10px] font-extrabold text-[#172235] outline-none"
-                  />
-                </label>
-              </div>
-            ))}
+              ))}
+            </div>
 
             <div className="grid gap-1.5 sm:col-span-2 sm:grid-cols-2">
               <button
