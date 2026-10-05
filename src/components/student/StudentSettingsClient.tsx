@@ -153,7 +153,7 @@ function Toggle({
       >
         <span
           className={[
-            "absolute top-[3px] h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+            "absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
             checked ? "translate-x-[21px]" : "translate-x-[3px]",
           ].join(" ")}
         />
@@ -329,7 +329,7 @@ function ReminderEditor({
         >
           <span
             className={[
-              "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+              "absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
               checked ? "translate-x-[18px]" : "translate-x-[3px]",
             ].join(" ")}
           />
@@ -367,6 +367,7 @@ export function StudentSettingsClient({
   const [feedbackCategory, setFeedbackCategory] = useState("TECHNICAL");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState("");
+  const [notificationStatus, setNotificationStatus] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -452,36 +453,66 @@ export function StudentSettingsClient({
   }
 
   async function allowNotifications() {
+    setNotificationStatus("");
+
     if (typeof Notification === "undefined") {
       setNotificationPermission("unsupported");
+      setNotificationsEnabled(false);
+      setNotificationStatus(t("notificationUnsupported"));
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    setNotificationPermission(permission);
-    const enabled = permission === "granted";
-    setNotificationsEnabled(enabled);
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
 
-    if (enabled) {
+      if (permission !== "granted") {
+        setNotificationsEnabled(false);
+        setNotificationStatus(
+          permission === "denied"
+            ? t("notificationDenied")
+            : t("notificationPermissionPending"),
+        );
+        return;
+      }
+
+      setNotificationsEnabled(true);
+      setNotificationStatus(t("notificationsOn"));
+
       new Notification("Shyraq", {
-        body: t("notificationsOn"),
-        tag: "shyraq-settings-test",
+        body: t("notificationWelcome"),
+        tag: "shyraq-settings-welcome",
       });
+    } catch {
+      setNotificationsEnabled(false);
+      setNotificationStatus(t("notificationFailed"));
     }
   }
 
   function testNotification() {
-    if (
-      typeof Notification === "undefined" ||
-      Notification.permission !== "granted"
-    ) {
+    setNotificationStatus("");
+
+    if (typeof Notification === "undefined") {
+      setNotificationStatus(t("notificationUnsupported"));
       return;
     }
 
-    new Notification("Shyraq", {
-      body: t("testNotification"),
-      tag: "shyraq-test",
-    });
+    if (Notification.permission !== "granted") {
+      setNotificationPermission(Notification.permission);
+      setNotificationsEnabled(false);
+      setNotificationStatus(t("notificationNeedPermission"));
+      return;
+    }
+
+    try {
+      new Notification("Shyraq", {
+        body: t("notificationTestBody"),
+        tag: "shyraq-test",
+      });
+      setNotificationStatus(t("notificationSent"));
+    } catch {
+      setNotificationStatus(t("notificationFailed"));
+    }
   }
 
   async function logout() {
@@ -631,7 +662,8 @@ export function StudentSettingsClient({
               <button
                 type="button"
                 onClick={allowNotifications}
-                className="flex items-center justify-center gap-2 rounded-[12px] border border-[#E7E0D8] bg-[#FCFBF9] px-3 py-2.5 text-[10px] font-extrabold text-[#172235]"
+                disabled={notificationPermission === "unsupported"}
+                className="flex items-center justify-center gap-2 rounded-[12px] border border-[#E7E0D8] bg-[#FCFBF9] px-3 py-2.5 text-[10px] font-extrabold text-[#172235] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {notificationPermission === "granted" ? (
                   <Check size={14} />
@@ -640,21 +672,25 @@ export function StudentSettingsClient({
                 )}
                 {notificationPermission === "granted"
                   ? t("notificationsOn")
-                  : t("allowNotifications")}
+                  : notificationPermission === "denied"
+                    ? t("notificationDeniedShort")
+                    : t("allowNotifications")}
               </button>
 
               <button
                 type="button"
-                disabled={
-                  notificationPermission !== "granted" ||
-                  !notificationsEnabled
-                }
+                disabled={notificationPermission !== "granted"}
                 onClick={testNotification}
-                className="flex items-center justify-center gap-2 rounded-[12px] bg-[#FF8000] px-3 py-2.5 text-[10px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-45"
+                className="flex items-center justify-center gap-2 rounded-[12px] bg-[#FF8000] px-3 py-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#E87500] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <Bell size={14} />
                 {t("testNotification")}
               </button>
+              {notificationStatus ? (
+                <p className="sm:col-span-2 rounded-[10px] bg-[#FAF7F3] px-3 py-2 text-[9px] font-semibold text-[#6F665E]">
+                  {notificationStatus}
+                </p>
+              ) : null}
             </div>
           </div>
         </Panel>
