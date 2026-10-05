@@ -12,6 +12,7 @@ export type { StudentLanguage };
 
 export function setStudentLanguage(language: StudentLanguage) {
   window.localStorage.setItem(STUDENT_LANGUAGE_KEY, language);
+  document.cookie = `shyraq-language=${language}; path=/; max-age=31536000; samesite=lax`;
   window.dispatchEvent(new CustomEvent(STUDENT_LANGUAGE_EVENT, { detail: language }));
   document.documentElement.lang = language;
 }
