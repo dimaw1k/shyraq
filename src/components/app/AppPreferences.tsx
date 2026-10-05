@@ -29,7 +29,6 @@ export function AppPreferences() {
       if (value === "ru" || value === "en" || value === "kk") document.documentElement.lang = value;
     };
 
-    media.addEventListener("change", onThemeChange);
     window.addEventListener(STUDENT_LANGUAGE_EVENT, onLanguageChange);
 
     fetch("/api/student/settings", { cache: "no-store" })
