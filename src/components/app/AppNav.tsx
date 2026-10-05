@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/student/NotificationBell";
+import { useStudentLanguage } from "@/lib/student-language";
 
 type NavItem = { label: string; href: string; icon: LucideIcon };
 
@@ -169,10 +170,12 @@ function NavLinks({
   links,
   pathname,
   close,
+  labelFor,
 }: {
   links: NavItem[];
   pathname: string;
   close: () => void;
+  labelFor?: (href: string, fallback: string) => string;
 }) {
   return (
     <nav className="mt-6 space-y-1 pb-4" aria-label="Негізгі навигация">
@@ -193,7 +196,7 @@ function NavLinks({
             ].join(" ")}
           >
             <Icon size={17} strokeWidth={active ? 2.25 : 1.9} />
-            <span className="truncate">{item.label}</span>
+            <span className="truncate">{labelFor ? labelFor(item.href, item.label) : item.label}</span>
           </Link>
         );
       })}
@@ -220,7 +223,15 @@ function getMobileLinks(role: string, links: NavItem[]) {
   return preferred.map((href) => byHref.get(href)).filter((item): item is NavItem => Boolean(item));
 }
 
-function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: string }) {
+function MobileBottomNav({
+  links,
+  pathname,
+  labelFor,
+}: {
+  links: NavItem[];
+  pathname: string;
+  labelFor?: (href: string, fallback: string) => string;
+}) {
   return (
     <nav
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
@@ -230,10 +241,7 @@ function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: stri
         {links.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
-          const label = item.label
-            .replace("Басты бет", "Басты")
-            .replace("Баптаулар", "Баптау")
-            .replace("Тапсырмаларды тексеру", "Тексеру");
+          const label = labelFor ? labelFor(item.href, item.label) : item.label;
           return (
             <Link
               key={item.href}
@@ -265,6 +273,7 @@ function MobileBottomNav({ links, pathname }: { links: NavItem[]; pathname: stri
 
 export function AppNav({ role, userName }: { role: string; userName?: string }) {
   const pathname = usePathname();
+  const { t } = useStudentLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileName, setProfileName] = useState(userName ?? "");
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
@@ -298,6 +307,15 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
 
   const mobileLinks = useMemo(() => getMobileLinks(role, links), [role, links]);
   const home = roleHome[role] ?? "/dashboard";
+  const labelFor = role === "STUDENT"
+    ? (href: string, fallback: string) =>
+        href === "/dashboard" ? t("home")
+          : href === "/lessons" ? t("lessons")
+          : href === "/habits" ? t("habitsNav")
+          : href === "/profile" ? t("profileNav")
+          : href === "/settings" ? t("settings")
+          : fallback
+    : undefined;
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -357,12 +375,12 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
               <Wordmark />
             </Link>
             <span className="hidden max-w-[112px] rounded-full bg-[var(--accent-soft)] px-2 py-1 text-center text-[8px] font-extrabold uppercase tracking-[.1em] text-[#B95D00] lg:inline-flex">
-              {roleLabels[role] ?? role}
+              {displayRole}
             </span>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-            <NavLinks links={links} pathname={pathname} close={() => setMobileOpen(false)} />
+            <NavLinks links={links} pathname={pathname} close={() => setMobileOpen(false)} labelFor={labelFor} />
           </div>
         </div>
       </aside>
@@ -376,7 +394,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
         />
       ) : null}
 
-      <MobileBottomNav links={mobileLinks} pathname={pathname} />
+      <MobileBottomNav links={mobileLinks} pathname={pathname} labelFor={labelFor} />
     </>
   );
 }
@@ -439,6 +457,9 @@ export function UserChip({
   role?: string;
   avatarUrl?: string | null;
 }) {
+  const { t } = useStudentLanguage();
+  const displayRole = role === "STUDENT" ? t("studentRole") : role ? (roleLabels[role] ?? role) : undefined;
+
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       {avatarUrl ? (
