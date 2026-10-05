@@ -7,37 +7,23 @@ import {
   STUDENT_LANGUAGE_EVENT,
 } from "@/lib/student-language";
 
-const THEME_KEY = "shyraq:theme";
-
-function applyTheme(value: string | null) {
-  const resolved =
-    value === "dark" || value === "light"
-      ? value
-      : window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-
-  document.documentElement.dataset.theme = resolved;
-}
-
 export function AppPreferences() {
   useEffect(() => {
     let active = true;
 
     const applyStored = () => {
-      applyTheme(window.localStorage.getItem(THEME_KEY));
       const storedLanguage = window.localStorage.getItem(STUDENT_LANGUAGE_KEY);
       if (storedLanguage === "ru" || storedLanguage === "en" || storedLanguage === "kk") {
         document.documentElement.lang = storedLanguage;
       }
     };
 
+    window.localStorage.removeItem("shyraq:theme");
+    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.style.colorScheme = "light";
+
     applyStored();
 
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onThemeChange = () => {
-      if (window.localStorage.getItem(THEME_KEY) === "system") applyTheme("system");
-    };
     const onLanguageChange = () => {
       const value = window.localStorage.getItem(STUDENT_LANGUAGE_KEY);
       if (value === "ru" || value === "en" || value === "kk") document.documentElement.lang = value;
@@ -60,11 +46,6 @@ export function AppPreferences() {
           setStudentLanguage(settings.language);
         }
 
-        if (settings.theme === "light" || settings.theme === "dark" || settings.theme === "system") {
-          window.localStorage.setItem(THEME_KEY, settings.theme);
-          applyTheme(settings.theme);
-        }
-
         if (settings.reminders) {
           window.localStorage.setItem("shyraq:reminders", JSON.stringify(settings.reminders));
         }
@@ -78,7 +59,6 @@ export function AppPreferences() {
 
     return () => {
       active = false;
-      media.removeEventListener("change", onThemeChange);
       window.removeEventListener(STUDENT_LANGUAGE_EVENT, onLanguageChange);
     };
   }, []);
