@@ -38,7 +38,16 @@ export default function ResetPasswordPage() {
 
     async function checkRecoverySession() {
       const params = new URLSearchParams(window.location.search);
+      const recoveryMode = params.get("mode") === "update";
       const recoveryError = getResetErrorMessage(params.get("error"));
+
+      if (!recoveryMode) {
+        if (!active) return;
+        setMode("request");
+        if (recoveryError) setError(recoveryError);
+        return;
+      }
+
       const supabase = createBrowserSupabaseClient();
       const { data, error: userError } = await supabase.auth.getUser();
 
@@ -50,7 +59,7 @@ export default function ResetPasswordPage() {
       }
 
       setMode("request");
-      if (recoveryError) setError(recoveryError);
+      setError("Сілтеме жарамсыз немесе мерзімі өткен.");
     }
 
     void checkRecoverySession();
@@ -316,15 +325,11 @@ export default function ResetPasswordPage() {
             </form>
           )}
 
-          {mode !== "request" && mode !== "update" && null}
-
-          {(mode === "request" || mode === "update") && (
-            <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
-              <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
-                Кіру бетіне оралу
-              </Link>
-            </p>
-          )}
+          <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
+            <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
+              Кіру бетіне оралу
+            </Link>
+          </p>
         </section>
       </div>
     </main>
