@@ -261,7 +261,15 @@ export function ProfileClient() {
             className={inputClass}
           >
             {educationOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.value === "SCHOOL" ? t("school") : option.value === "COLLEGE" ? t("college") : option.value === "UNIVERSITY" ? t("university") : t("other")}</option>
+              <option key={option} value={option}>
+                {option === "SCHOOL"
+                  ? t("school")
+                  : option === "COLLEGE"
+                    ? t("college")
+                    : option === "UNIVERSITY"
+                      ? t("university")
+                      : t("other")}
+              </option>
             ))}
           </select>
         </label>
