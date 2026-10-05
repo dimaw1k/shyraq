@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
     const { data: userData } = await supabase.auth.getUser();
 
     if (!userData.user) {
-      setError("t("invalidReset")");
+      setError(t("invalidReset"));
       setLoading(false);
       setMode("request");
       return;
