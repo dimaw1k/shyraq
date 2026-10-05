@@ -152,3 +152,5 @@ For security, enable Supabase Auth leaked-password protection before the product
 ## Mobile web UI
 
 The application is responsive for phone and tablet viewports without a separate native app. The shared app shell now provides a compact mobile header, slide-out role-aware navigation, five-item bottom navigation, safe-area support for iOS, mobile-friendly page spacing and horizontally scrollable dense tables. Authentication, lessons and lesson detail screens also use mobile-specific spacing and viewport metadata.
+
+<!-- Vercel production deployment sync: 2026-10-05 -->
