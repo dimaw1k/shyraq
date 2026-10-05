@@ -127,12 +127,9 @@ export default function RegisterPage() {
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
               {t("registrationHeading")}
             </h1>
-            <p className="mt-3 max-w-[340px] text-[13px] font-medium leading-5 text-[#766E66]">
-              {t("registrationDescription")}
-            </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-3.5">
+          <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-3.5">
             <label className="block">
               <span className="sr-only">{t("firstName")}</span>
               <div className="relative">
