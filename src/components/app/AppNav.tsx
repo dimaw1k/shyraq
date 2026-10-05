@@ -36,7 +36,6 @@ const studentLinks: NavItem[] = [
   { label: "Сабақтар", href: "/lessons", icon: BookOpen },
   { label: "Әдеттер", href: "/habits", icon: CheckCircle2 },
   { label: "Профиль", href: "/profile", icon: Users },
-  { label: "Баптаулар", href: "/settings", icon: Settings },
 ];
 
 const mentorLinks: NavItem[] = [
@@ -315,7 +314,6 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           : href === "/lessons" ? t("lessons")
           : href === "/habits" ? t("habitsNav")
           : href === "/profile" ? t("profileNav")
-          : href === "/settings" ? t("settings")
           : fallback
     : undefined;
 
@@ -425,7 +423,6 @@ export function AppShell({
         : title === "Сабақтар" ? t("lessons")
         : title === "Әдеттер" ? t("habitsNav")
         : title === "Профиль" ? t("profileNav")
-        : title === "Баптаулар" ? t("settings")
         : title
       : title;
 
