@@ -363,31 +363,20 @@ export function ProfileClient() {
             <p className="text-[10px] font-extrabold text-[#172235]">{t("language")}</p>
           </div>
 
-          <div className="inline-flex items-center rounded-full border border-[#E7E0D8] bg-white p-0.5 shadow-[0_2px_10px_rgba(23,34,53,.03)]">
-            {([
-              ["ru", "RU"],
-              ["kk", "KZ"],
-              ["en", "ENG"],
-            ] as Array<[StudentLanguage, string]>).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={language === value}
-                onClick={() => {
-                  setStudentLanguage(value);
-                  void persistLanguage(value);
-                }}
-                className={[
-                  "min-w-[42px] rounded-full px-2.5 py-1.5 text-[9px] font-extrabold tracking-[.02em] transition",
-                  language === value
-                    ? "bg-[#FFF1E2] text-[#D56600] shadow-sm"
-                    : "text-[#8B8179] hover:bg-[#FAF7F3] hover:text-[#172235]",
-                ].join(" ")}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <select
+            aria-label={t("language")}
+            value={language}
+            onChange={(event) => {
+              const nextLanguage = event.target.value as StudentLanguage;
+              setStudentLanguage(nextLanguage);
+              void persistLanguage(nextLanguage);
+            }}
+            className="h-9 w-[84px] appearance-none rounded-[11px] border border-[#E7E0D8] bg-white px-3 text-[10px] font-extrabold text-[#5F574F] outline-none transition focus:border-[#FF8000] focus:ring-3 focus:ring-[#FF8000]/10"
+          >
+            <option value="ru">RU</option>
+            <option value="kk">KZ</option>
+            <option value="en">ENG</option>
+          </select>
         </div>
 
         <button
