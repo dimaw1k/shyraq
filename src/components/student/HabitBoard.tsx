@@ -404,7 +404,7 @@ export function HabitBoard({
           </button>
         </div>
 
-        <div className="mt-3 grid grid-cols-7 gap-1.5 sm:gap-2">
+        <div className="shrq-habit-week mt-3 grid grid-cols-7 gap-1.5 sm:gap-2">
           {dates.map((date) => {
             const count = habits.reduce(
               (total, habit) =>
