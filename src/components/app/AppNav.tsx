@@ -177,6 +177,7 @@ function NavLinks({
   close: () => void;
   labelFor?: (href: string, fallback: string) => string;
 }) {
+  const { t } = useStudentLanguage();
   return (
     <nav className="mt-6 space-y-1 pb-4" aria-label={labelFor ? labelFor("__main_nav__", t("mainNavigation")) : t("mainNavigation")}>
       {links.map((item) => {
@@ -232,6 +233,7 @@ function MobileBottomNav({
   pathname: string;
   labelFor?: (href: string, fallback: string) => string;
 }) {
+  const { t } = useStudentLanguage();
   return (
     <nav
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
@@ -441,7 +443,7 @@ export function AppShell({
             <div className="mx-auto flex min-h-[76px] max-w-[1320px] flex-col items-start justify-center gap-2 px-3.5 py-3.5 sm:min-h-[82px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
               <div className="min-w-0 max-w-full">
                 <h1 className="line-clamp-2 text-[19px] font-extrabold leading-tight tracking-[-.04em] text-[#172235] sm:text-[22px]">
-                  {title}
+                  {displayTitle}
                 </h1>
                 {description ? (
                   <p className="mt-1 line-clamp-2 text-[10px] font-medium leading-4 text-[#857B72] sm:text-[11px]">
