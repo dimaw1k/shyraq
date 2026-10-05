@@ -3,8 +3,10 @@ import { Clock3, LockKeyhole } from "lucide-react";
 import { AppShell, UserChip } from "@/components/app/AppNav";
 import { TaskSubmissionForm } from "@/components/tasks/TaskSubmissionForm";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getStudentTranslator } from "@/lib/student-server-language";
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
+  const { t } = await getStudentTranslator();
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -26,12 +28,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
 
   if (locked) {
     return (
-      <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырма жабық" right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+      <AppShell role={role} userName={profile?.full_name ?? undefined} title={t("taskClosed")} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
         <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
           <div className="rounded-[24px] border border-[#E8E1DA] bg-white p-6 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
             <h2 className="mt-4 text-xl font-extrabold text-[#172235]">{task.title}</h2>
-            <p className="mt-2 text-sm text-[#8B8179]">Тапсырма әлі ашылған жоқ.</p>
+            <p className="mt-2 text-sm text-[#8B8179]">{t("taskNotOpen")}</p>
             <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF0E8] px-4 py-2 text-xs font-extrabold text-[#C85E2F]"><Clock3 size={14} />{new Date(task.starts_at!).toLocaleString("kk-KZ")}</p>
           </div>
         </main>
@@ -46,17 +48,17 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
   const late = Boolean(task.deadline && new Date(task.deadline).getTime() < now);
 
   return (
-    <AppShell role={role} userName={profile?.full_name ?? undefined} title="Тапсырма" description={task.marathon_day ? task.marathon_day + "-күн · жауапты аяқта" : "Жауапты аяқтап, қажет файлдарды тірке."} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
+    <AppShell role={role} userName={profile?.full_name ?? undefined} title={t("task")} description={task.marathon_day ? task.marathon_day + " " + t("dayResponse") + t("finishAnswer") : t("attachFiles")} right={<UserChip name={profile?.full_name ?? undefined} role={role} />}>
       <main className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-7">
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-soft sm:p-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C25100]">ТАПСЫРМА</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#C25100]">{t("taskLabel")}</p>
           <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">{task.title}</h2>
           <p className="mt-3 text-sm leading-6 text-gray-500">{task.description}</p>
-          {task.instructions ? <div className="mt-4 rounded-xl bg-[#FAFAFA] p-3.5 text-sm leading-6 text-gray-700"><p className="mb-1 text-xs font-semibold text-gray-900">Нұсқаулық</p>{task.instructions}</div> : null}
+          {task.instructions ? <div className="mt-4 rounded-xl bg-[#FAFAFA] p-3.5 text-sm leading-6 text-gray-700"><p className="mb-1 text-xs font-semibold text-gray-900">{t("instructions")}</p>{task.instructions}</div> : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} ұпай</span>{late&&Number(task.late_points_percent)<100?<span className="rounded-lg bg-[#F6F2ED] px-2.5 py-1.5 text-xs font-semibold text-[#7C7168]">Кешігу: {task.late_points_percent}%</span>:null}
-            <span className={"rounded-lg px-2.5 py-1.5 text-xs font-medium " + (late ? "bg-[#FFF0E8] text-[#C85E2F]" : "bg-[#FAFAFA] text-gray-500")}>{late ? "Соңғы мерзімі өтті · тапсыруға болады" : task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : "Соңғы мерзім жоқ"}</span>
-            {submission?.submitted_late ? <span className="rounded-lg bg-[#FFF0E8] px-2.5 py-1.5 text-xs font-semibold text-[#C85E2F]">Кеш тапсырылды</span> : null}
+            <span className="rounded-lg bg-[#C25100]/10 px-2.5 py-1.5 text-xs font-semibold text-[#C25100]">{task.points} {t("pointsShort")}</span>{late&&Number(task.late_points_percent)<100?<span className="rounded-lg bg-[#F6F2ED] px-2.5 py-1.5 text-xs font-semibold text-[#7C7168]">{t("lateLabel")}: {task.late_points_percent}%</span>:null}
+            <span className={"rounded-lg px-2.5 py-1.5 text-xs font-medium " + (late ? "bg-[#FFF0E8] text-[#C85E2F]" : "bg-[#FAFAFA] text-gray-500")}>{late ? t("deadlineExpiredSubmit") : task.deadline ? new Date(task.deadline).toLocaleString("kk-KZ") : t("deadlineNone")}</span>
+            {submission?.submitted_late ? <span className="rounded-lg bg-[#FFF0E8] px-2.5 py-1.5 text-xs font-semibold text-[#C85E2F]">{t("lateSubmittedLabel")}</span> : null}
           </div>
         </div>
         <div className="mt-4">
