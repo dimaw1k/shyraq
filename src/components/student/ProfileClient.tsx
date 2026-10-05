@@ -274,7 +274,7 @@ export function ProfileClient() {
           />
         </label>
 
-        <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
+        <label className="text-[10px] font-extrabold text-[#3F3832]">
           {t("educationLevel")}
           <select
             value={form.educationType}
