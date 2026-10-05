@@ -432,7 +432,7 @@ export function AppShell({
       <div
         className={[
           "min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:pb-0 lg:pt-[56px]",
-          role === "STUDENT" ? "lg:ml-[248px]" : "lg:ml-[236px]",
+          role === "STUDENT" ? "lg:ml-[248px] shrq-student-cabinet" : "lg:ml-[236px]",
         ].join(" ")}
       >
         {!hideHeader ? (
