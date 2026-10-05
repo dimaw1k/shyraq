@@ -104,36 +104,36 @@ export default function RegisterPage() {
   }
 
   const inputClass = (key: keyof FormState) =>
-    "w-full rounded-[15px] border bg-[#FCFBF9] py-3.5 pl-11 pr-4 text-[14px] font-medium outline-none transition " +
+    "w-full rounded-[13px] border bg-[#FCFBF9] py-[11px] pl-10 pr-3.5 text-[13px] font-medium outline-none transition " +
     (errors[key]
       ? "border-red-300 bg-red-50/40"
       : "border-[#E7E0D8]") +
     " focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
   const errorText = (key: keyof FormState) =>
-    errors[key] ? <p className="mt-1.5 pl-1 text-[11px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
+    errors[key] ? <p className="mt-1 pl-1 text-[10px] font-semibold leading-4 text-red-600">{errors[key]}</p> : null;
 
   return (
     <main className="min-h-[100dvh] bg-[#FAF9F7] px-4 py-8 text-[#172235]">
       <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
-        <section className="w-full max-w-[467px] relative rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
+        <section className="w-full max-w-[467px] relative rounded-[26px] border border-[#E7E0D8] bg-white px-[18px] py-[21px] shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-[25px] sm:py-[25px]">
           <div className="flex flex-col items-center text-center">
             <AuthLanguagePicker />
-            <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
-              <UserPlus size={24} strokeWidth={2.2} />
+            <div className="grid h-[52px] w-[52px] place-items-center rounded-[16px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
+              <UserPlus size={21} strokeWidth={2.2} />
             </div>
 
-            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("registerUpper")}</p>
-            <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
+            <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("registerUpper")}</p>
+            <h1 className="mt-1.5 text-[27px] font-extrabold leading-none tracking-[-.05em] sm:text-[29px]">
               {t("registrationHeading")}
             </h1>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-3.5">
+          <form onSubmit={handleSubmit} noValidate className="mt-3 space-y-2.5">
             <label className="block">
               <span className="sr-only">{t("firstName")}</span>
               <div className="relative">
-                <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   autoComplete="given-name"
@@ -149,7 +149,7 @@ export default function RegisterPage() {
             <label className="block">
               <span className="sr-only">{t("lastName")}</span>
               <div className="relative">
-                <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   autoComplete="family-name"
@@ -165,7 +165,7 @@ export default function RegisterPage() {
             <label className="block">
               <span className="sr-only">{t("phone")}</span>
               <div className="relative">
-                <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   inputMode="tel"
@@ -183,7 +183,7 @@ export default function RegisterPage() {
             <label className="block">
               <span className="sr-only">{t("email")}</span>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   type="email"
@@ -200,7 +200,7 @@ export default function RegisterPage() {
                         <label className="block">
               <span className="sr-only">{t("password")}</span>
               <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   minLength={8}
@@ -209,15 +209,15 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={(event) => updateField("password", event.target.value)}
                   placeholder={t("password")}
-                  className={inputClass("password") + " pr-12"}
+                  className={inputClass("password") + " pr-11"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
                   aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                 >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {errorText("password")}
@@ -226,7 +226,7 @@ export default function RegisterPage() {
             <label className="block">
               <span className="sr-only">{t("repeatPassword")}</span>
               <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
+                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
                   minLength={8}
@@ -235,22 +235,22 @@ export default function RegisterPage() {
                   value={form.confirmPassword}
                   onChange={(event) => updateField("confirmPassword", event.target.value)}
                   placeholder={t("repeatPassword")}
-                  className={inputClass("confirmPassword") + " pr-12"}
+                  className={inputClass("confirmPassword") + " pr-11"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((value) => !value)}
                   aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                 >
-                  {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {errorText("confirmPassword")}
             </label>
 
             {errors.form ? (
-              <div className="rounded-[13px] border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold leading-4 text-red-700">
+              <div className="rounded-[11px] border border-red-100 bg-red-50 px-3 py-2 text-[10px] font-semibold leading-4 text-red-700">
                 {errors.form}
               </div>
             ) : null}
@@ -258,14 +258,14 @@ export default function RegisterPage() {
             <button
               disabled={loading}
               type="submit"
-              className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
+              className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[13px] bg-[#FF8000] px-4 py-3 text-[13px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? t("registering") : t("createAccount")}
-              {!loading ? <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /> : null}
+              {!loading ? <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" /> : null}
             </button>
           </form>
 
-          <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
+          <p className="mt-4 text-center text-[11px] font-medium text-[#837970]">
             {t("haveAccount")}{" "}
             <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
               {t("login")}
