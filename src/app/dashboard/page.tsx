@@ -322,17 +322,17 @@ export default async function DashboardPage() {
                 <div className="mt-3 grid gap-2">
                   <MiniStat
                     icon={<Flame size={13} />}
-                    label="{t("streak")}"
+                    label={t("streak")}
                     value={streak + " " + t("day")}
                   />
                   <MiniStat
                     icon={<Trophy size={13} />}
-                    label="{t("points")}"
+                    label={t("points")}
                     value={String(score)}
                   />
                   <MiniStat
                     icon={<UsersRound size={13} />}
-                    label="{t("team")}"
+                    label={t("team")}
                     value={team ? String(team.name) : t("waiting")}
                   />
                 </div>
