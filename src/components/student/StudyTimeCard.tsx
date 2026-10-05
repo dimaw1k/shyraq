@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   ArrowUpRight,
   Camera,
@@ -14,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { formatReportOpenTime, isReportOpen } from "@/lib/report-schedule";
 import { useStudentLanguage } from "@/lib/student-language";
+import { studentText } from "@/lib/student-translations";
 
 type ReportType = "MORNING" | "EVENING";
 
@@ -89,7 +91,7 @@ export function StudyTimeCard({
   morningReportOpenTime,
   eveningReportOpenTime,
 }: Props) {
-  const { t } = useStudentLanguage("kk");
+  const { language, t } = useStudentLanguage("kk");
   const [open, setOpen] = useState(false);
   const [reportType, setReportType] = useState<ReportType>("MORNING");
   const [now, setNow] = useState(0);
@@ -317,7 +319,7 @@ function ReportModal({
       .then(async (response) => {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(payload?.error ?? t("reportQuestionLoadFailed"));
+          throw new Error(payload?.error ?? studentText(language, "reportQuestionLoadFailed"));
         }
         if (active) {
           setQuestions(payload.questions ?? []);
@@ -326,14 +328,14 @@ function ReportModal({
       })
       .catch((reason) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : t("reportQuestionLoadFailed"));
+          setError(reason instanceof Error ? reason.message : studentText(language, "reportQuestionLoadFailed"));
           setLoadedQuestionsKey(questionsRequestKey);
         }
       })
     return () => {
       active = false;
     };
-  }, [questionsRequestKey, marathonDay, reportType]);
+  }, [questionsRequestKey, language]);
 
   useEffect(() => {
     if (!openBodyLock()) return undefined;
@@ -643,11 +645,16 @@ function PhotoPicker({
   return (
     <label className="group relative block overflow-hidden rounded-[13px] border border-dashed border-[#DCCFC4] bg-[#FAF9F7]">
       {slot.preview ? (
-        <img
-          src={slot.preview}
-          alt=""
-          className="h-[150px] w-full object-cover"
-        />
+        <div className="relative h-[150px] w-full">
+          <Image
+            src={slot.preview}
+            alt=""
+            fill
+            unoptimized
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
       ) : (
         <div className="grid h-[150px] place-items-center px-4 text-center">
           <div>
