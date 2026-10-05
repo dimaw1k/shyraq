@@ -107,7 +107,7 @@ export function TestClient({
   const resultMap = new Map(questionResults.map((item) => [item.questionId, item]));
 
   return (
-    <div className="shrq-test-client min-w-0 space-y-4">
+    <div className="space-y-4">
       <div className="rounded-[18px] border border-[#E8E1DA] bg-[#FFFCF9] p-4 sm:p-5">
         <p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">НӘТИЖЕ</p>
         <p className="mt-1 text-sm font-extrabold text-[#172235]">Қалған мүмкіндік: {attemptsRemaining} / {maxAttempts}</p>
