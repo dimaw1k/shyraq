@@ -178,7 +178,7 @@ function NavLinks({
   labelFor?: (href: string, fallback: string) => string;
 }) {
   return (
-    <nav className="mt-6 space-y-1 pb-4" aria-label="Негізгі навигация">
+    <nav className="mt-6 space-y-1 pb-4" aria-label={labelFor ? labelFor("__main_nav__", t("mainNavigation")) : t("mainNavigation")}>
       {links.map((item) => {
         const Icon = item.icon;
         const active = isActive(pathname, item.href);
@@ -235,7 +235,7 @@ function MobileBottomNav({
   return (
     <nav
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
-      aria-label="Мобильді навигация"
+      aria-label={t("mobileNavigation")}
     >
       <div className={["mx-auto grid max-w-[520px] px-1", links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
         {links.map((item) => {
@@ -338,13 +338,13 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
               type="button"
               onClick={() => setMobileOpen((open) => !open)}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] text-[#172235] transition hover:bg-[var(--accent-soft)] lg:hidden"
-              aria-label={mobileOpen ? "Мәзірді жабу" : "Мәзірді ашу"}
+              aria-label={mobileOpen ? t("menuClose") : t("menuOpen")}
               aria-expanded={mobileOpen}
               aria-controls="shyraq-mobile-sidebar"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <Link href={home} className="lg:hidden" aria-label="Shyraq басты беті">
+            <Link href={home} className="lg:hidden" aria-label={t("homeAria")}>
               <Wordmark compact />
             </Link>
           </div>
@@ -371,7 +371,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       >
         <div className="flex h-full min-h-0 flex-col">
           <div className="flex shrink-0 items-center justify-between px-2">
-            <Link href={home} onClick={() => setMobileOpen(false)} aria-label="Shyraq басты беті">
+            <Link href={home} onClick={() => setMobileOpen(false)} aria-label={t("homeAria")}>
               <Wordmark />
             </Link>
             <span className="hidden max-w-[112px] rounded-full bg-[var(--accent-soft)] px-2 py-1 text-center text-[8px] font-extrabold uppercase tracking-[.1em] text-[#B95D00] lg:inline-flex">
@@ -388,7 +388,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       {mobileOpen ? (
         <button
           type="button"
-          aria-label="Мәзірді жабу"
+          aria-label={t("menuClose")}
           onClick={() => setMobileOpen(false)}
           className="fixed inset-0 z-[45] bg-[#172235]/15 backdrop-blur-[1px] lg:hidden"
         />
