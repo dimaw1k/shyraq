@@ -33,8 +33,8 @@ type ExistingReport = {
 
 type PhotoSlot = {
   key: "MORNING_MEET" | "PLAN" | "SCREEN_TIME" | "PROCESS";
-  label: string;
-  hint: string;
+  labelKey: string;
+  hintKey: string;
   file: File | null;
   preview: string | null;
 };
@@ -52,44 +52,29 @@ type Props = {
   eveningReportOpenTime: string;
 };
 
-const SLOT_CONFIG: Omit<PhotoSlot, "file" | "preview">[] = [
-  {
-    key: "MORNING_MEET",
-    label: t("studyTime"),
-    hint: t("meetAttendance"),
-  },
-  {
-    key: "PLAN",
-    label: t("plan"),
-    hint: t("todayPlan"),
-  },
-  {
-    key: "SCREEN_TIME",
-    label: t("screenTime"),
-    hint: t("screenStats"),
-  },
-  {
-    key: "PROCESS",
-    label: t("process"),
-    hint: t("studyProgress"),
-  },
-];
+const SLOT_CONFIG = [
+  { key: "MORNING_MEET", labelKey: "meetAttendance", hintKey: "morningStudy" },
+  { key: "PLAN", labelKey: "plan", hintKey: "todayPlan" },
+  { key: "SCREEN_TIME", labelKey: "screenTime", hintKey: "screenStats" },
+  { key: "PROCESS", labelKey: "process", hintKey: "studyProgress" },
+] as const;
 
-const EMPTY_SLOTS: PhotoSlot[] = SLOT_CONFIG.map((slot) => ({
-  ...slot,
-  file: null,
-  preview: null,
-}));
+function createEmptySlots(t: (key: string) => string): PhotoSlot[] {
+  return SLOT_CONFIG.map((slot) => ({
+    ...slot,
+    file: null,
+    preview: null,
+  }));
+}
 
-function formatMinutes(value: number) {
+function formatMinutes(value: number, t: (key: string) => string) {
   const minutes = Math.max(0, Math.round(value));
-  if (minutes < 60) return minutes + " минут";
+  if (minutes < 60) return minutes + " " + t("minutesLabel");
 
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-
-  if (rest === 0) return hours + " сағат";
-  return hours + " сағат " + String(rest).padStart(2, "0") + " минут";
+  if (rest === 0) return hours + " " + t("hours");
+  return hours + " " + t("hours") + " " + String(rest).padStart(2, "0") + " " + t("minutesLabel");
 }
 
 export function StudyTimeCard({
@@ -106,9 +91,7 @@ export function StudyTimeCard({
 }: Props) {
   const { t } = useStudentLanguage("kk");
   const [open, setOpen] = useState(false);
-  const { t } = useStudentLanguage("kk");
   const [reportType, setReportType] = useState<ReportType>("MORNING");
-  const { t } = useStudentLanguage("kk");
   const [now, setNow] = useState(0);
 
   const submitted = useMemo(
@@ -139,15 +122,7 @@ export function StudyTimeCard({
     <>
       <div className="grid gap-2 sm:grid-cols-2">
         <SessionRow
-          label=t("morningStudy")
-          minutes={morningMinutes}
-          submitted={submitted.has("MORNING")}
-          open={morningOpen}
-          openTime={morningReportOpenTime}
-          onReport={() => openReport("MORNING")}
-        />
-        <SessionRow
-          label=t("eveningStudy")
+          label={t("eveningStudy")}
           minutes={eveningMinutes}
           submitted={submitted.has("EVENING")}
           open={eveningOpen}
@@ -167,7 +142,7 @@ export function StudyTimeCard({
               className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
-              Таңғы Meet-ке кіру
+              {t("morningMeetJoin")}
               <ArrowUpRight size={12} />
             </a>
 
@@ -179,17 +154,17 @@ export function StudyTimeCard({
               className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
-              Кешкі Meet-ке кіру
+              {t("eveningMeetJoin")}
               <ArrowUpRight size={12} />
             </a>
           </>
         ) : (
           <>
             <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
-              Таңғы Meet сілтемесі қосылмаған
+              {t("morningMeet")} — {t("meetingLinkMissing")}
             </div>
             <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
-              Кешкі Meet сілтемесі қосылмаған
+              {t("eveningMeet")} — {t("meetingLinkMissing")}
             </div>
           </>
         )}
@@ -235,6 +210,7 @@ function SessionRow({
   openTime: string;
   onReport: () => void;
 }) {
+  const { t } = useStudentLanguage("kk");
   return (
     <div className="rounded-[14px] border border-[#EEE7E0] bg-[#FFFCF9] p-3">
       <div className="flex items-center justify-between gap-2">
@@ -253,10 +229,10 @@ function SessionRow({
       <div className="mt-2 flex items-end justify-between gap-3">
         <div>
           <p className="text-[18px] font-extrabold tracking-[-.04em] text-[#172235]">
-            {formatMinutes(minutes)}
+            {formatMinutes(minutes, t)}
           </p>
           <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-            Meet қатысуы
+            {t("meetAttendance")}
           </p>
         </div>
         <button
@@ -276,7 +252,7 @@ function SessionRow({
           ) : (
             <>
               <LockKeyhole size={10} />
-              Есеп беру
+              {t("reportSubmit")}
             </>
           )}
         </button>
@@ -310,20 +286,14 @@ function ReportModal({
 }) {
   const { t } = useStudentLanguage("kk");
   const [questions, setQuestions] = useState<Question[]>([]);
-  const { t } = useStudentLanguage("kk");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const { t } = useStudentLanguage("kk");
-  const [files, setFiles] = useState<PhotoSlot[]>(EMPTY_SLOTS);
-  const { t } = useStudentLanguage("kk");
+  const [files, setFiles] = useState<PhotoSlot[]>(() => createEmptySlots(t));
   const [loadedQuestionsKey, setLoadedQuestionsKey] = useState<string | null>(null);
-  const { t } = useStudentLanguage("kk");
   const [saving, setSaving] = useState(false);
 
   const questionsRequestKey = String(marathonDay ?? 0) + ":" + reportType;
   const loadingQuestions = loadedQuestionsKey !== questionsRequestKey;
-  const { t } = useStudentLanguage("kk");
   const [notice, setNotice] = useState("");
-  const { t } = useStudentLanguage("kk");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -396,7 +366,7 @@ function ReportModal({
 
     const missingPhoto = files.find((slot) => !slot.file);
     if (missingPhoto) {
-      setError("Барлық 4 фотоны қосу керек: " + missingPhoto.label + ".");
+      setError(t("allFourPhotos").replace("{slot}", t(missingPhoto.labelKey)));
       return;
     }
 
@@ -407,7 +377,7 @@ function ReportModal({
     );
 
     if (missingQuestion) {
-      setError("«" + missingQuestion.question + "» сұрағына жауап бер.");
+      setError(t("questionRequired").replace("{question}", missingQuestion.question));
       return;
     }
 
@@ -450,7 +420,7 @@ function ReportModal({
           const payload = await response.json().catch(() => ({}));
 
           if (!response.ok) {
-            throw new Error(payload?.error ?? slot.label + " фотосы жүктелмеді.");
+            throw new Error(t("uploadFileFailed") + ": " + t(slot.labelKey));
           }
 
           return payload;
@@ -482,8 +452,8 @@ function ReportModal({
   const title = reportType === "MORNING" ? t("morningReport") : t("eveningReport");
   const subtitle =
     reportType === "MORNING"
-      ? "Study Time-нан кейінгі қысқа старт есебі"
-      : "Күн нәтижесін бекітетін қысқа қорытынды";
+      ? t("shortStartReport")
+      : t("dailySummary");
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-[#172235]/35 p-0 backdrop-blur-[4px] sm:items-center sm:p-4">
@@ -491,7 +461,7 @@ function ReportModal({
         <div className="flex items-center gap-3 border-b border-[#E8E3DD] bg-white px-4 py-3.5 sm:px-5">
           <div className="min-w-0 flex-1">
             <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-              STUDY TIME · {marathonDay ? marathonDay + "-КҮН" : "БҮГІН"}
+              {t("studyTime").toUpperCase()} · {marathonDay ? marathonDay + "-" + t("day").toUpperCase() : t("today").toUpperCase()}
             </p>
             <h2 className="mt-0.5 text-[18px] font-extrabold tracking-[-.04em] text-[#172235]">
               {title}
@@ -506,7 +476,7 @@ function ReportModal({
             onClick={onClose}
             disabled={saving}
             className="grid h-9 w-9 place-items-center rounded-[11px] text-[#8B8179] hover:bg-[#F3EEE9] disabled:opacity-50"
-            aria-label=t("close")
+            aria-label={t("close")}
           >
             <X size={17} />
           </button>
@@ -518,12 +488,12 @@ function ReportModal({
               {reportType === "MORNING" ? t("morningReport") : t("eveningReport")}
             </span>
             <span className="text-[8px] font-semibold text-[#8B8179]">
-              4 фото + қысқа жауаптар
+              {t("fourPhotos")}
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between gap-2">
             <span className="text-[8px] font-semibold text-[#8B8179]">
-              Есеп ашылған уақыт: {formatReportOpenTime(openTime)}
+              {t("reportOpenedTime")}: {formatReportOpenTime(openTime)}
             </span>
             {meetingUrl ? (
               <a
@@ -544,10 +514,10 @@ function ReportModal({
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="text-[9px] font-extrabold text-[#172235]">
-                    Фото есебі
+                    {t("photoReport")}
                   </p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-                    Әр фотоны өз орнына жүкте.
+                    {t("photoHint")}
                   </p>
                 </div>
                 <ImagePlus size={15} className="text-[#FF8000]" />
@@ -555,7 +525,7 @@ function ReportModal({
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {files.map((slot) => (
-                  <PhotoPicker key={slot.key} slot={slot} onFile={handleFile} />
+                  <PhotoPicker key={slot.key} slot={slot} onFile={handleFile} t={t} />
                 ))}
               </div>
             </section>
@@ -564,10 +534,10 @@ function ReportModal({
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="text-[9px] font-extrabold text-[#172235]">
-                    Сұрақтарға жауап
+                    {t("answerQuestions")}
                   </p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-                    Жауаптарыңды қысқа, нақты жаз.
+                    {t("answerHintShort")}
                   </p>
                 </div>
                 <Sparkles size={15} className="text-[#FF8000]" />
@@ -575,7 +545,7 @@ function ReportModal({
 
               {loadingQuestions ? (
                 <div className="mt-4 rounded-[12px] bg-[#FAF9F7] px-3 py-4 text-[9px] font-semibold text-[#9A9189]">
-                  Сұрақтар жүктелуде...
+                  {t("questionsLoading")}
                 </div>
               ) : (
                 <div className="mt-3 space-y-3">
@@ -608,7 +578,7 @@ function ReportModal({
                             }))
                           }
                           className="mt-1.5 w-full rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] px-3 py-2.5 text-[10px] font-semibold leading-5 text-[#172235] outline-none focus:border-[#F3C7B0] focus:bg-white"
-                          placeholder=t("answerPlaceholder")
+                          placeholder={t("answerPlaceholder")}
                         />
                       )}
                     </label>
@@ -643,7 +613,7 @@ function ReportModal({
             ) : (
               <>
                 <Send size={14} />
-                {title}ді жіберу
+                {t("sendReportFor").replace("{title}", title)}
               </>
             )}
           </button>
@@ -656,9 +626,11 @@ function ReportModal({
 function PhotoPicker({
   slot,
   onFile,
+  t,
 }: {
   slot: PhotoSlot;
   onFile: (slot: PhotoSlot["key"], file: File | null) => void;
+  t: (key: string) => string;
 }) {
   return (
     <label className="group relative block overflow-hidden rounded-[13px] border border-dashed border-[#DCCFC4] bg-[#FAF9F7]">
@@ -675,23 +647,23 @@ function PhotoPicker({
               <Upload size={15} />
             </span>
             <p className="mt-2 text-[9px] font-extrabold text-[#172235]">
-              {slot.label}
+              {t(slot.labelKey)}
             </p>
             <p className="mt-1 text-[7px] font-semibold text-[#9A9189]">
-              {slot.hint}
+              {t(slot.hintKey)}
             </p>
           </div>
         </div>
       )}
 
       <span className="absolute left-2 top-2 rounded-full bg-[#172235]/78 px-2 py-1 text-[7px] font-extrabold text-white">
-        {slot.label}
+        {t(slot.labelKey)}
       </span>
 
       {slot.preview ? (
         <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[7px] font-extrabold text-[#FF8000]">
           <Check size={9} strokeWidth={3} />
-          Дайын
+          {t("ready")}
         </span>
       ) : null}
 
