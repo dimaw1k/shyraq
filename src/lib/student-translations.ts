@@ -118,6 +118,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Құпиясөзді қайталаңыз",
     updateSuccess: "Жаңартылды",
     registrationDescription: "Shyraq платформасына қосылу үшін деректеріңізді енгізіңіз.",
+    noNewNotifications: "Жаңа хабарландыру жоқ.",
   },
   ru: {
     settings: "Настройки",
@@ -236,6 +237,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Повторите пароль",
     updateSuccess: "Обновлено",
     registrationDescription: "Введите данные, чтобы присоединиться к платформе Shyraq.",
+    noNewNotifications: "Новых уведомлений нет.",
   },
   en: {
     settings: "Settings",
@@ -354,6 +356,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Repeat password",
     updateSuccess: "Updated",
     registrationDescription: "Enter your details to join Shyraq.",
+    noNewNotifications: "No new notifications.",
   },
 };
 
