@@ -220,7 +220,7 @@ function SessionRow({
   openTime: string;
   onReport: () => void;
 }) {
-  const { t } = useStudentLanguage("kk");
+  const { language, t } = useStudentLanguage("kk");
   return (
     <div className="rounded-[14px] border border-[#EEE7E0] bg-[#FFFCF9] p-3">
       <div className="flex items-center justify-between gap-2">
