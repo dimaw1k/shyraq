@@ -1,12 +1,18 @@
+"use server";
+
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { SupportClient } from "@/components/student/SupportClient";
+import { StudentSettingsClient } from "@/components/student/StudentSettingsClient";
 
 export default async function SettingsPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -19,8 +25,19 @@ export default async function SettingsPage() {
     <AppShell role={profile?.role ?? "STUDENT"} userName={profile?.full_name ?? undefined} title="Баптаулар">
       <PageContainer className="max-w-5xl">
         <div className="space-y-5">
-          <SectionHeader eyebrow="ҚОЛДАУ" title="Баптаулар және қолдау" description="Парольді қалпына келтіру үшін код күтпей, қолдау қызметіне өтініш жібер." />
-          <Card className="p-5 sm:p-6"><SupportClient /></Card>
+          <SectionHeader
+            eyebrow="БАПТАУЛАР"
+            title="Баптаулар"
+            description="Тіл, еске салғыш, көрініс және аккаунт қауіпсіздігін басқару."
+          />
+
+          <StudentSettingsClient email={user.email ?? ""} />
+
+          <div id="support" className="scroll-mt-24">
+            <Card className="p-5 sm:p-6">
+              <SupportClient />
+            </Card>
+          </div>
         </div>
       </PageContainer>
     </AppShell>
