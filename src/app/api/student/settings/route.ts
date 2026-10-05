@@ -23,10 +23,6 @@ function isLanguage(value: unknown): value is "kk" | "ru" | "en" {
   return value === "kk" || value === "ru" || value === "en";
 }
 
-function isTheme(value: unknown): value is "light" | "dark" | "system" {
-  return value === "light" || value === "dark" || value === "system";
-}
-
 function cleanTime(value: unknown, fallback: string) {
   return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback;
 }
@@ -58,7 +54,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("student_settings")
-    .select("language,theme,reminders,notifications_enabled")
+    .select("language,reminders,notifications_enabled")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -70,7 +66,6 @@ export async function GET() {
   return NextResponse.json({
     settings: {
       language: isLanguage(data?.language) ? data.language : "kk",
-      theme: isTheme(data?.theme) ? data.theme : "light",
       reminders: cleanReminders(data?.reminders),
       notificationsEnabled: data?.notifications_enabled === true,
     },
@@ -87,7 +82,6 @@ export async function PUT(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const language = isLanguage(body.language) ? body.language : "kk";
-  const theme = isTheme(body.theme) ? body.theme : "light";
   const reminders = cleanReminders(body.reminders);
   const notificationsEnabled = body.notificationsEnabled === true;
 
@@ -97,7 +91,6 @@ export async function PUT(request: Request) {
       {
         user_id: user.id,
         language,
-        theme,
         reminders,
         notifications_enabled: notificationsEnabled,
         updated_at: new Date().toISOString(),
@@ -115,7 +108,6 @@ export async function PUT(request: Request) {
   return NextResponse.json({
     settings: {
       language: data.language,
-      theme: data.theme,
       reminders: cleanReminders(data.reminders),
       notificationsEnabled: data.notifications_enabled,
     },
@@ -163,7 +155,6 @@ export async function PATCH(request: Request) {
   return NextResponse.json({
     settings: {
       language: data.language,
-      theme: isTheme(data.theme) ? data.theme : "light",
       reminders: cleanReminders(data.reminders),
       notificationsEnabled: data.notifications_enabled === true,
     },
