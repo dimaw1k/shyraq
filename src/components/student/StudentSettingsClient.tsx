@@ -329,8 +329,8 @@ function ReminderEditor({
         >
           <span
             className={[
-              "absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
-              checked ? "translate-x-[18px]" : "translate-x-[3px]",
+              "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-[left,right]",
+              checked ? "right-[3px]" : "left-[3px]",
             ].join(" ")}
           />
         </button>
