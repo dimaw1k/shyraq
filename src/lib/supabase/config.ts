@@ -1,16 +1,17 @@
-function readRequiredPublicEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") {
-  const value = process.env[name];
+export function getSupabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!value || !value.trim()) {
-    throw new Error(name + " is not configured");
+  if (!url || !url.trim()) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL is not configured");
   }
 
-  return value.trim();
-}
+  if (!publishableKey || !publishableKey.trim()) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not configured");
+  }
 
-export function getSupabaseConfig() {
   return {
-    url: readRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    publishableKey: readRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    url: url.trim(),
+    publishableKey: publishableKey.trim(),
   };
 }
