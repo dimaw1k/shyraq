@@ -30,5 +30,5 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.redirect(new URL("/reset-password", origin));
+  return NextResponse.redirect(new URL("/reset-password?mode=update", origin));
 }
