@@ -23,7 +23,7 @@ type Profile = {
 };
 
 const inputClass =
-  "mt-2 w-full rounded-[14px] border border-[#E8E1DA] bg-[#FFFCF9] px-3.5 py-3 text-xs font-medium text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
+  "mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 py-2 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
 const educationOptions = ["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"] as const;
 
@@ -196,24 +196,24 @@ export function ProfileClient() {
   const teamText = profile.team_names?.length ? profile.team_names.join(", ") : t("unassigned");
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-5 rounded-[18px] border border-[#EEE7E0] bg-[#FFFCF9] p-5 sm:flex-row sm:items-center">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 rounded-[16px] border border-[#EEE7E0] bg-[#FFFCF9] p-3 sm:flex-row sm:items-center">
         <div className="relative shrink-0">
           {profile.avatar_url ? (
             <Image
               src={profile.avatar_url}
               alt={t("profilePhoto")}
-              width={96}
-              height={96}
-              className="h-24 w-24 rounded-[28px] object-cover ring-4 ring-[#FFF1E2]"
+              width={72}
+              height={72}
+              className="h-[72px] w-[72px] rounded-[22px] object-cover ring-3 ring-[#FFF1E2]"
             />
           ) : (
-            <div className="grid h-24 w-24 place-items-center rounded-[28px] bg-[#172235] text-xl font-extrabold text-white ring-4 ring-[#FFF1E2]">
+            <div className="grid h-[72px] w-[72px] place-items-center rounded-[22px] bg-[#172235] text-lg font-extrabold text-white ring-3 ring-[#FFF1E2]">
               {initials}
             </div>
           )}
 
-          <label className="absolute -bottom-2 -right-2 grid h-10 w-10 cursor-pointer place-items-center rounded-full border-4 border-white bg-[#FF8000] text-white shadow-lg">
+          <label className="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full border-3 border-white bg-[#FF8000] text-white shadow-lg">
             {uploading ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />}
             <input
               type="file"
@@ -231,17 +231,17 @@ export function ProfileClient() {
 
         <div className="min-w-0">
           <p className="text-[10px] font-extrabold uppercase tracking-[.15em] text-[#FF8000]">{t("personalProfile").toUpperCase()}</p>
-          <h2 className="mt-1 text-xl font-extrabold text-[#172235]">{profile.full_name}</h2>
+          <h2 className="mt-0.5 text-[17px] font-extrabold tracking-[-.02em] text-[#172235]">{profile.full_name}</h2>
           <p className="mt-1 text-xs text-[#8B8179]">{getRoleLabel(profile.role, t)} · {getStatusLabel(profile.status, t)}</p>
-          <div className="mt-3 grid gap-1.5 text-[10px] font-semibold text-[#8B8179] sm:grid-cols-2 sm:gap-x-6">
+          <div className="mt-2 grid gap-1 text-[9px] font-semibold text-[#8B8179] sm:grid-cols-2 sm:gap-x-5">
             <p>{t("teamLabel")}: {teamText}</p>
             {profile.mentor_name ? <p>{t("mentorLabel")}: {profile.mentor_name}</p> : null}
           </div>
         </div>
       </div>
 
-      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
+      <form onSubmit={submit} className="grid gap-2.5 sm:grid-cols-2">
+        <label className="text-[10px] font-extrabold text-[#3F3832]">
           {t("fullName")}
           <input
             required
@@ -251,7 +251,7 @@ export function ProfileClient() {
           />
         </label>
 
-        <label className="text-[11px] font-extrabold text-[#3F3832] sm:col-span-2">
+        <label className="text-[10px] font-extrabold text-[#3F3832]">
           {t("email")}
           <input
             required
@@ -260,10 +260,10 @@ export function ProfileClient() {
             onChange={(event) => setField("email", event.target.value)}
             className={inputClass}
           />
-          <span className="mt-1.5 block text-[10px] font-medium text-[#9A9189]">{t("emailUpdateHint")}</span>
+          <span className="mt-1 block text-[8px] font-medium text-[#9A9189]">{t("emailUpdateHint")}</span>
         </label>
 
-        <label className="text-[11px] font-extrabold text-[#3F3832]">
+        <label className="text-[10px] font-extrabold text-[#3F3832]">
           {t("phone")}
           <input
             required
@@ -295,12 +295,16 @@ export function ProfileClient() {
           </select>
         </label>
 
-        <div className="sm:col-span-2 rounded-[16px] border border-[#E8E1DA] bg-[#FAF7F3] p-4">
-          <p className="text-[11px] font-extrabold text-[#172235]">{t("password")}</p>
-          <p className="mt-1 text-[10px] font-medium text-[#8B8179]">{t("passwordChangeHint")}</p>
+        <div className="sm:col-span-2 rounded-[14px] border border-[#E8E1DA] bg-[#FAF7F3] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-extrabold text-[#172235]">{t("password")}</p>
+              <p className="mt-0.5 text-[8px] font-medium text-[#8B8179]">{t("passwordChangeHint")}</p>
+            </div>
+          </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="text-[10px] font-extrabold text-[#5B534C]">
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <label className="text-[9px] font-extrabold text-[#5B534C]">
               {t("currentPassword")}
               <div className="relative">
                 <input
@@ -337,7 +341,7 @@ export function ProfileClient() {
 
         {message ? (
           <div className={[
-            "rounded-[14px] border px-4 py-3 text-xs font-semibold sm:col-span-2",
+            "rounded-[11px] border px-3 py-2 text-[10px] font-semibold sm:col-span-2",
             messageTone === "ok"
               ? "border-[#D9EEDF] bg-[#F2FAF4] text-[#2E7E58]"
               : "border-[#F2D8D1] bg-[#FFF5F2] text-[#B54D2B]",
@@ -349,12 +353,12 @@ export function ProfileClient() {
         <button
           type="submit"
           disabled={loading}
-          className="sm:col-span-2 rounded-[14px] bg-[#FF8000] px-4 py-3 text-xs font-extrabold text-white shadow-[0_10px_24px_rgba(255,128,0,.16)] transition hover:bg-[#E56F00] disabled:opacity-50"
+          className="justify-self-start rounded-[11px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white shadow-[0_8px_18px_rgba(255,128,0,.14)] transition hover:bg-[#E56F00] disabled:opacity-50 sm:col-span-2"
         >
           {loading ? t("saving") : t("saveChanges")}
         </button>
 
-        <div className="sm:col-span-2 grid gap-2 rounded-[16px] border border-[#E8E1DA] bg-[#FAF7F3] p-4">
+        <div className="sm:col-span-2 flex flex-col gap-2 rounded-[14px] border border-[#E8E1DA] bg-[#FAF7F3] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-white text-[#FF8000]">
               <Languages size={15} />
@@ -362,7 +366,7 @@ export function ProfileClient() {
             <p className="text-[11px] font-extrabold text-[#172235]">{t("language")}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5 sm:min-w-[280px] sm:max-w-[380px]">
             {([
               ["kk", t("kazakh")],
               ["ru", t("russian")],
@@ -391,7 +395,7 @@ export function ProfileClient() {
         <button
           type="button"
           onClick={() => void logoutAllDevices()}
-          className="sm:col-span-2 flex items-center justify-center gap-2 rounded-[14px] border border-[#E7E0D8] bg-white px-4 py-3 text-xs font-extrabold text-[#B54D2B] transition hover:border-[#E8C2B6] hover:bg-[#FFF7F4]"
+          className="justify-self-start rounded-[11px] border border-[#E7E0D8] bg-white px-3.5 py-2.5 text-[10px] font-extrabold text-[#B54D2B] transition hover:border-[#E8C2B6] hover:bg-[#FFF7F4] sm:col-span-2"
         >
           <LogOut size={15} />
           {t("allDevices")}
