@@ -416,6 +416,17 @@ export function AppShell({
   userName?: string;
   hideHeader?: boolean;
 }) {
+  const { t } = useStudentLanguage();
+  const displayTitle =
+    role === "STUDENT"
+      ? title === "Басты бет" ? t("home")
+        : title === "Сабақтар" ? t("lessons")
+        : title === "Әдеттер" ? t("habitsNav")
+        : title === "Профиль" ? t("profileNav")
+        : title === "Баптаулар" ? t("settings")
+        : title
+      : title;
+
   return (
     <div className="min-h-screen min-w-0 bg-[var(--background)] text-[var(--foreground)]">
       <AppNav role={role} userName={userName} />
