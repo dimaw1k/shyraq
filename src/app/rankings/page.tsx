@@ -102,7 +102,7 @@ export default async function RankingsPage() {
       <PageContainer>
         <div className="space-y-5">
           <SectionHeader eyebrow="МАРАФОН" title={title} description={description} />
-          <Card className="overflow-hidden">
+          <Card className="shrq-ranking-card overflow-hidden">
             <div className="grid grid-cols-[56px_1fr_80px] border-b border-[#EFE8E1] bg-[#FFFCF9] px-4 py-3 text-[9px] font-extrabold uppercase tracking-[.13em] text-[#9A9189] sm:grid-cols-[72px_1fr_100px]">
               <span>#</span>
               <span>Оқушы</span>
