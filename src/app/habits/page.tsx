@@ -6,11 +6,13 @@ import { DEFAULT_HABITS } from "@/lib/habits";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { shiftDate, todayInTimezone } from "@/lib/streak";
+import { getStudentTranslator } from "@/lib/student-server-language";
 
 const HABIT_SELECT =
   "id,name,description,icon,is_default,sort_order,frequency,weekdays,goal,start_date,goal_days,section,reminder_time,repeat_interval,repeat_unit";
 
 export default async function HabitsPage() {
+  const { t } = await getStudentTranslator();
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -94,7 +96,7 @@ export default async function HabitsPage() {
     <AppShell
       role={role}
       userName={profile?.full_name ?? undefined}
-      title="Әдеттер"
+      title={t("habitsPage")}
       hideHeader
     >
       <PageContainer className="max-w-[1380px] pb-8 pt-4">
