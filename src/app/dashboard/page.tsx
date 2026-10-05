@@ -15,6 +15,7 @@ import { MARATHON_WEEKS, marathonDayFromDate } from "@/lib/marathon";
 import { calculateCurrentStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
 import { StudyTimeCard } from "@/components/student/StudyTimeCard";
+import { getStudentTranslator } from "@/lib/student-server-language";
 
 function currentTimestampMs() {
   return Date.now();
@@ -30,6 +31,7 @@ function kzDateKey(value: string) {
 }
 
 export default async function DashboardPage() {
+  const { t } = await getStudentTranslator();
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -238,7 +240,7 @@ export default async function DashboardPage() {
     <AppShell
       role={role}
       userName={profile?.full_name ?? undefined}
-      title="Басты бет"
+      title={t("dashboard")}
       hideHeader
     >
       <PageContainer className="max-w-[1380px] pb-5 lg:pb-6">
@@ -249,10 +251,10 @@ export default async function DashboardPage() {
               <div className="mb-2.5 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-                    МАРАФОН
+                    {t("marathon").toUpperCase()}
                   </p>
                   <h1 className="mt-1 text-[20px] font-extrabold tracking-[-.045em] text-[#172235]">
-                    Шырақ марафоны
+                    {t("marathonTitle")}
                   </h1>
                 </div>
               </div>
@@ -275,13 +277,13 @@ export default async function DashboardPage() {
                         />
                       </div>
                       <p className="mt-3 text-[8px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
-                        21 КҮН
+                        {t("days21").toUpperCase()}
                       </p>
                       <h2 className="mt-1 text-[17px] font-extrabold tracking-[-.035em] text-[#172235]">
                         {week.subtitle}
                       </h2>
                       <p className="mt-2 text-[9px] font-medium leading-4 text-[#8B8179]">
-                        Сабақ · тест · тапсырма
+                        {t("lessonTestTask")}
                       </p>
                     </Card>
                   </Link>
@@ -307,10 +309,10 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-                      ПРОГРЕСС
+                      {t("progress").toUpperCase()}
                     </p>
                     <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
-                      Нәтижең
+                      {t("result")}
                     </p>
                   </div>
                   <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#FF8000]">
@@ -320,18 +322,18 @@ export default async function DashboardPage() {
                 <div className="mt-3 grid gap-2">
                   <MiniStat
                     icon={<Flame size={13} />}
-                    label="Қатарынан"
-                    value={streak + " күн"}
+                    label="{t("streak")}"
+                    value={streak + " " + t("day")}
                   />
                   <MiniStat
                     icon={<Trophy size={13} />}
-                    label="Ұпай"
+                    label="{t("points")}"
                     value={String(score)}
                   />
                   <MiniStat
                     icon={<UsersRound size={13} />}
-                    label="Команда"
-                    value={team ? String(team.name) : "Күтілуде"}
+                    label="{t("team")}"
+                    value={team ? String(team.name) : t("waiting")}
                   />
                 </div>
               </Card>
@@ -341,7 +343,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-                        БЕЙНЕ КЕЗДЕСУ
+                        {t("videoMeet").toUpperCase()}
                       </p>
                       <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
                         {meetingData.display_name || "Meet – STUDY STREAM"}
@@ -352,7 +354,7 @@ export default async function DashboardPage() {
                     </span>
                   </div>
                   <p className="mt-2 text-[9px] leading-4 text-[#8B8179]">
-                    Командаңның онлайн сабағына қосыл.
+                    {t("onlineLesson")}
                   </p>
                   <a
                     href={meetingData.meeting_url}
@@ -360,7 +362,7 @@ export default async function DashboardPage() {
                     rel="noreferrer"
                     className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
                   >
-                    Кездесуге кіру
+                    {t("joinMeeting")}
                     <ArrowUpRight size={12} />
                   </a>
                 </Card>
@@ -370,10 +372,10 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
-                      БҮГІН
+                      {t("today").toUpperCase()}
                     </p>
                     <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
-                      Тапсырмалар
+                      {t("tasks")}
                     </p>
                   </div>
                   <span className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
@@ -382,7 +384,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="mt-3 flex items-center justify-between rounded-[11px] bg-[#FFFCF9] px-3 py-2.5">
                   <span className="text-[9px] font-semibold text-[#8B8179]">
-                    Орындалды
+                    {t("completed")}
                   </span>
                   <span className="text-[10px] font-extrabold text-[#2E7E58]">
                     {completedToday}
