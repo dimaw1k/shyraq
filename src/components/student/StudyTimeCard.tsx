@@ -335,7 +335,7 @@ function ReportModal({
     return () => {
       active = false;
     };
-  }, [questionsRequestKey, language]);
+  }, [questionsRequestKey, marathonDay, reportType, language]);
 
   useEffect(() => {
     if (!openBodyLock()) return undefined;
