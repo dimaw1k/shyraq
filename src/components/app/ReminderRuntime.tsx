@@ -88,14 +88,6 @@ export function ReminderRuntime() {
     let noticeTimer: number | null = null;
 
     function check() {
-      if (
-        typeof Notification === "undefined" ||
-        Notification.permission !== "granted" ||
-        window.localStorage.getItem("shyraq:notifications-enabled") !== "1"
-      ) {
-        return;
-      }
-
       const settings = readSettings();
       if (!settings.enabled) return;
 
@@ -105,11 +97,6 @@ export function ReminderRuntime() {
         String(now.getMonth() + 1).padStart(2, "0"),
         String(now.getDate()).padStart(2, "0"),
       ].join("-");
-      const currentTime = [
-        String(now.getHours()).padStart(2, "0"),
-        String(now.getMinutes()).padStart(2, "0"),
-      ].join(":");
-
       for (const key of Object.keys(REMINDER_BODY_KEY) as ReminderKey[]) {
         const enabled = Boolean(settings[key]);
         const timeKey = (key + "Time") as keyof ReminderSettings;
