@@ -10,6 +10,9 @@ import {
 export { studentTranslations, studentText };
 export type { StudentLanguage };
 
+export const STUDENT_LANGUAGE_KEY = "shyraq:language";
+export const STUDENT_LANGUAGE_EVENT = "shyraq-language-change";
+
 export function setStudentLanguage(language: StudentLanguage) {
   window.localStorage.setItem(STUDENT_LANGUAGE_KEY, language);
   document.cookie = `shyraq-language=${language}; path=/; max-age=31536000; samesite=lax`;
