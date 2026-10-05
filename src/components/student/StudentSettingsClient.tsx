@@ -192,17 +192,27 @@ export function StudentSettingsClient({
   initial: InitialSettings;
 }) {
   const router = useRouter();
-  const { language, t } = useStudentLanguage();
+  const { language, t } = useStudentLanguage(initial.language);
   const [theme, setTheme] = useState<ThemeMode>(initial.theme);
   const [reminders, setReminders] = useState<ReminderSettings>(initial.reminders);
   const [notificationsEnabled, setNotificationsEnabled] = useState(initial.notificationsEnabled);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(
-    typeof Notification === "undefined" ? "unsupported" : Notification.permission,
-  );
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
   const [feedbackCategory, setFeedbackCategory] = useState("TECHNICAL");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setNotificationPermission(
+        typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+      );
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const enabledCount = useMemo(
     () =>
