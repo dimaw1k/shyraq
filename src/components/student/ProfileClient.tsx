@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Camera, Eye, EyeOff, Languages, Loader2, LogOut } from "lucide-react";
+import { Camera, Eye, EyeOff, Loader2, LogOut } from "lucide-react";
 import { setStudentLanguage, useStudentLanguage, type StudentLanguage } from "@/lib/student-language";
 import { studentText } from "@/lib/student-translations";
 import { formatKzPhone } from "@/lib/phone";
