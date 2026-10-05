@@ -13,17 +13,20 @@ import {
   MailCheck,
 } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { useStudentLanguage } from "@/lib/student-language";
+import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
-function getResetErrorMessage(code: string | null) {
-  if (code === "invalid_or_expired") {
-    return "Сілтеме жарамсыз немесе мерзімі өткен.";
-  }
-
-  return code ? "Қалпына келтіру кезінде қате болды." : "";
+function getResetErrorMessage(
+  code: string | null,
+  t: (key: string) => string,
+) {
+  if (code === "invalid_or_expired") return t("invalidReset");
+  return code ? t("resetUpdateFailed") : "";
 }
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { t } = useStudentLanguage("kk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -39,7 +42,7 @@ export default function ResetPasswordPage() {
     async function checkRecoverySession() {
       const params = new URLSearchParams(window.location.search);
       const recoveryMode = params.get("mode") === "update";
-      const recoveryError = getResetErrorMessage(params.get("error"));
+      const recoveryError = getResetErrorMessage(params.get("error"), t);
 
       if (!recoveryMode) {
         if (!active) return;
@@ -59,7 +62,7 @@ export default function ResetPasswordPage() {
       }
 
       setMode("request");
-      setError("Сілтеме жарамсыз немесе мерзімі өткен.");
+      setError("t("invalidReset")");
     }
 
     void checkRecoverySession();
@@ -82,7 +85,7 @@ export default function ResetPasswordPage() {
     });
 
     if (resetError) {
-      setError("Сілтемені жіберу мүмкін болмады.");
+      setError("t("resetSendFailed")");
       setLoading(false);
       return;
     }
@@ -96,12 +99,12 @@ export default function ResetPasswordPage() {
     setError("");
 
     if (password.length < 8) {
-      setError("Құпиясөз кемінде 8 таңба болуы керек.");
+      setError("t("passwordMin")");
       return;
     }
 
     if (password !== confirm) {
-      setError("Құпиясөздер сәйкес емес.");
+      setError("t("passwordMismatch")");
       return;
     }
 
@@ -111,7 +114,7 @@ export default function ResetPasswordPage() {
     const { data: userData } = await supabase.auth.getUser();
 
     if (!userData.user) {
-      setError("Сілтеме жарамсыз немесе мерзімі өткен.");
+      setError("t("invalidReset")");
       setLoading(false);
       setMode("request");
       return;
@@ -120,7 +123,7 @@ export default function ResetPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {
-      setError("Құпиясөзді жаңарту мүмкін болмады.");
+      setError("t("resetUpdateFailed")");
       setLoading(false);
       return;
     }
@@ -138,14 +141,15 @@ export default function ResetPasswordPage() {
         <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
           <section className="w-full max-w-[430px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
             <div className="flex flex-col items-center text-center">
+            <AuthLanguagePicker />
               <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
                 <LockKeyhole size={24} strokeWidth={2.2} />
               </div>
               <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-                ҚАЛПЫНА КЕЛТІРУ
+                {t("resetPassword").toUpperCase()}
               </p>
               <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
-                Тексерілуде.
+                {t("checking")}
               </h1>
             </div>
           </section>
@@ -168,10 +172,10 @@ export default function ResetPasswordPage() {
                 EMAIL
               </p>
               <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
-                Поштаңызды тексеріңіз.
+                {t("checkEmail")}
               </h1>
               <p className="mt-3 max-w-[330px] text-[13px] font-medium leading-5 text-[#766E66]">
-                Қалпына келтіру сілтемесі поштаңызға жіберілді.
+                {t("resetLinkSent")}
               </p>
             </div>
 
@@ -179,7 +183,7 @@ export default function ResetPasswordPage() {
               href="/login"
               className="mt-5 flex w-full items-center justify-center rounded-[15px] border border-[#E7E0D8] bg-[#FCFBF9] px-5 py-3.5 text-[14px] font-extrabold text-[#172235] transition hover:border-[#FF8000] hover:bg-white"
             >
-              Кіру бетіне оралу
+              {t("backToLogin")}
             </Link>
           </section>
         </div>
@@ -201,19 +205,19 @@ export default function ResetPasswordPage() {
             </div>
 
             <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-              {mode === "request" ? "ҚАЛПЫНА КЕЛТІРУ" : "ЖАҢА ҚҰПИЯСӨЗ"}
+              {mode === "request" ? "{t("resetPassword").toUpperCase()}" : "{t("newPassword").toUpperCase()}"}
             </p>
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
               {mode === "request"
-                ? "Құпиясөзді ұмыттыңыз ба?"
-                : "Жаңа құпиясөз орнатыңыз."}
+                ? "{t("forgotPassword")}"
+                : "{t("setNewPassword")}"}
             </h1>
           </div>
 
           {mode === "request" ? (
             <form onSubmit={requestReset} className="mt-5 space-y-3.5">
               <label className="block">
-                <span className="sr-only">Электрондық пошта</span>
+                <span className="sr-only">{t("email")}</span>
                 <div className="relative">
                   <Mail
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
@@ -225,7 +229,7 @@ export default function ResetPasswordPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="Электрондық пошта"
+                    placeholder="{t("email")}"
                     className={inputClass}
                   />
                 </div>
@@ -242,7 +246,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Жіберілуде..." : "Сілтеме жіберу"}
+                {loading ? "{t("sendingLink")}" : "{t("sendLink")}"}
                 {!loading ? (
                   <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 ) : null}
@@ -251,7 +255,7 @@ export default function ResetPasswordPage() {
           ) : (
             <form onSubmit={updatePassword} className="mt-5 space-y-3.5">
               <label className="block">
-                <span className="sr-only">Жаңа құпиясөз</span>
+                <span className="sr-only">{t("newPassword")}</span>
                 <div className="relative">
                   <LockKeyhole
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
@@ -264,13 +268,13 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Жаңа құпиясөз"
+                    placeholder="{t("newPassword")}"
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
-                    aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    aria-label={showPassword ? "{t("hidePassword")}" : "{t("showPassword")}"}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -279,7 +283,7 @@ export default function ResetPasswordPage() {
               </label>
 
               <label className="block">
-                <span className="sr-only">Құпиясөзді қайталау</span>
+                <span className="sr-only">{t("repeatPassword")}</span>
                 <div className="relative">
                   <LockKeyhole
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
@@ -292,13 +296,13 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(event) => setConfirm(event.target.value)}
-                    placeholder="Құпиясөзді қайталау"
+                    placeholder="{t("repeatPassword")}"
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm((value) => !value)}
-                    aria-label={showConfirm ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    aria-label={showConfirm ? "{t("hidePassword")}" : "{t("showPassword")}"}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -317,7 +321,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Жаңартылуда..." : "Құпиясөзді жаңарту"}
+                {loading ? "..." : "{t("updatePassword")}"}
                 {!loading ? (
                   <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 ) : null}
@@ -327,7 +331,7 @@ export default function ResetPasswordPage() {
 
           <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
             <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
-              Кіру бетіне оралу
+              {t("backToLogin")}
             </Link>
           </p>
         </section>
