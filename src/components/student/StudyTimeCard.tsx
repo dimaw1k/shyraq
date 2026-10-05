@@ -91,7 +91,7 @@ export function StudyTimeCard({
   morningReportOpenTime,
   eveningReportOpenTime,
 }: Props) {
-  const { language, t } = useStudentLanguage("kk");
+  const { t } = useStudentLanguage("kk");
   const [open, setOpen] = useState(false);
   const [reportType, setReportType] = useState<ReportType>("MORNING");
   const [now, setNow] = useState(0);
@@ -220,7 +220,7 @@ function SessionRow({
   openTime: string;
   onReport: () => void;
 }) {
-  const { language, t } = useStudentLanguage("kk");
+  const { t } = useStudentLanguage("kk");
   return (
     <div className="rounded-[14px] border border-[#EEE7E0] bg-[#FFFCF9] p-3">
       <div className="flex items-center justify-between gap-2">
@@ -294,7 +294,7 @@ function ReportModal({
   onClose: () => void;
   onSubmitted: () => void;
 }) {
-  const { t } = useStudentLanguage("kk");
+  const { language, t } = useStudentLanguage("kk");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [files, setFiles] = useState<PhotoSlot[]>(() => createEmptySlots());
