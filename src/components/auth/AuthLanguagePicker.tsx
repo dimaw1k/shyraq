@@ -5,23 +5,27 @@ import { setStudentLanguage, useStudentLanguage, type StudentLanguage } from "@/
 export function AuthLanguagePicker() {
   const { language, t } = useStudentLanguage("kk");
   const options: Array<[StudentLanguage, string]> = [
-    ["kk", t("kazakh")],
-    ["ru", t("russian")],
-    ["en", t("english")],
+    ["ru", "RU"],
+    ["kk", "KZ"],
+    ["en", "ENG"],
   ];
 
   return (
-    <div className="flex items-center justify-center gap-1.5" aria-label={t("language")}>
+    <div
+      className="inline-flex items-center rounded-full border border-[#E7E0D8] bg-white p-0.5 shadow-[0_2px_10px_rgba(23,34,53,.035)]"
+      aria-label={t("language")}
+    >
       {options.map(([value, label]) => (
         <button
           key={value}
           type="button"
+          aria-pressed={language === value}
           onClick={() => setStudentLanguage(value)}
           className={[
-            "rounded-full border px-2.5 py-1 text-[9px] font-extrabold transition",
+            "min-w-[42px] rounded-full px-2.5 py-1.5 text-[9px] font-extrabold tracking-[.02em] transition",
             language === value
-              ? "border-[#FF8000] bg-[#FFF1E2] text-[#D56600]"
-              : "border-[#E7E0D8] bg-white text-[#8B8179] hover:border-[#FFB366]",
+              ? "bg-[#FFF1E2] text-[#D56600] shadow-sm"
+              : "text-[#8B8179] hover:bg-[#FAF7F3] hover:text-[#172235]",
           ].join(" ")}
         >
           {label}
