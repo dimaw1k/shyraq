@@ -253,13 +253,13 @@ export function HabitCreateModal({
 
           <div className="min-w-0 flex-1">
             <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#A19890]">
-              ЖАҢА ӘДЕТ
+              {t("newHabit")}
             </p>
             <h2
               id="habit-create-title"
               className="mt-0.5 truncate text-[18px] font-extrabold tracking-[-.045em] text-[#172235]"
             >
-              Әдетті баптау
+              {t("configureHabit")}
             </h2>
           </div>
 
@@ -280,7 +280,7 @@ export function HabitCreateModal({
               <div className="grid gap-2.5">
                 <div>
                   <label className="text-[9px] font-extrabold text-[#172235]">
-                    Әдет атауы
+                    {t("habitNameLabel")}
                   </label>
                   <input
                     value={name}
@@ -440,7 +440,7 @@ export function HabitCreateModal({
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="min-w-0">
                     <span className="text-[8px] font-extrabold uppercase tracking-[.1em] text-[#A19890]">
-                      Басталу күні
+                      {t("startDate")}
                     </span>
                     <span className="relative mt-1.5 block">
                       <Clock3
@@ -459,7 +459,7 @@ export function HabitCreateModal({
 
                   <div>
                     <p className="text-[8px] font-extrabold uppercase tracking-[.1em] text-[#A19890]">
-                      Мақсат мерзімі
+                      {t("goalDuration")}
                     </p>
                     <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5">
                       {DURATION_OPTIONS.map((option) => (
@@ -493,7 +493,7 @@ export function HabitCreateModal({
                           className="h-9 w-24 rounded-[10px] border border-[#E8E3DD] bg-[#FAF9F7] px-2.5 text-[9px] font-extrabold outline-none focus:border-[#F3C7B0]"
                         />
                         <span className="text-[8px] font-bold text-[#8B8179]">
-                          күн
+                          {t("day")}
                         </span>
                       </div>
                     ) : null}
