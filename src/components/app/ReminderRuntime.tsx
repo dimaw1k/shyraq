@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { studentTranslations } from "@/lib/student-translations";
 
 type ReminderKey =
@@ -65,8 +65,28 @@ function firedKey(date: string, key: ReminderKey, time: string) {
   return FIRED_PREFIX + date + ":" + key + ":" + time;
 }
 
+const REMINDER_BODY_KEY: Record<ReminderKey, keyof typeof studentTranslations.kk> = {
+  morningMeet: "reminderMorningMeet",
+  morningReport: "reminderMorningReport",
+  eveningMeet: "reminderEveningMeet",
+  eveningReport: "reminderEveningReport",
+  habits: "reminderHabits",
+};
+
+const REMINDER_TITLE_KEY: Record<ReminderKey, keyof typeof studentTranslations.kk> = {
+  morningMeet: "morningMeet",
+  morningReport: "morningReport",
+  eveningMeet: "eveningMeet",
+  eveningReport: "eveningReport",
+  habits: "habits",
+};
+
 export function ReminderRuntime() {
+  const [notice, setNotice] = useState<{ title: string; body: string } | null>(null);
+
   useEffect(() => {
+    let noticeTimer: number | null = null;
+
     function check() {
       if (
         typeof Notification === "undefined" ||
@@ -90,12 +110,21 @@ export function ReminderRuntime() {
         String(now.getMinutes()).padStart(2, "0"),
       ].join(":");
 
-      for (const key of Object.keys(studentTranslations.kk) as ReminderKey[]) {
+      for (const key of Object.keys(REMINDER_BODY_KEY) as ReminderKey[]) {
         const enabled = Boolean(settings[key]);
         const timeKey = (key + "Time") as keyof ReminderSettings;
         const time = settings[timeKey];
 
-        if (!enabled || typeof time !== "string" || time !== currentTime) {
+        if (!enabled || typeof time !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+          continue;
+        }
+
+        const [targetHour, targetMinute] = time.split(":").map(Number);
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const targetMinutes = targetHour * 60 + targetMinute;
+        const overdueMinutes = currentMinutes - targetMinutes;
+
+        if (overdueMinutes < 0 || overdueMinutes > 60) {
           continue;
         }
 
@@ -103,25 +132,52 @@ export function ReminderRuntime() {
         if (window.localStorage.getItem(keyForDate) === "1") continue;
 
         const language = readLanguage();
-        const message = studentTranslations[language][key];
+        const title = studentTranslations[language][REMINDER_TITLE_KEY[key]];
+        const message = studentTranslations[language][REMINDER_BODY_KEY[key]];
 
-        try {
-          new Notification("Shyraq", {
-            body: message,
-            tag: "shyraq-" + key,
-          });
-          window.localStorage.setItem(keyForDate, "1");
-        } catch {
-          // Keep the reminder available for a later check if the browser blocks it.
+        setNotice({ title, body: message });
+        if (noticeTimer !== null) window.clearTimeout(noticeTimer);
+        noticeTimer = window.setTimeout(() => setNotice(null), 7000);
+
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          try {
+            new Notification("Shyraq", {
+              body: message,
+              tag: "shyraq-" + key,
+            });
+          } catch {
+            // In-app notice remains available when browser notifications are blocked.
+          }
         }
+
+        window.localStorage.setItem(keyForDate, "1");
       }
     }
 
     check();
     const timer = window.setInterval(check, 30_000);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      if (noticeTimer !== null) window.clearTimeout(noticeTimer);
+    };
   }, []);
 
-  return null;
+  if (!notice) return null;
+
+  return (
+    <div className="pointer-events-none fixed bottom-5 right-5 z-[120] w-[min(360px,calc(100vw-24px))]">
+      <div className="rounded-[16px] border border-[#E7E0D8] bg-white px-4 py-3 shadow-[0_18px_45px_rgba(23,34,53,.16)]">
+        <div className="flex items-start gap-3">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#FF8000]">
+            <span className="text-[15px] leading-none">!</span>
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold text-[#172235]">{notice.title}</p>
+            <p className="mt-1 text-[10px] font-semibold leading-4 text-[#6F665E]">{notice.body}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
