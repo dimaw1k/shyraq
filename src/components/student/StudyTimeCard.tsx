@@ -59,7 +59,7 @@ const SLOT_CONFIG = [
   { key: "PROCESS", labelKey: "process", hintKey: "studyProgress" },
 ] as const;
 
-function createEmptySlots(t: (key: string) => string): PhotoSlot[] {
+function createEmptySlots(): PhotoSlot[] {
   return SLOT_CONFIG.map((slot) => ({
     ...slot,
     file: null,
@@ -295,7 +295,7 @@ function ReportModal({
   const { t } = useStudentLanguage("kk");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [files, setFiles] = useState<PhotoSlot[]>(() => createEmptySlots(t));
+  const [files, setFiles] = useState<PhotoSlot[]>(() => createEmptySlots());
   const [loadedQuestionsKey, setLoadedQuestionsKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
