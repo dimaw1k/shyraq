@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { useStudentLanguage } from "@/lib/student-language";
+import { studentText } from "@/lib/student-translations";
 import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
 function getResetErrorMessage(
@@ -42,7 +43,7 @@ export default function ResetPasswordPage() {
     async function checkRecoverySession() {
       const params = new URLSearchParams(window.location.search);
       const recoveryMode = params.get("mode") === "update";
-      const recoveryError = getResetErrorMessage(params.get("error"), t);
+      const recoveryError = getResetErrorMessage(params.get("error"), (key) => studentText(language, key));
 
       if (!recoveryMode) {
         if (!active) return;
@@ -62,7 +63,7 @@ export default function ResetPasswordPage() {
       }
 
       setMode("request");
-      setError(t("invalidReset"));
+      setError(studentText(language, "invalidReset"));
     }
 
     void checkRecoverySession();
