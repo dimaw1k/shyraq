@@ -375,7 +375,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
               <Wordmark />
             </Link>
             <span className="hidden max-w-[112px] rounded-full bg-[var(--accent-soft)] px-2 py-1 text-center text-[8px] font-extrabold uppercase tracking-[.1em] text-[#B95D00] lg:inline-flex">
-              {displayRole}
+              {roleLabels[role] ?? role}
             </span>
           </div>
 
@@ -491,7 +491,7 @@ export function UserChip({
         <p className="truncate text-[10px] font-extrabold text-[#172235]">{name ?? "Shyraq"}</p>
         {role ? (
           <p className="mt-0.5 truncate text-[9px] font-semibold text-[#9A9189]">
-            {roleLabels[role] ?? role}
+            {displayRole}
           </p>
         ) : null}
       </div>
