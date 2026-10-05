@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
+import { useStudentLanguage } from "@/lib/student-language";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type DashboardBannerItem = {
@@ -14,6 +15,7 @@ export type DashboardBannerItem = {
 };
 
 export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] }) {
+  const { t } = useStudentLanguage("kk");
   const trackRef = useRef<HTMLDivElement>(null);
   const imageBanners = banners.filter((banner) => Boolean(banner.imageUrl));
 
@@ -29,7 +31,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
   if (!imageBanners.length) return null;
 
   return (
-    <section className="shrq-dashboard-banner" aria-label="Shyraq баннерлері">
+    <section className="shrq-dashboard-banner" aria-label={t("banners")}>
       <div ref={trackRef} className="shrq-dashboard-banner-track">
         {imageBanners.map((banner) => {
           const card = (
@@ -63,7 +65,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
               target="_blank"
               rel="noreferrer"
               className="shrq-dashboard-banner-item"
-              aria-label="Баннерді ашу"
+              aria-label={t("openBanner")}
             >
               {card}
             </a>
@@ -72,7 +74,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
               key={banner.id}
               href={banner.href}
               className="shrq-dashboard-banner-item"
-              aria-label="Баннерді ашу"
+              aria-label={t("openBanner")}
             >
               {card}
             </Link>
@@ -84,7 +86,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
         <>
           <button
             type="button"
-            aria-label="Алдыңғы баннер"
+            aria-label={t("previousBanner")}
             onClick={() => scroll("prev")}
             className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--prev"
           >
@@ -92,7 +94,7 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
           </button>
           <button
             type="button"
-            aria-label="Келесі баннер"
+            aria-label={t("nextBanner")}
             onClick={() => scroll("next")}
             className="shrq-dashboard-banner-arrow shrq-dashboard-banner-arrow--next"
           >
