@@ -116,7 +116,7 @@ export default function RegisterPage() {
   return (
     <main className="min-h-[100dvh] bg-[#FAF9F7] px-4 py-8 text-[#172235]">
       <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
-        <section className="w-full max-w-[470px] relative rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
+        <section className="w-full max-w-[467px] relative rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
           <div className="flex flex-col items-center text-center">
             <AuthLanguagePicker />
             <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
