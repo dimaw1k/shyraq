@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
       }
 
       setMode("request");
-      setError("t("invalidReset")");
+      setError(t("invalidReset"));
     }
 
     void checkRecoverySession();
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
     });
 
     if (resetError) {
-      setError("t("resetSendFailed")");
+      setError(t("resetSendFailed"));
       setLoading(false);
       return;
     }
@@ -99,12 +99,12 @@ export default function ResetPasswordPage() {
     setError("");
 
     if (password.length < 8) {
-      setError("t("passwordMin")");
+      setError(t("passwordMin"));
       return;
     }
 
     if (password !== confirm) {
-      setError("t("passwordMismatch")");
+      setError(t("passwordMismatch"));
       return;
     }
 
@@ -123,7 +123,7 @@ export default function ResetPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {
-      setError("t("resetUpdateFailed")");
+      setError(t("resetUpdateFailed"));
       setLoading(false);
       return;
     }
@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-                EMAIL
+                {t("email").toUpperCase()}
               </p>
               <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
                 {t("checkEmail")}
@@ -205,12 +205,12 @@ export default function ResetPasswordPage() {
             </div>
 
             <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-              {mode === "request" ? "{t("resetPassword").toUpperCase()}" : "{t("newPassword").toUpperCase()}"}
+              {mode === "request" ? t("resetPassword").toUpperCase() : t("newPassword").toUpperCase()}
             </p>
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
               {mode === "request"
-                ? "{t("forgotPassword")}"
-                : "{t("setNewPassword")}"}
+                ? t("forgotPassword")
+                : t("setNewPassword")}
             </h1>
           </div>
 
@@ -229,7 +229,7 @@ export default function ResetPasswordPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="{t("email")}"
+                    placeholder={t("email")}
                     className={inputClass}
                   />
                 </div>
@@ -246,7 +246,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "{t("sendingLink")}" : "{t("sendLink")}"}
+                {loading ? t("sendingLink") : t("sendLink")}
                 {!loading ? (
                   <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 ) : null}
@@ -268,13 +268,13 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="{t("newPassword")}"
+                    placeholder={t("newPassword")}
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
-                    aria-label={showPassword ? "{t("hidePassword")}" : "{t("showPassword")}"}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -296,13 +296,13 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(event) => setConfirm(event.target.value)}
-                    placeholder="{t("repeatPassword")}"
+                    placeholder={t("repeatPassword")}
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm((value) => !value)}
-                    aria-label={showConfirm ? "{t("hidePassword")}" : "{t("showPassword")}"}
+                    aria-label={showConfirm ? t("hidePassword") : t("showPassword")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -321,7 +321,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "..." : "{t("updatePassword")}"}
+                {loading ? "..." : t("updatePassword")}
                 {!loading ? (
                   <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 ) : null}
