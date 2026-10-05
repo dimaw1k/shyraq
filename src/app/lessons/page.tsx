@@ -11,6 +11,7 @@ import { AppShell } from "@/components/app/AppNav";
 import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MARATHON_WEEKS } from "@/lib/marathon";
+import { getStudentTranslator } from "@/lib/student-server-language";
 
 function currentTimestampMs() {
   return Date.now();
@@ -21,6 +22,7 @@ export default async function LessonsPage({
 }: {
   searchParams?: Promise<{ week?: string; day?: string }>;
 }) {
+  const { t } = await getStudentTranslator();
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -120,14 +122,14 @@ export default async function LessonsPage({
     <AppShell
       role={role}
       userName={profile?.full_name ?? undefined}
-      title="Сабақтар"
+      title={t("lessons")}
       hideHeader
     >
       <PageContainer className="max-w-[1380px] pb-8 pt-4">
         <div className="space-y-3.5">
           <div className="flex items-center justify-between">
             <h1 className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
-              Сабақтар
+              {t("lessons")}
             </h1>
 
           </div>
@@ -171,8 +173,8 @@ export default async function LessonsPage({
           </div>
 
           <section className="shrq-lessons-layout">
-              <aside className="shrq-day-rail" aria-label="Күндер">
-                <div className="shrq-day-rail-label">КҮН</div>
+              <aside className="shrq-day-rail" aria-label={t("days")}>
+                <div className="shrq-day-rail-label">{t("day").toUpperCase()}</div>
                 <div className="shrq-day-selector">
                   {Array.from(
                     { length: activeWeek.endDay - activeWeek.startDay + 1 },
@@ -184,7 +186,7 @@ export default async function LessonsPage({
                       <Link
                         key={day}
                         href={"/lessons?week=" + activeWeek.week + "&day=" + day}
-                        aria-label={day + "-күн"}
+                        aria-label={day + "-" + t("day")}
                         aria-current={active ? "page" : undefined}
                         className={[
                           "shrq-day-tile",
@@ -201,7 +203,7 @@ export default async function LessonsPage({
               <div className="min-w-0">
                 <div className="mb-2.5">
                   <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
-                    {activeDay}-күн
+                    {activeDay}-{t("day")}
                   </h2>
                 </div>
 
@@ -209,7 +211,7 @@ export default async function LessonsPage({
                   <section className="min-w-0">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
-                        БЕЙНЕ САБАҚТАР
+                        {t("videoLessons").toUpperCase()}
                       </p>
                       <span className="text-[8px] font-bold text-[#9A9189]">
                         {dayLessons.length}
@@ -220,7 +222,7 @@ export default async function LessonsPage({
                       <Card className="p-7 text-center">
                         <BookOpen size={18} className="mx-auto text-[#B5ABA2]" />
                         <p className="mt-2 text-[11px] font-extrabold text-[#172235]">
-                          Бұл күнге сабақ жоқ
+                          {t("noLessons")}
                         </p>
                       </Card>
                     ) : (
@@ -259,7 +261,7 @@ export default async function LessonsPage({
                                           : "bg-[#EAF7F0] text-[#2E7E58]",
                                       ].join(" ")}
                                     >
-                                      {locked ? "Жабық" : "Ашық"}
+                                      {locked ? t("locked") : t("open")}
                                     </span>
                                   </span>
 
@@ -272,7 +274,7 @@ export default async function LessonsPage({
                                       1,
                                       Math.ceil(Number(lesson.duration_seconds ?? 0) / 60),
                                     )}{" "}
-                                    мин · {Number(lesson.required_watch_percent ?? 85)}% көру
+                                    {t("minutes")} · {Number(lesson.required_watch_percent ?? 85)}% {t("view")}
                                   </span>
                                 </span>
 
@@ -282,7 +284,7 @@ export default async function LessonsPage({
                               <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
                                 <CheckCircle2 size={11} className="text-[#AAA198]" />
                                 <span className="text-[7px] font-semibold text-[#9A9189]">
-                                  Бейне → тест
+                                  {t("videoToTest")}
                                 </span>
                               </div>
                             </Card>
@@ -295,7 +297,7 @@ export default async function LessonsPage({
                   <section className="min-w-0">
                     <div className="mb-2">
                       <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
-                        ТАПСЫРМАЛАР
+                        {t("taskUpper")}
                       </p>
                     </div>
 
@@ -303,7 +305,7 @@ export default async function LessonsPage({
                       <Card className="p-7 text-center">
                         <ClipboardList size={18} className="mx-auto text-[#B5ABA2]" />
                         <p className="mt-2 text-[11px] font-extrabold text-[#172235]">
-                          Бұл күнге тапсырма жоқ
+                          {t("noTasks")}
                         </p>
                       </Card>
                     ) : (
@@ -342,7 +344,7 @@ export default async function LessonsPage({
                                           : "bg-[#FFF1E2] text-[#B95D00]",
                                       ].join(" ")}
                                     >
-                                      {done ? "Орындалды" : "Тапсырма"}
+                                      {done ? t("completedTask") : t("task")}
                                     </span>
                                   </span>
 
@@ -351,7 +353,7 @@ export default async function LessonsPage({
                                   </span>
 
                                   <span className="mt-1 block truncate text-[8px] font-medium leading-4 text-[#8B8179]">
-                                    {task.points} ұпай
+                                    {task.points} {t("pointsShort")}
                                     {task.deadline
                                       ? " · " + new Date(task.deadline).toLocaleDateString("kk-KZ")
                                       : ""}
@@ -363,7 +365,7 @@ export default async function LessonsPage({
 
                               <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
                                 <span className="text-[7px] font-semibold text-[#9A9189]">
-                                  {done ? "Тексерілді" : "Тапсырманы ашу"}
+                                  {done ? t("checked") : t("openTask")}
                                 </span>
                               </div>
                             </Card>
