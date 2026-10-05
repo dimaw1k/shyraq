@@ -301,7 +301,7 @@ export function HabitBoard({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#A19890]">
-                  БҮГІНГІ ЫРҒАҚ
+                  {t("todayRhythm")}
                 </p>
                 <h2 className="mt-1.5 text-[24px] font-extrabold tracking-[-.055em] text-[#172235]">
                   {t("habitTitle")}
@@ -338,7 +338,7 @@ export function HabitBoard({
                   {todayProgress}%
                 </p>
                 <p className="mt-0.5 text-[9px] font-bold text-[#9A9189]">
-                  бүгін орындалды
+                  {t("completedTodayLabel")}
                 </p>
               </div>
             </div>
@@ -351,14 +351,14 @@ export function HabitBoard({
               <Sparkles size={17} />
             </span>
             <span className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#A19890]">
-              СЕРИЯ
+              {t("series")}
             </span>
           </div>
           <p className="mt-6 text-[34px] font-extrabold leading-none tracking-[-.06em] text-[#172235]">
             {streak}
           </p>
           <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
-            күн қатарынан
+            {t("daysInRow")}
           </p>
         </div>
 
@@ -368,7 +368,7 @@ export function HabitBoard({
               <Check size={17} />
             </span>
             <span className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#A19890]">
-              ҮЗДІК ӘДЕТ
+              {t("bestHabit")}
             </span>
           </div>
           <p className="mt-6 truncate text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
@@ -384,7 +384,7 @@ export function HabitBoard({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#172235]">
-              7 КҮНДІК ЫРҒАҚ
+              {t("weekRhythm")}
             </p>
             <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">
               {t("monSun")}
@@ -400,7 +400,7 @@ export function HabitBoard({
             className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] bg-[#FF8000] px-3.5 text-[9px] font-extrabold text-white shadow-[0_7px_18px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.97]"
           >
             <Plus size={14} />
-            Әдет қосу
+            {t("addHabit")}
           </button>
         </div>
 
@@ -571,7 +571,7 @@ export function HabitBoard({
                     {durationLabel(habit, t)}
                   </span>
                   <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
-                    {habit.section}
+                    {habit.section === "Таңертең" ? t("morningSection") : habit.section === "Күндіз" ? t("daySection") : habit.section === "Кешке" ? t("eveningSection") : t("otherSection")}
                   </span>
                   {habit.reminder_time ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF1E2] px-2 py-1 text-[7px] font-extrabold text-[#C15F00]">
