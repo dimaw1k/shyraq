@@ -122,6 +122,14 @@ export function StudyTimeCard({
     <>
       <div className="grid gap-2 sm:grid-cols-2">
         <SessionRow
+          label={t("morningStudy")}
+          minutes={morningMinutes}
+          submitted={submitted.has("MORNING")}
+          open={morningOpen}
+          openTime={morningReportOpenTime}
+          onReport={() => openReport("MORNING")}
+        />
+        <SessionRow
           label={t("eveningStudy")}
           minutes={eveningMinutes}
           submitted={submitted.has("EVENING")}
@@ -502,7 +510,7 @@ function ReportModal({
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-[8px] font-semibold text-[#FF8000]"
               >
-                Meet-ке кіру <ArrowUpRight size={11} />
+                {t("meetJoin")} <ArrowUpRight size={11} />
               </a>
             ) : null}
           </div>
