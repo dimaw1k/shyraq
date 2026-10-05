@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
+import { AppPreferences } from "@/components/app/AppPreferences";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="kk">
-      <body className="min-h-screen"><SmoothScroll>{children}</SmoothScroll></body>
+      <body className="min-h-screen">
+        <AppPreferences />
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }
