@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Camera, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useStudentLanguage } from "@/lib/student-language";
+import { studentText } from "@/lib/student-translations";
 import { formatKzPhone } from "@/lib/phone";
 
 type Profile = {
@@ -54,7 +55,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 }
 
 export function ProfileClient() {
-  const { t } = useStudentLanguage("kk");
+  const { language, t } = useStudentLanguage("kk");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState({
     fullName: "",
@@ -71,13 +72,13 @@ export function ProfileClient() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     const response = await fetch("/api/profile", { cache: "no-store" });
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       setMessageTone("error");
-      setMessage(data.error ?? t("profileLoadFailed"));
+      setMessage(data.error ?? studentText(language, "profileLoadFailed"));
       return;
     }
 
@@ -91,12 +92,12 @@ export function ProfileClient() {
       currentPassword: "",
       newPassword: "",
     }));
-  }
+  }, [language]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [load]);
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((state) => ({ ...state, [key]: value }));
