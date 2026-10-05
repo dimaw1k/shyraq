@@ -3,25 +3,23 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  MailCheck,
+} from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
-function Brand() {
-  return (
-    <Link href="/" aria-label="Shyraq" className="inline-flex items-center">
-      <span className="text-[28px] font-extrabold tracking-[-0.075em] text-[#172235]">
-        SHYR<span className="text-[#FF8000]">A</span>Q
-      </span>
-    </Link>
-  );
-}
-
 function getResetErrorMessage(code: string | null) {
-  if (!code) return "";
   if (code === "invalid_or_expired") {
-    return "Қалпына келтіру сілтемесі жарамсыз немесе мерзімі өткен. Жаңа сілтеме сұраңыз.";
+    return "Сілтеме жарамсыз немесе мерзімі өткен.";
   }
-  return "Қалпына келтіру кезінде қате болды. Жаңа сілтеме сұраңыз.";
+
+  return code ? "Қалпына келтіру кезінде қате болды." : "";
 }
 
 export default function ResetPasswordPage() {
@@ -29,11 +27,10 @@ export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [mode, setMode] = useState<"checking" | "request" | "update">("checking");
+  const [mode, setMode] = useState<"checking" | "request" | "sent" | "update">("checking");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -43,21 +40,17 @@ export default function ResetPasswordPage() {
       const params = new URLSearchParams(window.location.search);
       const recoveryError = getResetErrorMessage(params.get("error"));
       const supabase = createBrowserSupabaseClient();
-
       const { data, error: userError } = await supabase.auth.getUser();
 
       if (!active) return;
 
       if (data.user && !userError) {
         setMode("update");
-        setError("");
         return;
       }
 
       setMode("request");
-      if (recoveryError) {
-        setError(recoveryError);
-      }
+      if (recoveryError) setError(recoveryError);
     }
 
     void checkRecoverySession();
@@ -71,7 +64,6 @@ export default function ResetPasswordPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
-    setMessage("");
 
     const normalizedEmail = email.trim().toLowerCase();
     const supabase = createBrowserSupabaseClient();
@@ -81,20 +73,18 @@ export default function ResetPasswordPage() {
     });
 
     if (resetError) {
-      setError("Сілтемені жіберу мүмкін болмады. Қайта көріңіз.");
-    } else {
-      setMessage(
-        "Егер бұл email Shyraq-та тіркелген болса, қалпына келтіру сілтемесі жіберілді. Поштаңызды тексеріңіз.",
-      );
+      setError("Сілтемені жіберу мүмкін болмады.");
+      setLoading(false);
+      return;
     }
 
+    setMode("sent");
     setLoading(false);
   }
 
   async function updatePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    setMessage("");
 
     if (password.length < 8) {
       setError("Құпиясөз кемінде 8 таңба болуы керек.");
@@ -112,7 +102,7 @@ export default function ResetPasswordPage() {
     const { data: userData } = await supabase.auth.getUser();
 
     if (!userData.user) {
-      setError("Қалпына келтіру сессиясы табылмады немесе мерзімі өткен. Жаңа сілтеме сұраңыз.");
+      setError("Сілтеме жарамсыз немесе мерзімі өткен.");
       setLoading(false);
       setMode("request");
       return;
@@ -121,120 +111,143 @@ export default function ResetPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {
-      setError("Құпиясөзді жаңарту мүмкін болмады. Жаңа қалпына келтіру сілтемесін сұраңыз.");
+      setError("Құпиясөзді жаңарту мүмкін болмады.");
       setLoading(false);
       return;
     }
 
     await supabase.auth.signOut();
-    setMessage("Құпиясөз жаңартылды. Кіру бетіне бағыттаймыз...");
-    setLoading(false);
-
-    window.setTimeout(() => {
-      router.replace("/login?reset=success");
-    }, 700);
+    router.replace("/login?reset=success");
   }
 
   const inputClass =
-    "mt-2 w-full rounded-2xl border border-[#e7e0d8] bg-[#fcfbf9] px-4 py-3.5 text-sm font-medium outline-none transition-all duration-200 focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
+    "w-full rounded-[15px] border border-[#E7E0D8] bg-[#FCFBF9] py-3.5 pl-11 pr-4 text-[14px] font-medium outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
   if (mode === "checking") {
     return (
-      <main className="min-h-[100dvh] bg-[#FAF9F7] text-[#172235]">
-        <div className="relative mx-auto max-w-5xl px-5 py-6 sm:px-7 lg:px-8">
-          <div className="flex items-center justify-between">
-            <Brand />
+      <main className="min-h-[100dvh] bg-[#FAF9F7] px-4 py-8 text-[#172235]">
+        <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
+          <section className="w-full max-w-[430px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
+                <LockKeyhole size={24} strokeWidth={2.2} />
+              </div>
+              <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
+                ҚАЛПЫНА КЕЛТІРУ
+              </p>
+              <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
+                Тексерілуде.
+              </h1>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (mode === "sent") {
+    return (
+      <main className="min-h-[100dvh] bg-[#FAF9F7] px-4 py-8 text-[#172235]">
+        <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
+          <section className="w-full max-w-[430px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
+                <MailCheck size={24} strokeWidth={2.2} />
+              </div>
+
+              <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
+                EMAIL
+              </p>
+              <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
+                Поштаңызды тексеріңіз.
+              </h1>
+              <p className="mt-3 max-w-[330px] text-[13px] font-medium leading-5 text-[#766E66]">
+                Қалпына келтіру сілтемесі поштаңызға жіберілді.
+              </p>
+            </div>
+
             <Link
               href="/login"
-              className="rounded-full bg-white/85 px-4 py-2.5 text-xs font-extrabold shadow-sm backdrop-blur transition hover:-translate-y-0.5"
+              className="mt-5 flex w-full items-center justify-center rounded-[15px] border border-[#E7E0D8] bg-[#FCFBF9] px-5 py-3.5 text-[14px] font-extrabold text-[#172235] transition hover:border-[#FF8000] hover:bg-white"
             >
-              Кіру
+              Кіру бетіне оралу
             </Link>
-          </div>
-
-          <div className="mx-auto mt-10 max-w-xl rounded-[30px] border border-white/80 bg-white/95 p-6 shadow-[0_30px_90px_rgba(39,25,17,.10)] sm:p-8">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#FFF1E2] text-[#FF8000]">
-              <LockKeyhole size={20} />
-            </div>
-            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-              ҚАЛПЫНА КЕЛТІРУ
-            </p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">
-              Сілтемені тексеріп жатырмыз.
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-[#766e66]">
-              Қауіпсіздік үшін қалпына келтіру сессиясын тексеріп жатырмыз.
-            </p>
-          </div>
+          </section>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#FAF9F7] text-[#172235]">
-      <div className="absolute inset-x-0 top-0 h-[360px] bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.9),transparent_30%),linear-gradient(135deg,#fff1e2_0%,#ffe0c4_52%,#ffbd84_100%)]" />
-      <div className="relative mx-auto max-w-5xl px-5 py-6 sm:px-7 lg:px-8">
-        <div className="flex items-center justify-between">
-          <Brand />
-          <Link
-            href="/login"
-            className="rounded-full bg-white/85 px-4 py-2.5 text-xs font-extrabold shadow-sm backdrop-blur transition hover:-translate-y-0.5"
-          >
-            Кіру
-          </Link>
-        </div>
+    <main className="min-h-[100dvh] bg-[#FAF9F7] px-4 py-8 text-[#172235]">
+      <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
+        <section className="w-full max-w-[430px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
+          <div className="flex flex-col items-center text-center">
+            <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
+              {mode === "request" ? (
+                <LockKeyhole size={24} strokeWidth={2.2} />
+              ) : (
+                <Check size={24} strokeWidth={2.2} />
+              )}
+            </div>
 
-        <div className="mx-auto mt-10 max-w-xl rounded-[30px] border border-white/80 bg-white/95 p-6 shadow-[0_30px_90px_rgba(39,25,17,.10)] sm:p-8">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#FFF1E2] text-[#FF8000]">
-            {mode === "request" ? <LockKeyhole size={20} /> : <Check size={20} />}
+            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
+              {mode === "request" ? "ҚАЛПЫНА КЕЛТІРУ" : "ЖАҢА ҚҰПИЯСӨЗ"}
+            </p>
+            <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
+              {mode === "request"
+                ? "Құпиясөзді ұмыттыңыз ба?"
+                : "Жаңа құпиясөз орнатыңыз."}
+            </h1>
           </div>
 
-          <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">
-            {mode === "request" ? "ҚАЛПЫНА КЕЛТІРУ" : "ЖАҢА ҚҰПИЯСӨЗ"}
-          </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.045em] sm:text-4xl">
-            {mode === "request"
-              ? "Құпиясөзді қалпына келтіріңіз."
-              : "Жаңа құпиясөз орнатыңыз."}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-[#766e66]">
-            {mode === "request"
-              ? "Email енгізіңіз. Егер ол аккаунтқа тіркелген болса, қауіпсіз қалпына келтіру сілтемесі поштаға жіберіледі."
-              : "Жаңа құпиясөз кемінде 8 таңбадан тұруы керек."}
-          </p>
-
           {mode === "request" ? (
-            <form onSubmit={requestReset} className="mt-7 space-y-4">
-              <label className="block text-xs font-extrabold text-[#3f3832]">
-                Email
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  className={inputClass}
-                />
+            <form onSubmit={requestReset} className="mt-5 space-y-3.5">
+              <label className="block">
+                <span className="sr-only">Электрондық пошта</span>
+                <div className="relative">
+                  <Mail
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
+                    size={18}
+                  />
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Электрондық пошта"
+                    className={inputClass}
+                  />
+                </div>
               </label>
+
+              {error ? (
+                <div className="rounded-[13px] border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold leading-4 text-red-700">
+                  {error}
+                </div>
+              ) : null}
 
               <button
                 disabled={loading}
                 type="submit"
-                className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF8000] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,128,0,.20)] transition hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Жіберілуде..." : "Қалпына келтіру сілтемесін жіберу"}
+                {loading ? "Жіберілуде..." : "Сілтеме жіберу"}
                 {!loading ? (
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                 ) : null}
               </button>
             </form>
           ) : (
-            <form onSubmit={updatePassword} className="mt-7 space-y-4">
-              <label className="block text-xs font-extrabold text-[#3f3832]">
-                Жаңа құпиясөз
+            <form onSubmit={updatePassword} className="mt-5 space-y-3.5">
+              <label className="block">
+                <span className="sr-only">Жаңа құпиясөз</span>
                 <div className="relative">
+                  <LockKeyhole
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
+                    size={18}
+                  />
                   <input
                     required
                     minLength={8}
@@ -242,23 +255,27 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Кемінде 8 таңба"
+                    placeholder="Жаңа құпиясөз"
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] hover:bg-[#f4eee8]"
                     aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </label>
 
-              <label className="block text-xs font-extrabold text-[#3f3832]">
-                Құпиясөзді қайталау
+              <label className="block">
+                <span className="sr-only">Құпиясөзді қайталау</span>
                 <div className="relative">
+                  <LockKeyhole
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]"
+                    size={18}
+                  />
                   <input
                     required
                     minLength={8}
@@ -266,49 +283,49 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(event) => setConfirm(event.target.value)}
-                    placeholder="Қайта енгізіңіз"
+                    placeholder="Құпиясөзді қайталау"
                     className={inputClass + " pr-12"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm((value) => !value)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#887d73] hover:bg-[#f4eee8]"
-                    aria-label={showConfirm ? "Құпиясөзді жасыру" : "Қайталау құпиясөзін көрсету"}
+                    aria-label={showConfirm ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                   >
                     {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </label>
 
+              {error ? (
+                <div className="rounded-[13px] border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold leading-4 text-red-700">
+                  {error}
+                </div>
+              ) : null}
+
               <button
                 disabled={loading}
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF8000] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_15px_35px_rgba(255,128,0,.20)] transition hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Жаңартылуда..." : "Құпиясөзді жаңарту"}
-                {!loading ? <ArrowRight size={16} /> : null}
+                {!loading ? (
+                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                ) : null}
               </button>
             </form>
           )}
 
-          {error ? (
-            <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700">
-              {error}
-            </div>
-          ) : null}
+          {mode !== "request" && mode !== "update" && null}
 
-          {message ? (
-            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-semibold leading-5 text-emerald-700">
-              {message}
-            </div>
-          ) : null}
-
-          <p className="mt-6 text-center text-xs font-medium text-[#837970]">
-            <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
-              Кіру бетіне оралу
-            </Link>
-          </p>
-        </div>
+          {(mode === "request" || mode === "update") && (
+            <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
+              <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
+                Кіру бетіне оралу
+              </Link>
+            </p>
+          )}
+        </section>
       </div>
     </main>
   );
