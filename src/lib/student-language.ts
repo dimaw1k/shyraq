@@ -10,6 +10,11 @@ export const STUDENT_LANGUAGE_EVENT = "shyraq-language-change";
 export const studentTranslations: Record<StudentLanguage, Record<string, string>> = {
   kk: {
     settings: "Баптаулар",
+    home: "Басты бет",
+    lessons: "Сабақтар",
+    habitsNav: "Әдеттер",
+    profileNav: "Профиль",
+    studentRole: "Оқушы",
     language: "Тіл",
     reminders: "Еске салғыштар",
     appearance: "Көрініс",
@@ -61,6 +66,11 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
   },
   ru: {
     settings: "Настройки",
+    home: "Главная",
+    lessons: "Уроки",
+    habitsNav: "Привычки",
+    profileNav: "Профиль",
+    studentRole: "Ученик",
     language: "Язык",
     reminders: "Напоминания",
     appearance: "Вид",
@@ -112,6 +122,11 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
   },
   en: {
     settings: "Settings",
+    home: "Home",
+    lessons: "Lessons",
+    habitsNav: "Habits",
+    profileNav: "Profile",
+    studentRole: "Student",
     language: "Language",
     reminders: "Reminders",
     appearance: "Appearance",
