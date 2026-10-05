@@ -311,31 +311,28 @@ function ReminderEditor({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-[12px] border border-[#E9E3DC] bg-[#FCFBF9] p-1.5">
-      <div className="grid grid-cols-[minmax(0,1fr)_96px] items-center gap-1.5">
+    <div className="h-[50px] rounded-[12px] border border-[#E9E3DC] bg-[#FCFBF9] px-2">
+      <div className="grid h-full grid-cols-[minmax(0,1fr)_38px_96px] items-center gap-2">
+        <span className="min-w-0 truncate px-1 text-[10px] font-extrabold text-[#172235]">
+          {label}
+        </span>
         <button
           type="button"
           role="switch"
           aria-checked={checked}
+          aria-label={label}
           onClick={() => onToggle(!checked)}
-          className="flex min-w-0 items-center justify-between gap-2 rounded-[9px] px-2 py-1.5 text-left transition hover:bg-white"
+          className={[
+            "relative h-5 w-9 shrink-0 rounded-full transition",
+            checked ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
+          ].join(" ")}
         >
-          <span className="truncate text-[10px] font-extrabold text-[#172235]">
-            {label}
-          </span>
           <span
             className={[
-              "relative h-5 w-9 shrink-0 rounded-full transition",
-              checked ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
+              "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+              checked ? "translate-x-[18px]" : "translate-x-[3px]",
             ].join(" ")}
-          >
-            <span
-              className={[
-                "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
-                checked ? "translate-x-[18px]" : "translate-x-[3px]",
-              ].join(" ")}
-            />
-          </span>
+          />
         </button>
 
         <TimePicker
@@ -587,12 +584,35 @@ export function StudentSettingsClient({
           title={t("reminders")}
           className="md:col-span-2"
         >
-          <div className="grid gap-1.5">
-            <Toggle
-              checked={reminders.enabled}
-              onChange={(value) => updateReminder("enabled", value)}
-              title={t("reminders") + " · " + enabledCount}
-            />
+          <div className="grid gap-2">
+            <div className="flex h-[42px] items-center justify-between rounded-[11px] border border-[#E9E3DC] bg-[#FCFBF9] px-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-[10px] font-extrabold text-[#172235]">
+                  {t("reminders")}
+                </span>
+                <span className="rounded-full bg-[#FFF1E2] px-1.5 py-0.5 text-[8px] font-extrabold text-[#C86A11]">
+                  {enabledCount}
+                </span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={reminders.enabled}
+                aria-label={t("reminders")}
+                onClick={() => updateReminder("enabled", !reminders.enabled)}
+                className={[
+                  "relative h-5 w-9 shrink-0 rounded-full transition",
+                  reminders.enabled ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+                    reminders.enabled ? "translate-x-[18px]" : "translate-x-[3px]",
+                  ].join(" ")}
+                />
+              </button>
+            </div>
 
             <div className="grid gap-1.5 sm:grid-cols-2">
               {REMINDER_ITEMS.map(([enabledKey, timeKey, labelKey]) => (
@@ -607,7 +627,7 @@ export function StudentSettingsClient({
               ))}
             </div>
 
-            <div className="grid gap-1.5 sm:col-span-2 sm:grid-cols-2">
+            <div className="grid gap-1.5 pt-0.5 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={allowNotifications}
