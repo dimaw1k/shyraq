@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useStudentLanguage } from "@/lib/student-language";
 
 type CreatedHabit = {
   id: string;
@@ -56,13 +57,13 @@ const ICON_OPTIONS = [
 ] as const;
 
 const WEEKDAYS = [
-  [1, "Дүй"],
-  [2, "Сей"],
-  [3, "Сәр"],
-  [4, "Бей"],
-  [5, "Жұм"],
-  [6, "Сен"],
-  [7, "Жек"],
+  [1, "monShort"],
+  [2, "tueShort"],
+  [3, "wedShort"],
+  [4, "thuShort"],
+  [5, "friShort"],
+  [6, "satShort"],
+  [7, "sunShort"],
 ] as const;
 
 const DURATION_OPTIONS = [
@@ -87,6 +88,7 @@ export function HabitCreateModal({
   onClose,
   onCreated,
 }: Props) {
+  const { t } = useStudentLanguage("kk");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("Sparkles");
@@ -154,27 +156,27 @@ export function HabitCreateModal({
     const parsedRepeatInterval = Number(repeatInterval);
 
     if (trimmedName.length < 2 || trimmedName.length > 60) {
-      setError("Әдет атауы 2–60 таңба болуы керек.");
+      setError(t("habitNameValidation"));
       return;
     }
 
     if (trimmedDescription.length > 140) {
-      setError("Сипаттама 140 таңбадан аспауы керек.");
+      setError(t("habitDescriptionValidation"));
       return;
     }
 
     if (!validDate(startDate)) {
-      setError("Басталу күнін дұрыс таңда.");
+      setError(t("startDateValidation"));
       return;
     }
 
     if (frequency === "WEEKLY" && weekdays.length === 0) {
-      setError("Кемінде бір күнді таңда.");
+      setError(t("chooseDay"));
       return;
     }
 
     if (duration === "custom" && !goalDays) {
-      setError("Мерзімді 1–999 күн аралығында енгіз.");
+      setError(t("durationValidation"));
       return;
     }
 
@@ -184,7 +186,7 @@ export function HabitCreateModal({
         parsedRepeatInterval < 1 ||
         parsedRepeatInterval > 365)
     ) {
-      setError("Қайталау аралығын 1–365 аралығында енгіз.");
+      setError(t("repeatValidation"));
       return;
     }
 
@@ -215,14 +217,14 @@ export function HabitCreateModal({
       const payload = await response.json().catch(() => null);
 
       if (!response.ok || !payload?.habit) {
-        setError(payload?.error ?? "Әдетті сақтау мүмкін болмады.");
+        setError(payload?.error ?? t("habitSaveFailed"));
         return;
       }
 
       onCreated(payload.habit);
       onClose();
     } catch {
-      setError("Сервермен байланыс үзілді. Қайта байқап көр.");
+      setError(t("serverConnectionError"));
     } finally {
       setSaving(false);
     }
@@ -244,7 +246,7 @@ export function HabitCreateModal({
             onClick={onClose}
             disabled={saving}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] text-[#6F665E] transition hover:border-[#F3C7B0] hover:text-[#FF8000] disabled:opacity-50"
-            aria-label="Жабу"
+            aria-label={t("close")}
           >
             <ArrowLeft size={17} />
           </button>
@@ -266,7 +268,7 @@ export function HabitCreateModal({
             onClick={onClose}
             disabled={saving}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] text-[#9A9189] transition hover:bg-[#F4F0EB] hover:text-[#172235] disabled:opacity-50"
-            aria-label="Жабу"
+            aria-label={t("close")}
           >
             <X size={17} />
           </button>
@@ -285,33 +287,33 @@ export function HabitCreateModal({
                     onChange={(event) => setName(event.target.value)}
                     maxLength={60}
                     autoFocus
-                    placeholder="Мысалы: 30 минут оқу"
+                    placeholder={t("habitExample")}
                     className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E3DD] bg-[#FAF9F7] px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#F3C7B0] focus:bg-white"
                   />
                 </div>
 
                 <div>
                   <label className="text-[9px] font-extrabold text-[#172235]">
-                    Сипаттама <span className="font-semibold text-[#A19890]">(міндетті емес)</span>
+                    {t("descriptionOptional")}
                   </label>
                   <input
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
                     maxLength={140}
-                    placeholder="Қысқа әрі түсінікті етіп жаз"
+                    placeholder={t("writeBriefly")}
                     className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E3DD] bg-[#FAF9F7] px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#F3C7B0] focus:bg-white"
                   />
                 </div>
 
                 <div>
-                  <p className="text-[9px] font-extrabold text-[#172235]">Белгіше</p>
+                  <p className="text-[9px] font-extrabold text-[#172235]">{t("icon")}</p>
                   <div className="mt-1.5 grid grid-cols-8 gap-1.5">
                     {ICON_OPTIONS.map(([value, Icon]) => (
                       <button
-                        key={value}
+                        key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                         type="button"
                         onClick={() => setIcon(value)}
-                        aria-label={value}
+                        aria-label={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                         className={[
                           "grid h-9 place-items-center rounded-[10px] border transition",
                           icon === value
@@ -328,17 +330,17 @@ export function HabitCreateModal({
             </section>
 
             <section className="rounded-[18px] border border-[#E8E3DD] bg-white p-4">
-              <p className="text-[9px] font-extrabold text-[#172235]">Қайталау</p>
+              <p className="text-[9px] font-extrabold text-[#172235]">{t("repeat")}</p>
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {(
                   [
-                    ["DAILY", "Күнде"],
-                    ["WEEKLY", "Апта сайын"],
-                    ["REPEAT", "Қайталану"],
+                    ["DAILY", t("daily")],
+                    ["WEEKLY", t("weekly")],
+                    ["REPEAT", t("repeatMode")],
                   ] as const
                 ).map(([value, label]) => (
                   <button
-                    key={value}
+                    key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                     type="button"
                     onClick={() => setFrequency(value)}
                     className={[
@@ -357,10 +359,10 @@ export function HabitCreateModal({
                 <div className="mt-3">
                   <div className="flex items-center justify-between">
                     <p className="text-[9px] font-extrabold text-[#172235]">
-                      Қай күндері?
+                      {t("whichDays")}
                     </p>
                     <p className="text-[8px] font-semibold text-[#A19890]">
-                      {weekdays.length}/7 таңдалды
+                      {weekdays.length}{t("daysSelected")}
                     </p>
                   </div>
                   <div className="mt-2 grid grid-cols-7 gap-1.5">
@@ -369,7 +371,7 @@ export function HabitCreateModal({
 
                       return (
                         <button
-                          key={value}
+                          key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                           type="button"
                           onClick={() => toggleWeekday(value)}
                           className={[
@@ -387,15 +389,13 @@ export function HabitCreateModal({
                 </div>
               ) : (
                 <div className="mt-3 rounded-[12px] bg-[#FAF9F7] px-3 py-2.5 text-[9px] font-semibold text-[#81786F]">
-                  Күнделікті әдет автоматты түрде дүйсенбі–жексенбі орындалады.
+                  {t("dailyAutoText")}
                 </div>
               )}
 
               {frequency === "REPEAT" ? (
                 <div className="mt-3 flex items-center gap-2 rounded-[12px] bg-[#FAF9F7] p-2">
-                  <span className="shrink-0 text-[9px] font-extrabold text-[#172235]">
-                    Әр
-                  </span>
+                  <span className="shrink-0 text-[9px] font-extrabold text-[#172235]">{t("every")}</span>
                   <input
                     value={repeatInterval}
                     onChange={(event) => setRepeatInterval(event.target.value.replace(/\D/g, "").slice(0, 3))}
@@ -407,8 +407,8 @@ export function HabitCreateModal({
                     onChange={(event) => setRepeatUnit(event.target.value as "DAY" | "WEEK")}
                     className="h-9 min-w-0 flex-1 rounded-[10px] border border-[#E8E3DD] bg-white px-2.5 text-[9px] font-extrabold text-[#172235] outline-none"
                   >
-                    <option value="DAY">күн сайын</option>
-                    <option value="WEEK">апта сайын</option>
+                    <option value="DAY">{t("dailyUnit")}</option>
+                    <option value="WEEK">{t("weeklyUnit")}</option>
                   </select>
                 </div>
               ) : null}
@@ -422,7 +422,7 @@ export function HabitCreateModal({
                 <div className="min-w-0">
                   <p className="text-[9px] font-extrabold text-[#172235]">Мақсат</p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-                    Бұл әдет саған нақты не береді?
+                    {t("goalQuestion")}
                   </p>
                 </div>
               </div>
@@ -432,7 +432,7 @@ export function HabitCreateModal({
                   value={goal}
                   onChange={(event) => setGoal(event.target.value)}
                   maxLength={100}
-                  placeholder="Мысалы: 20 бет оқу"
+                  placeholder={t("goalExample")}
                   className="h-10 w-full rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] px-3 text-[10px] font-semibold text-[#172235] outline-none focus:border-[#F3C7B0] focus:bg-white"
                 />
 
@@ -473,7 +473,7 @@ export function HabitCreateModal({
                               : "border-[#E8E3DD] bg-[#FAF9F7] text-[#81786F] hover:border-[#F3C7B0]",
                           ].join(" ")}
                         >
-                          {option.label}
+                          {option.value === "forever" ? t("forever") : option.value === "custom" ? t("custom") : option.value + " " + t("daysLower")}
                         </button>
                       ))}
                     </div>
@@ -506,7 +506,7 @@ export function HabitCreateModal({
                 <div>
                   <p className="text-[9px] font-extrabold text-[#172235]">Бөлім</p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-                    Әдетті күн тәртібіне орналастыр
+                    {t("placeInRoutine")}
                   </p>
                 </div>
                 <ChevronDown size={15} className="text-[#B1A79F]" />
@@ -515,7 +515,7 @@ export function HabitCreateModal({
               <div className="mt-2 grid grid-cols-4 gap-1.5">
                 {SECTIONS.map((value) => (
                   <button
-                    key={value}
+                    key={value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                     type="button"
                     onClick={() => setSection(value)}
                     className={[
@@ -525,7 +525,7 @@ export function HabitCreateModal({
                         : "border-[#E8E3DD] bg-[#FAF9F7] text-[#81786F] hover:border-[#F3C7B0]",
                     ].join(" ")}
                   >
-                    {value}
+                    {value === "Таңертең" ? t("morningSection") : value === "Күндіз" ? t("daySection") : value === "Кешке" ? t("eveningSection") : t("otherSection")}
                   </button>
                 ))}
               </div>
@@ -548,7 +548,7 @@ export function HabitCreateModal({
                     Еске салу
                   </p>
                   <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
-                    Уақытын сақтап қоямыз
+                    {t("reminderSaveTime")}
                   </p>
                 </div>
                 <button
@@ -596,7 +596,7 @@ export function HabitCreateModal({
             disabled={saving}
             className="h-11 w-full rounded-[12px] bg-[#FF8000] px-4 text-[11px] font-semibold text-white shadow-[0_10px_22px_rgba(255,128,0,.18)] transition hover:bg-[#E56F00] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Сақталуда…" : "Әдетті сақтау"}
+            {saving ? t("saving") : t("saveHabit")}
           </button>
         </div>
       </div>
