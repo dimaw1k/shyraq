@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, User, UserPlus } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { useStudentLanguage } from "@/lib/student-language";
+import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
 type FormState = {
   phone: string;
@@ -28,6 +30,7 @@ const initialForm: FormState = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useStudentLanguage("kk");
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<ErrorState>({});
   const [loading, setLoading] = useState(false);
@@ -42,13 +45,13 @@ export default function RegisterPage() {
   function validate(): ErrorState {
     const next: ErrorState = {};
 
-    if (!isValidKzPhone(form.phone)) next.phone = "Телефон нөмірін толық енгізіңіз.";
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = "Электрондық пошта мекенжайын дұрыс енгізіңіз.";
-    if (form.firstName.trim().length < 2) next.firstName = "Атыңызды дұрыс енгізіңіз.";
-    if (form.lastName.trim().length < 2) next.lastName = "Тегіңізді дұрыс енгізіңіз.";
+    if (!isValidKzPhone(form.phone)) next.phone = t("invalidPhone");
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = t("invalidEmail");
+    if (form.firstName.trim().length < 2) next.firstName = t("invalidFirstName");
+    if (form.lastName.trim().length < 2) next.lastName = t("invalidLastName");
 
-    if (form.password.length < 8) next.password = "Құпиясөз кемінде 8 таңба болуы керек.";
-    if (form.password !== form.confirmPassword) next.confirmPassword = "Құпиясөздер сәйкес емес.";
+    if (form.password.length < 8) next.password = t("passwordMin");
+    if (form.password !== form.confirmPassword) next.confirmPassword = t("passwordMismatch");
 
     return next;
   }
@@ -85,7 +88,7 @@ export default function RegisterPage() {
         if (result.field && result.field !== "form") {
           nextErrors[result.field as keyof FormState] = result.error;
         } else {
-          nextErrors.form = result.error ?? "Тіркелу кезінде қате болды.";
+          nextErrors.form = result.error ?? t("registerError");
         }
         setErrors(nextErrors);
         setLoading(false);
@@ -95,7 +98,7 @@ export default function RegisterPage() {
       const email = form.email.trim().toLowerCase();
       router.push(`/login?registered=1&email=${encodeURIComponent(email)}`);
     } catch {
-      setErrors({ form: "Тіркелу кезінде байланыс қатесі болды. Қайта көріңіз." });
+      setErrors({ form: t("registerConnectionError") });
       setLoading(false);
     }
   }
@@ -115,22 +118,23 @@ export default function RegisterPage() {
       <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center">
         <section className="w-full max-w-[470px] rounded-[26px] border border-[#E7E0D8] bg-white px-5 py-6 shadow-[0_20px_55px_rgba(23,34,53,.06)] sm:px-7 sm:py-7">
           <div className="flex flex-col items-center text-center">
+            <AuthLanguagePicker />
             <div className="grid h-14 w-14 place-items-center rounded-[18px] border border-[#E8E1D8] bg-[#FFF7F1] text-[#FF8000] shadow-[0_10px_24px_rgba(255,128,0,.10)]">
               <UserPlus size={24} strokeWidth={2.2} />
             </div>
 
-            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">ТІРКЕЛУ</p>
+            <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("registerUpper")}</p>
             <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
-              Аккаунт ашыңыз.
+              {t("registrationHeading")}
             </h1>
             <p className="mt-3 max-w-[340px] text-[13px] font-medium leading-5 text-[#766E66]">
-              Shyraq платформасына қосылу үшін деректеріңізді енгізіңіз.
+              {t("registrationDescription")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-3.5">
             <label className="block">
-              <span className="sr-only">Аты</span>
+              <span className="sr-only">{t("firstName")}</span>
               <div className="relative">
                 <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -138,7 +142,7 @@ export default function RegisterPage() {
                   autoComplete="given-name"
                   value={form.firstName}
                   onChange={(event) => updateField("firstName", event.target.value)}
-                  placeholder="Аты"
+                  placeholder={t("firstName")}
                   className={inputClass("firstName")}
                 />
               </div>
@@ -146,7 +150,7 @@ export default function RegisterPage() {
             </label>
 
             <label className="block">
-              <span className="sr-only">Тегі</span>
+              <span className="sr-only">{t("lastName")}</span>
               <div className="relative">
                 <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -154,7 +158,7 @@ export default function RegisterPage() {
                   autoComplete="family-name"
                   value={form.lastName}
                   onChange={(event) => updateField("lastName", event.target.value)}
-                  placeholder="Тегі"
+                  placeholder={t("lastName")}
                   className={inputClass("lastName")}
                 />
               </div>
@@ -162,7 +166,7 @@ export default function RegisterPage() {
             </label>
 
             <label className="block">
-              <span className="sr-only">Телефон</span>
+              <span className="sr-only">{t("phone")}</span>
               <div className="relative">
                 <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -180,7 +184,7 @@ export default function RegisterPage() {
             </label>
 
             <label className="block">
-              <span className="sr-only">Электрондық пошта</span>
+              <span className="sr-only">{t("email")}</span>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -197,7 +201,7 @@ export default function RegisterPage() {
             </label>
 
                         <label className="block">
-              <span className="sr-only">Құпиясөз</span>
+              <span className="sr-only">{t("password")}</span>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -207,13 +211,13 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   value={form.password}
                   onChange={(event) => updateField("password", event.target.value)}
-                  placeholder="Құпиясөз"
+                  placeholder={t("password")}
                   className={inputClass("password") + " pr-12"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                 >
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -223,7 +227,7 @@ export default function RegisterPage() {
             </label>
 
             <label className="block">
-              <span className="sr-only">Құпиясөзді қайталаңыз</span>
+              <span className="sr-only">{t("repeatPassword")}</span>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={18} />
                 <input
@@ -233,13 +237,13 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   value={form.confirmPassword}
                   onChange={(event) => updateField("confirmPassword", event.target.value)}
-                  placeholder="Құпиясөзді қайталаңыз"
+                  placeholder={t("repeatPassword")}
                   className={inputClass("confirmPassword") + " pr-12"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((value) => !value)}
-                  aria-label={showConfirmPassword ? "Құпиясөзді жасыру" : "Құпиясөзді көрсету"}
+                  aria-label={showConfirmPassword ? t("hidePassword") : t("showPassword")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-xl p-2 text-[#93877D] transition hover:bg-[#FFF1E2] hover:text-[#172235]"
                 >
                   {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -259,15 +263,15 @@ export default function RegisterPage() {
               type="submit"
               className="group mt-1 flex w-full items-center justify-center gap-2 rounded-[15px] bg-[#FF8000] px-5 py-3.5 text-[14px] font-extrabold text-white shadow-[0_12px_26px_rgba(255,128,0,.20)] transition-all hover:-translate-y-0.5 hover:bg-[#E56F00] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Тіркелу..." : "Аккаунт ашу"}
+              {loading ? t("registering") : t("createAccount")}
               {!loading ? <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" /> : null}
             </button>
           </form>
 
           <p className="mt-5 text-center text-[12px] font-medium text-[#837970]">
-            Аккаунтыңыз бар ма?{" "}
+            {t("haveAccount")}{" "}
             <Link href="/login" className="font-extrabold text-[#FF8000] hover:underline">
-              Кіру
+              {t("login")}
             </Link>
           </p>
         </section>
