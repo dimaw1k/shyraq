@@ -146,7 +146,7 @@ function Toggle({
       <span className="truncate text-[11px] font-bold text-[#172235]">{title}</span>
       <span
         className={[
-          "relative h-5.5 w-10 shrink-0 rounded-full transition",
+          "relative h-5 w-10 shrink-0 rounded-full transition",
           checked ? "bg-[#FF8000]" : "bg-[#D4CEC6]",
         ].join(" ")}
       >
