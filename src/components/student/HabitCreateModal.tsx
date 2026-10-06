@@ -90,7 +90,6 @@ export function HabitCreateModal({
 }: Props) {
   const { t } = useStudentLanguage("kk");
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("Sparkles");
   const [frequency, setFrequency] = useState<"DAILY" | "WEEKLY" | "REPEAT">(
     "DAILY",
@@ -152,16 +151,10 @@ export function HabitCreateModal({
     if (saving) return;
 
     const trimmedName = name.trim();
-    const trimmedDescription = description.trim();
     const parsedRepeatInterval = Number(repeatInterval);
 
     if (trimmedName.length < 2 || trimmedName.length > 60) {
       setError(t("habitNameValidation"));
-      return;
-    }
-
-    if (trimmedDescription.length > 140) {
-      setError(t("habitDescriptionValidation"));
       return;
     }
 
@@ -199,7 +192,6 @@ export function HabitCreateModal({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name: trimmedName,
-          description: trimmedDescription,
           icon,
           frequency,
           weekdays: frequency === "DAILY" ? [1, 2, 3, 4, 5, 6, 7] : weekdays,
@@ -276,7 +268,7 @@ export function HabitCreateModal({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3.5 py-3 sm:px-5 sm:py-4">
           <div className="space-y-3">
-            <section className="rounded-[18px] border border-[#E8E3DD] bg-white p-4">
+            <section className="rounded-[18px] border border-[#E8E3DD] bg-white p-3.5">
               <div className="grid gap-2.5">
                 <div>
                   <label className="text-[9px] font-extrabold text-[#172235]">
@@ -288,19 +280,6 @@ export function HabitCreateModal({
                     maxLength={60}
                     autoFocus
                     placeholder={t("habitExample")}
-                    className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E3DD] bg-[#FAF9F7] px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#F3C7B0] focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[9px] font-extrabold text-[#172235]">
-                    {t("descriptionOptional")}
-                  </label>
-                  <input
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    maxLength={140}
-                    placeholder={t("writeBriefly")}
                     className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E3DD] bg-[#FAF9F7] px-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#F3C7B0] focus:bg-white"
                   />
                 </div>
