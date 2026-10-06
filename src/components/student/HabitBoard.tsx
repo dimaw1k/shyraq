@@ -13,8 +13,6 @@ import {
   Smartphone,
   Sparkles,
   Trash2,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useMemo, useRef, useState } from "react";
@@ -147,7 +145,6 @@ export function HabitBoard({
   const { t } = useStudentLanguage("kk");
   const [habits, setHabits] = useState(initialHabits);
   const [checkins, setCheckins] = useState(initialCheckins);
-  const [soundOn, setSoundOn] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [createInstance, setCreateInstance] = useState(0);
   const [saving, setSaving] = useState<string | null>(null);
@@ -206,7 +203,7 @@ export function HabitBoard({
   );
 
   function playCheckSound() {
-    if (!soundOn || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
     const audio =
       checkSound.current ?? new Audio("/sounds/apple-pay-succes.mp3");
@@ -294,58 +291,34 @@ export function HabitBoard({
 
   return (
     <div className="space-y-3.5">
-      <section className="grid gap-3 md:grid-cols-[1.55fr_1fr_1fr]">
-        <div className="shrq-habit-hero relative overflow-hidden rounded-[22px] border border-[#E8E3DD] bg-white p-5 shadow-[0_12px_34px_rgba(23,34,53,.05)] sm:p-6">
-          <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-[#FFF1E2] blur-2xl" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#A19890]">
-                  {t("todayRhythm")}
-                </p>
-                <h2 className="mt-1.5 text-[24px] font-extrabold tracking-[-.055em] text-[#172235]">
-                  {t("habitTitle")}
-                </h2>
-                <p className="mt-1.5 max-w-[520px] text-[10px] font-semibold leading-5 text-[#81786F]">
-                  {t("smallAction")}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSoundOn((value) => !value)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] border border-[#E8E3DD] bg-[#FAF9F7] text-[#6F665E] transition hover:border-[#F3C7B0] hover:text-[#FF8000]"
-                aria-label={soundOn ? t("soundOff") : t("soundOn")}
-                title={soundOn ? t("soundOff") : t("soundOn")}
-              >
-                {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              </button>
+      <section className="grid gap-3 md:grid-cols-3">
+        <div className="shrq-habit-hero flex h-[156px] items-center rounded-[22px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.05)]">
+          <div className="flex w-full items-center justify-between gap-4">
+            <div>
+              <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[#A19890]">
+                {t("completedTodayLabel")}
+              </p>
+              <p className="mt-2 text-[32px] font-extrabold leading-none tracking-[-.06em] text-[#172235]">
+                {todayProgress}%
+              </p>
+              <p className="mt-1 text-[9px] font-bold text-[#9A9189]">
+                {todayCompleted}/{habits.length} {t("doneCount")}
+              </p>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-end gap-5">
-              <div
-                className="shrq-habit-progress-ring"
-                style={{ "--progress": todayProgress } as CSSProperties}
-              >
-                <div className="shrq-habit-progress-inner">
-                  <strong>{todayCompleted}</strong>
-                  <span>/ {habits.length}</span>
-                </div>
-              </div>
-
-              <div className="pb-0.5">
-                <p className="text-[19px] font-extrabold tracking-[-.04em] text-[#172235]">
-                  {todayProgress}%
-                </p>
-                <p className="mt-0.5 text-[9px] font-bold text-[#9A9189]">
-                  {t("completedTodayLabel")}
-                </p>
+            <div
+              className="shrq-habit-progress-ring"
+              style={{ "--progress": todayProgress } as CSSProperties}
+            >
+              <div className="shrq-habit-progress-inner">
+                <strong>{todayCompleted}</strong>
+                <span>/ {habits.length}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="shrq-habit-stat rounded-[22px] border border-[#E8E3DD] bg-white p-5">
+        <div className="shrq-habit-stat flex h-[156px] flex-col rounded-[22px] border border-[#E8E3DD] bg-white p-4">
           <div className="flex items-center justify-between">
             <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
               <Sparkles size={17} />
@@ -354,15 +327,17 @@ export function HabitBoard({
               {t("series")}
             </span>
           </div>
-          <p className="mt-6 text-[34px] font-extrabold leading-none tracking-[-.06em] text-[#172235]">
-            {streak}
-          </p>
-          <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
-            {t("daysInRow")}
-          </p>
+          <div className="mt-auto">
+            <p className="text-[30px] font-extrabold leading-none tracking-[-.06em] text-[#172235]">
+              {streak}
+            </p>
+            <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
+              {t("daysInRow")}
+            </p>
+          </div>
         </div>
 
-        <div className="shrq-habit-stat rounded-[22px] border border-[#E8E3DD] bg-white p-5">
+        <div className="shrq-habit-stat flex h-[156px] flex-col rounded-[22px] border border-[#E8E3DD] bg-white p-4">
           <div className="flex items-center justify-between gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#B95D00]">
               <Check size={17} />
@@ -371,12 +346,14 @@ export function HabitBoard({
               {t("bestHabit")}
             </span>
           </div>
-          <p className="mt-6 truncate text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
-            {bestHabit?.habit.name ?? t("nothingYet")}
-          </p>
-          <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
-            {bestHabit?.count ?? 0}/7 {t("day")}
-          </p>
+          <div className="mt-auto min-w-0">
+            <p className="truncate text-[14px] font-extrabold tracking-[-.03em] text-[#172235]">
+              {bestHabit?.habit.name ?? t("nothingYet")}
+            </p>
+            <p className="mt-1 text-[9px] font-bold text-[#8B8179]">
+              {bestHabit?.count ?? 0}/7 {t("day")}
+            </p>
+          </div>
         </div>
       </section>
 
@@ -487,7 +464,7 @@ export function HabitBoard({
               <article
                 key={habit.id}
                 className={[
-                  "shrq-habit-card group relative overflow-hidden rounded-[19px] border bg-white p-4 transition-all duration-200",
+                  "shrq-habit-card group relative overflow-hidden rounded-[17px] border bg-white p-3.5 transition-all duration-200",
                   doneToday
                     ? "is-complete border-[#F2C09B] shadow-[0_12px_28px_rgba(255,128,0,.10)]"
                     : "border-[#E8E3DD] hover:-translate-y-0.5 hover:border-[#F3C7B0] hover:shadow-[0_10px_24px_rgba(23,34,53,.045)]",
@@ -503,7 +480,7 @@ export function HabitBoard({
                 <div className="relative flex items-start gap-3">
                   <span
                     className={[
-                      "grid h-11 w-11 shrink-0 place-items-center rounded-[13px] transition",
+                      "grid h-10 w-10 shrink-0 place-items-center rounded-[12px] transition",
                       doneToday
                         ? "bg-[#FF8000] text-white shadow-[0_7px_16px_rgba(255,128,0,.18)]"
                         : "bg-[#FFF1E2] text-[#B95D00]",
@@ -518,9 +495,6 @@ export function HabitBoard({
                         <h3 className="truncate text-[12px] font-extrabold tracking-[-.025em] text-[#172235]">
                           {habit.name}
                         </h3>
-                        <p className="mt-1 line-clamp-2 min-h-[30px] text-[8px] font-medium leading-[1.65] text-[#948A82]">
-                          {habit.description ?? t("dailyHabit")}
-                        </p>
                       </div>
 
                       {!habit.is_default ? (
@@ -563,7 +537,7 @@ export function HabitBoard({
                   </button>
                 </div>
 
-                <div className="relative mt-3 flex flex-wrap items-center gap-1.5">
+                <div className="relative mt-2.5 flex flex-wrap items-center gap-1.5">
                   <span className="rounded-full bg-[#FAF9F7] px-2 py-1 text-[7px] font-extrabold text-[#81786F]">
                     {scheduleLabel(habit, t)}
                   </span>
@@ -581,7 +555,7 @@ export function HabitBoard({
                   ) : null}
                 </div>
 
-                <div className="relative mt-3 grid grid-cols-7 gap-1.5">
+                <div className="relative mt-2.5 grid grid-cols-7 gap-1.5">
                   {dates.map((date) => {
                     const done =
                       date <= today &&
@@ -619,7 +593,7 @@ export function HabitBoard({
                   })}
                 </div>
 
-                <div className="relative mt-3 flex items-center justify-between">
+                <div className="relative mt-2.5 flex items-center justify-between">
                   <span className="text-[8px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                     {t("week7")}: {weekCount}
                   </span>
@@ -638,7 +612,7 @@ export function HabitBoard({
                 </div>
 
                 {habit.goal ? (
-                  <p className="relative mt-2 truncate text-[8px] font-semibold text-[#A19890]">
+                  <p className="relative mt-1.5 truncate text-[8px] font-semibold text-[#A19890]">
                     {t("goal")}: {habit.goal}
                   </p>
                 ) : null}
