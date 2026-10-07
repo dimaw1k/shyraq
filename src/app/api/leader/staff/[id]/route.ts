@@ -48,8 +48,6 @@ export async function PATCH(
     return NextResponse.json({ error: "Профиль табылмады." }, { status: 404 });
   }
 
-  // Leader is intentionally prevented from modifying higher-privileged staff.
-  // This closes the Leader -> Chief Mentor / Leader privilege-escalation path.
   if (target.role === "LEADER" || target.role === "CHIEF_MENTOR") {
     return NextResponse.json(
       { error: "Жетекші басшылық деңгейіндегі қызметкердің рөлін немесе статусын өзгерте алмайды." },
@@ -57,13 +55,13 @@ export async function PATCH(
     );
   }
 
+  let effectiveRole = target.role;
+
   if (body.role !== undefined) {
     if (!STAFF_ROLES.has(body.role)) {
       return NextResponse.json({ error: "Жарамсыз staff рөлі." }, { status: 400 });
     }
 
-    // Leaders may create/keep Mentor accounts, but cannot mint Chief Mentor
-    // or Leader privileges through this endpoint.
     if (body.role !== "MENTOR") {
       return NextResponse.json(
         { error: "Бұл endpoint арқылы тек Ментор рөлін тағайындауға болады." },
@@ -135,6 +133,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Рөлді өзгерту сәтсіз аяқталды." }, { status: 500 });
     }
 
+    effectiveRole = "MENTOR";
+
     await admin.from("audit_logs").insert({
       actor_id: profile.id,
       actor_role: "LEADER",
@@ -150,9 +150,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Жарамсыз статус." }, { status: 400 });
     }
 
-    // This endpoint manages Mentor staff only. Student lifecycle changes
-    // belong to the dedicated student-management endpoints.
-    if (target.role !== "MENTOR") {
+    if (effectiveRole !== "MENTOR") {
       return NextResponse.json(
         { error: "Бұл endpoint тек ментор статусын басқарады." },
         { status: 403 },
