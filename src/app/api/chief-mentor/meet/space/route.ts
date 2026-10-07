@@ -52,13 +52,6 @@ export async function POST(request: Request) {
         );
       }
 
-    if (!space.name || !space.meetingUri) {
-      return NextResponse.json(
-        { error: "Google Meet жасалды, бірақ сілтемесі қайтарылмады." },
-        { status: 502 },
-      );
-    }
-
       const { data, error } = await admin
         .from("meet_spaces")
         .upsert(
