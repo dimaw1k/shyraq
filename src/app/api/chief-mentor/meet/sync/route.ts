@@ -181,10 +181,12 @@ export async function POST(request: Request) {
     ),
   ];
 
-  const { data: mappings } = await admin
-    .from("meet_participant_mappings")
-    .select("google_user_id,student_id")
-    .in("student_id", studentIds.length ? studentIds : ["00000000-0000-0000-0000-000000000000"]);
+  const { data: mappings } = studentIds.length
+    ? await admin
+        .from("meet_participant_mappings")
+        .select("google_user_id,student_id")
+        .in("student_id", studentIds)
+    : { data: [] as Array<{ google_user_id: string; student_id: string }> };
 
   const mappingMap = new Map(
     (mappings ?? []).map((mapping) => [
