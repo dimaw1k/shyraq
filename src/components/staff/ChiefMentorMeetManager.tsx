@@ -5,12 +5,15 @@ import { ExternalLink, Loader2, Plus, RefreshCw, Unplug } from "lucide-react";
 import { StatusPill } from "@/components/ui/ShyraqUI";
 
 type Team = { id: string; name: string; capacity: number | null };
+type StudyTime = "MORNING" | "EVENING";
+
 type Space = {
   id: string;
   team_id: string;
   display_name: string;
   meeting_url: string;
   external_space_id: string;
+  study_time: StudyTime;
   active: boolean;
   team_name: string;
 };
@@ -27,6 +30,7 @@ export function ChiefMentorMeetManager({
   const [spaces, setSpaces] = useState(initialSpaces);
   const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
   const [displayName, setDisplayName] = useState("");
+  const [studyTime, setStudyTime] = useState<StudyTime>("MORNING");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -47,7 +51,8 @@ export function ChiefMentorMeetManager({
           teamId,
           displayName:
             displayName.trim() ||
-            selectedTeamName() + " — Google Meet",
+            selectedTeamName() + " — " + (studyTime === "MORNING" ? "Morning Study Time" : "Evening Study Time"),
+          studyTime,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -64,7 +69,10 @@ export function ChiefMentorMeetManager({
         ]);
       }
       setDisplayName("");
-      setMessage("Google Meet сәтті жасалды.");
+      setMessage(
+        (studyTime === "MORNING" ? "Таңғы" : "Кешкі") +
+          " Study Time Meet сәтті жасалды.",
+      );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Қате");
     } finally {
@@ -80,7 +88,7 @@ export function ChiefMentorMeetManager({
       const response = await fetch("/api/chief-mentor/meet/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId: space.team_id }),
+        body: JSON.stringify({ teamId: space.team_id, studyTime: space.study_time }),
       });
       const data = await response.json().catch(() => ({}));
 
@@ -177,6 +185,21 @@ export function ChiefMentorMeetManager({
             </select>
           </div>
 
+          <div className="min-w-[170px]">
+            <p className="mb-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">
+              Study Time
+            </p>
+            <select
+              value={studyTime}
+              onChange={(event) => setStudyTime(event.target.value as StudyTime)}
+              disabled={!googleConnected || loading}
+              className="h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-bold outline-none focus:border-[var(--accent)]"
+            >
+              <option value="MORNING">Morning Study Time</option>
+              <option value="EVENING">Evening Study Time</option>
+            </select>
+          </div>
+
           <div className="min-w-[220px] flex-1">
             <p className="mb-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">
               Кездесу атауы
@@ -251,7 +274,7 @@ export function ChiefMentorMeetManager({
                   {space.display_name}
                 </p>
                 <p className="mt-1 truncate text-[9px] font-semibold text-[#9A9189]">
-                  {space.team_name}
+                  {space.team_name} · {space.study_time === "MORNING" ? "Morning Study Time" : "Evening Study Time"}
                 </p>
               </div>
               <StatusPill tone={space.active ? "green" : "red"}>
