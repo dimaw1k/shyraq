@@ -14,15 +14,33 @@ import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { todayInTimezone } from "@/lib/streak";
 
+type StudyTime = "MORNING" | "EVENING";
+
 type TeamRow = {
   id: string;
   name: string;
   mentorName: string;
   mentorAvatarUrl: string | null;
   activeStudents: number;
-  attendedStudents: number;
-  attendancePercent: number;
+  morningAttendedStudents: number;
+  morningAttendancePercent: number;
+  eveningAttendedStudents: number;
+  eveningAttendancePercent: number;
+  morningMeetingUrl: string | null;
+  eveningMeetingUrl: string | null;
 };
+
+function studyTimeFromStamp(stamp: string | null) {
+  if (!stamp) return null;
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Almaty",
+      hour: "2-digit",
+      hour12: false,
+    }).format(new Date(stamp)),
+  );
+  return hour < 14 ? "MORNING" : "EVENING";
+}
 
 function initials(name: string) {
   return (
@@ -110,6 +128,7 @@ export default async function ChiefMentorPage() {
     { data: mentorProfiles },
     { data: members },
     { data: attendance },
+    { data: meetSpaces },
   ] = await Promise.all([
     mentorIds.length
       ? supabase
@@ -137,6 +156,21 @@ export default async function ChiefMentorPage() {
             started_at: string | null;
             ended_at: string | null;
             imported_at: string;
+          }>,
+        }),
+    teamIds.length
+      ? admin
+          .from("meet_spaces")
+          .select("id,team_id,study_time,meeting_url,active")
+          .in("team_id", teamIds)
+          .eq("active", true)
+      : Promise.resolve({
+          data: [] as Array<{
+            id: string;
+            team_id: string;
+            study_time: StudyTime;
+            meeting_url: string | null;
+            active: boolean;
           }>,
         }),
   ]);
@@ -171,27 +205,42 @@ export default async function ChiefMentorPage() {
     }).format(new Date(stamp)) === today;
   });
 
-  const latestAttendanceByStudent = new Map<string, (typeof todayAttendance)[number]>();
+  const latestAttendanceByStudentAndStudyTime = new Map<string, (typeof todayAttendance)[number]>();
   for (const row of todayAttendance) {
-    const key = row.team_id + ":" + row.student_id;
-    const current = latestAttendanceByStudent.get(key);
+    const studyTime = studyTimeFromStamp(row.ended_at ?? row.started_at ?? row.imported_at);
+    if (!studyTime) continue;
+
+    const key = row.team_id + ":" + row.student_id + ":" + studyTime;
+    const current = latestAttendanceByStudentAndStudyTime.get(key);
     const rowTime = Date.parse(row.ended_at ?? row.started_at ?? row.imported_at);
     const currentTime = current
       ? Date.parse(current.ended_at ?? current.started_at ?? current.imported_at)
       : -1;
-    if (!current || rowTime >= currentTime) latestAttendanceByStudent.set(key, row);
+    if (!current || rowTime >= currentTime) {
+      latestAttendanceByStudentAndStudyTime.set(key, row);
+    }
   }
+
+  const meetSpaceMap = new Map(
+    (meetSpaces ?? []).map((space) => [
+      space.team_id + ":" + space.study_time,
+      space.meeting_url ?? null,
+    ]),
+  );
 
   const meetRows: TeamRow[] = (teams ?? []).map((team) => {
     const students = studentsByTeam.get(team.id) ?? new Set<string>();
-    const values = [...students].map((studentId) => {
-      const row = latestAttendanceByStudent.get(team.id + ":" + studentId);
-      return Number(row?.attendance_percent ?? 0);
-    });
-    const attendedStudents = values.filter((value) => value > 0).length;
-    const attendancePercent = students.size
-      ? values.reduce((sum, value) => sum + value, 0) / students.size
-      : 0;
+
+    const studyValues = (studyTime: StudyTime) =>
+      [...students].map((studentId) => {
+        const row = latestAttendanceByStudentAndStudyTime.get(
+          team.id + ":" + studentId + ":" + studyTime,
+        );
+        return Number(row?.attendance_percent ?? 0);
+      });
+
+    const morningValues = studyValues("MORNING");
+    const eveningValues = studyValues("EVENING");
 
     return {
       id: team.id,
@@ -199,8 +248,22 @@ export default async function ChiefMentorPage() {
       mentorName: team.mentor_id ? mentorMap.get(team.mentor_id)?.name ?? "Ментор бекітілмеген" : "Ментор бекітілмеген",
       mentorAvatarUrl: team.mentor_id ? mentorMap.get(team.mentor_id)?.avatarUrl ?? null : null,
       activeStudents: students.size,
-      attendedStudents,
-      attendancePercent: Number(attendancePercent.toFixed(1)),
+      morningAttendedStudents: morningValues.filter((value) => value > 0).length,
+      morningAttendancePercent: Number(
+        (students.size
+          ? morningValues.reduce((sum, value) => sum + value, 0) / students.size
+          : 0
+        ).toFixed(1),
+      ),
+      eveningAttendedStudents: eveningValues.filter((value) => value > 0).length,
+      eveningAttendancePercent: Number(
+        (students.size
+          ? eveningValues.reduce((sum, value) => sum + value, 0) / students.size
+          : 0
+        ).toFixed(1),
+      ),
+      morningMeetingUrl: meetSpaceMap.get(team.id + ":MORNING") ?? null,
+      eveningMeetingUrl: meetSpaceMap.get(team.id + ":EVENING") ?? null,
     };
   });
 
@@ -246,12 +309,12 @@ export default async function ChiefMentorPage() {
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="" hideHeader>
       <PageContainer>
         <div className="space-y-3">
-          <section className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_250px]">
+          <section className="grid items-start gap-3 xl:items-stretch xl:grid-cols-[minmax(0,1fr)_250px]">
             <div className="min-w-0">
               <DashboardBanner banners={bannerItems} />
             </div>
 
-            <aside className="grid gap-2 xl:sticky xl:top-[72px]">
+            <aside className="grid gap-2 xl:h-full xl:grid-rows-3">
               <Card className="p-2.5 sm:p-3">
                 <div className="flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
@@ -327,16 +390,17 @@ export default async function ChiefMentorPage() {
               </div>
 
               <div className="divide-y divide-[#EFE8E1]">
-                <div className="grid grid-cols-[1.2fr_110px_130px] gap-3 bg-[#FFFCF9] px-5 py-2.5 text-[11px] font-extrabold uppercase tracking-[.08em] text-[#81766D] sm:px-6">
+                <div className="grid grid-cols-[1.05fr_110px_1fr_1fr] gap-3 bg-[#FFFCF9] px-5 py-2.5 text-[11px] font-extrabold uppercase tracking-[.07em] text-[#81766D] sm:px-6">
                   <span>Ментор / команда</span>
                   <span>Оқушы</span>
-                  <span>Қатысу пайызы</span>
+                  <span>Таңғы Study Time</span>
+                  <span>Кешкі Study Time</span>
                 </div>
 
                 {meetRows.slice(0, 8).map((row) => (
                   <div
                     key={row.id}
-                    className="grid grid-cols-[1.2fr_110px_130px] items-center gap-3 px-5 py-3 sm:px-6"
+                    className="grid grid-cols-[1.05fr_110px_1fr_1fr] items-center gap-3 px-5 py-3 sm:px-6"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#FFF1E2] text-[10px] font-extrabold text-[#B95D00]">
@@ -362,22 +426,54 @@ export default async function ChiefMentorPage() {
                     </div>
 
                     <p className="text-[14px] font-extrabold text-[#354153]">
-                      {row.attendedStudents}/{row.activeStudents}
+                      {row.activeStudents}
                     </p>
 
-                    <div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[12px] font-extrabold text-[#354153]">
-                          {row.attendancePercent}%
-                        </span>
+                    {[
+                      {
+                        label: "Таңғы",
+                        attended: row.morningAttendedStudents,
+                        percent: row.morningAttendancePercent,
+                        href: row.morningMeetingUrl,
+                      },
+                      {
+                        label: "Кешкі",
+                        attended: row.eveningAttendedStudents,
+                        percent: row.eveningAttendancePercent,
+                        href: row.eveningMeetingUrl,
+                      },
+                    ].map((session) => (
+                      <div key={session.label} className="min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[13px] font-extrabold text-[#354153]">
+                            {session.attended}/{row.activeStudents}
+                          </span>
+                          <span className="text-[13px] font-extrabold text-[#354153]">
+                            {session.percent}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#EFEAE4]">
+                          <div
+                            className="h-full rounded-full bg-[var(--accent)] transition-[width]"
+                            style={{ width: Math.max(0, Math.min(100, session.percent)) + "%" }}
+                          />
+                        </div>
+                        {session.href ? (
+                          <a
+                            href={session.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1.5 inline-flex items-center text-[10px] font-extrabold text-[var(--accent)] hover:underline"
+                          >
+                            Meet-ке кіру
+                          </a>
+                        ) : (
+                          <span className="mt-1.5 inline-flex text-[10px] font-semibold text-[#A19890]">
+                            Meet жоқ
+                          </span>
+                        )}
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#EFEAE4]">
-                        <div
-                          className="h-full rounded-full bg-[var(--accent)] transition-[width]"
-                          style={{ width: Math.max(0, Math.min(100, row.attendancePercent)) + "%" }}
-                        />
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 ))}
 
