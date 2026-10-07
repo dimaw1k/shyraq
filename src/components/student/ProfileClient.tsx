@@ -25,8 +25,6 @@ type Profile = {
 const inputClass =
   "mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 py-2 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
 
-const educationOptions = ["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"] as const;
-
 function getRoleLabel(role: string, t: (key: string) => string) {
   if (role === "STUDENT") return t("studentRole");
   if (role === "MENTOR") return t("mentor");
@@ -64,7 +62,7 @@ export function ProfileClient() {
     fullName: "",
     email: "",
     phone: "",
-      currentPassword: "",
+    currentPassword: "",
     newPassword: "",
   });
   const [message, setMessage] = useState("");
