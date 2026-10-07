@@ -15,6 +15,7 @@ import {
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { useStudentLanguage } from "@/lib/student-language";
 import { studentText } from "@/lib/student-translations";
+import { getPasswordValidationError } from "@/lib/security/password";
 import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
 function getResetErrorMessage(
@@ -99,11 +100,6 @@ export default function ResetPasswordPage() {
     event.preventDefault();
     setError("");
 
-    if (password.length < 8) {
-      setError(t("passwordMin"));
-      return;
-    }
-
     if (password !== confirm) {
       setError(t("passwordMismatch"));
       return;
@@ -113,6 +109,15 @@ export default function ResetPasswordPage() {
 
     const supabase = createBrowserSupabaseClient();
     const { data: userData } = await supabase.auth.getUser();
+
+    const passwordError = getPasswordValidationError(
+      password,
+      [userData.user?.email ?? ""],
+    );
+    if (passwordError) {
+      setError(t("passwordMin"));
+      return;
+    }
 
     if (!userData.user) {
       setError(t("invalidReset"));
