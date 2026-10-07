@@ -13,7 +13,7 @@ export async function POST(request:Request){
  const {data:me}=await supabase.from("profiles").select("role").eq("id",user.id).maybeSingle();
  if(me?.role!=="CHIEF_MENTOR")return NextResponse.json({error:"Chief Mentor access required"},{status:403});
  const body=await request.json().catch(()=>null);const teamId=typeof body?.teamId==="string"?body.teamId:"";
- const studyTime=body?.studyTime==="EVENING"?"EVENING":"MORNING";
+ const studyTime=body?.studyTime==="EVENING"?"EVENING":body?.studyTime==="EXTRA"?"EXTRA":"MORNING";
  if(!teamId)return NextResponse.json({error:"teamId қажет."},{status:400});
  const {data:team}=await supabase.from("teams").select("id,name,mentor_id,status").eq("id",teamId).maybeSingle();
  if(!team)return NextResponse.json({error:"Команда табылмады."},{status:404});
