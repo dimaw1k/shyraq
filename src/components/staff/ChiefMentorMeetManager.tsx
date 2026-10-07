@@ -30,6 +30,7 @@ type MeetRow = {
   average: number;
   participated_rows: number;
   has_conference: boolean;
+  mentor_name: string;
 };
 type HistoryRow = {
   id: string;
