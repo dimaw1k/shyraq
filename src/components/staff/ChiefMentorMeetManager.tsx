@@ -531,14 +531,14 @@ export function ChiefMentorMeetManager({
                 </select>
               </label>
 
-              <label className="text-[9px] font-extrabold uppercase tracking-[.1em] text-[#8B8179]">
+              <label className="text-[10px] font-extrabold uppercase tracking-[.08em] text-[#8B8179]">
                 Meet түрі
                 <select
                   value={createType}
                   onChange={(event) =>
                     setCreateType(event.target.value as CreateType)
                   }
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-bold text-[#172235]"
+                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[12px] font-bold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 >
                   <option value="MORNING">Таңғы Meet</option>
                   <option value="EVENING">Кешкі Meet</option>
@@ -546,7 +546,7 @@ export function ChiefMentorMeetManager({
                 </select>
               </label>
 
-              <label className="text-[9px] font-extrabold uppercase tracking-[.1em] text-[#8B8179]">
+              <label className="text-[10px] font-extrabold uppercase tracking-[.08em] text-[#8B8179]">
                 Іс-шара атауы
                 <input
                   value={displayName}
