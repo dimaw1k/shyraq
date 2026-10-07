@@ -81,12 +81,12 @@ export function ChiefMentorMentorManager({ initialMentors }: { initialMentors: M
   }
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3 sm:px-6">
-        <p className="text-[9px] font-semibold text-[#8B8179]">{mentors.length} ментор</p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">{mentors.length} ментор</p>
         <button type="button" onClick={()=>{setOpen(true);setMessage("");setLookup(null);setPhone("");}}
-          className="inline-flex min-h-10 items-center gap-2 rounded-[12px] bg-[var(--accent)] px-4 py-2.5 text-[10px] font-extrabold text-white">
-          <UserPlus size={14}/> Ментор қосу
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] bg-[var(--accent)] px-3.5 text-[9px] font-extrabold text-white shadow-[0_6px_16px_rgba(255,128,0,.14)] transition hover:brightness-95">
+          <UserPlus size={13}/> Ментор қосу
         </button>
       </div>
 
@@ -120,26 +120,35 @@ export function ChiefMentorMentorManager({ initialMentors }: { initialMentors: M
         </div>
       </StaffModal>
 
-      <div className="divide-y divide-[#EFE8E1]">
+      <div className="overflow-hidden rounded-[18px] border border-[#E8E1DA] bg-white">
+        <div className="hidden grid-cols-[minmax(250px,1fr)_90px_90px_90px_150px] items-center gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3 text-[8px] font-extrabold uppercase tracking-[.11em] text-[#9A9189] lg:grid">
+          <span>Ментор</span>
+          <span>Команда</span>
+          <span>Оқушы</span>
+          <span>Қатысу</span>
+          <span className="text-right">Статус</span>
+        </div>
+        <div className="divide-y divide-[#EFE8E1]">
         {mentors.map(mentor=>(
-          <div key={mentor.id} className="grid gap-3 px-5 py-4 lg:grid-cols-[1.25fr_110px_110px_120px_170px] lg:items-center lg:px-6">
+          <div key={mentor.id} className="grid gap-2.5 px-4 py-3.5 lg:grid-cols-[minmax(250px,1fr)_90px_90px_90px_150px] lg:items-center lg:px-5">
             <div className="min-w-0">
-              <p className="truncate text-[11px] font-extrabold text-[#354153]">{mentor.full_name}</p>
-              <p className="mt-1 truncate text-[9px] text-[#9A9189]">{mentor.email} · {mentor.phone || "Телефон жоқ"}</p>
+              <p className="truncate text-[10px] font-extrabold text-[#354153]">{mentor.full_name}</p>
+              <p className="mt-0.5 truncate text-[8px] font-medium text-[#9A9189]">{mentor.email} · {mentor.phone || "Телефон жоқ"}</p>
             </div>
-            <p className="text-[10px] font-extrabold text-[#4B433C]">{mentor.team_count} команда</p>
+            <p className="whitespace-nowrap text-[9px] font-extrabold text-[#4B433C]">{mentor.team_count} команда</p>
             <p className="text-[10px] font-extrabold text-[#4B433C]">{mentor.student_count} оқушы</p>
             <p className="text-[10px] font-extrabold text-[#4B433C]">{mentor.attendance ? mentor.attendance.toFixed(1)+"%" : "—"}</p>
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-1.5">
               <StatusPill tone={mentor.status==="ACTIVE"?"green":"red"}>{mentor.status==="ACTIVE"?"Белсенді":"Өшірулі"}</StatusPill>
               <button type="button" disabled={savingId===mentor.id} onClick={()=>void setStatus(mentor.id, mentor.status==="ACTIVE"?"INACTIVE":"ACTIVE")}
-                className="rounded-[10px] border border-[#E8E1DA] bg-white px-3 py-2 text-[9px] font-extrabold">
+                className="h-8 rounded-[9px] border border-[#E8E1DA] bg-white px-2.5 text-[8px] font-extrabold">
                 {savingId===mentor.id?"...":mentor.status==="ACTIVE"?"Өшіру":"Қосу"}
               </button>
             </div>
           </div>
         ))}
-        {!mentors.length?<div className="p-8 text-center text-xs font-semibold text-[#8B8179]">Ментор жоқ.</div>:null}
+          {!mentors.length?<div className="p-8 text-center text-xs font-semibold text-[#8B8179]">Ментор жоқ.</div>:null}
+        </div>
       </div>
     </div>
   );
