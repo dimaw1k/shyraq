@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
@@ -17,6 +18,7 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   if (!submissionId || !(file instanceof File)) return NextResponse.json({ error: "submissionId and file are required" }, { status: 400 });
   if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ error: "Файл 20 MB-тан аспауы керек." }, { status: 400 });
   if (!ALLOWED.has(file.type)) return NextResponse.json({ error: "Бұл файл түріне рұқсат жоқ." }, { status: 400 });
+  if (!(await hasValidFileSignature(file, file.type))) return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
 
   const { data: submission } = await supabase.from("task_submissions").select("id,task_id,student_id,status").eq("id", submissionId).eq("task_id", taskId).eq("student_id", user.id).maybeSingle();
   if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
