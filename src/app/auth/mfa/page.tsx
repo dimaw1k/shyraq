@@ -49,9 +49,9 @@ export default function MfaPage() {
       }
 
       const factors = data.totp ?? [];
-      const existingFactor =
-        factors.find((item) => item.status === "verified") ??
-        factors.find((item) => item.status === "unverified");
+      const existingFactor = factors.find(
+        (item) => item.status === "verified" || item.status === "unverified",
+      );
 
       if (existingFactor) {
         setFactor({
