@@ -37,6 +37,16 @@ export default async function proxy(request: NextRequest) {
     },
   });
 
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+    const origin = request.headers.get("origin");
+    if (origin && origin !== request.nextUrl.origin) {
+      return NextResponse.json(
+        { error: "Cross-origin request blocked." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
