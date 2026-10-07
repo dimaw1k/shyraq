@@ -10,8 +10,6 @@ const scope = [
   "https://www.googleapis.com/auth/meetings.space.created",
 ].join(" ");
 
-const allowedRoles = new Set(["CHIEF_MENTOR"]);
-
 export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient();
   const {
@@ -22,11 +20,11 @@ export async function GET(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profile?.role || !allowedRoles.has(profile.role)) {
+  if (profile?.status !== "ACTIVE" || profile.role !== "CHIEF_MENTOR") {
     return NextResponse.redirect(new URL("/dashboard?google=forbidden", request.url));
   }
 
@@ -37,7 +35,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/dashboard?google=not_configured", request.url));
   }
 
-  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/dashboard";
+  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/chief-mentor/meet";
   const returnTo =
     requestedReturnTo.startsWith("/") && !requestedReturnTo.startsWith("//")
       ? requestedReturnTo
@@ -57,6 +55,8 @@ export async function GET(request: Request) {
         include_granted_scopes: "true",
       }),
   );
+
+  response.headers.set("Cache-Control", "no-store");
 
   response.cookies.set("shyraq_google_oauth_state", state, {
     httpOnly: true,

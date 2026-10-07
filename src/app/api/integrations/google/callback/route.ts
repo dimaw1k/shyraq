@@ -15,37 +15,58 @@ type UserInfo = {
   email?: string;
 };
 
+function clearStateCookies(response: NextResponse) {
+  response.cookies.delete("shyraq_google_oauth_state");
+  response.cookies.delete("shyraq_google_return_to");
+  return response;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.redirect(new URL("/login", request.url));
 
-  const stateCookie = (await import("next/headers")).cookies;
-  const cookieStore = await stateCookie();
+  const cookieStore = await (await import("next/headers")).cookies();
   const expectedState = cookieStore.get("shyraq_google_oauth_state")?.value;
   const returnTo = cookieStore.get("shyraq_google_return_to")?.value ?? "/dashboard";
   const safeReturnTo =
     returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
   const withStatus = (status: string) =>
-    new URL(`${safeReturnTo}${safeReturnTo.includes("?") ? "&" : "?"}google=${status}`, request.url);
+    new URL(
+      `${safeReturnTo}${safeReturnTo.includes("?") ? "&" : "?"}google=${status}`,
+      request.url,
+    );
 
   const state = url.searchParams.get("state");
 
   if (!state || !expectedState || !cryptoSafeEqual(state, expectedState)) {
-    return NextResponse.redirect(withStatus("invalid_state"));
+    return clearStateCookies(NextResponse.redirect(withStatus("invalid_state")));
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.status !== "ACTIVE" || profile.role !== "CHIEF_MENTOR") {
+    return clearStateCookies(NextResponse.redirect(withStatus("forbidden")));
   }
 
   const error = url.searchParams.get("error");
-  if (error) return NextResponse.redirect(withStatus("cancelled"));
+  if (error) return clearStateCookies(NextResponse.redirect(withStatus("cancelled")));
 
   const code = url.searchParams.get("code");
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
   if (!code || !clientId || !clientSecret || !redirectUri) {
-    return NextResponse.redirect(withStatus("not_configured"));
+    return clearStateCookies(NextResponse.redirect(withStatus("not_configured")));
   }
 
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -61,12 +82,12 @@ export async function GET(request: Request) {
   });
 
   if (!tokenResponse.ok) {
-    return NextResponse.redirect(withStatus("token_exchange_failed"));
+    return clearStateCookies(NextResponse.redirect(withStatus("token_exchange_failed")));
   }
 
   const token = (await tokenResponse.json()) as TokenResponse;
   if (!token.refresh_token) {
-    return NextResponse.redirect(withStatus("no_refresh_token"));
+    return clearStateCookies(NextResponse.redirect(withStatus("no_refresh_token")));
   }
 
   const userInfoResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
@@ -85,16 +106,10 @@ export async function GET(request: Request) {
   });
 
   if (saveError) {
-    const response = NextResponse.redirect(withStatus("save_failed"));
-    response.cookies.delete("shyraq_google_oauth_state");
-    response.cookies.delete("shyraq_google_return_to");
-    return response;
+    return clearStateCookies(NextResponse.redirect(withStatus("save_failed")));
   }
 
-  const response = NextResponse.redirect(withStatus("connected"));
-  response.cookies.delete("shyraq_google_oauth_state");
-  response.cookies.delete("shyraq_google_return_to");
-  return response;
+  return clearStateCookies(NextResponse.redirect(withStatus("connected")));
 }
 
 function cryptoSafeEqual(a: string, b: string) {
