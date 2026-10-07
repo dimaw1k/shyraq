@@ -336,9 +336,6 @@ export function ChiefMentorMeetManager({
             <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
               АВТО-СИНХРОНДАУ
             </p>
-            <p className="mt-0.5 text-[12px] font-extrabold text-[#172235]">
-              {isToday ? "Әр 30 секунд сайын жаңартылады" : "Қайта ашқанда бір рет жаңартылады"}
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -430,9 +427,6 @@ export function ChiefMentorMeetManager({
             <p className="text-[13px] font-extrabold text-[#172235]">
               Оқушылардың жеке статистикасы
             </p>
-            <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">
-              Команда мен Meet түрі осы кестеге ғана әсер етеді
-            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -505,16 +499,11 @@ export function ChiefMentorMeetManager({
 
       {open ? (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/42 p-4 backdrop-blur-[10px] sm:p-6">
-          <div className="w-full max-w-[480px] overflow-hidden rounded-[20px] border border-white/90 bg-white shadow-[0_24px_80px_rgba(23,34,53,.28)]">
+          <div className="w-full max-w-[410px] overflow-hidden rounded-[20px] border border-white/90 bg-white shadow-[0_24px_80px_rgba(23,34,53,.28)]">
             <div className="flex items-center justify-between gap-3 border-b border-[#E8E1DA] px-4 py-3.5">
-              <div>
-                <h2 className="text-[16px] font-extrabold text-[#172235]">
-                  Meet жасау
-                </h2>
-                <p className="mt-0.5 text-[9px] font-semibold text-[#9A9189]">
-                  Бір командаға бір Study Time Meet сілтемесі тұрақты қолданылады
-                </p>
-              </div>
+              <h2 className="text-[18px] font-extrabold tracking-[-.03em] text-[#172235]">
+                Meet жасау
+              </h2>
               <button
                 type="button"
                 onClick={close}
@@ -526,12 +515,12 @@ export function ChiefMentorMeetManager({
             </div>
 
             <div className="grid gap-3 p-4">
-              <label className="text-[9px] font-extrabold uppercase tracking-[.1em] text-[#8B8179]">
+              <label className="text-[10px] font-extrabold uppercase tracking-[.08em] text-[#8B8179]">
                 Командалар
                 <select
                   value={teamChoice}
                   onChange={(event) => setTeamChoice(event.target.value)}
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-bold text-[#172235]"
+                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[12px] font-bold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 >
                   <option value="ALL">Барлық белсенді командалар</option>
                   {teams.map((team) => (
@@ -542,14 +531,14 @@ export function ChiefMentorMeetManager({
                 </select>
               </label>
 
-              <label className="text-[9px] font-extrabold uppercase tracking-[.1em] text-[#8B8179]">
+              <label className="text-[10px] font-extrabold uppercase tracking-[.08em] text-[#8B8179]">
                 Meet түрі
                 <select
                   value={createType}
                   onChange={(event) =>
                     setCreateType(event.target.value as CreateType)
                   }
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-bold text-[#172235]"
+                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[12px] font-bold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 >
                   <option value="MORNING">Таңғы Meet</option>
                   <option value="EVENING">Кешкі Meet</option>
@@ -557,13 +546,13 @@ export function ChiefMentorMeetManager({
                 </select>
               </label>
 
-              <label className="text-[9px] font-extrabold uppercase tracking-[.1em] text-[#8B8179]">
+              <label className="text-[10px] font-extrabold uppercase tracking-[.08em] text-[#8B8179]">
                 Іс-шара атауы
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
                   placeholder="Мысалы: 8 қазан таңғы кездесу"
-                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000]"
+                  className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[12px] font-semibold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 />
               </label>
 
@@ -590,7 +579,7 @@ export function ChiefMentorMeetManager({
               {!googleConnected ? (
                 <a
                   href="/api/integrations/google/start?returnTo=%2Fchief-mentor%2Fmeet"
-                  className="inline-flex h-10 items-center justify-center rounded-[11px] bg-[var(--accent)] text-[10px] font-extrabold text-white"
+                  className="inline-flex h-11 items-center justify-center rounded-[11px] bg-[var(--accent)] text-[11px] font-extrabold text-white"
                 >
                   Google қосу
                 </a>
