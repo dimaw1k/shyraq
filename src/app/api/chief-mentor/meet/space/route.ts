@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const displayName =
     typeof body?.displayName === "string" && body.displayName.trim()
       ? body.displayName.trim().slice(0, 120)
-      : "Shyraq — Google Meet";
+      : "";
   const studyTime =
     body?.studyTime === "EVENING"
       ? "EVENING"
