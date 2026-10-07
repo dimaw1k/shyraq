@@ -173,9 +173,7 @@ export default async function ChiefMentorMeetPage({
             return conference ? spaceMap.get(conference.space_name) : null;
           })()
         : null;
-      return Boolean(
-        space && (selectedType === "ALL" || space.study_time === selectedType),
-      );
+      return Boolean(space);
     })
     .map((row) => {
       const conference = (conferences ?? []).find(
@@ -185,6 +183,7 @@ export default async function ChiefMentorMeetPage({
       return {
         id: row.external_conference_id + ":" + row.student_id,
         student_name: studentMap.get(row.student_id) ?? "Оқушы",
+        team_id: row.team_id,
         team_name: teamMap.get(row.team_id)?.name ?? "Команда",
         type: space?.study_time ?? "EXTRA",
         percent: Number(row.attendance_percent ?? 0),
