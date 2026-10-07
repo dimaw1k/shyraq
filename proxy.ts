@@ -56,8 +56,24 @@ function safeNextPath(request: NextRequest) {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
 }
 
+type HeadersWithSetCookie = Headers & {
+  getSetCookie?: () => string[];
+};
+
 function copyResponseCookies(from: NextResponse, to: NextResponse) {
-  to.cookies.setAll(from.cookies.getAll());
+  const sourceHeaders = from.headers as HeadersWithSetCookie;
+  const setCookies = sourceHeaders.getSetCookie?.() ?? [];
+
+  if (setCookies.length > 0) {
+    for (const cookie of setCookies) {
+      to.headers.append("set-cookie", cookie);
+    }
+  } else {
+    const setCookie = from.headers.get("set-cookie");
+    if (setCookie) {
+      to.headers.set("set-cookie", setCookie);
+    }
+  }
 
   for (const headerName of ["cache-control", "expires", "pragma"]) {
     const value = from.headers.get(headerName);
