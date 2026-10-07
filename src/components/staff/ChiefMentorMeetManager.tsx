@@ -27,7 +27,6 @@ export function ChiefMentorMeetManager({
   teams: Team[]; rows: MeetRow[]; history: HistoryRow[]; googleConnected: boolean;
   selectedDate: string; selectedType: MeetType;
   stats: { meetings: number; attended: number; average: number };
-  typeLabel?: (type: string) => string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);

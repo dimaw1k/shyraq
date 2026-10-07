@@ -21,11 +21,6 @@ function dayBounds(date: string) {
   };
 }
 
-function typeLabel(value: string) {
-  if (value === "MORNING") return "Таңғы Meet";
-  if (value === "EVENING") return "Кешкі Meet";
-  return "Қосымша Meet";
-}
 
 export default async function ChiefMentorMeetPage({
   searchParams,
@@ -34,7 +29,7 @@ export default async function ChiefMentorMeetPage({
 }) {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
   const params = (await searchParams) ?? {};
-  const selectedDate = /^d{4}-d{2}-d{2}$/.test(params.date ?? "")
+  const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(params.date ?? "")
     ? params.date!
     : kzToday();
   const selectedType: MeetType =
@@ -226,7 +221,6 @@ export default async function ChiefMentorMeetPage({
             attended: totalAttended,
             average: Number(avgAttendance.toFixed(1)),
           }}
-          typeLabel={typeLabel}
         />
       </PageContainer>
     </AppShell>
