@@ -20,6 +20,7 @@ type Profile = {
   avatar_url?: string | null;
   team_names?: string[];
   mentor_name?: string | null;
+  google_connected?: boolean;
 };
 
 const inputClass =
@@ -338,6 +339,31 @@ export function ProfileClient() {
             </label>
           </div>
         </div>
+
+        {profile.role === "CHIEF_MENTOR" ? (
+          <div className="sm:col-span-2 flex flex-col gap-3 rounded-[14px] border border-[#E8E1DA] bg-[#FAF7F3] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold text-[#172235]">Google Meet</p>
+              <p className="mt-0.5 text-[9px] font-semibold text-[#8B8179]">
+                {profile.google_connected
+                  ? "Google аккаунты қосылған."
+                  : "Meet жасау және қатысу статистикасын синхрондау үшін Google қосыңыз."}
+              </p>
+            </div>
+            {profile.google_connected ? (
+              <span className="inline-flex h-9 items-center rounded-[11px] border border-[#D9EEDF] bg-[#F2FAF4] px-3 text-[10px] font-extrabold text-[#2E7E58]">
+                Google қосылған
+              </span>
+            ) : (
+              <a
+                href="/api/integrations/google/start?returnTo=%2Fprofile"
+                className="inline-flex h-9 items-center justify-center rounded-[11px] bg-[#FF8000] px-4 text-[10px] font-extrabold text-white shadow-[0_8px_18px_rgba(255,128,0,.12)] transition hover:bg-[#E56F00]"
+              >
+                Google қосу
+              </a>
+            )}
+          </div>
+        ) : null}
 
         {message ? (
           <div className={[

@@ -10,7 +10,6 @@ import {
   Link2,
   Loader2,
   Plus,
-  RefreshCw,
   X,
 } from "lucide-react";
 
@@ -68,15 +67,6 @@ function shiftDate(date: string, delta: number) {
   }).format(value);
 }
 
-function formatSyncTime(value: Date) {
-  return new Intl.DateTimeFormat("kk-KZ", {
-    timeZone: "Asia/Almaty",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(value);
-}
-
 export function ChiefMentorMeetManager({
   teams,
   rows,
@@ -103,9 +93,6 @@ export function ChiefMentorMeetManager({
   const [displayName, setDisplayName] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createMessage, setCreateMessage] = useState("");
-  const [syncLoading, setSyncLoading] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [historyTeamId, setHistoryTeamId] = useState("ALL");
   const [historyType, setHistoryType] = useState<MeetType>("ALL");
 
@@ -161,16 +148,6 @@ export function ChiefMentorMeetManager({
       }
 
       close();
-      setSyncMessage(
-        data.reusedCount
-          ? data.count +
-              " командаға Meet дайын. " +
-              data.reusedCount +
-              " бұрынғы сілтеме қайта қолданылды."
-          : data.count > 1
-            ? data.count + " командаға Meet жасалды."
-            : "Meet сәтті жасалды.",
-      );
       router.refresh();
     } catch (error) {
       setCreateMessage(error instanceof Error ? error.message : "Қате");
@@ -180,12 +157,10 @@ export function ChiefMentorMeetManager({
   }
 
   const syncMeet = useCallback(
-    async (silent = false) => {
+    async () => {
       if (!googleConnected || !teams.length || syncInFlight.current) return;
 
       syncInFlight.current = true;
-      setSyncLoading(true);
-      if (!silent) setSyncMessage("");
 
       try {
         const startTime = new Date(
@@ -211,22 +186,12 @@ export function ChiefMentorMeetManager({
           throw new Error(data.error ?? "Синхрондау сәтсіз аяқталды.");
         }
 
-        setLastSyncedAt(new Date().toISOString());
-        if (!silent) {
-          setSyncMessage(
-            "Жаңартылды: " +
-              Number(data.attendanceRows ?? 0) +
-              " қатысу жазбасы.",
-          );
-        }
+        void data;
         router.refresh();
       } catch (error) {
-        if (!silent) {
-          setSyncMessage(error instanceof Error ? error.message : "Қате");
-        }
+        console.error("[meet] background sync failed", error);
       } finally {
         syncInFlight.current = false;
-        setSyncLoading(false);
       }
     },
     [googleConnected, router, selectedDate, teams.length],
@@ -235,12 +200,12 @@ export function ChiefMentorMeetManager({
   useEffect(() => {
     if (!googleConnected || !teams.length) return;
 
-    void syncMeet(true);
+    void syncMeet();
 
     if (!isToday) return;
 
     const interval = window.setInterval(() => {
-      void syncMeet(true);
+      void syncMeet();
     }, 30_000);
 
     return () => window.clearInterval(interval);
@@ -329,53 +294,6 @@ export function ChiefMentorMeetManager({
           </div>
         ))}
       </div>
-
-      <section className="rounded-[16px] border border-[#E8E1DA] bg-white px-4 py-3.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
-              АВТО-СИНХРОНДАУ
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {lastSyncedAt ? (
-              <span className="text-[9px] font-semibold text-[#8B8179]">
-                Соңғы: {formatSyncTime(new Date(lastSyncedAt))}
-              </span>
-            ) : null}
-
-            {!googleConnected ? (
-              <a
-                href="/api/integrations/google/start?returnTo=%2Fchief-mentor%2Fmeet"
-                className="inline-flex h-9 items-center rounded-[10px] bg-[var(--accent)] px-3.5 text-[9px] font-extrabold text-white"
-              >
-                Google қосу
-              </a>
-            ) : (
-              <button
-                type="button"
-                onClick={() => void syncMeet(false)}
-                disabled={syncLoading}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-[#172235] px-3.5 text-[9px] font-extrabold text-white disabled:opacity-50"
-              >
-                {syncLoading ? (
-                  <Loader2 size={13} className="animate-spin" />
-                ) : (
-                  <RefreshCw size={13} />
-                )}
-                Қазір жаңарту
-              </button>
-            )}
-          </div>
-        </div>
-
-        {syncMessage ? (
-          <p className="mt-2.5 rounded-[10px] bg-[#FFFCF9] px-3 py-2 text-[9px] font-semibold text-[#6F665D]">
-            {syncMessage}
-          </p>
-        ) : null}
-      </section>
 
       <section className="overflow-hidden rounded-[18px] border border-[#E8E1DA] bg-white">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3">
@@ -576,14 +494,6 @@ export function ChiefMentorMeetManager({
                 Meet жасау
               </button>
 
-              {!googleConnected ? (
-                <a
-                  href="/api/integrations/google/start?returnTo=%2Fchief-mentor%2Fmeet"
-                  className="inline-flex h-11 items-center justify-center rounded-[11px] bg-[var(--accent)] text-[11px] font-extrabold text-white"
-                >
-                  Google қосу
-                </a>
-              ) : null}
             </div>
           </div>
         </div>
