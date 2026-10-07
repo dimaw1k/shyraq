@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   AlertCircle,
-  CheckCircle2,
   Clock3,
   FileCheck2,
   Send,
@@ -9,8 +8,10 @@ import {
   UsersRound,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, MetricCard, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
+import { Card, MetricCard, PageContainer } from "@/components/ui/ShyraqUI";
+import { DashboardBanner } from "@/components/student/DashboardBanner";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { todayInTimezone } from "@/lib/streak";
 
 type TeamRow = {
@@ -36,6 +37,7 @@ function initials(name: string) {
 export default async function ChiefMentorPage() {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
   const today = todayInTimezone("Asia/Almaty");
+  const admin = createAdminSupabaseClient();
 
   const [
     { count: mentorCount },
@@ -43,6 +45,7 @@ export default async function ChiefMentorPage() {
     { count: teamCount },
     { data: teams },
     { data: reports },
+    { data: banners },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -67,7 +70,37 @@ export default async function ChiefMentorPage() {
       .select("student_id,status,report_date,submitted_at,reviewed_at")
       .eq("report_date", today)
       .neq("status", "DRAFT"),
+    admin
+      .from("marathon_banners")
+      .select("id,title,description,image_path,href,published,starts_at,ends_at,sort_order")
+      .eq("published", true)
+      .order("sort_order")
+      .limit(8),
   ]);
+
+  const now = Date.now();
+  const bannerItems = (
+    await Promise.all(
+      (banners ?? [])
+        .filter((banner) => {
+          const startsOk = !banner.starts_at || new Date(banner.starts_at).getTime() <= now;
+          const endsOk = !banner.ends_at || new Date(banner.ends_at).getTime() >= now;
+          return Boolean(banner.image_path) && startsOk && endsOk;
+        })
+        .map(async (banner) => {
+          const { data } = await admin.storage
+            .from("banners")
+            .createSignedUrl(banner.image_path!, 60 * 60);
+          return {
+            id: banner.id,
+            title: banner.title,
+            description: banner.description,
+            href: banner.href,
+            imageUrl: data?.signedUrl ?? null,
+          };
+        }),
+    )
+  ).filter((banner) => Boolean(banner.imageUrl));
 
   const teamIds = (teams ?? []).map((team) => team.id);
   const mentorIds = (teams ?? []).map((team) => team.mentor_id).filter(Boolean) as string[];
@@ -204,12 +237,14 @@ export default async function ChiefMentorPage() {
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="" hideHeader>
       <PageContainer>
         <div className="space-y-5">
+          <DashboardBanner banners={bannerItems} />
+
           <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[var(--accent)]">
                 БАС МЕНТОР
               </p>
-              <h1 className="mt-1 text-[28px] font-extrabold tracking-[-.05em] text-[#172235] sm:text-[34px]">
+              <h1 className="mt-1 text-[24px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[30px]">
                 Басқару орталығы
               </h1>
             </div>
@@ -247,10 +282,10 @@ export default async function ChiefMentorPage() {
               <div className="border-b border-[#EFE8E1] px-5 py-4 sm:px-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[var(--accent)]">
+                    <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-[var(--accent)]">
                       БҮГІНГІ MEET
                     </p>
-                    <h2 className="mt-1 text-[18px] font-extrabold tracking-[-.035em] text-[#172235]">
+                    <h2 className="mt-1 text-[19px] font-extrabold tracking-[-.035em] text-[#172235]">
                       Қатысу жағдайы
                     </h2>
                   </div>
@@ -264,7 +299,7 @@ export default async function ChiefMentorPage() {
               </div>
 
               <div className="divide-y divide-[#EFE8E1]">
-                <div className="grid grid-cols-[1.2fr_110px_130px] gap-3 bg-[#FFFCF9] px-5 py-3 text-[8px] font-extrabold uppercase tracking-[.11em] text-[#9A9189] sm:px-6">
+                <div className="grid grid-cols-[1.2fr_110px_130px] gap-3 bg-[#FFFCF9] px-5 py-3 text-[10px] font-extrabold uppercase tracking-[.1em] text-[#81766D] sm:px-6">
                   <span>Ментор / команда</span>
                   <span>Оқушы</span>
                   <span>Қатысу пайызы</span>
@@ -280,16 +315,16 @@ export default async function ChiefMentorPage() {
                         {initials(row.mentorName)}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[10px] font-extrabold text-[#263247]">
+                        <p className="truncate text-[12px] font-extrabold text-[#263247]">
                           {row.mentorName}
                         </p>
-                        <p className="mt-0.5 truncate text-[8px] font-semibold text-[#9A9189]">
+                        <p className="mt-0.5 truncate text-[10px] font-semibold text-[#8F857D]">
                           {row.name}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-[10px] font-extrabold text-[#354153]">
+                    <p className="text-[12px] font-extrabold text-[#354153]">
                       {row.attendedStudents}/{row.activeStudents}
                     </p>
 
@@ -350,7 +385,7 @@ export default async function ChiefMentorPage() {
                         {item.detail}
                       </p>
                     </div>
-                    <span className="text-[22px] font-extrabold tracking-[-.05em] text-[#172235]">
+                    <span className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
                       {item.value}
                     </span>
                   </div>
