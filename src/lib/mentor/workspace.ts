@@ -95,7 +95,6 @@ export async function getMentorWorkspaceData(
     { data: memberRows },
     { data: taskRows },
     { data: meetSpace },
-    { data: googleConnection },
   ] = await Promise.all([
     admin
       .from("team_members")
@@ -113,11 +112,6 @@ export async function getMentorWorkspaceData(
       .select("id,meeting_url,display_name,active")
       .eq("team_id", team.id)
       .eq("active", true)
-      .maybeSingle(),
-    admin
-      .from("google_connections")
-      .select("google_email")
-      .eq("user_id", mentorId)
       .maybeSingle(),
   ]);
 
@@ -401,6 +395,5 @@ export async function getMentorWorkspaceData(
           active: Boolean(meetSpace.active),
         }
       : null,
-    googleConnected: Boolean(googleConnection?.google_email),
   };
 }
