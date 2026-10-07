@@ -80,20 +80,28 @@ export default function ResetPasswordPage() {
     setError("");
 
     const normalizedEmail = email.trim().toLowerCase();
-    const supabase = createBrowserSupabaseClient();
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: window.location.origin + "/auth/recovery",
-    });
+    try {
+      const response = await fetch("/api/auth/request-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
 
-    if (resetError) {
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(result.error ?? t("resetSendFailed"));
+        setLoading(false);
+        return;
+      }
+
+      setMode("sent");
+    } catch {
       setError(t("resetSendFailed"));
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setMode("sent");
-    setLoading(false);
   }
 
   async function updatePassword(event: FormEvent<HTMLFormElement>) {
@@ -110,15 +118,6 @@ export default function ResetPasswordPage() {
     const supabase = createBrowserSupabaseClient();
     const { data: userData } = await supabase.auth.getUser();
 
-    const passwordError = getPasswordValidationError(
-      password,
-      [userData.user?.email ?? ""],
-    );
-    if (passwordError) {
-      setError(t("passwordMin"));
-      return;
-    }
-
     if (!userData.user) {
       setError(t("invalidReset"));
       setLoading(false);
@@ -126,16 +125,51 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const passwordError = getPasswordValidationError(
+      password,
+      [userData.user.email ?? ""],
+    );
 
-    if (updateError) {
-      setError(t("resetUpdateFailed"));
+    if (passwordError) {
+      setError(t("passwordMin"));
       setLoading(false);
       return;
     }
 
-    await supabase.auth.signOut();
-    router.replace("/login?reset=success");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+
+    if (!accessToken) {
+      setError(t("invalidReset"));
+      setLoading(false);
+      setMode("request");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken,
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(result.error ?? t("resetUpdateFailed"));
+        setLoading(false);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      router.replace("/login?reset=success");
+    } catch {
+      setError(t("resetUpdateFailed"));
+      setLoading(false);
+    }
   }
 
   const inputClass =
