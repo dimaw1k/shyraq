@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) return NextResponse.json({ error: "Фото қажет." }, { status: 400 });
   if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ error: "Фото 5 MB-тан үлкен болмауы керек." }, { status: 400 });
   if (!ALLOWED.has(file.type)) return NextResponse.json({ error: "JPG, PNG немесе WebP қана рұқсат." }, { status: 400 });
+  if (!(await hasValidFileSignature(file, file.type))) return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
 
   const admin = createAdminSupabaseClient();
   const { data: current } = await admin.from("profiles").select("avatar_path").eq("id", user.id).maybeSingle();
