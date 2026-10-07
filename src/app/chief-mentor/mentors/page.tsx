@@ -1,6 +1,5 @@
-import { Users } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
+import { PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { ChiefMentorMentorManager } from "@/components/staff/ChiefMentorMentorManager";
 
@@ -46,16 +45,11 @@ export default async function ChiefMentorMentorsPage() {
   });
 
   return (
-    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Менторлар" description="Менторларды қосу, басқару және нәтижелілігін бақылау.">
+    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Менторлар" hideHeader>
       <PageContainer>
         <div className="space-y-5">
-          <SectionHeader eyebrow="МЕНТОРЛАР" title="Менторлар штабы" description="Статус, команда, оқушы саны және қатысуы." action={<Users size={18} className="text-[var(--accent)]"/>}/>
-          <Card className="overflow-visible">
-            <div className="hidden grid-cols-[1.25fr_110px_110px_120px_170px] gap-3 border-b border-[#EFE8E1] bg-[#FFFCF9] px-6 py-3 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189] lg:grid">
-              <span>Ментор</span><span>Команда</span><span>Оқушы</span><span>Қатысу</span><span className="text-right">Статус</span>
-            </div>
-            <ChiefMentorMentorManager initialMentors={rows}/>
-          </Card>
+          <SectionHeader eyebrow="МЕНТОРЛАР" title="Менторлар штабы"/>
+          <ChiefMentorMentorManager initialMentors={rows}/>
         </div>
       </PageContainer>
     </AppShell>
