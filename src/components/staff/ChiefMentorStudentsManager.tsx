@@ -115,9 +115,19 @@ export function ChiefMentorStudentsManager({
     setOpenAdd(true);
   }
 
+  function handleIdentifierChange(value: string) {
+    const looksLikeEmail = /[A-Za-z@_\-.]/.test(value);
+    setIdentifier(looksLikeEmail ? value : formatKzPhone(value));
+  }
+
+  function canSearchIdentifier() {
+    const value = identifier.trim();
+    return value.includes("@") ? /^\S+@\S+\.\S+$/.test(value) : isValidKzPhone(value);
+  }
+
   async function lookupStudent() {
     const value = identifier.trim();
-    if (!value) return;
+    if (!value || !canSearchIdentifier()) return;
 
     setLookupLoading(true);
     setLookup(null);
@@ -336,12 +346,12 @@ export function ChiefMentorStudentsManager({
       ) : null}
 
       {openAdd ? (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/30 p-4 backdrop-blur-[3px]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/42 p-4 backdrop-blur-[10px] sm:p-6">
           <div
             role="dialog"
             aria-modal="true"
             className={[
-              "w-full overflow-hidden rounded-[20px] border border-white/80 bg-[#FAF9F7] shadow-[0_24px_70px_rgba(23,34,53,.22)]",
+              "w-full overflow-hidden rounded-[20px] border border-white/90 bg-white shadow-[0_24px_80px_rgba(23,34,53,.28)]",
               lookup ? "max-w-[520px]" : "max-w-[410px]",
             ].join(" ")}
           >
@@ -364,17 +374,20 @@ export function ChiefMentorStudentsManager({
               <div className="flex gap-2">
                 <input
                   value={identifier}
-                  onChange={(event) => setIdentifier(event.target.value)}
+                  onChange={(event) => handleIdentifierChange(event.target.value)}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter") void lookupStudent();
+                    if (event.key === "Enter" && canSearchIdentifier()) {
+                      void lookupStudent();
+                    }
                   }}
                   autoFocus
+                  inputMode={identifier.includes("@") ? "email" : "tel"}
                   placeholder="Телефон немесе email"
                   className="h-11 min-w-0 flex-1 rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 />
                 <button
                   type="button"
-                  disabled={lookupLoading || !identifier.trim()}
+                  disabled={lookupLoading || !canSearchIdentifier()}
                   onClick={() => void lookupStudent()}
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-[var(--accent)] text-white disabled:opacity-50"
                   aria-label="Іздеу"

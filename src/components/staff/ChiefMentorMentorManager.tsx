@@ -35,7 +35,7 @@ export function ChiefMentorMentorManager({
   const [mentors, setMentors] = useState(initialMentors);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [lookup, setLookup] = useState<Lookup | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -56,11 +56,21 @@ export function ChiefMentorMentorManager({
 
   function resetModal() {
     setOpen(false);
-    setPhone("");
+    setIdentifier("");
     setLookup(null);
     setMessage("");
     setLoading(false);
     setSaving(false);
+  }
+
+  function handleIdentifierChange(value: string) {
+    const looksLikeEmail = /[A-Za-z@_\-.]/.test(value);
+    setIdentifier(looksLikeEmail ? value : formatKzPhone(value));
+  }
+
+  function canSearchIdentifier() {
+    const value = identifier.trim();
+    return value.includes("@") ? /^\S+@\S+\.\S+$/.test(value) : isValidKzPhone(value);
   }
 
   async function searchMentor() {
@@ -72,7 +82,7 @@ export function ChiefMentorMentorManager({
       const response = await fetch("/api/chief-mentor/mentors/lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ identifier }),
       });
       const data = await response.json().catch(() => ({}));
 
@@ -81,7 +91,7 @@ export function ChiefMentorMentorManager({
       }
 
       if (!data.profile) {
-        setMessage("Бұл нөмірмен аккаунт табылмады.");
+        setMessage("Бұл телефон немесе email арқылы аккаунт табылмады.");
         return;
       }
 
@@ -167,7 +177,7 @@ export function ChiefMentorMentorManager({
           type="button"
           onClick={() => {
             setOpen(true);
-            setPhone("");
+            setIdentifier("");
             setLookup(null);
             setMessage("");
           }}
@@ -202,12 +212,12 @@ export function ChiefMentorMentorManager({
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/30 p-4 backdrop-blur-[3px]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/42 p-4 backdrop-blur-[10px] sm:p-6">
           <div
             role="dialog"
             aria-modal="true"
             className={[
-              "w-full overflow-hidden rounded-[20px] border border-white/80 bg-[#FAF9F7] shadow-[0_24px_70px_rgba(23,34,53,.22)]",
+              "w-full overflow-hidden rounded-[20px] border border-white/90 bg-white shadow-[0_24px_80px_rgba(23,34,53,.28)]",
               lookup ? "max-w-[500px]" : "max-w-[400px]",
             ].join(" ")}
           >
@@ -229,19 +239,21 @@ export function ChiefMentorMentorManager({
             <div className={lookup ? "space-y-3 p-4" : "p-4"}>
               <div className="flex gap-2">
                 <input
-                  value={phone}
-                  onChange={(event) =>
-                    setPhone(formatKzPhone(event.target.value))
-                  }
-                  maxLength={18}
-                  inputMode="tel"
+                  value={identifier}
+                  onChange={(event) => handleIdentifierChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && canSearchIdentifier()) {
+                      void searchMentor();
+                    }
+                  }}
                   autoFocus
-                  placeholder="+7 (700) 000 00 00"
+                  inputMode={identifier.includes("@") ? "email" : "tel"}
+                  placeholder="Телефон немесе email"
                   className="h-11 min-w-0 flex-1 rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
                 />
                 <button
                   type="button"
-                  disabled={loading || !isValidKzPhone(phone)}
+                  disabled={loading || !canSearchIdentifier()}
                   onClick={() => void searchMentor()}
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-[var(--accent)] text-white disabled:opacity-50"
                   aria-label="Менторды іздеу"

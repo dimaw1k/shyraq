@@ -5,18 +5,50 @@ import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 
 export async function POST(request: Request) {
   await getAuthenticatedStaff("CHIEF_MENTOR");
+
   const body = await request.json().catch(() => null);
-  const rawPhone = typeof body?.phone === "string" ? body.phone : "";
-  if (!isValidKzPhone(rawPhone)) return NextResponse.json({ error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
+  const identifier =
+    typeof body?.identifier === "string" ? body.identifier.trim() : "";
+
+  if (!identifier) {
+    return NextResponse.json(
+      { error: "Телефон немесе email енгізіңіз." },
+      { status: 400 },
+    );
+  }
 
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin.from("profiles")
-    .select("id,full_name,email,phone,status,role,avatar_path")
-    .eq("phone", normalizePhone(rawPhone))
-    .maybeSingle();
+  const looksLikeEmail = identifier.includes("@");
 
-  if (error) return NextResponse.json({ error: "Пайдаланушыны іздеу кезінде қате болды." }, { status: 500 });
-  if (!data) return NextResponse.json({ profile: null, registered: false });
+  if (!looksLikeEmail && !isValidKzPhone(identifier)) {
+    return NextResponse.json(
+      { error: "Телефон нөмірін немесе email-ды дұрыс енгізіңіз." },
+      { status: 400 },
+    );
+  }
+
+  const { data, error } = looksLikeEmail
+    ? await admin
+        .from("profiles")
+        .select("id,full_name,email,phone,status,role,avatar_path")
+        .eq("email", identifier.toLowerCase())
+        .maybeSingle()
+    : await admin
+        .from("profiles")
+        .select("id,full_name,email,phone,status,role,avatar_path")
+        .eq("phone", normalizePhone(identifier))
+        .maybeSingle();
+
+  if (error) {
+    return NextResponse.json(
+      { error: "Пайдаланушыны іздеу кезінде қате болды." },
+      { status: 500 },
+    );
+  }
+
+  if (!data) {
+    return NextResponse.json({ profile: null, registered: false });
+  }
 
   let team_name: string | null = null;
   const { data: managedTeams } = await admin
