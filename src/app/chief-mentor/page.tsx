@@ -390,9 +390,8 @@ export default async function ChiefMentorPage() {
               </div>
 
               <div className="divide-y divide-[#EFE8E1]">
-                <div className="grid grid-cols-[1.05fr_110px_1fr_1fr] gap-3 bg-[#FFFCF9] px-5 py-2.5 text-[11px] font-extrabold uppercase tracking-[.07em] text-[#81766D] sm:px-6">
+                <div className="grid grid-cols-[1.15fr_1fr_1fr] gap-3 bg-[#FFFCF9] px-5 py-2.5 text-[11px] font-extrabold uppercase tracking-[.07em] text-[#81766D] sm:px-6">
                   <span>Ментор / команда</span>
-                  <span>Оқушы</span>
                   <span>Таңғы Study Time</span>
                   <span>Кешкі Study Time</span>
                 </div>
@@ -400,7 +399,7 @@ export default async function ChiefMentorPage() {
                 {meetRows.slice(0, 8).map((row) => (
                   <div
                     key={row.id}
-                    className="grid grid-cols-[1.05fr_110px_1fr_1fr] items-center gap-3 px-5 py-3 sm:px-6"
+                    className="grid grid-cols-[1.15fr_1fr_1fr] items-center gap-3 px-5 py-3 sm:px-6"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#FFF1E2] text-[10px] font-extrabold text-[#B95D00]">
@@ -424,10 +423,6 @@ export default async function ChiefMentorPage() {
                         </p>
                       </div>
                     </div>
-
-                    <p className="text-[14px] font-extrabold text-[#354153]">
-                      {row.activeStudents}
-                    </p>
 
                     {[
                       {
