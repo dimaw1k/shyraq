@@ -1,56 +1,79 @@
 import { AppShell } from "@/components/app/AppNav";
-import { PageContainer, SectionHeader } from "@/components/ui/ShyraqUI";
+import { PageContainer } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { ChiefMentorMentorManager } from "@/components/staff/ChiefMentorMentorManager";
 
 export default async function ChiefMentorMentorsPage() {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
-  const { data: mentors } = await supabase.from("profiles")
-    .select("id,full_name,email,phone,status")
-    .eq("role","MENTOR")
+
+  const { data: mentors } = await supabase
+    .from("profiles")
+    .select("id,full_name,email,phone,status,avatar_path")
+    .eq("role", "MENTOR")
     .order("full_name");
 
-  const mentorIds=(mentors??[]).map(x=>x.id);
-  const { data: teams }=mentorIds.length
-    ? await supabase.from("teams").select("id,mentor_id").in("mentor_id",mentorIds).eq("status","ACTIVE")
-    : {data:[] as Array<{id:string;mentor_id:string|null}>};
-  const teamIds=(teams??[]).map(x=>x.id);
-  const [{data:members},{data:attendance}] = await Promise.all([
-    teamIds.length ? supabase.from("team_members").select("team_id,student_id").in("team_id",teamIds).eq("status","ACTIVE") : Promise.resolve({data:[] as Array<{team_id:string;student_id:string}>}),
-    teamIds.length ? supabase.from("attendance_records").select("team_id,attendance_percent").in("team_id",teamIds) : Promise.resolve({data:[] as Array<{team_id:string;attendance_percent:number|null}>}),
-  ]);
+  const mentorIds = (mentors ?? []).map((mentor) => mentor.id);
 
-  const teamByMentor=new Map<string,string[]>();
-  for(const team of teams??[]) if(team.mentor_id) teamByMentor.set(team.mentor_id,[...(teamByMentor.get(team.mentor_id)??[]),team.id]);
-  const studentCounts=new Map<string,number>();
-  for(const member of members??[]){
-    const mentor=teams?.find(team=>team.id===member.team_id)?.mentor_id;
-    if(mentor) studentCounts.set(mentor,(studentCounts.get(mentor)??0)+1);
-  }
-  const attendanceByMentor=new Map<string,number[]>();
-  for(const row of attendance??[]){
-    const mentor=teams?.find(team=>team.id===row.team_id)?.mentor_id;
-    if(mentor) attendanceByMentor.set(mentor,[...(attendanceByMentor.get(mentor)??[]),Number(row.attendance_percent??0)]);
+  const { data: teams } = mentorIds.length
+    ? await supabase
+        .from("teams")
+        .select("id,name,mentor_id")
+        .in("mentor_id", mentorIds)
+        .order("name")
+    : { data: [] as Array<{ id: string; name: string; mentor_id: string | null }> };
+
+  const teamIds = (teams ?? []).map((team) => team.id);
+
+  const { data: members } = teamIds.length
+    ? await supabase
+        .from("team_members")
+        .select("team_id,student_id")
+        .in("team_id", teamIds)
+        .eq("status", "ACTIVE")
+    : { data: [] as Array<{ team_id: string; student_id: string }> };
+
+  const teamNamesByMentor = new Map<string, string[]>();
+  for (const team of teams ?? []) {
+    if (!team.mentor_id) continue;
+    teamNamesByMentor.set(team.mentor_id, [
+      ...(teamNamesByMentor.get(team.mentor_id) ?? []),
+      team.name,
+    ]);
   }
 
-  const rows=(mentors??[]).map(m=>{
-    const values=attendanceByMentor.get(m.id)??[];
-    return {
-      ...m,
-      team_count:(teamByMentor.get(m.id)??[]).length,
-      student_count:studentCounts.get(m.id)??0,
-      attendance:values.length?values.reduce((a,b)=>a+b,0)/values.length:0,
-      reports_reviewed:0,
-    };
-  });
+  const studentCountsByMentor = new Map<string, number>();
+  const mentorIdByTeam = new Map((teams ?? []).map((team) => [team.id, team.mentor_id]));
+  for (const member of members ?? []) {
+    const mentorId = mentorIdByTeam.get(member.team_id);
+    if (!mentorId) continue;
+    studentCountsByMentor.set(
+      mentorId,
+      (studentCountsByMentor.get(mentorId) ?? 0) + 1,
+    );
+  }
+
+  const rows = (mentors ?? []).map((mentor) => ({
+    id: mentor.id,
+    full_name: mentor.full_name,
+    email: mentor.email,
+    phone: mentor.phone,
+    status: mentor.status,
+    avatar_url: mentor.avatar_path
+      ? supabase.storage.from("avatars").getPublicUrl(mentor.avatar_path).data.publicUrl
+      : null,
+    team_name: (teamNamesByMentor.get(mentor.id) ?? []).join(", "),
+    student_count: studentCountsByMentor.get(mentor.id) ?? 0,
+  }));
 
   return (
-    <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="Менторлар" hideHeader>
+    <AppShell
+      role="CHIEF_MENTOR"
+      userName={profile.full_name}
+      title="Менторлар"
+      hideHeader
+    >
       <PageContainer>
-        <div className="space-y-5">
-          <SectionHeader eyebrow="МЕНТОРЛАР" title="Менторлар штабы"/>
-          <ChiefMentorMentorManager initialMentors={rows}/>
-        </div>
+        <ChiefMentorMentorManager initialMentors={rows} />
       </PageContainer>
     </AppShell>
   );
