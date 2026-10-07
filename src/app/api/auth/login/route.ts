@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { normalizePhone } from "@/lib/phone";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import {
+  consumeRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/security/rate-limit";
 
 type LoginPayload = {
   identifier?: unknown;
@@ -26,6 +31,28 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Email немесе телефон нөмірі мен құпиясөзді енгізіңіз." },
         { status: 400 },
+      );
+    }
+
+    const clientIp = getClientIp(request);
+    const normalizedIdentifierKey = rawIdentifier.toLowerCase();
+
+    const [ipBurst, identifierBurst] = await Promise.all([
+      consumeRateLimit("auth:login:ip", clientIp, 12, 10 * 60, 10 * 60),
+      consumeRateLimit(
+        "auth:login:identifier",
+        normalizedIdentifierKey,
+        8,
+        15 * 60,
+        15 * 60,
+      ),
+    ]);
+
+    const blocked = [ipBurst, identifierBurst].find((result) => !result.allowed);
+    if (blocked) {
+      return rateLimitResponse(
+        blocked.retryAfterSeconds,
+        "Кіру әрекеттері тым жиі орындалды. Біраз уақыттан кейін қайта көріңіз.",
       );
     }
 

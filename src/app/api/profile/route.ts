@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { displayKzPhone, normalizePhone } from "@/lib/phone";
+import { getPasswordValidationError } from "@/lib/security/password";
 
 async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
@@ -127,8 +128,16 @@ export async function PATCH(request: Request) {
   const currentPassword =
     typeof body.currentPassword === "string" ? body.currentPassword : "";
 
-  if (newPassword && newPassword.length < 8) {
-    return NextResponse.json({ error: "Жаңа құпиясөз кемінде 8 таңбадан тұруы керек." }, { status: 400 });
+  if (newPassword) {
+    const passwordError = getPasswordValidationError(newPassword, [
+      current.full_name,
+      current.email,
+      current.phone,
+    ]);
+
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
   }
 
   if (newPassword) {
