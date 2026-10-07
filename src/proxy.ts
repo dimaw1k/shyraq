@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "./lib/supabase/config";
 
 const STAFF_ROLES = new Set(["MENTOR", "CHIEF_MENTOR", "LEADER"]);
+
 const MFA_EXEMPT_PREFIXES = [
   "/auth/callback",
   "/auth/recovery",
@@ -11,8 +12,26 @@ const MFA_EXEMPT_PREFIXES = [
   "/api/health",
 ];
 
+const AUTH_REQUIRED_PREFIXES = [
+  "/dashboard",
+  "/decks",
+  "/review",
+  "/settings",
+  "/statistics",
+  "/mentor",
+  "/leader",
+  "/student",
+  "/api/",
+];
+
 function isMfaExempt(pathname: string) {
   return MFA_EXEMPT_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + "/"));
+}
+
+function requiresAuth(pathname: string) {
+  return AUTH_REQUIRED_PREFIXES.some((prefix) =>
+    prefix.endsWith("/") ? pathname.startsWith(prefix) : pathname === prefix || pathname.startsWith(prefix + "/"),
+  );
 }
 
 function safeNextPath(request: NextRequest) {
@@ -22,6 +41,25 @@ function safeNextPath(request: NextRequest) {
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+    const origin = request.headers.get("origin");
+    if (origin && origin !== request.nextUrl.origin) {
+      return NextResponse.json(
+        { error: "Cross-origin request blocked." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
+  // Public pages must not depend on a Supabase network round-trip.
+  // This prevents an auth refresh/network stall from leaving the page in
+  // Next.js's route-level loading state indefinitely.
+  if (!requiresAuth(pathname) || isMfaExempt(pathname)) {
+    return response;
+  }
+
   const { url, publishableKey } = getSupabaseConfig();
 
   const supabase = createServerClient(url, publishableKey, {
@@ -37,21 +75,11 @@ export default async function proxy(request: NextRequest) {
     },
   });
 
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
-    const origin = request.headers.get("origin");
-    if (origin && origin !== request.nextUrl.origin) {
-      return NextResponse.json(
-        { error: "Cross-origin request blocked." },
-        { status: 403, headers: { "Cache-Control": "no-store" } },
-      );
-    }
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || isMfaExempt(request.nextUrl.pathname)) {
+  if (!user) {
     return response;
   }
 
@@ -75,7 +103,7 @@ export default async function proxy(request: NextRequest) {
 
   const nextPath = safeNextPath(request);
 
-  if (request.nextUrl.pathname.startsWith("/api/")) {
+  if (pathname.startsWith("/api/")) {
     return NextResponse.json(
       {
         error: "MFA_REQUIRED",
