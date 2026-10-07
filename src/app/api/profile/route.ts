@@ -3,8 +3,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { displayKzPhone, normalizePhone } from "@/lib/phone";
 
-const EDUCATION_TYPES = new Set(["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"]);
-
 async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
   const { data: profile, error } = await admin
@@ -108,12 +106,7 @@ export async function PATCH(request: Request) {
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : current.full_name;
   const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : current.phone;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : current.email;
-  const educationType =
-    typeof body.educationType === "string"
-      ? body.educationType.trim().toUpperCase()
-      : current.education_type;
-
-  if (fullName.length < 2 || fullName.length > 120) {
+    if (fullName.length < 2 || fullName.length > 120) {
     return NextResponse.json({ error: "Аты-жөніңіз 2–120 таңба болуы керек." }, { status: 400 });
   }
 
@@ -125,10 +118,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Электрондық пошта дұрыс емес." }, { status: 400 });
   }
 
-
-  if (!EDUCATION_TYPES.has(educationType)) {
-    return NextResponse.json({ error: "Білім алу деңгейі дұрыс емес." }, { status: 400 });
-  }
 
   const newPassword =
     typeof body.newPassword === "string" && body.newPassword.length > 0
@@ -155,7 +144,6 @@ export async function PATCH(request: Request) {
   const profileUpdate = {
     full_name: fullName,
     phone,
-    education_type: educationType,
     updated_at: new Date().toISOString(),
     ...(email !== current.email ? { email } : {}),
   };
@@ -207,7 +195,6 @@ export async function PATCH(request: Request) {
         ...(user.user_metadata ?? {}),
         full_name: fullName,
         phone,
-        education_type: educationType,
       },
     });
 
@@ -216,7 +203,6 @@ export async function PATCH(request: Request) {
         full_name: current.full_name,
         phone: current.phone,
         email: current.email,
-        education_type: current.education_type,
         updated_at: new Date().toISOString(),
       }).eq("id", user.id);
 
