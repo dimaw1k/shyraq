@@ -14,7 +14,6 @@ type Profile = {
   full_name: string;
   email: string;
   phone: string;
-  education_type: string;
   status: string;
   role: string;
   avatar_url?: string | null;
@@ -25,8 +24,6 @@ type Profile = {
 
 const inputClass =
   "mt-1.5 h-10 w-full rounded-[11px] border border-[#E8E1DA] bg-[#FFFCF9] px-3 py-2 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:bg-white focus:ring-4 focus:ring-[#FF8000]/10";
-
-const educationOptions = ["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"] as const;
 
 function getRoleLabel(role: string, t: (key: string) => string) {
   if (role === "STUDENT") return t("studentRole");
@@ -65,7 +62,6 @@ export function ProfileClient() {
     fullName: "",
     email: "",
     phone: "",
-    educationType: "OTHER",
     currentPassword: "",
     newPassword: "",
   });
@@ -92,7 +88,6 @@ export function ProfileClient() {
       fullName: data.profile.full_name ?? "",
       email: data.profile.email ?? "",
       phone: data.profile.phone ?? "",
-      educationType: data.profile.education_type ?? "OTHER",
       currentPassword: "",
       newPassword: "",
     }));
@@ -120,7 +115,6 @@ export function ProfileClient() {
           fullName: form.fullName,
           email: form.email,
           phone: form.phone,
-          educationType: form.educationType,
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
         }),
@@ -273,27 +267,6 @@ export function ProfileClient() {
             className={inputClass}
             inputMode="tel"
           />
-        </label>
-
-        <label className="text-[10px] font-extrabold text-[#3F3832]">
-          {t("educationLevel")}
-          <select
-            value={form.educationType}
-            onChange={(event) => setField("educationType", event.target.value)}
-            className={inputClass}
-          >
-            {educationOptions.map((option) => (
-              <option key={option} value={option}>
-                {option === "SCHOOL"
-                  ? t("school")
-                  : option === "COLLEGE"
-                    ? t("college")
-                    : option === "UNIVERSITY"
-                      ? t("university")
-                      : t("other")}
-              </option>
-            ))}
-          </select>
         </label>
 
         <div className="sm:col-span-2 rounded-[14px] border border-[#E8E1DA] bg-[#FAF7F3] p-3">
