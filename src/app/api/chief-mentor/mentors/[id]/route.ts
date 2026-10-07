@@ -20,9 +20,13 @@ export async function PATCH(request: Request,{params}:{params:Promise<{id:string
   if(typeof body?.status==="string") updates.status=body.status;
   if(Object.keys(updates).length===0) return NextResponse.json({error:"Өзгеріс жоқ."},{status:400});
 
-  const {data,error}=await admin.from("profiles").update(updates).eq("id",id).select("id,full_name,email,phone,role,status,age,created_at").single();
+  const {data,error}=await admin.from("profiles").update(updates).eq("id",id).select("id,full_name,email,phone,role,status,avatar_path,created_at").single();
   if(error||!data) return NextResponse.json({error:"Менторды жаңарту сәтсіз аяқталды."},{status:500});
 
+  const avatar_url = data.avatar_path
+    ? admin.storage.from("avatars").getPublicUrl(data.avatar_path).data.publicUrl
+    : null;
+
   await admin.from("audit_logs").insert({actor_id:profile.id,actor_role:profile.role,action:"CHIEF_MENTOR_PROFILE_UPDATED",entity_type:"PROFILE",entity_id:id,metadata:{changes:updates}});
-  return NextResponse.json({profile:data});
+  return NextResponse.json({profile:{...data,avatar_url}});
 }
