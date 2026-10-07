@@ -15,7 +15,7 @@ export default async function ChiefMentorMeetPage({
 
   const [{ data: teams }, { data: spaces }, { data: attendance }, { data: startRow }, { data: googleConnection }] = await Promise.all([
     supabase.from("teams").select("id,name,capacity").eq("status", "ACTIVE").order("name"),
-    supabase.from("meet_spaces").select("id,team_id,display_name,meeting_url,external_space_id,active").order("created_at", { ascending: false }),
+    supabase.from("meet_spaces").select("id,team_id,display_name,meeting_url,external_space_id,study_time,active").order("created_at", { ascending: false }),
     supabase.from("attendance_records").select("team_id,student_id,attendance_percent,attended_seconds,meeting_duration_seconds,status,started_at,ended_at").order("imported_at", { ascending: false }).limit(1000),
     supabase.from("tasks").select("starts_at").eq("marathon_day", 1).not("starts_at", "is", null).order("starts_at", { ascending: true }).limit(1).maybeSingle(),
     supabase.from("google_connections").select("google_email").eq("user_id", profile.id).maybeSingle(),
