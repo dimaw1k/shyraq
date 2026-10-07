@@ -64,7 +64,10 @@ export function ChiefMentorMeetManager({
       const team = teams.find((item) => item.id === teamId);
       if (data.space) {
         setSpaces((current) => [
-          ...current.filter((space) => space.team_id !== teamId),
+          ...current.filter(
+            (space) =>
+              !(space.team_id === teamId && space.study_time === studyTime),
+          ),
           { ...data.space, team_name: team?.name ?? "Команда" },
         ]);
       }
