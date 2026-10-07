@@ -67,15 +67,6 @@ function shiftDate(date: string, delta: number) {
   }).format(value);
 }
 
-function formatSyncTime(value: Date) {
-  return new Intl.DateTimeFormat("kk-KZ", {
-    timeZone: "Asia/Almaty",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(value);
-}
-
 export function ChiefMentorMeetManager({
   teams,
   rows,
