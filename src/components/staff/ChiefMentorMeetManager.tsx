@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarSync, ExternalLink, Loader2, Plus, RefreshCw, Unplug } from "lucide-react";
-import { PrimaryButton, StatusPill } from "@/components/ui/ShyraqUI";
+import { ExternalLink, Loader2, Plus, RefreshCw, Unplug } from "lucide-react";
+import { StatusPill } from "@/components/ui/ShyraqUI";
 
 type Team = { id: string; name: string; capacity: number | null };
 type Space = {
