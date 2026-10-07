@@ -20,14 +20,25 @@ async function withProfileContext<T extends Record<string, unknown>>(
   let mentorName: string | null = null;
 
   if (team?.mentor_id) {
-    const { data: mentor } = await admin.from("profiles").select("full_name").eq("id", team.mentor_id).maybeSingle();
+    const { data: mentor } = await admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", team.mentor_id)
+      .maybeSingle();
     mentorName = mentor?.full_name ?? null;
   }
 
   const avatarPath = typeof profile.avatar_path === "string" ? profile.avatar_path : null;
-  const avatarUrl = avatarPath ? admin.storage.from("avatars").getPublicUrl(avatarPath).data.publicUrl : null;
+  const avatarUrl = avatarPath
+    ? admin.storage.from("avatars").getPublicUrl(avatarPath).data.publicUrl
+    : null;
 
-  return { ...profile, avatar_url: avatarUrl, team_name: team?.name ?? null, mentor_name: mentorName };
+  return {
+    ...profile,
+    avatar_url: avatarUrl,
+    team_name: team?.name ?? null,
+    mentor_name: mentorName,
+  };
 }
 
 export async function GET() {
@@ -38,7 +49,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,full_name,email,phone,age,education_type,status,role,avatar_path,created_at")
+    .select("id,full_name,email,phone,status,role,avatar_path,created_at")
     .eq("id", user.id)
     .single();
 
@@ -72,21 +83,6 @@ export async function PATCH(request: Request) {
     updates.phone = phone;
   }
 
-  if (typeof body?.age === "number" && Number.isFinite(body.age)) {
-    if (!Number.isInteger(body.age) || body.age < 10 || body.age > 100) {
-      return NextResponse.json({ error: "Жас 10–100 аралығында болуы керек." }, { status: 400 });
-    }
-    updates.age = body.age;
-  }
-
-  if (typeof body?.educationType === "string") {
-    const educationType = body.educationType.trim().toUpperCase();
-    if (!["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"].includes(educationType)) {
-      return NextResponse.json({ error: "Білім алу деңгейі дұрыс емес." }, { status: 400 });
-    }
-    updates.education_type = educationType;
-  }
-
   if (!Object.keys(updates).length) {
     return NextResponse.json({ error: "No supported fields" }, { status: 400 });
   }
@@ -95,7 +91,7 @@ export async function PATCH(request: Request) {
     .from("profiles")
     .update(updates)
     .eq("id", user.id)
-    .select("id,full_name,email,phone,age,education_type,status,role,avatar_path")
+    .select("id,full_name,email,phone,status,role,avatar_path")
     .single();
 
   if (error) return NextResponse.json({ error: "Profile update failed" }, { status: 400 });
