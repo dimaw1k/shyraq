@@ -81,6 +81,12 @@ export default async function ChiefMentorMeetPage({
       .maybeSingle(),
   ]);
 
+  const mentorIds = [...new Set((teams ?? []).map((team) => team.mentor_id).filter(Boolean))] as string[];
+  const { data: mentors } = mentorIds.length
+    ? await supabase.from("profiles").select("id,full_name").in("id", mentorIds)
+    : { data: [] as Array<{ id: string; full_name: string }> };
+
+  const mentorMap = new Map((mentors ?? []).map((mentor) => [mentor.id, mentor.full_name]));
   const teamMap = new Map((teams ?? []).map((team) => [team.id, team]));
   const spaceMap = new Map(
     (spaces ?? []).map((space) => [space.external_space_id, space]),
@@ -146,6 +152,9 @@ export default async function ChiefMentorMeetPage({
       id: space.id,
       team_id: space.team_id,
       team_name: teamMap.get(space.team_id)?.name ?? "Команда",
+      mentor_name: teamMap.get(space.team_id)?.mentor_id
+        ? mentorMap.get(teamMap.get(space.team_id)!.mentor_id!) ?? "Ментор жоқ"
+        : "Ментор жоқ",
       study_time: space.study_time as Exclude<MeetType, "ALL">,
       display_name: space.display_name,
       meeting_url: space.meeting_url,
