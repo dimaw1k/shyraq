@@ -1,11 +1,13 @@
 import crypto from "node:crypto";
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
-  const response = await updateSession(request);
-
   const nonce = crypto.randomUUID();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = await updateSession(request, requestHeaders);
   const isProduction = process.env.NODE_ENV === "production";
   const csp = [
     "default-src 'self'",
@@ -26,7 +28,6 @@ export async function proxy(request: NextRequest) {
     .join("; ");
 
   response.headers.set("Content-Security-Policy", csp);
-  response.headers.set("x-nonce", nonce);
 
   return response;
 }
