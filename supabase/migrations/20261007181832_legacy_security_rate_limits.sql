@@ -1,0 +1,1 @@
+-- Historical migration marker. The actual schema is created by the following corrected migration.
