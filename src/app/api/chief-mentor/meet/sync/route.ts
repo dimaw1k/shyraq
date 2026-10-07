@@ -13,11 +13,12 @@ export async function POST(request:Request){
  const {data:me}=await supabase.from("profiles").select("role").eq("id",user.id).maybeSingle();
  if(me?.role!=="CHIEF_MENTOR")return NextResponse.json({error:"Chief Mentor access required"},{status:403});
  const body=await request.json().catch(()=>null);const teamId=typeof body?.teamId==="string"?body.teamId:"";
+ const studyTime=body?.studyTime==="EVENING"?"EVENING":"MORNING";
  if(!teamId)return NextResponse.json({error:"teamId қажет."},{status:400});
  const {data:team}=await supabase.from("teams").select("id,name,mentor_id,status").eq("id",teamId).maybeSingle();
  if(!team)return NextResponse.json({error:"Команда табылмады."},{status:404});
- const {data:space}=await supabase.from("meet_spaces").select("id,team_id,external_space_id,active").eq("team_id",teamId).eq("active",true).maybeSingle();
- if(!space)return NextResponse.json({error:"Бұл командаға Meet space қосылмаған."},{status:404});
+ const {data:space}=await supabase.from("meet_spaces").select("id,team_id,external_space_id,study_time,active").eq("team_id",teamId).eq("study_time",studyTime).eq("active",true).maybeSingle();
+ if(!space)return NextResponse.json({error:"Бұл командаға " + (studyTime==="MORNING"?"таңғы":"кешкі") + " Study Time Meet space қосылмаған."},{status:404});
 
  const now=new Date();const startTime=typeof body?.startTime==="string"?body.startTime:new Date(now.getTime()-7*86400000).toISOString();const endTime=typeof body?.endTime==="string"?body.endTime:now.toISOString();
  const token=await getGoogleAccessToken(user.id);
@@ -55,5 +56,5 @@ export async function POST(request:Request){
    }
  }
  await admin.from("audit_logs").insert({actor_id:user.id,actor_role:"CHIEF_MENTOR",action:"CHIEF_MENTOR_MEET_SYNCED",entity_type:"TEAM",entity_id:teamId,metadata:{importedConferences,attendanceRows,matchedParticipants,unmatchedParticipants}});
- return NextResponse.json({ok:true,teamId,importedConferences,attendanceRows,matchedParticipants,unmatchedParticipants,range:{startTime,endTime}});
+ return NextResponse.json({ok:true,teamId,studyTime,importedConferences,attendanceRows,matchedParticipants,unmatchedParticipants,range:{startTime,endTime}});
 }
