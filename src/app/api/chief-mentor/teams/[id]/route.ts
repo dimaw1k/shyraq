@@ -59,6 +59,22 @@ export async function PATCH(
       ? Math.max(1, Math.floor(body.capacity))
       : Number(current.capacity ?? 70);
 
+  const { count: activeStudentCount } = await admin
+    .from("team_members")
+    .select("*", { count: "exact", head: true })
+    .eq("team_id", id)
+    .eq("status", "ACTIVE");
+
+  if (Number(activeStudentCount ?? 0) > nextCapacity) {
+    return NextResponse.json(
+      {
+        error:
+          "Сыйымдылықты командадағы қазіргі оқушылар санынан төмен қоюға болмайды.",
+      },
+      { status: 409 },
+    );
+  }
+
   const nextStatus = typeof body.status === "string" ? body.status : current.status;
   if (!STATUSES.has(nextStatus)) {
     return NextResponse.json({ error: "Жарамсыз команда статусы." }, { status: 400 });
