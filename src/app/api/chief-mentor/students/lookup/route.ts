@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
-import { normalizePhone } from "@/lib/phone";
+import { displayKzPhone, normalizePhone } from "@/lib/phone";
 
 export async function POST(request: Request) {
   await getAuthenticatedStaff("CHIEF_MENTOR");
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       id: data.id,
       full_name: data.full_name,
       email: data.email,
-      phone: data.phone,
+      phone: displayKzPhone(data.phone),
       status: data.status,
       role: data.role,
       avatar_url,
