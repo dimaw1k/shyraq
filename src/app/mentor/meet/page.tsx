@@ -75,7 +75,7 @@ export default async function MentorMeetPage({
                 {workspace.meetSpace?.meeting_url ? (
                   <a href={workspace.meetSpace.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white"><Video size={14} /> Кездесуге кіру</a>
                 ) : null}
-                <MentorMeetSync teamId={workspace.team.id} googleConnected={workspace.googleConnected} />
+                <MentorMeetSync teamId={workspace.team.id} teamName={workspace.team.name} googleConnected={workspace.googleConnected} hasMeetSpace={Boolean(workspace.meetSpace?.meeting_url)} />
                 {workspace.meetSpace?.meeting_url ? (
                   <a href={workspace.meetSpace.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E3DD] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><ExternalLink size={13} /> Сілтемені ашу</a>
                 ) : null}
