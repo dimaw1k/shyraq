@@ -237,79 +237,69 @@ export default async function ChiefMentorPage() {
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="" hideHeader>
       <PageContainer>
         <div className="space-y-5">
-          <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-            <DashboardBanner banners={bannerItems} />
+          <section className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_250px]">
+            <div className="min-w-0">
+              <DashboardBanner banners={bannerItems} />
+              <div className="mt-3">
+                <h1 className="text-[22px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[28px]">
+                  Басқару орталығы
+                </h1>
+              </div>
+            </div>
 
-            <aside className="grid gap-2.5 xl:sticky xl:top-[72px]">
-              <Card className="p-3.5 sm:p-4">
-                <div className="flex items-center justify-between gap-3">
+            <aside className="grid gap-2 xl:sticky xl:top-[72px]">
+              <Card className="p-2.5 sm:p-3">
+                <div className="flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                    <p className="text-[7px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
                       МЕНТОР
                     </p>
-                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                    <p className="mt-0.5 text-[19px] leading-none font-extrabold tracking-[-.045em] text-[var(--foreground)]">
                       {mentorCount ?? 0}
                     </p>
-                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">белсенді</p>
+                    <p className="mt-1 text-[8px] font-medium text-[#8B8179]">белсенді</p>
                   </div>
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
-                    <Users size={16} />
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Users size={14} />
                   </span>
                 </div>
               </Card>
 
-              <Card className="p-3.5 sm:p-4">
-                <div className="flex items-center justify-between gap-3">
+              <Card className="p-2.5 sm:p-3">
+                <div className="flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                    <p className="text-[7px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
                       КОМАНДА
                     </p>
-                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                    <p className="mt-0.5 text-[19px] leading-none font-extrabold tracking-[-.045em] text-[var(--foreground)]">
                       {teamCount ?? 0}
                     </p>
-                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">белсенді</p>
+                    <p className="mt-1 text-[8px] font-medium text-[#8B8179]">белсенді</p>
                   </div>
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
-                    <UsersRound size={16} />
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <UsersRound size={14} />
                   </span>
                 </div>
               </Card>
 
-              <Card className="p-3.5 sm:p-4">
-                <div className="flex items-center justify-between gap-3">
+              <Card className="p-2.5 sm:p-3">
+                <div className="flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                    <p className="text-[7px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
                       ОҚУШЫ
                     </p>
-                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                    <p className="mt-0.5 text-[19px] leading-none font-extrabold tracking-[-.045em] text-[var(--foreground)]">
                       {studentCount ?? 0}
                     </p>
-                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">барлығы</p>
+                    <p className="mt-1 text-[8px] font-medium text-[#8B8179]">барлығы</p>
                   </div>
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
-                    <Users size={16} />
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Users size={14} />
                   </span>
                 </div>
               </Card>
             </aside>
           </section>
-
-          <div className="flex items-end justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[var(--accent)]">
-                БАС МЕНТОР
-              </p>
-              <h1 className="mt-1 text-[24px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[30px]">
-                Басқару орталығы
-              </h1>
-            </div>
-            <div className="hidden text-right sm:block">
-              <p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
-                БҮГІН
-              </p>
-              <p className="mt-1 text-[11px] font-extrabold text-[#4B433C]">{today}</p>
-            </div>
-          </div>
 
           <section className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
             <Card className="overflow-hidden">
