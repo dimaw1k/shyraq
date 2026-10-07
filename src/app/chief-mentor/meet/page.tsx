@@ -13,11 +13,12 @@ export default async function ChiefMentorMeetPage({
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
   const selectedDay = Math.min(21, Math.max(1, Number((await searchParams)?.day ?? 1) || 1));
 
-  const [{ data: teams }, { data: spaces }, { data: attendance }, { data: startRow }] = await Promise.all([
+  const [{ data: teams }, { data: spaces }, { data: attendance }, { data: startRow }, { data: googleConnection }] = await Promise.all([
     supabase.from("teams").select("id,name,capacity").eq("status", "ACTIVE").order("name"),
     supabase.from("meet_spaces").select("id,team_id,display_name,meeting_url,external_space_id,active").order("created_at", { ascending: false }),
     supabase.from("attendance_records").select("team_id,student_id,attendance_percent,attended_seconds,meeting_duration_seconds,status,started_at,ended_at").order("imported_at", { ascending: false }).limit(1000),
     supabase.from("tasks").select("starts_at").eq("marathon_day", 1).not("starts_at", "is", null).order("starts_at", { ascending: true }).limit(1).maybeSingle(),
+    supabase.from("google_connections").select("google_email").eq("user_id", profile.id).maybeSingle(),
   ]);
 
   const teamNames = new Map((teams ?? []).map((team) => [team.id, team.name]));
@@ -43,7 +44,7 @@ export default async function ChiefMentorMeetPage({
             <MetricCard label="ҚАТЫСУ" value={avg ? avg.toFixed(1) + "%" : "—"} hint={selectedDay + "-күн"} />
             <MetricCard label="ҚАТЫСҚАНДАР" value={String(attended)} hint="жазба" />
           </section>
-          <ChiefMentorMeetManager teams={teams ?? []} initialSpaces={spaceRows} />
+          <ChiefMentorMeetManager teams={teams ?? []} initialSpaces={spaceRows} googleConnected={Boolean(googleConnection?.google_email)} />
           <Card className="overflow-hidden">
             <div className="border-b border-[#EFE8E1] px-5 py-4">
               <p className="text-[13px] font-extrabold text-[#172235]">{selectedDay}-күннің қатысу тарихы</p>
