@@ -52,12 +52,21 @@ async function getContext(userId: string) {
     ? admin.storage.from("avatars").getPublicUrl(profile.avatar_path).data.publicUrl
     : null;
 
+  const { data: googleConnection } = profile.role === "CHIEF_MENTOR"
+    ? await admin
+        .from("google_connections")
+        .select("google_email")
+        .eq("user_id", userId)
+        .maybeSingle()
+    : { data: null };
+
   return {
     ...profile,
     phone: displayKzPhone(profile.phone),
     avatar_url: avatarUrl,
     team_names: teamNames,
     mentor_name: mentorName,
+    google_connected: Boolean(googleConnection?.google_email),
   };
 }
 
