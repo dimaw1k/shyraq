@@ -7,7 +7,7 @@ async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
   const { data: profile, error } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,education_type,status,role,avatar_path,created_at,updated_at")
+    .select("id,full_name,email,phone,status,role,avatar_path,created_at,updated_at")
     .eq("id", userId)
     .single();
 
@@ -95,7 +95,7 @@ export async function PATCH(request: Request) {
   const admin = createAdminSupabaseClient();
   const { data: current, error: currentError } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,education_type,role,status,avatar_path")
+    .select("id,full_name,email,phone,role,status,avatar_path")
     .eq("id", user.id)
     .single();
 
@@ -106,7 +106,8 @@ export async function PATCH(request: Request) {
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : current.full_name;
   const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : current.phone;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : current.email;
-    if (fullName.length < 2 || fullName.length > 120) {
+
+  if (fullName.length < 2 || fullName.length > 120) {
     return NextResponse.json({ error: "Аты-жөніңіз 2–120 таңба болуы керек." }, { status: 400 });
   }
 
