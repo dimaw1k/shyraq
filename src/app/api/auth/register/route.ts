@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
+import { getPasswordValidationError } from "@/lib/security/password";
+import {
+  consumeRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/security/rate-limit";
 
 type RegisterPayload = {
   phone?: unknown;
@@ -8,6 +14,7 @@ type RegisterPayload = {
   firstName?: unknown;
   lastName?: unknown;
   password?: unknown;
+  website?: unknown;
 };
 
 function text(value: unknown) {
@@ -23,6 +30,35 @@ export async function POST(request: Request) {
     const firstName = text(body.firstName);
     const lastName = text(body.lastName);
     const password = typeof body.password === "string" ? body.password : "";
+    const website = text(body.website);
+    const clientIp = getClientIp(request);
+
+    if (website) {
+      return NextResponse.json(
+        { field: "form", error: "Тіркелу кезінде қате болды. Қайта көріңіз." },
+        { status: 400 },
+      );
+    }
+
+    const [ipBurst, ipHourly, emailBurst] = await Promise.all([
+      consumeRateLimit("auth:register:ip:burst", clientIp, 5, 10 * 60, 10 * 60),
+      consumeRateLimit("auth:register:ip:hour", clientIp, 30, 60 * 60, 30 * 60),
+      consumeRateLimit(
+        "auth:register:email",
+        email,
+        3,
+        30 * 60,
+        30 * 60,
+      ),
+    ]);
+
+    const blocked = [ipBurst, ipHourly, emailBurst].find((result) => !result.allowed);
+    if (blocked) {
+      return rateLimitResponse(
+        blocked.retryAfterSeconds,
+        "Тіркелу әрекеттері тым жиі орындалды. Біраз уақыттан кейін қайта көріңіз.",
+      );
+    }
 
     if (!isValidKzPhone(phone)) {
       return NextResponse.json({ field: "phone", error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
@@ -42,8 +78,18 @@ export async function POST(request: Request) {
 
 
 
-    if (password.length < 8) {
-      return NextResponse.json({ field: "password", error: "Құпиясөз кемінде 8 таңба болуы керек." }, { status: 400 });
+    const passwordError = getPasswordValidationError(password, [
+      firstName,
+      lastName,
+      email.split("@")[0] ?? "",
+      phone.replace(/\D/g, ""),
+    ]);
+
+    if (passwordError) {
+      return NextResponse.json(
+        { field: "password", error: passwordError },
+        { status: 400 },
+      );
     }
 
     const normalizedPhone = normalizePhone(phone);
