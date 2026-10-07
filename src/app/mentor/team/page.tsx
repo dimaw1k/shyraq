@@ -6,6 +6,7 @@ import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 import { marathonDayFromDate } from "@/lib/marathon";
 import { getMentorPageData } from "@/lib/mentor/auth";
 import { uiLabel } from "@/lib/ui-labels";
+import { displayKzPhone } from "@/lib/phone";
 
 export default async function MentorTeamPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { profile, workspace, supabase } = await getMentorPageData();
@@ -154,7 +155,7 @@ export default async function MentorTeamPage({ searchParams }: { searchParams?: 
                       </div>
 
                       <div className="min-w-0 text-[8px] font-semibold text-[#8B8179]">
-                        <p className="truncate">{student.phone}</p>
+                        <p className="truncate">{displayKzPhone(student.phone)}</p>
                         <p className="mt-0.5 truncate">{student.email}</p>
                       </div>
 

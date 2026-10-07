@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
-import { isValidKzPhone, normalizePhone } from "@/lib/phone";
+import { displayKzPhone, isValidKzPhone, normalizePhone } from "@/lib/phone";
 
 export async function POST(request: Request) {
   await getAuthenticatedStaff("CHIEF_MENTOR");
@@ -66,6 +66,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     registered: true,
-    profile: { ...data, avatar_url, team_name },
+    profile: { ...data, phone: displayKzPhone(data.phone), avatar_url, team_name },
   });
 }

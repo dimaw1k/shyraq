@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Check, Loader2, Search, UserPlus, X } from "lucide-react";
-import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { displayKzPhone, formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
 type Mentor = {
   id: string;
@@ -305,7 +305,7 @@ export function ChiefMentorMentorManager({
                         Телефон
                       </p>
                       <p className="mt-1 text-[10px] font-extrabold text-[#172235]">
-                        {lookup.phone || "—"}
+                        {displayKzPhone(lookup.phone)}
                       </p>
                     </div>
                     <div className="rounded-[11px] bg-[#FFFCF9] px-3 py-2.5">
@@ -395,7 +395,7 @@ export function ChiefMentorMentorManager({
               </p>
 
               <p className="text-[12px] font-extrabold text-[#354153]">
-                {mentor.phone || "—"}
+                {displayKzPhone(mentor.phone)}
               </p>
 
               <p className="truncate text-[12px] font-extrabold text-[#354153]">

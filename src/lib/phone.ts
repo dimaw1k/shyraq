@@ -44,3 +44,11 @@ export function formatKzPhone(input: string): string {
 export function isValidKzPhone(input: string): boolean {
   return /^\+7\d{10}$/.test(normalizePhone(input));
 }
+
+
+export function displayKzPhone(input: string | null | undefined): string {
+  const value = typeof input === "string" ? input.trim() : "";
+  if (!value) return "—";
+  const formatted = formatKzPhone(value);
+  return formatted || value;
+}

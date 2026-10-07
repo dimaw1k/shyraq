@@ -9,6 +9,7 @@ import { MarathonDayNavigator } from "@/components/staff/MarathonDayNavigator";
 import { marathonDayFromDate } from "@/lib/marathon";
 import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { displayKzPhone } from "@/lib/phone";
 
 function educationText(value: string | null) {
   if (value === "SCHOOL") return "Мектеп";
@@ -153,7 +154,7 @@ export default async function LeaderStudentsPage({ searchParams }: { searchParam
                         </div>
                       </div>
                       <div className="text-[8px] font-semibold text-[#8B8179]">
-                        <p className="truncate">{student.phone}</p>
+                        <p className="truncate">{displayKzPhone(student.phone)}</p>
                         <p className="mt-0.5 truncate">{student.email}</p>
                       </div>
                       <div className="flex items-center gap-2">

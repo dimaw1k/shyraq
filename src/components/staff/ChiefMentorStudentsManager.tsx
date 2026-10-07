@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Loader2, Search, UserPlus, X } from "lucide-react";
-import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { displayKzPhone, formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
 type StudentRow = {
   id: string;
@@ -425,7 +425,7 @@ export function ChiefMentorStudentsManager({
                         {lookup.email}
                       </p>
                       <p className="mt-0.5 truncate text-[10px] font-semibold text-[#8F857D]">
-                        {lookup.phone || "—"}
+                        {displayKzPhone(lookup.phone)}
                       </p>
                     </div>
                   </div>
@@ -524,7 +524,7 @@ export function ChiefMentorStudentsManager({
                   </p>
 
                   <p className="text-[12px] font-extrabold text-[#354153]">
-                    {row.phone || "—"}
+                    {displayKzPhone(row.phone)}
                   </p>
 
                   <select
