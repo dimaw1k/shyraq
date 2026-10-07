@@ -61,15 +61,15 @@ begin
   on conflict (bucket_key) do nothing;
 
   select
-    window_started_at,
-    hits,
-    blocked_until
+    rl.window_started_at,
+    rl.hits,
+    rl.blocked_until
   into
     current_window_started,
     current_hits,
     current_blocked_until
-  from public.security_rate_limit_buckets
-  where bucket_key = p_bucket_key
+  from public.security_rate_limit_buckets as rl
+  where rl.bucket_key = p_bucket_key
   for update;
 
   if current_blocked_until is not null and current_blocked_until > now_ts then
