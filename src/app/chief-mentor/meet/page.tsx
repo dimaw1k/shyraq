@@ -93,7 +93,7 @@ export default async function ChiefMentorMeetPage({
 
   const latestConferenceBySpace = new Map<
     string,
-    new Map<NonNullable<typeof conferences>[number]["space_name"], NonNullable<typeof conferences>[number]>
+    NonNullable<typeof conferences>[number]
   >();
   for (const conference of conferences ?? []) {
     if (!latestConferenceBySpace.has(conference.space_name)) {
