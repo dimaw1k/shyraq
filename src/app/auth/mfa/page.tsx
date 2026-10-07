@@ -54,7 +54,12 @@ export default function MfaPage() {
         factors.find((item) => item.status === "unverified");
 
       if (existingFactor) {
-        setFactor(existingFactor);
+        setFactor({
+          id: existingFactor.id,
+          friendly_name: existingFactor.friendly_name,
+          status: existingFactor.status === "verified" ? "verified" : "unverified",
+          factor_type: existingFactor.factor_type,
+        });
         setStep("verify");
         return;
       }
