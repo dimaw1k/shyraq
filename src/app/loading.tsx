@@ -1,16 +1,8 @@
 "use client";
 
-import { Montserrat } from "next/font/google";
-
-const montserrat = Montserrat({
-  subsets: ["cyrillic", "latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-
 export default function Loading() {
   return (
-    <main className={montserrat.className + " min-h-screen bg-[#FAF9F7] text-[#172235]"}>
+    <main className="min-h-screen bg-[#FAF9F7] text-[#172235]">
       <div className="flex min-h-screen items-center justify-center px-5">
         <div className="w-full max-w-sm rounded-[24px] border border-[#E8E3DD] bg-white p-6 shadow-[0_18px_55px_rgba(23,34,53,.06)]">
           <div className="flex items-center gap-3">
