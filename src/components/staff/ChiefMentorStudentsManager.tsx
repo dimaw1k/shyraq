@@ -1,29 +1,19 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
-import {
-  ArrowRight,
-  ArrowRightLeft,
-  CheckCircle2,
-  Search,
-  UsersRound,
-} from "lucide-react";
-import { StatusPill } from "@/components/ui/ShyraqUI";
+import { Loader2, Search, UserPlus, X } from "lucide-react";
+import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
 
-type Row = {
+type StudentRow = {
   id: string;
   full_name: string;
   email: string;
   phone: string;
   status: string;
+  avatar_url: string | null;
   team_id: string | null;
   team_name: string | null;
-  mentor_name: string | null;
-  score: number;
-  report_count: number;
-  task_count: number;
-  video: number;
 };
 
 type Team = {
@@ -33,67 +23,202 @@ type Team = {
   count: number;
 };
 
-function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "О";
-}
+type Stats = {
+  total: number;
+  assigned: number;
+  unassigned: number;
+};
 
-function statusText(status: string) {
-  if (status === "ACTIVE") return "Белсенді";
-  if (status === "INACTIVE") return "Өшірулі";
-  if (status === "WAITING_FOR_TEAM") return "Команда күтуде";
-  if (status === "REGISTERED") return "Тіркелген";
-  if (status === "COMPLETED") return "Аяқтаған";
-  return status;
+type Lookup = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  role: string;
+  avatar_url: string | null;
+  team_name: string | null;
+  team_id: string | null;
+};
+
+function initials(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "О"
+  );
 }
 
 export function ChiefMentorStudentsManager({
   initialStudents,
-  teams,
+  teams: initialTeams,
+  initialStats,
 }: {
-  initialStudents: Row[];
+  initialStudents: StudentRow[];
   teams: Team[];
+  initialStats: Stats;
 }) {
   const [rows, setRows] = useState(initialStudents);
+  const [teams, setTeams] = useState(initialTeams);
+  const [stats, setStats] = useState(initialStats);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("ALL");
-  const [team, setTeam] = useState("ALL");
-  const [saving, setSaving] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const [openAdd, setOpenAdd] = useState(false);
+  const [identifier, setIdentifier] = useState("");
+  const [lookup, setLookup] = useState<Lookup | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState("");
   const [message, setMessage] = useState("");
+  const [savingAdd, setSavingAdd] = useState(false);
 
-  const filtered = useMemo(
-    () =>
-      rows.filter((row) => {
-        const q = query.trim().toLowerCase();
-        const qMatch =
-          !q ||
-          [row.full_name, row.email, row.phone, row.team_name ?? "", row.mentor_name ?? ""]
-            .join(" ")
-            .toLowerCase()
-            .includes(q);
-        return (
-          qMatch &&
-          (status === "ALL" || row.status === status) &&
-          (team === "ALL" || row.team_id === team)
-        );
-      }),
-    [rows, query, status, team],
-  );
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLocaleLowerCase("kk-KZ");
+    if (!q) return rows;
 
-  const averageVideo = filtered.length
-    ? filtered.reduce((sum, row) => sum + row.video, 0) / filtered.length
-    : 0;
+    return rows.filter((row) =>
+      [row.full_name, row.email, row.phone, row.team_name ?? ""]
+        .join(" ")
+        .toLocaleLowerCase("kk-KZ")
+        .includes(q),
+    );
+  }, [rows, searchQuery]);
 
-  async function move(id: string, nextTeamId: string) {
-    setSaving(id);
+  function refreshStats(nextRows: StudentRow[]) {
+    const assigned = nextRows.filter((row) => Boolean(row.team_id)).length;
+    setStats({
+      total: nextRows.length,
+      assigned,
+      unassigned: nextRows.length - assigned,
+    });
+  }
+
+  function resetAddModal() {
+    setOpenAdd(false);
+    setIdentifier("");
+    setLookup(null);
+    setSelectedTeamId("");
+    setMessage("");
+    setLookupLoading(false);
+    setSavingAdd(false);
+  }
+
+  function openAddModal() {
+    setIdentifier("");
+    setLookup(null);
+    setSelectedTeamId("");
+    setMessage("");
+    setOpenAdd(true);
+  }
+
+  async function lookupStudent() {
+    const value = identifier.trim();
+    if (!value) return;
+
+    setLookupLoading(true);
+    setLookup(null);
     setMessage("");
 
     try {
-      const response = await fetch("/api/chief-mentor/students/" + id, {
+      const response = await fetch("/api/chief-mentor/students/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: value }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Оқушыны іздеу сәтсіз аяқталды.");
+      }
+
+      if (!data.profile) {
+        setMessage("Бұл телефон немесе email арқылы аккаунт табылмады.");
+        return;
+      }
+
+      setLookup(data.profile);
+      setSelectedTeamId(data.profile.team_id ?? "");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Қате");
+    } finally {
+      setLookupLoading(false);
+    }
+  }
+
+  async function saveStudent() {
+    if (!lookup || !selectedTeamId) {
+      setMessage("Оқушыны қосу үшін команда таңдаңыз.");
+      return;
+    }
+
+    setSavingAdd(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/chief-mentor/students/" + lookup.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: selectedTeamId,
+          allowAdd: true,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Оқушыны қосу сәтсіз аяқталды.");
+      }
+
+      const selectedTeam = teams.find((team) => team.id === selectedTeamId);
+      const newRow: StudentRow = {
+        id: lookup.id,
+        full_name: lookup.full_name,
+        email: lookup.email,
+        phone: lookup.phone,
+        status: data.profile?.status ?? "ACTIVE",
+        avatar_url: lookup.avatar_url,
+        team_id: selectedTeamId,
+        team_name: selectedTeam?.name ?? null,
+      };
+
+      setRows((current) =>
+        current.some((row) => row.id === lookup.id)
+          ? current.map((row) => (row.id === lookup.id ? newRow : row))
+          : [newRow, ...current],
+      );
+
+      setTeams((current) =>
+        current.map((team) => {
+          if (team.id === selectedTeamId) return { ...team, count: team.count + 1 };
+          if (team.id === lookup.team_id) return { ...team, count: Math.max(0, team.count - 1) };
+          return team;
+        }),
+      );
+
+      const nextRows = rows.some((row) => row.id === lookup.id)
+        ? rows.map((row) => (row.id === lookup.id ? newRow : row))
+        : [newRow, ...rows];
+
+      refreshStats(nextRows);
+      resetAddModal();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Қате");
+    } finally {
+      setSavingAdd(false);
+    }
+  }
+
+  async function changeTeam(studentId: string, nextTeamId: string) {
+    setSavingId(studentId);
+    setMessage("");
+
+    try {
+      const previous = rows.find((row) => row.id === studentId);
+      const response = await fetch("/api/chief-mentor/students/" + studentId, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId: nextTeamId || null }),
@@ -104,271 +229,317 @@ export function ChiefMentorStudentsManager({
         throw new Error(data.error ?? "Команданы өзгерту сәтсіз аяқталды.");
       }
 
+      const nextTeam = teams.find((team) => team.id === nextTeamId);
+
       setRows((current) =>
         current.map((row) =>
-          row.id === id
+          row.id === studentId
             ? {
                 ...row,
                 team_id: nextTeamId || null,
-                team_name: teams.find((item) => item.id === nextTeamId)?.name ?? null,
+                team_name: nextTeam?.name ?? null,
+                status: data.profile?.status ?? row.status,
               }
             : row,
         ),
       );
+
+      setTeams((current) =>
+        current.map((team) => {
+          if (team.id === nextTeamId) return { ...team, count: team.count + 1 };
+          if (team.id === previous?.team_id) return { ...team, count: Math.max(0, team.count - 1) };
+          return team;
+        }),
+      );
+
+      const nextRows = rows.map((row) =>
+        row.id === studentId
+          ? {
+              ...row,
+              team_id: nextTeamId || null,
+              team_name: nextTeam?.name ?? null,
+            }
+          : row,
+      );
+      refreshStats(nextRows);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Қате");
     } finally {
-      setSaving(null);
+      setSavingId(null);
     }
   }
 
   return (
-    <div>
-      <div className="border-b border-[#EFE8E1] bg-[#FFFCF9] p-4 sm:p-5">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {([
-            ["ОҚУШЫ", String(filtered.length), "көрсетілген", UsersRound],
-            ["БЕЙНЕ КӨРУ", averageVideo ? averageVideo.toFixed(1) + "%" : "—", "орташа coverage", CheckCircle2],
-          ] as Array<[string, string, string, typeof UsersRound]>).map(([label, value, hint, Icon]) => {
-            const MetricIcon = Icon as typeof CheckCircle2;
-            return (
-              <div
-                key={String(label)}
-                className="rounded-[18px] border border-[#E8E1DA] bg-white px-4 py-3.5"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.14em] text-[#A19890]">
-                      {label}
-                    </p>
-                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[#172235]">
-                      {value}
-                    </p>
-                    <p className="mt-0.5 text-[9px] font-semibold text-[#8B8179]">{hint}</p>
-                  </div>
-                  <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-[#FFF1E2] text-[#FF8000]">
-                    <MetricIcon size={15} />
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-[25px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[30px]">
+          Оқушылар
+        </h1>
 
-        <div className="mt-4 flex flex-col gap-2.5 lg:flex-row">
-          <div className="relative min-w-0 flex-1">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A19890]"
-            />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Оқушы, телефон, email немесе команда..."
-              className="h-10 w-full rounded-[12px] border border-[#E8E1DA] bg-white pl-9 pr-3 text-[10px] font-semibold outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[#FF8000]/10"
-            />
-          </div>
-
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            className="h-10 rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-bold"
-          >
-            <option value="ALL">Барлық статус</option>
-            <option value="ACTIVE">Белсенді</option>
-            <option value="WAITING_FOR_TEAM">Команда күтуде</option>
-            <option value="INACTIVE">Өшірулі</option>
-            <option value="COMPLETED">Аяқтаған</option>
-          </select>
-
-          <select
-            value={team}
-            onChange={(event) => setTeam(event.target.value)}
-            className="h-10 rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-bold"
-          >
-            <option value="ALL">Барлық команда</option>
-            {teams.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {message ? (
-          <p className="mt-3 rounded-[12px] border border-[#F2D8D1] bg-[#FFF5F2] px-3 py-2.5 text-[9px] font-semibold text-[#B54D2B]">
-            {message}
-          </p>
-        ) : null}
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[11px] bg-[var(--accent)] px-4 text-[10px] font-extrabold text-white shadow-[0_8px_18px_rgba(255,128,0,.13)] transition hover:bg-[#E56F00]"
+        >
+          <UserPlus size={14} />
+          Оқушы қосу
+        </button>
       </div>
 
-      <div className="hidden overflow-x-auto lg:block">
-        <div className="min-w-[1120px]">
-          <div className="grid grid-cols-[54px_2.4fr_1.1fr_110px_110px_130px_190px] items-center gap-3 border-b border-[#EFE8E1] bg-[#FAF8F5] px-5 py-3 text-[8px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
-            <span>№</span>
-            <span>ОҚУШЫ</span>
-            <span>БЕЙНЕ</span>
-            <span>ҰПАЙ</span>
-            <span>ТАПСЫРМА</span>
-            <span>СТАТУС</span>
-            <span className="text-right">КОМАНДА</span>
+      <div className="grid gap-2.5 sm:grid-cols-3">
+        {[
+          ["Оқушылар", stats.total],
+          ["Командасы бар", stats.assigned],
+          ["Командасы жоқ", stats.unassigned],
+        ].map(([label, value]) => (
+          <div
+            key={String(label)}
+            className="rounded-[15px] border border-[#E8E1DA] bg-white px-4 py-3"
+          >
+            <p className="text-[9px] font-extrabold uppercase tracking-[.13em] text-[#9A9189]">
+              {label}
+            </p>
+            <p className="mt-1 text-[23px] font-extrabold leading-none tracking-[-.045em] text-[#172235]">
+              {value}
+            </p>
           </div>
+        ))}
+      </div>
 
-          <div className="divide-y divide-[#F0EBE6]">
-            {filtered.map((row, index) => {
-              return (
-                <div
-                  key={row.id}
-                  className="grid grid-cols-[54px_2.4fr_1.1fr_110px_110px_130px_190px] items-center gap-3 px-5 py-3.5 transition hover:bg-[#FFFCF9]"
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A19890]"
+          />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Оқушыны іздеу..."
+            className="h-11 w-full rounded-[13px] border border-[#E8E1DA] bg-white pl-10 pr-3.5 text-[11px] font-semibold text-[#172235] outline-none transition focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setSearchQuery(query.trim())}
+          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[13px] bg-[#172235] px-4 text-[10px] font-extrabold text-white"
+        >
+          <Search size={14} />
+          Іздеу
+        </button>
+      </div>
+
+      {message && !openAdd ? (
+        <p className="rounded-[11px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-semibold text-[#8A4B1F]">
+          {message}
+        </p>
+      ) : null}
+
+      {openAdd ? (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#172235]/30 p-4 backdrop-blur-[3px]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className={[
+              "w-full overflow-hidden rounded-[20px] border border-white/80 bg-[#FAF9F7] shadow-[0_24px_70px_rgba(23,34,53,.22)]",
+              lookup ? "max-w-[520px]" : "max-w-[410px]",
+            ].join(" ")}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-[#E8E1DA] px-4 py-3.5">
+              <h2 className="text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
+                Оқушы қосу
+              </h2>
+              <button
+                type="button"
+                onClick={resetAddModal}
+                disabled={lookupLoading || savingAdd}
+                className="grid h-8 w-8 place-items-center rounded-[10px] border border-[#E8E1DA] bg-white text-[#5B534C] disabled:opacity-50"
+                aria-label="Жабу"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="p-4">
+              <div className="flex gap-2">
+                <input
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void lookupStudent();
+                  }}
+                  autoFocus
+                  placeholder="Телефон немесе email"
+                  className="h-11 min-w-0 flex-1 rounded-[12px] border border-[#E8E1DA] bg-white px-3.5 text-[11px] font-semibold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-4 focus:ring-[#FF8000]/10"
+                />
+                <button
+                  type="button"
+                  disabled={lookupLoading || !identifier.trim()}
+                  onClick={() => void lookupStudent()}
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-[var(--accent)] text-white disabled:opacity-50"
+                  aria-label="Іздеу"
                 >
-                  <span className="text-[10px] font-bold text-[#A19890]">{index + 1}</span>
+                  {lookupLoading ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Search size={15} />
+                  )}
+                </button>
+              </div>
 
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#172235] text-[9px] font-extrabold text-white">
-                      {initials(row.full_name)}
-                    </span>
+              {lookup ? (
+                <div className="mt-3 rounded-[15px] border border-[#E8E1DA] bg-white p-3.5">
+                  <div className="flex items-center gap-3">
+                    {lookup.avatar_url ? (
+                      <Image
+                        src={lookup.avatar_url}
+                        alt=""
+                        width={44}
+                        height={44}
+                        unoptimized
+                        className="h-11 w-11 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FFF1E2] text-[11px] font-extrabold text-[#C15F00]">
+                        {initials(lookup.full_name)}
+                      </span>
+                    )}
                     <div className="min-w-0">
-                      <Link
-                        href={"/chief-mentor/students/" + row.id}
-                        className="block truncate text-[11px] font-extrabold text-[#263247] hover:text-[#FF8000]"
-                      >
-                        {row.full_name}
-                      </Link>
-                      <p className="mt-0.5 truncate text-[8px] font-semibold text-[#9A9189]">
-                        {row.email}
+                      <p className="truncate text-[14px] font-extrabold text-[#172235]">
+                        {lookup.full_name}
+                      </p>
+                      <p className="mt-0.5 truncate text-[10px] font-semibold text-[#8F857D]">
+                        {lookup.email}
+                      </p>
+                      <p className="mt-0.5 truncate text-[10px] font-semibold text-[#8F857D]">
+                        {lookup.phone || "—"}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-[10px] font-extrabold text-[#334054]">
-                    {row.video ? row.video.toFixed(1) + "%" : "—"}
-                  </p>
+                  {lookup.team_id ? (
+                    <div className="mt-3 rounded-[12px] bg-[#FFFCF9] px-3 py-2.5">
+                      <p className="text-[8px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">
+                        Қазіргі команда
+                      </p>
+                      <p className="mt-1 text-[11px] font-extrabold text-[#172235]">
+                        {lookup.team_name || "Команда"}
+                      </p>
+                    </div>
+                  ) : null}
 
-                  <p className="text-[11px] font-extrabold text-[#334054]">{row.score || "0"}</p>
-
-                  <p className="text-[10px] font-extrabold text-[#334054]">
-                    {row.task_count || 0}
-                  </p>
-
-                  <StatusPill
-                    tone={
-                      row.status === "ACTIVE"
-                        ? "green"
-                        : row.status === "INACTIVE"
-                          ? "red"
-                          : "orange"
-                    }
-                  >
-                    {statusText(row.status)}
-                  </StatusPill>
-
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="mt-3">
+                    <label className="text-[8px] font-extrabold uppercase tracking-[.1em] text-[#A19890]">
+                      Команда
+                    </label>
                     <select
-                      disabled={saving === row.id}
-                      value={row.team_id ?? ""}
-                      onChange={(event) => void move(row.id, event.target.value)}
-                      className="min-w-0 rounded-[10px] border border-[#E8E1DA] bg-white px-2.5 py-2 text-[9px] font-bold outline-none focus:border-[#FF8000]"
+                      value={selectedTeamId}
+                      onChange={(event) => setSelectedTeamId(event.target.value)}
+                      className="mt-1.5 h-11 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-bold text-[#172235] outline-none focus:border-[#FF8000]"
                     >
-                      <option value="">Командасыз</option>
-                      {teams.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name} ({item.count}/{item.capacity ?? "—"})
+                      <option value="" disabled>
+                        Команда таңдаңыз
+                      </option>
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name} ({team.count}/{team.capacity ?? "—"})
                         </option>
                       ))}
                     </select>
-                    <ArrowRightLeft
-                      size={13}
-                      className={
-                        saving === row.id
-                          ? "animate-pulse text-[#FF8000]"
-                          : "text-[#A19890]"
-                      }
-                    />
                   </div>
+
+                  <button
+                    type="button"
+                    disabled={savingAdd || !selectedTeamId}
+                    onClick={() => void saveStudent()}
+                    className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[11px] bg-[#172235] text-[10px] font-extrabold text-white disabled:opacity-50"
+                  >
+                    {savingAdd ? <Loader2 size={14} className="animate-spin" /> : null}
+                    {lookup.team_id ? "Команданы сақтау" : "Оқушыны командаға қосу"}
+                  </button>
                 </div>
-              );
-            })}
+              ) : null}
+
+              {message ? (
+                <p className="mt-3 rounded-[11px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-semibold text-[#8A4B1F]">
+                  {message}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="divide-y divide-[#EFE8E1] lg:hidden">
-        {filtered.map((row) => (
-          <div key={row.id} className="space-y-3 px-4 py-4">
-            <div className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#172235] text-[10px] font-extrabold text-white">
-                {initials(row.full_name)}
-              </span>
-              <div className="min-w-0 flex-1">
-                <Link
-                  href={"/chief-mentor/students/" + row.id}
-                  className="block truncate text-[11px] font-extrabold text-[#263247]"
-                >
-                  {row.full_name}
-                </Link>
-                <p className="mt-1 truncate text-[8px] font-semibold text-[#9A9189]">
-                  {row.email}
-                </p>
-              </div>
-              <StatusPill
-                tone={
-                  row.status === "ACTIVE"
-                    ? "green"
-                    : row.status === "INACTIVE"
-                      ? "red"
-                      : "orange"
-                }
-              >
-                {statusText(row.status)}
-              </StatusPill>
+      <div className="overflow-hidden rounded-[18px] border border-[#E8E1DA] bg-white">
+        <div className="overflow-x-auto">
+          <div className="min-w-[900px]">
+            <div className="grid grid-cols-[1.35fr_1.15fr_.8fr_1fr] items-center gap-4 border-b border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3 text-[10px] font-extrabold uppercase tracking-[.09em] text-[#81776F]">
+              <span>Оқушы</span>
+              <span>Почта</span>
+              <span>Телефон</span>
+              <span>Команда</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                ["Бейне", row.video ? row.video.toFixed(1) + "%" : "—"],
-                ["Ұпай", String(row.score || 0)],
-                ["Тапсырма", String(row.task_count || 0)],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-[12px] bg-[#FAF8F5] px-3 py-2.5">
-                  <p className="text-[8px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
-                    {label}
+            <div className="divide-y divide-[#EFE8E1]">
+              {filteredRows.map((row) => (
+                <div
+                  key={row.id}
+                  className="grid grid-cols-[1.35fr_1.15fr_.8fr_1fr] items-center gap-4 px-5 py-3.5"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {row.avatar_url ? (
+                      <Image
+                        src={row.avatar_url}
+                        alt=""
+                        width={40}
+                        height={40}
+                        unoptimized
+                        className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-[rgba(255,128,0,.12)]"
+                      />
+                    ) : (
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#FFF1E2] text-[10px] font-extrabold text-[#C15F00]">
+                        {initials(row.full_name)}
+                      </span>
+                    )}
+                    <p className="truncate text-[13px] font-extrabold text-[#263247]">
+                      {row.full_name}
+                    </p>
+                  </div>
+
+                  <p className="truncate text-[12px] font-semibold text-[#5E554E]">
+                    {row.email || "—"}
                   </p>
-                  <p className="mt-1 text-[13px] font-extrabold text-[#334054]">{value}</p>
+
+                  <p className="text-[12px] font-extrabold text-[#354153]">
+                    {row.phone || "—"}
+                  </p>
+
+                  <select
+                    disabled={savingId === row.id}
+                    value={row.team_id ?? ""}
+                    onChange={(event) =>
+                      void changeTeam(row.id, event.target.value)
+                    }
+                    className="h-10 min-w-0 rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[11px] font-bold text-[#172235] outline-none focus:border-[#FF8000] focus:ring-2 focus:ring-[#FF8000]/10 disabled:opacity-60"
+                  >
+                    <option value="">Командасыз</option>
+                    {teams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} ({team.count}/{team.capacity ?? "—"})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ))}
+
+              {!filteredRows.length ? (
+                <div className="px-5 py-10 text-center text-[11px] font-semibold text-[#8B8179]">
+                  Оқушы табылмады.
+                </div>
+              ) : null}
             </div>
-
-            <select
-              disabled={saving === row.id}
-              value={row.team_id ?? ""}
-              onChange={(event) => void move(row.id, event.target.value)}
-              className="h-10 w-full rounded-[12px] border border-[#E8E1DA] bg-white px-3 text-[10px] font-bold"
-            >
-              <option value="">Командасыз</option>
-              {teams.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} ({item.count}/{item.capacity ?? "—"})
-                </option>
-              ))}
-            </select>
           </div>
-        ))}
-
-        {!filtered.length ? (
-          <div className="p-10 text-center text-xs font-semibold text-[#8B8179]">
-            Сұранысқа сәйкес оқушы табылмады.
-          </div>
-        ) : null}
-      </div>
-
-      <div className="flex items-center justify-between border-t border-[#EFE8E1] bg-[#FFFCF9] px-5 py-3">
-        <span className="text-[9px] font-bold text-[#8B8179]">
-          {filtered.length} / {rows.length} оқушы
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[9px] font-extrabold text-[#FF8000]">
-          Толық профиль
-          <ArrowRight size={12} />
-        </span>
+        </div>
       </div>
     </div>
   );
