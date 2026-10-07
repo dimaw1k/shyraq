@@ -91,7 +91,7 @@ export function ChiefMentorMentorManager({
       }
 
       if (!data.profile) {
-        setMessage("Бұл нөмірмен аккаунт табылмады.");
+        setMessage("Бұл телефон немесе email арқылы аккаунт табылмады.");
         return;
       }
 
