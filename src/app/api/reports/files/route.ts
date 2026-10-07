@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -50,6 +51,13 @@ export async function POST(request: Request) {
   if (!ALLOWED.has(file.type)) {
     return NextResponse.json(
       { error: "Бұл файл түріне рұқсат жоқ." },
+      { status: 400 },
+    );
+  }
+
+  if (!(await hasValidFileSignature(file, file.type))) {
+    return NextResponse.json(
+      { error: "Файл мазмұны мәлімделген форматқа сәйкес емес." },
       { status: 400 },
     );
   }
