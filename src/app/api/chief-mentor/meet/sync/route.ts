@@ -20,7 +20,7 @@ export async function POST(request:Request){
  if(!space)return NextResponse.json({error:"Бұл командаға Meet space қосылмаған."},{status:404});
 
  const now=new Date();const startTime=typeof body?.startTime==="string"?body.startTime:new Date(now.getTime()-7*86400000).toISOString();const endTime=typeof body?.endTime==="string"?body.endTime:now.toISOString();
- const token=await getGoogleAccessToken(team.mentor_id??user.id);
+ const token=await getGoogleAccessToken(user.id);
  const conferences=await listConferences(token,space.external_space_id,startTime,endTime);
  const admin=createAdminSupabaseClient();
  const {data:members}=await admin.from("team_members").select("student_id,profiles(id,full_name,phone,email)").eq("team_id",teamId).eq("status","ACTIVE");
