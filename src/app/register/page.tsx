@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, User, UserPlus } from "lucide-react";
 import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { getPasswordValidationError } from "@/lib/security/password";
 import { useStudentLanguage } from "@/lib/student-language";
 import { AuthLanguagePicker } from "@/components/auth/AuthLanguagePicker";
 
@@ -50,7 +51,13 @@ export default function RegisterPage() {
     if (form.firstName.trim().length < 2) next.firstName = t("invalidFirstName");
     if (form.lastName.trim().length < 2) next.lastName = t("invalidLastName");
 
-    if (form.password.length < 8) next.password = t("passwordMin");
+    const passwordError = getPasswordValidationError(form.password, [
+      form.firstName,
+      form.lastName,
+      form.email.split("@")[0] ?? "",
+      form.phone.replace(/\D/g, ""),
+    ]);
+    if (passwordError) next.password = t("passwordMin");
     if (form.password !== form.confirmPassword) next.confirmPassword = t("passwordMismatch");
 
     return next;
@@ -78,6 +85,7 @@ export default function RegisterPage() {
           firstName: form.firstName,
           lastName: form.lastName,
           password: form.password,
+          website: "",
         }),
       });
 
@@ -130,6 +138,18 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="mt-3 space-y-2.5">
+            <input
+              type="text"
+              name="website"
+              value=""
+              onChange={() => undefined}
+              autoComplete="off"
+              tabIndex={-1}
+              aria-hidden="true"
+              className="absolute left-[-9999px] top-auto h-0 w-0 opacity-0"
+            />
+
+
             <label className="block">
               <span className="sr-only">{t("firstName")}</span>
               <div className="relative">
@@ -203,7 +223,7 @@ export default function RegisterPage() {
                 <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#A49A90]" size={16} />
                 <input
                   required
-                  minLength={8}
+                  minLength={12}
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   value={form.password}
