@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { isSafeHref } from "@/lib/security/file-validation";
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
+
   const {profile}=await getAuthenticatedStaff("LEADER"); const {id}=await params; const body=await request.json().catch(()=>null); const admin=createAdminSupabaseClient();
+  if (body?.href !== undefined && !isSafeHref(typeof body.href === "string" ? body.href : null)) {
+    return NextResponse.json({error:"Banner сілтемесі қауіпті немесе жарамсыз."},{status:400});
+  }
   const {data:current}=await admin.from("marathon_banners").select("*").eq("id",id).maybeSingle();
   if(!current)return NextResponse.json({error:"Banner табылмады."},{status:404});
   const {data,error}=await admin.from("marathon_banners").update({

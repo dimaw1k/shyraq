@@ -11,17 +11,26 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: supabase-production-migrations
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: production
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+
+      - uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: 2.117.3
+
       - name: Validate pending migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+
       - name: Deploy migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL"

@@ -12,7 +12,26 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const contentSecurityPolicy = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "script-src 'self' 'unsafe-inline' https://*.kinescope.io https://accounts.google.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://sqjjqnisnndulkzcqfwb.supabase.co https://*.kinescope.io",
+      "font-src 'self' data:",
+      "connect-src 'self' https://sqjjqnisnndulkzcqfwb.supabase.co wss://sqjjqnisnndulkzcqfwb.supabase.co https://*.kinescope.io https://www.googleapis.com https://accounts.google.com",
+      "frame-src 'self' https://*.kinescope.io https://accounts.google.com",
+      "media-src 'self' blob: https://*.kinescope.io",
+    ].join("; ");
+
     const headers = [
+      {
+        key: "Content-Security-Policy",
+        value: contentSecurityPolicy,
+      },
       {
         key: "X-Content-Type-Options",
         value: "nosniff",

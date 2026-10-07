@@ -13,21 +13,15 @@ type StaffRow = {
   phone: string;
   role: string;
   status: string;
-  education_type?: string | null;
 };
 
 type LookupProfile = StaffRow & {
   created_at: string;
-  education_label: string;
-  team_name: string | null;
-  mentor_name: string | null;
+  manageable?: boolean;
+  message?: string;
 };
 
-const roleOptions = [
-  { value: "MENTOR", label: "Ментор" },
-  { value: "CHIEF_MENTOR", label: "Аға ментор" },
-  { value: "LEADER", label: "Жетекші" },
-];
+const roleOptions = [{ value: "MENTOR", label: "Ментор" }];
 
 const statusOptions = [
   { value: "ACTIVE", label: "Белсенді" },
@@ -38,18 +32,14 @@ const statusOptions = [
 ];
 
 function roleLabel(role: string) {
-  return roleOptions.find((item) => item.value === role)?.label ?? role;
+  if (role === "MENTOR") return "Ментор";
+  if (role === "CHIEF_MENTOR") return "Аға ментор";
+  if (role === "LEADER") return "Жетекші";
+  return role;
 }
 
 function statusLabel(status: string) {
   return statusOptions.find((item) => item.value === status)?.label ?? status;
-}
-
-function educationLabel(value: string | null | undefined) {
-  if (value === "SCHOOL") return "Мектеп";
-  if (value === "COLLEGE") return "Колледж";
-  if (value === "UNIVERSITY") return "Университет";
-  return "Басқа";
 }
 
 function ChoiceMenu({
@@ -116,7 +106,6 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
   const [lookupMessage, setLookupMessage] = useState("");
   const [lookupLoading, setLookupLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const [newRole, setNewRole] = useState("MENTOR");
 
   function openAddModal() {
     setModalOpen(true);
@@ -124,7 +113,6 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
     setLookupRegistered(null);
     setLookupMessage("");
     setPhone("");
-    setNewRole("MENTOR");
   }
 
   function closeAddModal() {
@@ -178,7 +166,6 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
       setLookupRegistered(Boolean(data.registered));
       if (data.registered) {
         setLookup(data.profile);
-        setNewRole(data.profile.role === "STUDENT" ? "MENTOR" : data.profile.role);
       } else {
         setLookupMessage(data.message ?? "Бұл нөмір тіркелмеген.");
       }
@@ -188,7 +175,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
   }
 
   async function addStaff() {
-    if (!lookup) return;
+    if (!lookup || lookup.manageable === false || lookup.role !== "STUDENT") return;
 
     setAddLoading(true);
     setLookupMessage("");
@@ -197,7 +184,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
       const response = await fetch("/api/leader/staff/" + lookup.id, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole, status: "ACTIVE" }),
+        body: JSON.stringify({ role: "MENTOR", status: "ACTIVE" }),
       });
       const data = await response.json().catch(() => ({}));
 
@@ -206,20 +193,13 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
         return;
       }
 
-      setStaff((current) => {
-        const exists = current.some((item) => item.id === data.profile.id);
-        return exists
-          ? current.map((item) => item.id === data.profile.id ? data.profile : item)
-          : [...current, data.profile];
-      });
+      setStaff((current) => [...current, data.profile]);
       setMessage("Қызметкер қосылды.");
       setModalOpen(false);
     } finally {
       setAddLoading(false);
     }
   }
-
-  const roleIsStaff = lookup && lookup.role !== "STUDENT";
 
   return (
     <div>
@@ -238,7 +218,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
         open={modalOpen}
         onClose={closeAddModal}
         title="Қызметкер қосу"
-        description="Телефон нөмірін тексеріп, рөлін таңдаңыз."
+        description="Телефон нөмірін тексеріп, қолжетімді болса тек Ментор рөлін тағайындаңыз."
       >
         <div className="grid gap-4">
           <div className="flex gap-2">
@@ -283,10 +263,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ["Телефон", displayKzPhone(lookup.phone)],
-                  ["Білім деңгейі", lookup.education_label ?? educationLabel(lookup.education_type)],
                   ["Қазіргі рөл", roleLabel(lookup.role)],
-                  ["Команда", lookup.team_name ?? "Тағайындалмаған"],
-                  ["Ментор", lookup.mentor_name ?? "Тағайындалмаған"],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-[11px] bg-[#FFFCF9] px-3 py-2.5">
                     <p className="text-[8px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">{label}</p>
@@ -295,36 +272,25 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
                 ))}
               </div>
 
-              <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#9A9189]">
-                {roleIsStaff ? "Рөлді басқару" : "Қызметкер рөлін таңдаңыз"}
-              </p>
-
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {roleOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    disabled={addLoading}
-                    onClick={() => setNewRole(option.value)}
-                    className={[
-                      "h-10 rounded-[11px] border px-2 text-[9px] font-extrabold transition",
-                      newRole === option.value ? "border-[#FF8000] bg-[#FFF1E2] text-[#C95500]" : "border-[#E8E1DA] bg-white text-[#5A514A] hover:border-[#FFB067]",
-                    ].join(" ")}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                disabled={addLoading}
-                onClick={() => void addStaff()}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#172235] px-4 py-3 text-[10px] font-extrabold text-white"
-              >
-                {addLoading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
-                {roleIsStaff ? "Рөлді сақтау" : "Қызметкер ретінде қосу"}
-              </button>
+              {lookup.manageable === false ? (
+                <p className="mt-4 rounded-[12px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-semibold text-[#655B53]">
+                  {lookup.message ?? "Бұл аккаунтты Жетекші басқара алмайды."}
+                </p>
+              ) : lookup.role === "STUDENT" ? (
+                <button
+                  type="button"
+                  disabled={addLoading}
+                  onClick={() => void addStaff()}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#172235] px-4 py-3 text-[10px] font-extrabold text-white disabled:opacity-60"
+                >
+                  {addLoading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
+                  Ментор ретінде қосу
+                </button>
+              ) : (
+                <p className="mt-4 rounded-[12px] bg-[#F6F2ED] px-3 py-2.5 text-[10px] font-semibold text-[#655B53]">
+                  Бұл пайдаланушы қазірдің өзінде ментор немесе жоғары рөлде.
+                </p>
+              )}
             </div>
           ) : (
             <div className="rounded-[16px] border border-dashed border-[#DED6CE] bg-[#FFFCF9] p-6 text-center">
@@ -342,17 +308,30 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
       <div className="divide-y divide-[#EFE8E1]">
         {staff.map((person) => {
           const saving = savingId === person.id;
+          const privileged = person.role === "CHIEF_MENTOR" || person.role === "LEADER";
           return (
             <div key={person.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[1.15fr_170px_1fr_185px] sm:items-center sm:px-6">
               <div className="min-w-0">
                 <p className="truncate text-[11px] font-extrabold text-[#354153]">{person.full_name}</p>
                 <p className="mt-1 truncate text-[9px] text-[#9A9189]">{person.email}</p>
               </div>
-              <ChoiceMenu label={roleLabel(person.role)} value={person.role} options={roleOptions} disabled={saving} onChange={(value) => void patch(person.id, { role: value })} />
+              <ChoiceMenu
+                label={roleLabel(person.role)}
+                value={person.role}
+                options={roleOptions}
+                disabled={saving || privileged}
+                onChange={(value) => void patch(person.id, { role: value })}
+              />
               <p className="truncate text-[9px] font-semibold text-[#8B8179]">{displayKzPhone(person.phone)}</p>
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <ChoiceMenu label={statusLabel(person.status)} value={person.status} options={statusOptions} disabled={saving} onChange={(value) => void patch(person.id, { status: value })} />
+                  <ChoiceMenu
+                    label={statusLabel(person.status)}
+                    value={person.status}
+                    options={statusOptions}
+                    disabled={saving || privileged}
+                    onChange={(value) => void patch(person.id, { status: value })}
+                  />
                 </div>
                 {saving ? <Loader2 size={13} className="shrink-0 animate-spin text-[#FF8000]" /> : null}
               </div>

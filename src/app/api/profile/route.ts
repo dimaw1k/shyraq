@@ -120,7 +120,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Электрондық пошта дұрыс емес." }, { status: 400 });
   }
 
-
+  const emailChanged = email !== current.email;
+  const phoneChanged = phone !== current.phone;
   const newPassword =
     typeof body.newPassword === "string" && body.newPassword.length > 0
       ? body.newPassword
@@ -128,34 +129,46 @@ export async function PATCH(request: Request) {
   const currentPassword =
     typeof body.currentPassword === "string" ? body.currentPassword : "";
 
-  if (newPassword) {
-    const passwordError = getPasswordValidationError(newPassword, [
-      current.full_name,
-      current.email,
-      current.phone,
-    ]);
-
-    if (passwordError) {
-      return NextResponse.json({ error: passwordError }, { status: 400 });
+  if (emailChanged || phoneChanged || newPassword) {
+    if (!currentPassword) {
+      return NextResponse.json(
+        { error: "Бұл өзгерісті жасау үшін қазіргі құпиясөзді енгізіңіз." },
+        { status: 400 },
+      );
     }
-  }
 
-  if (newPassword) {
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: current.email,
       password: currentPassword,
     });
 
     if (verifyError) {
-      return NextResponse.json({ error: "Құпиясөзді өзгерту үшін қазіргі құпиясөзді дұрыс енгізіңіз." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Қауіпсіздік үшін қазіргі құпиясөз дұрыс болуы керек." },
+        { status: 400 },
+      );
     }
   }
 
-  const profileUpdate = {
+  if (emailChanged) {
+    const { error: emailUpdateError } = await supabase.auth.updateUser({ email });
+
+    if (emailUpdateError) {
+      return NextResponse.json(
+        {
+          error: emailUpdateError.message?.toLowerCase().includes("already")
+            ? "Бұл электрондық пошта бос емес."
+            : "Электрондық поштаны өзгерту туралы сұрау сәтсіз аяқталды.",
+        },
+        { status: 400 },
+      );
+    }
+  }
+
+  const profileUpdate: Record<string, unknown> = {
     full_name: fullName,
     phone,
     updated_at: new Date().toISOString(),
-    ...(email !== current.email ? { email } : {}),
   };
 
   const { error: profileError } = await admin
@@ -197,9 +210,8 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (email !== current.email || newPassword || fullName !== current.full_name || phone !== current.phone) {
+  if (phoneChanged || newPassword) {
     const authUpdate = await admin.auth.admin.updateUserById(user.id, {
-      ...(email !== current.email ? { email, email_confirm: true } : {}),
       ...(newPassword ? { password: newPassword } : {}),
       user_metadata: {
         ...(user.user_metadata ?? {}),
@@ -209,20 +221,36 @@ export async function PATCH(request: Request) {
     });
 
     if (authUpdate.error) {
-      await admin.from("profiles").update({
-        full_name: current.full_name,
-        phone: current.phone,
-        email: current.email,
-        updated_at: new Date().toISOString(),
-      }).eq("id", user.id);
+      await admin
+        .from("profiles")
+        .update({
+          full_name: current.full_name,
+          phone: current.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
 
-      return NextResponse.json({
-        error: authUpdate.error.message?.toLowerCase().includes("already") 
-          ? "Бұл электрондық пошта бос емес."
-          : "Auth деректерін жаңарту сәтсіз аяқталды.",
-      }, { status: 400 });
+      return NextResponse.json(
+        { error: "Auth деректерін жаңарту сәтсіз аяқталды." },
+        { status: 400 },
+      );
     }
+  } else if (fullName !== current.full_name) {
+    await admin.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...(user.user_metadata ?? {}),
+        full_name: fullName,
+      },
+    });
   }
 
-  return NextResponse.json({ profile: await getContext(user.id) });
+  const profile = await getContext(user.id);
+
+  return NextResponse.json({
+    profile,
+    emailChangeRequested: emailChanged,
+    message: emailChanged
+      ? "Жаңа email мекенжайын растау үшін жіберілген хаттағы сілтемені қолданыңыз."
+      : undefined,
+  });
 }

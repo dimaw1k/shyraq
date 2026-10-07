@@ -117,7 +117,7 @@ export async function POST(request: Request) {
 
     if (existingPhone) {
       return NextResponse.json(
-        { field: "phone", error: "Бұл телефон нөмірімен аккаунт бұрын тіркелген." },
+        { field: "form", error: "Бұл деректермен аккаунт ашу мүмкін болмады." },
         { status: 409 },
       );
     }
@@ -137,14 +137,14 @@ export async function POST(request: Request) {
 
       if (message.includes("already registered") || message.includes("already been registered")) {
         return NextResponse.json(
-          { field: "email", error: "Бұл email арқылы аккаунт бұрын тіркелген." },
+          { field: "form", error: "Бұл деректермен аккаунт ашу мүмкін болмады." },
           { status: 409 },
         );
       }
 
       if (message.includes("phone") && (message.includes("duplicate") || message.includes("unique"))) {
         return NextResponse.json(
-          { field: "phone", error: "Бұл телефон нөмірімен аккаунт бұрын тіркелген." },
+          { field: "form", error: "Бұл деректермен аккаунт ашу мүмкін болмады." },
           { status: 409 },
         );
       }
