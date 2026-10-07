@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin.from("profiles")
-    .select("id,full_name,email,phone,status,role")
+    .select("id,full_name,email,phone,status,role,avatar_path")
     .eq("phone", normalizePhone(rawPhone))
     .maybeSingle();
 
@@ -19,10 +19,21 @@ export async function POST(request: Request) {
   if (!data) return NextResponse.json({ profile: null, registered: false });
 
   let team_name: string | null = null;
-  const { data: membership } = await admin.from("team_members").select("team_id").eq("student_id", data.id).eq("status","ACTIVE").maybeSingle();
-  if (membership?.team_id) {
-    const { data: team } = await admin.from("teams").select("name").eq("id",membership.team_id).maybeSingle();
-    team_name=team?.name??null;
-  }
-  return NextResponse.json({ registered:true, profile:{...data,team_name} });
+  const { data: managedTeams } = await admin
+    .from("teams")
+    .select("name")
+    .eq("mentor_id", data.id)
+    .eq("status", "ACTIVE")
+    .order("name");
+
+  team_name = (managedTeams ?? []).map((team) => team.name).join(", ") || null;
+
+  const avatar_url = data.avatar_path
+    ? admin.storage.from("avatars").getPublicUrl(data.avatar_path).data.publicUrl
+    : null;
+
+  return NextResponse.json({
+    registered: true,
+    profile: { ...data, avatar_url, team_name },
+  });
 }
