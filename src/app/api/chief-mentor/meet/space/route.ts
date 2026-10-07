@@ -22,12 +22,20 @@ export async function POST(request: Request) {
   const allTeams = body?.allTeams === true;
 
   if (!teamId && !allTeams) {
-    return NextResponse.json({ error: "Команданы таңдаңыз." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Команданы таңдаңыз." },
+      { status: 400 },
+    );
   }
 
   const admin = createAdminSupabaseClient();
+
   const { data: selectedTeams } = allTeams
-    ? await admin.from("teams").select("id,name,status").eq("status", "ACTIVE").order("name")
+    ? await admin
+        .from("teams")
+        .select("id,name,status")
+        .eq("status", "ACTIVE")
+        .order("name")
     : await admin
         .from("teams")
         .select("id,name,status")
@@ -35,55 +43,131 @@ export async function POST(request: Request) {
         .eq("status", "ACTIVE");
 
   if (!selectedTeams?.length) {
-    return NextResponse.json({ error: "Белсенді команда табылмады." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Белсенді команда табылмады." },
+      { status: 404 },
+    );
   }
 
   try {
     const accessToken = await getGoogleAccessToken(profile.id);
-    const createdSpaces = [];
+    const spaces = [];
+    let createdCount = 0;
+    let reusedCount = 0;
 
     for (const team of selectedTeams) {
+      const { data: existingSpace, error: existingError } = await admin
+        .from("meet_spaces")
+        .select("*")
+        .eq("team_id", team.id)
+        .eq("study_time", studyTime)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (existingError) {
+        return NextResponse.json(
+          {
+            error:
+              team.name +
+              " командасының бұрынғы Meet сілтемесін тексеру сәтсіз аяқталды.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (existingSpace) {
+        if (displayName && displayName !== existingSpace.display_name) {
+          const { data: updatedSpace } = await admin
+            .from("meet_spaces")
+            .update({ display_name: displayName })
+            .eq("id", existingSpace.id)
+            .select("*")
+            .single();
+
+          spaces.push(updatedSpace ?? existingSpace);
+        } else {
+          spaces.push(existingSpace);
+        }
+
+        reusedCount += 1;
+
+        await admin.from("audit_logs").insert({
+          actor_id: profile.id,
+          actor_role: profile.role,
+          action: "GOOGLE_MEET_SPACE_REUSED",
+          entity_type: "MEET_SPACE",
+          entity_id: existingSpace.id,
+          metadata: {
+            teamId: team.id,
+            externalSpaceId: existingSpace.external_space_id,
+            studyTime,
+          },
+        });
+
+        continue;
+      }
+
       const space = await createMeetSpace(accessToken);
 
       if (!space.name || !space.meetingUri) {
         return NextResponse.json(
-          { error: team.name + " командасы үшін Google Meet сілтемесі қайтарылмады." },
+          {
+            error:
+              team.name +
+              " командасы үшін Google Meet сілтемесі қайтарылмады.",
+          },
           { status: 502 },
         );
       }
 
       const { data, error } = await admin
         .from("meet_spaces")
-        .upsert(
-          {
-            team_id: team.id,
-            external_space_id: space.name,
-            meeting_url: space.meetingUri,
-            display_name:
-              displayName ||
-              team.name +
-                " — " +
-                (studyTime === "MORNING"
-                  ? "Morning Study Time"
-                  : studyTime === "EVENING"
-                    ? "Evening Study Time"
-                    : "Extra Meet"),
-            study_time: studyTime,
-            active: true,
-          },
-          { onConflict: "team_id,study_time" },
-        )
+        .insert({
+          team_id: team.id,
+          external_space_id: space.name,
+          meeting_url: space.meetingUri,
+          display_name:
+            displayName ||
+            team.name +
+              " — " +
+              (studyTime === "MORNING"
+                ? "Morning Study Time"
+                : studyTime === "EVENING"
+                  ? "Evening Study Time"
+                  : "Extra Meet"),
+          study_time: studyTime,
+          active: true,
+        })
         .select("*")
         .single();
 
       if (error || !data) {
+        const { data: recoveredSpace } = await admin
+          .from("meet_spaces")
+          .select("*")
+          .eq("team_id", team.id)
+          .eq("study_time", studyTime)
+          .eq("active", true)
+          .maybeSingle();
+
+        if (recoveredSpace) {
+          spaces.push(recoveredSpace);
+          reusedCount += 1;
+          continue;
+        }
+
         return NextResponse.json(
-          { error: team.name + " командасы үшін Meet сақтау сәтсіз аяқталды." },
+          {
+            error:
+              team.name +
+              " командасы үшін Meet сақтау сәтсіз аяқталды.",
+          },
           { status: 500 },
         );
       }
 
-      createdSpaces.push(data);
+      spaces.push(data);
+      createdCount += 1;
 
       await admin.from("audit_logs").insert({
         actor_id: profile.id,
@@ -102,8 +186,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      spaces: createdSpaces,
-      count: createdSpaces.length,
+      spaces,
+      count: spaces.length,
+      createdCount,
+      reusedCount,
     });
   } catch (error) {
     return NextResponse.json(
