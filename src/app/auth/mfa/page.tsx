@@ -48,16 +48,13 @@ export default function MfaPage() {
         return;
       }
 
-      const verified = (data.totp ?? []).find((item) => item.status === "verified");
-      if (verified) {
-        setFactor(verified);
-        setStep("verify");
-        return;
-      }
+      const factors = data.totp ?? [];
+      const existingFactor =
+        factors.find((item) => item.status === "verified") ??
+        factors.find((item) => item.status === "unverified");
 
-      const unverified = (data.totp ?? []).find((item) => item.status === "unverified");
-      if (unverified) {
-        setFactor(unverified);
+      if (existingFactor) {
+        setFactor(existingFactor);
         setStep("verify");
         return;
       }
