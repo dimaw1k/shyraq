@@ -10,7 +10,7 @@ const scope = [
   "https://www.googleapis.com/auth/meetings.space.created",
 ].join(" ");
 
-const allowedRoles = new Set(["MENTOR", "CHIEF_MENTOR", "LEADER"]);
+const allowedRoles = new Set(["CHIEF_MENTOR"]);
 
 export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   const returnTo =
     requestedReturnTo.startsWith("/") && !requestedReturnTo.startsWith("//")
       ? requestedReturnTo
-      : "/dashboard";
+      : "/chief-mentor/meet";
 
   const state = crypto.randomBytes(24).toString("base64url");
   const response = NextResponse.redirect(
