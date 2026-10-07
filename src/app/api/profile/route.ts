@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { normalizePhone } from "@/lib/phone";
+import { displayKzPhone, normalizePhone } from "@/lib/phone";
 
 const EDUCATION_TYPES = new Set(["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"]);
 
@@ -54,6 +54,7 @@ async function getContext(userId: string) {
 
   return {
     ...profile,
+    phone: displayKzPhone(profile.phone),
     avatar_url: avatarUrl,
     team_names: teamNames,
     mentor_name: mentorName,
