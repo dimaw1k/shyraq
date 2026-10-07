@@ -8,7 +8,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
-import { Card, MetricCard, PageContainer } from "@/components/ui/ShyraqUI";
+import { Card, PageContainer } from "@/components/ui/ShyraqUI";
 import { DashboardBanner } from "@/components/student/DashboardBanner";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -237,7 +237,62 @@ export default async function ChiefMentorPage() {
     <AppShell role="CHIEF_MENTOR" userName={profile.full_name} title="" hideHeader>
       <PageContainer>
         <div className="space-y-5">
-          <DashboardBanner banners={bannerItems} />
+          <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+            <DashboardBanner banners={bannerItems} />
+
+            <aside className="grid gap-2.5 xl:sticky xl:top-[72px]">
+              <Card className="p-3.5 sm:p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                      МЕНТОР
+                    </p>
+                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                      {mentorCount ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">белсенді</p>
+                  </div>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Users size={16} />
+                  </span>
+                </div>
+              </Card>
+
+              <Card className="p-3.5 sm:p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                      КОМАНДА
+                    </p>
+                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                      {teamCount ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">белсенді</p>
+                  </div>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <UsersRound size={16} />
+                  </span>
+                </div>
+              </Card>
+
+              <Card className="p-3.5 sm:p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-[#9A9189]">
+                      ОҚУШЫ
+                    </p>
+                    <p className="mt-1 text-[22px] font-extrabold tracking-[-.045em] text-[var(--foreground)]">
+                      {studentCount ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[9px] font-medium text-[#8B8179]">барлығы</p>
+                  </div>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Users size={16} />
+                  </span>
+                </div>
+              </Card>
+            </aside>
+          </section>
 
           <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">
@@ -255,27 +310,6 @@ export default async function ChiefMentorPage() {
               <p className="mt-1 text-[11px] font-extrabold text-[#4B433C]">{today}</p>
             </div>
           </div>
-
-          <section className="grid gap-3 sm:grid-cols-3">
-            <MetricCard
-              label="МЕНТОР"
-              value={String(mentorCount ?? 0)}
-              hint="белсенді"
-              icon={<Users size={17} />}
-            />
-            <MetricCard
-              label="КОМАНДА"
-              value={String(teamCount ?? 0)}
-              hint="белсенді"
-              icon={<UsersRound size={17} />}
-            />
-            <MetricCard
-              label="ОҚУШЫ"
-              value={String(studentCount ?? 0)}
-              hint="барлығы"
-              icon={<Users size={17} />}
-            />
-          </section>
 
           <section className="grid gap-4 xl:grid-cols-[1.2fr_.8fr]">
             <Card className="overflow-hidden">
