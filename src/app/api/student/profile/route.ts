@@ -38,7 +38,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,full_name,email,phone,age,education_type,status,role,avatar_path,created_at")
+    .select("id,full_name,email,phone,age,status,role,avatar_path,created_at")
     .eq("id", user.id)
     .single();
 
@@ -79,14 +79,6 @@ export async function PATCH(request: Request) {
     updates.age = body.age;
   }
 
-  if (typeof body?.educationType === "string") {
-    const educationType = body.educationType.trim().toUpperCase();
-    if (!["SCHOOL", "COLLEGE", "UNIVERSITY", "OTHER"].includes(educationType)) {
-      return NextResponse.json({ error: "Білім алу деңгейі дұрыс емес." }, { status: 400 });
-    }
-    updates.education_type = educationType;
-  }
-
   if (!Object.keys(updates).length) {
     return NextResponse.json({ error: "No supported fields" }, { status: 400 });
   }
@@ -95,7 +87,7 @@ export async function PATCH(request: Request) {
     .from("profiles")
     .update(updates)
     .eq("id", user.id)
-    .select("id,full_name,email,phone,age,education_type,status,role,avatar_path")
+    .select("id,full_name,email,phone,age,status,role,avatar_path")
     .single();
 
   if (error) return NextResponse.json({ error: "Profile update failed" }, { status: 400 });
