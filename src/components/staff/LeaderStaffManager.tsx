@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, ChevronDown, Loader2, Search, UserPlus } from "lucide-react";
-import { formatKzPhone, isValidKzPhone } from "@/lib/phone";
+import { displayKzPhone, formatKzPhone, isValidKzPhone } from "@/lib/phone";
 import { StatusPill } from "@/components/ui/ShyraqUI";
 import { StaffModal } from "@/components/staff/StaffUI";
 
@@ -282,7 +282,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
-                  ["Телефон", lookup.phone],
+                  ["Телефон", displayKzPhone(lookup.phone)],
                   ["Білім деңгейі", lookup.education_label ?? educationLabel(lookup.education_type)],
                   ["Қазіргі рөл", roleLabel(lookup.role)],
                   ["Команда", lookup.team_name ?? "Тағайындалмаған"],
@@ -349,7 +349,7 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
                 <p className="mt-1 truncate text-[9px] text-[#9A9189]">{person.email}</p>
               </div>
               <ChoiceMenu label={roleLabel(person.role)} value={person.role} options={roleOptions} disabled={saving} onChange={(value) => void patch(person.id, { role: value })} />
-              <p className="truncate text-[9px] font-semibold text-[#8B8179]">{person.phone || "Телефон жоқ"}</p>
+              <p className="truncate text-[9px] font-semibold text-[#8B8179]">{displayKzPhone(person.phone)}</p>
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
                   <ChoiceMenu label={statusLabel(person.status)} value={person.status} options={statusOptions} disabled={saving} onChange={(value) => void patch(person.id, { status: value })} />
