@@ -13,6 +13,8 @@ export async function POST(request: Request) {
     typeof body?.displayName === "string" && body.displayName.trim()
       ? body.displayName.trim().slice(0, 120)
       : "Shyraq — Google Meet";
+  const studyTime =
+    body?.studyTime === "EVENING" ? "EVENING" : "MORNING";
 
   if (!teamId) {
     return NextResponse.json({ error: "Команданы таңдаңыз." }, { status: 400 });
@@ -49,9 +51,10 @@ export async function POST(request: Request) {
           external_space_id: space.name,
           meeting_url: space.meetingUri,
           display_name: displayName,
+          study_time: studyTime,
           active: true,
         },
-        { onConflict: "team_id" },
+        { onConflict: "team_id,study_time" },
       )
       .select("*")
       .single();
@@ -73,6 +76,7 @@ export async function POST(request: Request) {
         teamId: team.id,
         externalSpaceId: space.name,
         meetingUri: space.meetingUri,
+        studyTime,
       },
     });
 
