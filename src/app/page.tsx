@@ -1,3 +1,6 @@
+export const dynamic = "force-static";
+export const revalidate = 3600;
+
 /* Shyraq landing production build marker */
 import Link from "next/link";
 import { HorizontalRail } from "@/components/ui/HorizontalRail";

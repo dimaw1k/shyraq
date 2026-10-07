@@ -20,7 +20,15 @@ const AUTH_REQUIRED_PREFIXES = [
   "/statistics",
   "/mentor",
   "/leader",
+  "/chief-mentor",
   "/student",
+  "/lessons",
+  "/habits",
+  "/rankings",
+  "/reports",
+  "/tasks",
+  "/tests",
+  "/profile",
   "/api/",
 ];
 
@@ -53,9 +61,8 @@ export default async function proxy(request: NextRequest) {
     }
   }
 
-  // Public pages must not depend on a Supabase network round-trip.
-  // This prevents an auth refresh/network stall from leaving the page in
-  // Next.js's route-level loading state indefinitely.
+  // Public pages never enter the authentication pipeline.
+  // This avoids any Supabase/network dependency for the landing page and auth pages.
   if (!requiresAuth(pathname) || isMfaExempt(pathname)) {
     return response;
   }
@@ -125,5 +132,23 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/decks/:path*",
+    "/review/:path*",
+    "/settings/:path*",
+    "/statistics/:path*",
+    "/mentor/:path*",
+    "/leader/:path*",
+    "/chief-mentor/:path*",
+    "/student/:path*",
+    "/lessons/:path*",
+    "/habits/:path*",
+    "/rankings/:path*",
+    "/reports/:path*",
+    "/tasks/:path*",
+    "/tests/:path*",
+    "/profile/:path*",
+    "/api/:path*",
+  ],
 };
