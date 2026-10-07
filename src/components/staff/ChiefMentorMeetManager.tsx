@@ -20,6 +20,7 @@ type MeetRow = {
   id: string;
   team_id: string;
   team_name: string;
+  mentor_name: string;
   study_time: CreateType;
   display_name: string | null;
   meeting_url: string | null;
