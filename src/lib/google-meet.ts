@@ -19,6 +19,33 @@ async function getJson(path: string, accessToken: string, searchParams?: URLSear
   return (await response.json()) as JsonRecord;
 }
 
+export type CreatedMeetSpace = {
+  name?: string;
+  meetingUri?: string;
+  meetingCode?: string;
+};
+
+export async function createMeetSpace(
+  accessToken: string,
+): Promise<CreatedMeetSpace> {
+  const response = await fetch(MEET_API + "/spaces", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error("Google Meet API " + response.status + ": " + text.slice(0, 500));
+  }
+
+  return (await response.json()) as CreatedMeetSpace;
+}
+
 export type MeetConference = {
   name: string;
   space?: { name?: string; meetingCode?: string };
