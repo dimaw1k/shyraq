@@ -10,7 +10,6 @@ import {
   Link2,
   Loader2,
   Plus,
-  RefreshCw,
   X,
 } from "lucide-react";
 
@@ -103,9 +102,6 @@ export function ChiefMentorMeetManager({
   const [displayName, setDisplayName] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createMessage, setCreateMessage] = useState("");
-  const [syncLoading, setSyncLoading] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [historyTeamId, setHistoryTeamId] = useState("ALL");
   const [historyType, setHistoryType] = useState<MeetType>("ALL");
 
@@ -161,16 +157,6 @@ export function ChiefMentorMeetManager({
       }
 
       close();
-      setSyncMessage(
-        data.reusedCount
-          ? data.count +
-              " командаға Meet дайын. " +
-              data.reusedCount +
-              " бұрынғы сілтеме қайта қолданылды."
-          : data.count > 1
-            ? data.count + " командаға Meet жасалды."
-            : "Meet сәтті жасалды.",
-      );
       router.refresh();
     } catch (error) {
       setCreateMessage(error instanceof Error ? error.message : "Қате");
@@ -180,12 +166,10 @@ export function ChiefMentorMeetManager({
   }
 
   const syncMeet = useCallback(
-    async (silent = false) => {
+    async () => {
       if (!googleConnected || !teams.length || syncInFlight.current) return;
 
       syncInFlight.current = true;
-      setSyncLoading(true);
-      if (!silent) setSyncMessage("");
 
       try {
         const startTime = new Date(
@@ -211,22 +195,12 @@ export function ChiefMentorMeetManager({
           throw new Error(data.error ?? "Синхрондау сәтсіз аяқталды.");
         }
 
-        setLastSyncedAt(new Date().toISOString());
-        if (!silent) {
-          setSyncMessage(
-            "Жаңартылды: " +
-              Number(data.attendanceRows ?? 0) +
-              " қатысу жазбасы.",
-          );
-        }
+        void data;
         router.refresh();
       } catch (error) {
-        if (!silent) {
-          setSyncMessage(error instanceof Error ? error.message : "Қате");
-        }
+        console.error("[meet] background sync failed", error);
       } finally {
         syncInFlight.current = false;
-        setSyncLoading(false);
       }
     },
     [googleConnected, router, selectedDate, teams.length],
@@ -235,12 +209,12 @@ export function ChiefMentorMeetManager({
   useEffect(() => {
     if (!googleConnected || !teams.length) return;
 
-    void syncMeet(true);
+    void syncMeet();
 
     if (!isToday) return;
 
     const interval = window.setInterval(() => {
-      void syncMeet(true);
+      void syncMeet();
     }, 30_000);
 
     return () => window.clearInterval(interval);
