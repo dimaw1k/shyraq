@@ -13,11 +13,11 @@ Focused source review of the current application code for authentication and sta
 - Validate stored attachment paths before generating temporary signed URLs.
 - Disable unverified email changes through the privileged profile endpoint; the profile screen explains that a dedicated new-email verification flow is required.
 - Add a migration constraining the test-question storage bucket size/MIME types.
-- Reconcile the out-of-order 20261009173000 migration as a no-op because its later 20261009173500 version is already applied remotely; enable --include-all only after ensuring the older migration cannot overwrite those newer function definitions.
+- Reconcile the out-of-order 20261009173000 migration by conditionally recording it as applied only when 20261009173500 is already recorded both locally and remotely; then run the ordinary migration dry-run and deploy.
 
 ## Deployment caution
 
-This branch alone does not change production. A previous production dry run failed because migration 20261009173000 was missing from the remote ledger while a later migration was already recorded. The older local file is therefore proposed as an intentional no-op, and the workflow uses --include-all to reconcile it without replacing the later SQL functions. Confirm the next dry run on the target environment before relying on deployment. Reconcile the migration history and live schema; do not assume a migration is applied because equivalent SQL may have been run manually. The repository's vercel.json disables Git-based Vercel deployments, so a merge does not prove that the live frontend received the change.
+This branch alone does not change production. A previous production dry run failed because migration 20261009173000 was missing from the remote ledger while a later migration was already recorded. The workflow now checks migration history and runs `supabase migration repair 20261009173000 --status applied` only if 20261009173500 is recorded in both local and remote history but 20261009173000 is missing remotely. It then runs the ordinary dry-run and deploy steps; it does not use `--include-all` or overwrite the older SQL file. Supabase documents that migration repair changes the history ledger only, not the database schema itself【turn215588search0】【turn215588search5】. Confirm the next dry run on the target environment before relying on deployment. Reconcile migration history and live schema; do not assume a migration is applied because similar SQL was run manually. The repository's vercel.json disables Git-based Vercel deployments, so a merge does not prove that the live frontend received the change.
 
 ## Validation and remaining work
 
