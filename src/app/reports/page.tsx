@@ -14,7 +14,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
   const marathonDay = dayParam ? Number(dayParam) : null;
 
   const [{ data: profile }, { data: reportRows }] = await Promise.all([
-    supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name,role,status").eq("id", user.id).maybeSingle(),
     supabase
       .from("daily_reports")
       .select("id,report_date,marathon_day,study_minutes,completed_task_count,status,reflection")
@@ -24,6 +24,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
   ]);
 
   const role = profile?.role ?? "STUDENT";
+  if (role !== "STUDENT" || profile?.status !== "ACTIVE") redirect("/dashboard");
   const filtered = marathonDay ? (reportRows ?? []).filter((row) => Number(row.marathon_day) === marathonDay) : (reportRows ?? []);
 
   return (
