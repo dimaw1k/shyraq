@@ -2,17 +2,29 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp"]);
 
 function safeName(name:string){return name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100);}
 
 export async function POST(request:Request){
   const {profile}=await getAuthenticatedStaff("LEADER");
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\\d+$/.test(contentLength) ||
+      Number(contentLength) > MAX_BYTES + 128 * 1024)
+  ) {
+    return NextResponse.json(
+      { error: "Файл өлшемі 4 MB шегінен асады." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const form=await request.formData();
   const file=form.get("file");
   if(!(file instanceof File))return NextResponse.json({error:"Banner суреті қажет."},{status:400});
-  if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 8 MB-тан аспауы керек."},{status:400});
+  if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 4 MB-тан аспауы керек."},{status:400});
   if(!ALLOWED.has(file.type))return NextResponse.json({error:"JPG, PNG немесе WebP ғана рұқсат."},{status:400});
   const title=String(form.get("title")??"").trim() || "Баннер";
   const admin=createAdminSupabaseClient();
