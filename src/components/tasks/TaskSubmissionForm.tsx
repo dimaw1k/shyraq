@@ -18,6 +18,31 @@ type Submission = {
 
 const inputClass = "mt-3 w-full rounded-[12px] border border-[#EFE8E1] bg-[#FFFCF9] p-3 text-xs outline-none focus:border-[#C25100]";
 
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+function getUploadMimeType(file: File) {
+  if (ALLOWED_MIME_TYPES.has(file.type)) return file.type;
+  const extension = file.name.toLowerCase().split(".").pop();
+  const mimeByExtension: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  return extension ? mimeByExtension[extension] ?? "" : "";
+}
+
 export function TaskSubmissionForm({
   taskId,
   attachmentRequired,
@@ -38,6 +63,28 @@ export function TaskSubmissionForm({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const locked = initialSubmission?.status === "SUBMITTED" || initialSubmission?.status === "REVIEWED";
+
+  function selectFiles(selected: File[]) {
+    const remaining = Math.max(0, maxFiles - existingFileCount);
+    const nextFiles = selected.slice(0, remaining);
+    const invalid = nextFiles.find((file) =>
+      !getUploadMimeType(file) ||
+      file.size <= 0 ||
+      file.size > MAX_FILE_BYTES ||
+      file.name.trim().length === 0 ||
+      file.name.length > 180
+    );
+    if (invalid) {
+      setMessage("Әр файл 20 МБ-тан аспасын. JPG, PNG, WEBP, PDF, DOC немесе DOCX форматтарын таңда.");
+      return;
+    }
+    if (selected.length > remaining) {
+      setMessage(t("maxFiles") + " " + maxFiles + " " + t("maxFilesHint"));
+    } else {
+      setMessage("");
+    }
+    setFiles(nextFiles);
+  }
 
   async function submit() {
     if (locked) {
@@ -72,7 +119,7 @@ export function TaskSubmissionForm({
         const metadata = {
           submissionId,
           fileName: file.name,
-          mimeType: file.type,
+          mimeType: getUploadMimeType(file),
           sizeBytes: file.size,
         };
 
@@ -88,7 +135,7 @@ export function TaskSubmissionForm({
 
         const { error: uploadError } = await browserSupabase.storage
           .from("submissions")
-          .uploadToSignedUrl(prepared.storagePath, prepared.token, file, { contentType: file.type });
+          .uploadToSignedUrl(prepared.storagePath, prepared.token, file, { contentType: metadata.mimeType });
 
         if (uploadError) {
           throw new Error("Файл жүктелмеді. Интернетті тексеріп, қайта көріңіз.");
@@ -182,7 +229,7 @@ export function TaskSubmissionForm({
             className="sr-only"
             disabled={locked || existingFileCount >= maxFiles}
             accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx"
-            onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, Math.max(0, maxFiles - existingFileCount)))}
+            onChange={(event) => selectFiles(Array.from(event.target.files ?? []))}
           />
         </label>
       </div>
