@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { getTrustedAppUrl } from "@/lib/app-url";
 import {
   consumeRateLimit,
   getClientIp,
   rateLimitResponse,
+  rateLimitUnavailableResponse,
 } from "@/lib/security/rate-limit";
 
 function normalizeEmail(value: unknown) {
@@ -29,7 +31,12 @@ export async function POST(request: Request) {
       consumeRateLimit("auth:reset-request:email", email, 3, 60 * 60, 60 * 60),
     ]);
 
-    const blocked = [ipLimit, emailLimit].find((result) => !result.allowed);
+    const limitResults = [ipLimit, emailLimit];
+    if (limitResults.some((result) => !result.available)) {
+      return rateLimitUnavailableResponse();
+    }
+
+    const blocked = limitResults.find((result) => !result.allowed);
     if (blocked) {
       return rateLimitResponse(
         blocked.retryAfterSeconds,
@@ -45,7 +52,7 @@ export async function POST(request: Request) {
       },
     });
 
-    const redirectTo = new URL("/auth/recovery", request.url).toString();
+    const redirectTo = new URL("/auth/recovery", getTrustedAppUrl()).toString();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,

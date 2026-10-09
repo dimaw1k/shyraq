@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
 
 const scope = [
   "openid",
@@ -13,35 +14,33 @@ const scope = [
 const allowedRoles = new Set(["CHIEF_MENTOR"]);
 
 export async function GET(request: Request) {
+  const appUrl = getTrustedAppUrl();
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return NextResponse.redirect(new URL("/login", request.url));
+  if (!user) return NextResponse.redirect(new URL("/login", appUrl));
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profile?.role || !allowedRoles.has(profile.role)) {
-    return NextResponse.redirect(new URL("/dashboard?google=forbidden", request.url));
+  if (!profile?.role || !allowedRoles.has(profile.role) || profile.status !== "ACTIVE") {
+    return NextResponse.redirect(new URL("/dashboard?google=forbidden", appUrl));
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
   if (!clientId || !redirectUri) {
-    return NextResponse.redirect(new URL("/dashboard?google=not_configured", request.url));
+    return NextResponse.redirect(new URL("/dashboard?google=not_configured", appUrl));
   }
 
   const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/dashboard";
-  const returnTo =
-    requestedReturnTo.startsWith("/") && !requestedReturnTo.startsWith("//")
-      ? requestedReturnTo
-      : "/chief-mentor/meet";
+  const returnTo = sanitizeLocalReturnTo(requestedReturnTo, "/chief-mentor/meet");
 
   const state = crypto.randomBytes(24).toString("base64url");
   const response = NextResponse.redirect(
