@@ -11,7 +11,7 @@ export async function GET(){
 }
 
 export async function POST(request:Request){
- const {profile}=await getAuthenticatedStaff(["MENTOR","CHIEF_MENTOR","LEADER"]);
+ const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
  const body=await request.json().catch(()=>null);
  const question=typeof body?.question==="string"?body.question.trim():"";
  const fieldKey=typeof body?.fieldKey==="string"?body.fieldKey.trim().toLowerCase().replace(/[^a-z0-9_]/g,"_").slice(0,80):"";
@@ -27,7 +27,7 @@ export async function POST(request:Request){
 }
 
 export async function PATCH(request:Request){
- const {profile}=await getAuthenticatedStaff(["MENTOR","CHIEF_MENTOR","LEADER"]);
+ const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
  const body=await request.json().catch(()=>null); const id=String(body?.id??"");
  if(!id)return NextResponse.json({error:"Question ID қажет."},{status:400});
  const admin=createAdminSupabaseClient();
@@ -38,7 +38,7 @@ export async function PATCH(request:Request){
 }
 
 export async function DELETE(request:Request){
- const {profile}=await getAuthenticatedStaff(["MENTOR","CHIEF_MENTOR","LEADER"]);
+ const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
  const id=new URL(request.url).searchParams.get("id");
  if(!id)return NextResponse.json({error:"Question ID қажет."},{status:400});
  const admin=createAdminSupabaseClient();
