@@ -226,21 +226,29 @@ export async function POST(request: Request) {
   const passingScore = body.passingScore == null ? null : Math.min(100, Math.max(0, Number(body.passingScore)));
   const maxAttempts = typeof body.maxAttempts === "number" ? Math.max(1, Math.floor(body.maxAttempts)) : 1;
 
-  const { data: test, error: testError } = await admin
-    .from("lesson_tests")
-    .upsert({
-      ...(existing?.id ? { id: existing.id } : {}),
-      lesson_id: body.lessonId,
-      title: body.title.trim(),
-      instructions: typeof body.instructions === "string" ? body.instructions.trim() || null : null,
-      passing_score: passingScore,
-      max_attempts: maxAttempts,
-      active: body.active !== false,
-    }, { onConflict: "lesson_id" })
-    .select("id,lesson_id,title,instructions,passing_score,max_attempts,active")
-    .single();
+  // Keep new tests inactive while attachments are uploaded. Existing test
+  // metadata is not changed until the database atomically saves the complete
+  // question version, so a failed upload cannot leave a half-updated test live.
+  let testId = existing?.id ?? null;
+  if (!testId) {
+    const { data: placeholder, error: placeholderError } = await admin
+      .from("lesson_tests")
+      .insert({
+        lesson_id: body.lessonId,
+        title: body.title.trim(),
+        instructions: null,
+        passing_score: null,
+        max_attempts: maxAttempts,
+        active: false,
+      })
+      .select("id")
+      .single();
 
-  if (testError || !test) return NextResponse.json({ error: "Тестті сақтау сәтсіз аяқталды." }, { status: 500 });
+    if (placeholderError || !placeholder) {
+      return NextResponse.json({ error: "Тестті дайындау сәтсіз аяқталды." }, { status: 500 });
+    }
+    testId = placeholder.id;
+  }
 
   const uploadedPaths: string[] = [];
   let totalUploadBytes = 0;
@@ -281,7 +289,7 @@ export async function POST(request: Request) {
         totalUploadBytes += fileValue.size;
         if (totalUploadBytes > MAX_TOTAL_FILE_BYTES) throw new Error("Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек.");
 
-        const path = "test/" + test.id + "/" + crypto.randomUUID() + "-" + safeName(fileValue.name);
+        const path = "test/" + testId + "/" + crypto.randomUUID() + "-" + safeName(fileValue.name);
         const { error: uploadError } = await admin.storage.from("test-question-files").upload(
           path,
           Buffer.from(await fileValue.arrayBuffer()),
@@ -315,8 +323,13 @@ export async function POST(request: Request) {
     // The DB function locks the test row, verifies there are no attempts, and
     // replaces all questions/options in a single transaction. If any insert
     // fails, the old question set remains intact.
-    const { error: replaceError } = await admin.rpc("replace_lesson_test_questions", {
-      p_test_id: test.id,
+    const { error: replaceError } = await admin.rpc("save_lesson_test_version", {
+      p_test_id: testId,
+      p_title: body.title.trim(),
+      p_instructions: typeof body.instructions === "string" ? body.instructions.trim() || null : null,
+      p_passing_score: passingScore,
+      p_max_attempts: maxAttempts,
+      p_active: body.active !== false,
       p_questions: preparedQuestions,
     });
 
@@ -349,7 +362,7 @@ export async function POST(request: Request) {
     }
     if (!existing?.id) {
       // Do not leave a newly-created empty test if its first question set failed.
-      const { error: deleteTestError } = await admin.from("lesson_tests").delete().eq("id", test.id);
+      const { error: deleteTestError } = await admin.from("lesson_tests").delete().eq("id", testId);
       if (deleteTestError) {
         console.error("[chief-mentor/tests] failed to remove incomplete new test", { code: deleteTestError.code });
       }
@@ -358,6 +371,19 @@ export async function POST(request: Request) {
       { error: error instanceof Error ? error.message : "Тестті сақтау сәтсіз аяқталды." },
       { status: error instanceof Error && error.message.includes("жауап тарихын сақтау") ? 409 : 400 },
     );
+  }
+
+  const { data: test, error: finalTestError } = await admin
+    .from("lesson_tests")
+    .select("id,lesson_id,title,instructions,passing_score,max_attempts,active")
+    .eq("id", testId)
+    .single();
+
+  if (finalTestError || !test) {
+    // The version save has already committed, so do not clean up uploaded files
+    // here. Report the response failure and keep the saved test data consistent.
+    console.error("[chief-mentor/tests] saved test could not be reloaded", { code: finalTestError?.code });
+    return NextResponse.json({ error: "Тест сақталды, бірақ деректерін қайта жүктеу сәтсіз аяқталды." }, { status: 500 });
   }
 
   await admin.from("audit_logs").insert({
