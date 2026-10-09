@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizePhone } from "@/lib/phone";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import {
@@ -24,7 +25,17 @@ function looksLikePhone(value: string) {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as LoginPayload;
+    const parsedBody = await readLimitedJson(request, 16384);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Кіру деректері дұрыс емес." },
+        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+      return NextResponse.json({ error: "Кіру деректері дұрыс емес." }, { status: 400 });
+    }
+    const body = parsedBody.value as unknown as LoginPayload;
     const rawIdentifier = text(body.identifier);
     const password = typeof body.password === "string" ? body.password : "";
 
