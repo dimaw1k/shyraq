@@ -5,6 +5,13 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { TestClient } from "@/components/tests/TestClient";
 import { isDateInFuture } from "@/lib/datetime";
 
+function isSafeTestQuestionFilePath(path: string, testId: string) {
+  return path.length <= 1024 &&
+    path.startsWith("test/" + testId + "/") &&
+    !path.includes("\\") &&
+    !path.split("/").includes("..");
+}
+
 export default async function LessonTestPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const supabase = await createServerSupabaseClient();
   const {
@@ -59,12 +66,24 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
       const attachments = Array.isArray(question.attachments)
         ? await Promise.all(
             question.attachments.map(
-              async (attachment: { name: string; path: string; mime: string; size: number }) => {
-                const { data } = await admin.storage.from("test-question-files").createSignedUrl(attachment.path, 3600);
+              async (rawAttachment: unknown) => {
+                if (!rawAttachment || typeof rawAttachment !== "object" || Array.isArray(rawAttachment)) return null;
+                const attachment = rawAttachment as { name?: unknown; path?: unknown; mime?: unknown };
+                if (
+                  typeof attachment.name !== "string" ||
+                  typeof attachment.path !== "string" ||
+                  typeof attachment.mime !== "string" ||
+                  !isSafeTestQuestionFilePath(attachment.path, test.id)
+                ) return null;
+
+                const { data } = await admin.storage
+                  .from("test-question-files")
+                  .createSignedUrl(attachment.path, 3600);
                 return { name: attachment.name, mime: attachment.mime, url: data?.signedUrl ?? null };
               },
             ),
           )
+          .filter((attachment): attachment is { name: string; mime: string; url: string | null } => attachment !== null)
         : [];
 
       return {
