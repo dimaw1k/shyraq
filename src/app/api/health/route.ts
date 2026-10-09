@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export async function GET() {
   let supabaseReachable = false;
@@ -19,14 +20,22 @@ export async function GET() {
     supabaseReachable = false;
   }
 
-  // A reachable Supabase Auth endpoint alone is not enough for this app to be ready:
-  // most server-side workflows need the server-only admin key for scoped operations.
-  // Report not-ready rather than returning a misleading green health check.
-  const serverAdminKeyConfigured = Boolean(
-    process.env.SUPABASE_SECRET_KEY?.trim() ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
-  );
-  const ok = supabaseReachable && serverAdminKeyConfigured;
+  // Validate that the server-only credential actually works, not just that
+  // an environment variable is non-empty. This query returns no rows and does
+  // not expose data; it checks the service-only rate-limit table's permissions.
+  let adminCredentialValid = false;
+  try {
+    const admin = createAdminSupabaseClient();
+    const { error } = await admin
+      .from("security_rate_limit_buckets")
+      .select("bucket_key")
+      .limit(0);
+    adminCredentialValid = !error;
+  } catch {
+    adminCredentialValid = false;
+  }
+
+  const ok = supabaseReachable && adminCredentialValid;
 
   return NextResponse.json(
     { ok },
