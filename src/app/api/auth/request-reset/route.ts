@@ -6,6 +6,7 @@ import {
   consumeRateLimit,
   getClientIp,
   rateLimitResponse,
+  rateLimitUnavailableResponse,
 } from "@/lib/security/rate-limit";
 
 function normalizeEmail(value: unknown) {
@@ -30,7 +31,12 @@ export async function POST(request: Request) {
       consumeRateLimit("auth:reset-request:email", email, 3, 60 * 60, 60 * 60),
     ]);
 
-    const blocked = [ipLimit, emailLimit].find((result) => !result.allowed);
+    const limitResults = [ipLimit, emailLimit];
+    if (limitResults.some((result) => !result.available)) {
+      return rateLimitUnavailableResponse();
+    }
+
+    const blocked = limitResults.find((result) => !result.allowed);
     if (blocked) {
       return rateLimitResponse(
         blocked.retryAfterSeconds,
