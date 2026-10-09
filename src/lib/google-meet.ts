@@ -2,6 +2,43 @@ const MEET_API = "https://meet.googleapis.com/v2";
 
 type JsonRecord = Record<string, unknown>;
 
+const RFC3339_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+const MEET_SPACE_RESOURCE = /^spaces\/[A-Za-z0-9_-]{1,128}$/;
+const MAX_SYNC_RANGE_MS = 31 * 24 * 60 * 60 * 1000;
+
+function normalizeMeetSpaceResource(value: string) {
+  const resource = value.startsWith("spaces/") ? value : "spaces/" + value;
+  if (!MEET_SPACE_RESOURCE.test(resource)) {
+    throw new Error("Invalid Google Meet space resource.");
+  }
+  return resource;
+}
+
+/**
+ * Validate timestamps before inserting them into Google's filter expression.
+ * Only strict RFC3339 timestamps are accepted, preventing filter-string
+ * injection and unbounded historical pagination.
+ */
+export function validateMeetTimeRange(startTime: string, endTime: string) {
+  if (
+    !RFC3339_TIMESTAMP.test(startTime) ||
+    !RFC3339_TIMESTAMP.test(endTime)
+  ) {
+    throw new Error("Invalid Google Meet time range.");
+  }
+
+  const start = Date.parse(startTime);
+  const end = Date.parse(endTime);
+  if (
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    end <= start ||
+    end - start > MAX_SYNC_RANGE_MS
+  ) {
+    throw new Error("Google Meet sync range must be positive and no longer than 31 days.");
+  }
+}
+
 async function getJson(path: string, accessToken: string, searchParams?: URLSearchParams) {
   const url = new URL(MEET_API + path);
   if (searchParams) url.search = searchParams.toString();
@@ -69,18 +106,24 @@ export type MeetParticipantSession = {
 };
 
 export async function getMeetSpace(accessToken: string, spaceName: string) {
-  return getJson("/" + spaceName.replace(/^\//, ""), accessToken);
+  const resource = normalizeMeetSpaceResource(spaceName.replace(/^\//, ""));
+  return getJson("/" + resource, accessToken);
 }
 
 export async function listConferences(
   accessToken: string,
   spaceName: string,
-  startTime?: string,
-  endTime?: string,
+  startTime: string,
+  endTime: string,
 ): Promise<MeetConference[]> {
-  const filters = ['space.name = "' + spaceName.replace(/"/g, '\\\"') + '"'];
-  if (startTime) filters.push('start_time>="' + startTime + '"');
-  if (endTime) filters.push('start_time<="' + endTime + '"');
+  const resource = normalizeMeetSpaceResource(spaceName);
+  validateMeetTimeRange(startTime, endTime);
+
+  // Resource and timestamp fields are validated above before they enter the
+  // Google filter expression, so quotes/operators cannot be injected.
+  const filters = ["space.name = " + JSON.stringify(resource)];
+  filters.push('start_time>="' + startTime + '"');
+  filters.push('start_time<="' + endTime + '"');
 
   let pageToken = "";
   const conferences: MeetConference[] = [];
