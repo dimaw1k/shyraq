@@ -81,19 +81,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "phone", error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
+    if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 180) {
       return NextResponse.json({ field: "email", error: "Email мекенжайын дұрыс енгізіңіз." }, { status: 400 });
     }
 
-    if (firstName.length < 2) {
+    if (firstName.length < 2 || firstName.length > 120) {
       return NextResponse.json({ field: "firstName", error: "Атыңызды дұрыс енгізіңіз." }, { status: 400 });
     }
 
-    if (lastName.length < 2) {
+    if (lastName.length < 2 || lastName.length > 120) {
       return NextResponse.json({ field: "lastName", error: "Тегіңізді дұрыс енгізіңіз." }, { status: 400 });
     }
 
 
+
+    if (password.length > 1024) {
+      return NextResponse.json({ field: "password", error: "Құпиясөз тым ұзын." }, { status: 400 });
+    }
 
     const passwordError = getPasswordValidationError(password, [
       firstName,
