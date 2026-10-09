@@ -194,7 +194,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Тестте 1–50 сұрақ болуы керек." }, { status: 400 });
   }
 
-  let expectedUploadCount = 0;
   const uploadFiles: File[][] = [];
   const expectedFileKeys = new Set<string>();
   let totalUploadBytes = 0;
@@ -259,7 +258,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек." }, { status: 413 });
       }
       filesForQuestion.push(fileValue);
-      expectedUploadCount += 1;
     }
     uploadFiles.push(filesForQuestion);
 
@@ -323,7 +321,9 @@ export async function POST(request: Request) {
     oldQuestions = (data ?? []) as unknown as ExistingQuestionRow[];
   }
 
-  const oldAttachments = oldQuestions.flatMap((question) => attachmentList(question.attachments));
+  const oldAttachments = oldQuestions
+    .flatMap((question) => attachmentList(question.attachments))
+    .filter((attachment) => existing?.id && isSafeTestAttachmentPath(attachment.path, existing.id));
   const oldAttachmentByPath = new Map(oldAttachments.map((attachment) => [attachment.path, attachment]));
   const preservedAttachments: ExistingAttachment[][] = [];
 
