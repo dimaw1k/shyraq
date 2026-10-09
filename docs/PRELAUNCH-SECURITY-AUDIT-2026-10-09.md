@@ -11,6 +11,7 @@ Focused source review of the current application code for authentication and sta
 - Keep the current atomic test-editor database RPC and add strict request/field limits to its API, including file signature checks, MIME allow-list, a 3 MiB aggregate file bound and text/number bounds.
 - Bound student test answer payloads to 64 KiB and free-text answers to 5,000 characters while preserving the atomic attempt-and-answers RPC.
 - Validate stored attachment paths before generating temporary signed URLs.
+- Disable unverified email changes through the privileged profile endpoint; the profile screen explains that a dedicated new-email verification flow is required.
 - Add a migration constraining the test-question storage bucket size/MIME types.
 - Reconcile the out-of-order 20261009173000 migration as a no-op because its later 20261009173500 version is already applied remotely; enable --include-all only after ensuring the older migration cannot overwrite those newer function definitions.
 
