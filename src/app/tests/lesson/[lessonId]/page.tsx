@@ -64,7 +64,7 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
   const questions = await Promise.all(
     (rawQuestions ?? []).map(async (question) => {
       const attachments = Array.isArray(question.attachments)
-        ? await Promise.all(
+        ? (await Promise.all(
             question.attachments.map(
               async (rawAttachment: unknown) => {
                 if (!rawAttachment || typeof rawAttachment !== "object" || Array.isArray(rawAttachment)) return null;
@@ -82,7 +82,7 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
                 return { name: attachment.name, mime: attachment.mime, url: data?.signedUrl ?? null };
               },
             ),
-          )
+          ))
           .filter((attachment): attachment is { name: string; mime: string; url: string | null } => attachment !== null)
         : [];
 
