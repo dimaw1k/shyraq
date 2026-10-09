@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { inspectSignedStorageObject } from "@/lib/security/file-validation";
 import { consumeRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -165,22 +165,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ file: alreadySaved }, { headers: { "Cache-Control": "no-store" } });
     }
 
-    const { data: storedFile, error: downloadError } = await admin.storage
+    const { data: signedFile, error: signedFileError } = await admin.storage
       .from("submissions")
-      .download(storagePath);
+      .createSignedUrl(storagePath, 60);
 
-    if (downloadError || !storedFile) {
-      return NextResponse.json({ error: "Жүктелген фото табылмады. Қайта көріңіз." }, { status: 503 });
+    if (signedFileError || !signedFile?.signedUrl) {
+      return NextResponse.json(
+        { error: "Жүктелген файлды тексеру мүмкін болмады. Қайта көріңіз." },
+        { status: 503, headers: { "Retry-After": "3", "Cache-Control": "no-store" } },
+      );
     }
 
-    if (
-      storedFile.size !== sizeBytes ||
-      storedFile.size <= 0 ||
-      storedFile.size > MAX_BYTES ||
-      !(await hasValidFileSignature(storedFile, mimeType))
-    ) {
+    const inspection = await inspectSignedStorageObject(
+      signedFile.signedUrl,
+      mimeType,
+      sizeBytes,
+      MAX_BYTES,
+    );
+
+    if (inspection.reason === "unavailable") {
+      return NextResponse.json(
+        { error: "Файлды тексеру уақытша қолжетімсіз. Қайта көріңіз." },
+        { status: 503, headers: { "Retry-After": "3", "Cache-Control": "no-store" } },
+      );
+    }
+
+    if (!inspection.ok || inspection.sizeBytes !== sizeBytes) {
       await admin.storage.from("submissions").remove([storagePath]);
-      return NextResponse.json({ error: "Файлдың көлемі немесе нақты форматы сәйкес емес." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Файлдың көлемі немесе нақты форматы сәйкес емес." },
+        { status: 400 },
+      );
     }
 
     const { data: existingFiles, error: existingFilesError } = await supabase
@@ -201,7 +216,7 @@ export async function POST(request: Request) {
         storage_path: storagePath,
         file_name: fileName,
         mime_type: mimeType,
-        size_bytes: storedFile.size,
+        size_bytes: inspection.sizeBytes,
       })
       .select("*")
       .single();
