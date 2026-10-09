@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { syncTeamMeet } from "@/lib/google-meet-sync";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -18,9 +20,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
   }
 
-  const body = await request.json().catch(() => null);
-  const teamId = typeof body?.teamId === "string" ? body.teamId : "";
-  if (!teamId) return NextResponse.json({ error: "teamId is required" }, { status: 400 });
+  const rateLimit = await consumeRateLimit("google-meet:mentor-sync", user.id, 8, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet синхрондауы тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
+
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Сұраныс деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Сұраныс деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const teamId = typeof body.teamId === "string" ? body.teamId.trim() : "";
+  if (!teamId || teamId.length > 100) return NextResponse.json({ error: "teamId is invalid" }, { status: 400 });
+
+  const hasStartTime = typeof body.startTime === "string" && body.startTime.length > 0;
+  const hasEndTime = typeof body.endTime === "string" && body.endTime.length > 0;
+  if ((hasStartTime && !hasEndTime) || (!hasStartTime && hasEndTime)) {
+    return NextResponse.json({ error: "startTime мен endTime бірге берілуі керек." }, { status: 400 });
+  }
+  if (hasStartTime && hasEndTime) {
+    const startMs = Date.parse(body.startTime as string);
+    const endMs = Date.parse(body.endTime as string);
+    const nowMs = Date.now();
+    if (
+      !Number.isFinite(startMs) ||
+      !Number.isFinite(endMs) ||
+      startMs >= endMs ||
+      endMs > nowMs + 5 * 60 * 1000 ||
+      endMs - startMs > 90 * 24 * 60 * 60 * 1000
+    ) {
+      return NextResponse.json({ error: "Синхрондау аралығы 90 күннен аспайтын дұрыс күндер болуы керек." }, { status: 400 });
+    }
+  }
 
   const { data: team } = await supabase
     .from("teams")
