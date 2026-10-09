@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasAllowedFileSignature } from "@/lib/security/file-signature";
@@ -121,6 +122,10 @@ export async function POST(request: Request) {
     safeName;
 
   const admin = createAdminSupabaseClient();
+  if (!(await hasValidFileSignature(file, file.type))) {
+    return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await admin.storage
