@@ -197,6 +197,27 @@ export async function POST(request: Request) {
 
   const derivedCompletedTaskCount = Math.max(0, Number(completedTaskCount ?? 0));
 
+  const { data: existingReport, error: existingReportError } = await supabase
+    .from("daily_reports")
+    .select("id,status")
+    .eq("student_id", user.id)
+    .eq("report_date", reportDate)
+    .eq("report_type", reportType)
+    .maybeSingle();
+
+  if (existingReportError) {
+    return NextResponse.json(
+      { error: "Бұрынғы есептің күйін тексеру мүмкін болмады." },
+      { status: 503 },
+    );
+  }
+  if (existingReport?.status === "REVIEWED") {
+    return NextResponse.json(
+      { error: "Тексерілген есепті өзгертуге болмайды." },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await supabase
     .from("daily_reports")
     .upsert(
