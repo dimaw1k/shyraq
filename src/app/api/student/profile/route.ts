@@ -96,7 +96,7 @@ export async function PATCH(request: Request) {
 
   if (typeof body.phone === "string") {
     const phone = normalizePhone(body.phone);
-    if (!/^\\+7\\d{10}$/.test(phone)) {
+    if (!/^\+7\d{10}$/.test(phone)) {
       return NextResponse.json({ error: "Қазақстан телефон нөмірін дұрыс енгізіңіз." }, { status: 400 });
     }
     updates.phone = phone;
