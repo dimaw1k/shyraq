@@ -97,6 +97,8 @@ export default async function ChiefMentorPage() {
       .limit(8),
   ]);
 
+  // Time-window filtering runs only on the server for this request; keep the request-time snapshot stable.
+  // eslint-disable-next-line react-hooks/purity -- server-only banner schedule check.
   const now = Date.now();
   const bannerItems = (
     await Promise.all(
