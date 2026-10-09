@@ -87,11 +87,61 @@ export async function POST(request: Request) {
   const { data: lesson } = await admin.from("lessons").select("id,title").eq("id", body.lessonId).maybeSingle();
   if (!lesson) return NextResponse.json({ error: "Сабақ табылмады." }, { status: 404 });
 
-  const { data: existing } = await admin.from("lesson_tests").select("id").eq("lesson_id", body.lessonId).maybeSingle();
+  const { data: existing, error: existingError } = await admin
+    .from("lesson_tests")
+    .select("id")
+    .eq("lesson_id", body.lessonId)
+    .maybeSingle();
+
+  if (existingError) {
+    return NextResponse.json({ error: "Тесттің күйін тексеру сәтсіз аяқталды." }, { status: 500 });
+  }
+
+  // Question replacement cascades to test_answers. Preserve historical attempts
+  // by requiring a new test version once anyone has submitted this one.
+  if (existing?.id) {
+    const { count: attemptCount, error: attemptLookupError } = await admin
+      .from("test_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("test_id", existing.id);
+
+    if (attemptLookupError) {
+      return NextResponse.json({ error: "Тест әрекеттерін тексеру сәтсіз аяқталды." }, { status: 500 });
+    }
+    if (Number(attemptCount ?? 0) > 0) {
+      return NextResponse.json(
+        { error: "Бұл тест тапсырылып қойған. Оқушылардың жауап тарихын сақтау үшін жаңа тест нұсқасын жасаңыз." },
+        { status: 409 },
+      );
+    }
+  }
+
+  // Preserved attachment paths must belong to this exact test. The editor must
+  // never carry a private attachment path over from another test.
+  const expectedAttachmentPrefix = existing?.id ? "test/" + existing.id + "/" : "";
+  for (const question of body.questions) {
+    for (const attachment of attachmentList(question.attachments)) {
+      if (
+        !expectedAttachmentPrefix ||
+        !attachment.path.startsWith(expectedAttachmentPrefix) ||
+        attachment.path.includes("\\") ||
+        attachment.path.split("/").includes("..")
+      ) {
+        return NextResponse.json({ error: "Сақталған тіркеме осы тестке тиесілі емес." }, { status: 400 });
+      }
+    }
+  }
 
   let oldAttachments: ExistingAttachment[] = [];
   if (existing?.id) {
-    const { data: oldQuestions } = await admin.from("test_questions").select("attachments").eq("test_id", existing.id);
+    const { data: oldQuestions, error: oldQuestionsError } = await admin
+      .from("test_questions")
+      .select("attachments")
+      .eq("test_id", existing.id);
+
+    if (oldQuestionsError) {
+      return NextResponse.json({ error: "Ескі тест файлдарын оқу сәтсіз аяқталды." }, { status: 500 });
+    }
     oldAttachments = (oldQuestions ?? []).flatMap((question) => attachmentList(question.attachments));
   }
 
@@ -116,67 +166,116 @@ export async function POST(request: Request) {
 
   const uploadedPaths: string[] = [];
   try {
-    await admin.from("test_questions").delete().eq("test_id", test.id);
-
     const keepPaths = new Set<string>();
-    for (const question of body.questions) {
-      for (const attachment of attachmentList(question.attachments)) keepPaths.add(attachment.path);
-    }
+    const preparedQuestions: Array<{
+      question_text: string;
+      points: number;
+      sort_order: number;
+      question_type: "SINGLE" | "MULTIPLE" | "TEXT";
+      attachments: ExistingAttachment[];
+      options: Array<{ option_text: string; is_correct: boolean; sort_order: number }>;
+    }> = [];
 
     for (let questionIndex = 0; questionIndex < body.questions.length; questionIndex += 1) {
       const question = body.questions[questionIndex];
+      const type = question.type ?? "SINGLE";
       const preserved = attachmentList(question.attachments);
-      const uploaded: ExistingAttachment[] = [];
-      const newFileCount = Math.min(MAX_FILES_PER_QUESTION, Math.max(0, Number(question.newFileCount ?? 0)));
+      const requestedNewFiles = Number(question.newFileCount ?? 0);
 
-      for (let fileIndex = 0; fileIndex < newFileCount; fileIndex += 1) {
+      if (
+        !Number.isInteger(requestedNewFiles) ||
+        requestedNewFiles < 0 ||
+        requestedNewFiles > MAX_FILES_PER_QUESTION - preserved.length
+      ) {
+        throw new Error("Әр сұраққа ең көбі 3 файл тіркеуге болады.");
+      }
+
+      const uploaded: ExistingAttachment[] = [];
+      for (let fileIndex = 0; fileIndex < requestedNewFiles; fileIndex += 1) {
         const fileValue = form.get("q" + questionIndex + "_file" + fileIndex);
-        if (!(fileValue instanceof File) || fileValue.size === 0) continue;
+        if (!(fileValue instanceof File) || fileValue.size === 0) {
+          throw new Error("Тіркеме файлы табылмады. Қайта таңдап көріңіз.");
+        }
         if (fileValue.size > MAX_FILE_BYTES) throw new Error("Бір файл 10 МБ-тан аспауы керек.");
         if (!ALLOWED_MIME.has(fileValue.type)) throw new Error("Сурет, PDF немесе Word құжатына ғана рұқсат.");
 
         const path = "test/" + test.id + "/" + crypto.randomUUID() + "-" + safeName(fileValue.name);
-        const { error: uploadError } = await admin.storage.from("test-question-files").upload(path, Buffer.from(await fileValue.arrayBuffer()), {
-          contentType: fileValue.type,
-          upsert: false,
-        });
+        const { error: uploadError } = await admin.storage.from("test-question-files").upload(
+          path,
+          Buffer.from(await fileValue.arrayBuffer()),
+          { contentType: fileValue.type, upsert: false },
+        );
         if (uploadError) throw new Error("Файлды жүктеу сәтсіз аяқталды.");
 
         uploadedPaths.push(path);
         uploaded.push({ name: fileValue.name, path, mime: fileValue.type, size: fileValue.size });
       }
 
-      const type = question.type ?? "SINGLE";
-      const attachments = [...preserved, ...uploaded].slice(0, MAX_FILES_PER_QUESTION);
-      const { data: createdQuestion, error: questionError } = await admin.from("test_questions").insert({
-        test_id: test.id,
-        question_text: question.text?.trim(),
+      const attachments = [...preserved, ...uploaded];
+      attachments.forEach((attachment) => keepPaths.add(attachment.path));
+
+      preparedQuestions.push({
+        question_text: question.text!.trim(),
         points: typeof question.points === "number" && Number.isFinite(question.points) ? Math.max(0, question.points) : 1,
         sort_order: questionIndex,
         question_type: type,
         attachments,
-      }).select("id").single();
-
-      if (questionError || !createdQuestion) throw new Error("Сұрақтарды сақтау сәтсіз аяқталды.");
-
-      if (type !== "TEXT") {
-        const { error: optionError } = await admin.from("test_options").insert(
-          (question.options ?? []).map((option, optionIndex) => ({
-            question_id: createdQuestion.id,
-            option_text: option.text?.trim(),
-            is_correct: option.isCorrect === true,
-            sort_order: optionIndex,
-          })),
-        );
-        if (optionError) throw new Error("Жауап нұсқаларын сақтау сәтсіз аяқталды.");
-      }
+        options: type === "TEXT"
+          ? []
+          : (question.options ?? []).map((option, optionIndex) => ({
+              option_text: option.text!.trim(),
+              is_correct: option.isCorrect === true,
+              sort_order: optionIndex,
+            })),
+      });
     }
 
-    const stalePaths = oldAttachments.map((item) => item.path).filter((path) => !keepPaths.has(path) && !uploadedPaths.includes(path));
-    if (stalePaths.length) await admin.storage.from("test-question-files").remove(stalePaths);
+    // The DB function locks the test row, verifies there are no attempts, and
+    // replaces all questions/options in a single transaction. If any insert
+    // fails, the old question set remains intact.
+    const { error: replaceError } = await admin.rpc("replace_lesson_test_questions", {
+      p_test_id: test.id,
+      p_questions: preparedQuestions,
+    });
+
+    if (replaceError) {
+      if (replaceError.code === "55000") {
+        throw new Error("Бұл тест тапсырылып қойған. Оқушылардың жауап тарихын сақтау үшін жаңа тест нұсқасын жасаңыз.");
+      }
+      console.error("[chief-mentor/tests] question replacement failed", { code: replaceError.code });
+      throw new Error("Тест сұрақтарын толық сақтау мүмкін болмады.");
+    }
+
+    const stalePaths = oldAttachments
+      .map((attachment) => attachment.path)
+      .filter((oldPath) => !keepPaths.has(oldPath));
+
+    if (stalePaths.length) {
+      const { error: removeError } = await admin.storage.from("test-question-files").remove(stalePaths);
+      if (removeError) {
+        // The DB references now point only to the new files, so a stale-storage
+        // cleanup failure is logged and can be retried without breaking the test.
+        console.error("[chief-mentor/tests] stale attachment cleanup failed", { code: removeError.name });
+      }
+    }
   } catch (error) {
-    if (uploadedPaths.length) await admin.storage.from("test-question-files").remove(uploadedPaths);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Тестті сақтау сәтсіз аяқталды." }, { status: 400 });
+    if (uploadedPaths.length) {
+      const { error: cleanupError } = await admin.storage.from("test-question-files").remove(uploadedPaths);
+      if (cleanupError) {
+        console.error("[chief-mentor/tests] upload rollback cleanup failed", { code: cleanupError.name });
+      }
+    }
+    if (!existing?.id) {
+      // Do not leave a newly-created empty test if its first question set failed.
+      const { error: deleteTestError } = await admin.from("lesson_tests").delete().eq("id", test.id);
+      if (deleteTestError) {
+        console.error("[chief-mentor/tests] failed to remove incomplete new test", { code: deleteTestError.code });
+      }
+    }
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Тестті сақтау сәтсіз аяқталды." },
+      { status: error instanceof Error && error.message.includes("жауап тарихын сақтау") ? 409 : 400 },
+    );
   }
 
   await admin.from("audit_logs").insert({
