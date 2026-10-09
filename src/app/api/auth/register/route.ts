@@ -40,9 +40,27 @@ export async function POST(request: Request) {
       );
     }
 
+    // Students often register through the same school Wi-Fi/NAT IP.
+    // Cohort mode relaxes only the shared-IP quotas; per-email limits remain strict.
+    const cohortMode =
+      process.env.NODE_ENV === "production" &&
+      process.env.REGISTRATION_COHORT_MODE === "true";
+
     const [ipBurst, ipHourly, emailBurst] = await Promise.all([
-      consumeRateLimit("auth:register:ip:burst", clientIp, 5, 10 * 60, 10 * 60),
-      consumeRateLimit("auth:register:ip:hour", clientIp, 30, 60 * 60, 30 * 60),
+      consumeRateLimit(
+        "auth:register:ip:burst",
+        clientIp,
+        cohortMode ? 600 : 5,
+        10 * 60,
+        10 * 60,
+      ),
+      consumeRateLimit(
+        "auth:register:ip:hour",
+        clientIp,
+        cohortMode ? 1000 : 30,
+        60 * 60,
+        30 * 60,
+      ),
       consumeRateLimit(
         "auth:register:email",
         email,
@@ -161,6 +179,26 @@ export async function POST(request: Request) {
         code: error.code,
         message: error.message,
       });
+
+      if (error.status === 429) {
+        return NextResponse.json(
+          { field: "form", error: "Қазір тіркелушілер көп. Бір минуттан кейін қайта көріңіз." },
+          {
+            status: 429,
+            headers: { "Retry-After": "60", "Cache-Control": "no-store" },
+          },
+        );
+      }
+
+      if (typeof error.status === "number" && error.status >= 500) {
+        return NextResponse.json(
+          { field: "form", error: "Серверге сұраныс көп түсті. 15 секундтан кейін қайта көріңіз." },
+          {
+            status: 503,
+            headers: { "Retry-After": "15", "Cache-Control": "no-store" },
+          },
+        );
+      }
 
       return NextResponse.json(
         { field: "form", error: "Тіркелу кезінде қате болды. Қайта көріңіз." },
