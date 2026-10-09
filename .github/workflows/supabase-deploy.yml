@@ -44,7 +44,7 @@ jobs:
                 sub(/[[:space:]]+$/, "", value)
                 return value
               }
-              trim($3) == id { found=1 }
+              trim($2) == id { found=1 }
               END { exit found ? 0 : 1 }
             '
           }
@@ -55,7 +55,7 @@ jobs:
                 sub(/[[:space:]]+$/, "", value)
                 return value
               }
-              trim($2) == id { found=1 }
+              trim($3) == id { found=1 }
               END { exit found ? 0 : 1 }
             '
           }
