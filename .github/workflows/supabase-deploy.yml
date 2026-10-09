@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           history="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
           has_local_and_remote_migration() {
-            printf '%s\\n' "$history" | awk -F '│' -v id="$1" '
+            printf '%s\n' "$history" | awk -F '[|│]' -v id="$1" '
               function trim(value) {
                 sub(/^[[:space:]]+/, "", value)
                 sub(/[[:space:]]+$/, "", value)
@@ -38,7 +38,7 @@ jobs:
             '
           }
           has_local_migration() {
-            printf '%s\\n' "$history" | awk -F '│' -v id="$1" '
+            printf '%s\n' "$history" | awk -F '[|│]' -v id="$1" '
               function trim(value) {
                 sub(/^[[:space:]]+/, "", value)
                 sub(/[[:space:]]+$/, "", value)
@@ -49,7 +49,7 @@ jobs:
             '
           }
           has_remote_migration() {
-            printf '%s\\n' "$history" | awk -F '│' -v id="$1" '
+            printf '%s\n' "$history" | awk -F '[|│]' -v id="$1" '
               function trim(value) {
                 sub(/^[[:space:]]+/, "", value)
                 sub(/[[:space:]]+$/, "", value)
