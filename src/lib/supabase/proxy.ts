@@ -43,7 +43,35 @@ export async function updateSession(
     },
   });
 
-  await supabase.auth.getClaims();
+  const { data: { claims } } = await supabase.auth.getClaims();
+  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("status")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profile?.status === "INACTIVE") {
+      // A profile-level deactivation must revoke access even when the Auth
+      // session/JWT has not expired yet.
+      await supabase.auth.signOut({ scope: "local" });
+
+      const blockedResponse = request.nextUrl.pathname.startsWith("/api/")
+        ? NextResponse.json(
+            { error: "Бұл аккаунт белсенді емес." },
+            { status: 403, headers: { "Cache-Control": "no-store" } },
+          )
+        : NextResponse.redirect(new URL("/login?disabled=1", request.url));
+
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        blockedResponse.cookies.set(cookie);
+      }
+
+      return blockedResponse;
+    }
+  }
 
   return supabaseResponse;
 }
