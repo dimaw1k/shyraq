@@ -43,8 +43,8 @@ export async function updateSession(
     },
   });
 
-  const { data: { claims } } = await supabase.auth.getClaims();
-  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+  const { data: claimsResult } = await supabase.auth.getClaims();
+  const userId = typeof claimsResult?.claims?.sub === "string" ? claimsResult.claims.sub : null;
 
   if (userId) {
     const { data: profile } = await supabase
