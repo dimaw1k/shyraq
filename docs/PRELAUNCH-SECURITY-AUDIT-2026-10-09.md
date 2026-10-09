@@ -12,10 +12,11 @@ Focused source review of the current application code for authentication and sta
 - Bound student test answer payloads to 64 KiB and free-text answers to 5,000 characters while preserving the atomic attempt-and-answers RPC.
 - Validate stored attachment paths before generating temporary signed URLs.
 - Add a migration constraining the test-question storage bucket size/MIME types.
+- Reconcile the out-of-order 20261009173000 migration as a no-op because its later 20261009173500 version is already applied remotely; enable --include-all only after ensuring the older migration cannot overwrite those newer function definitions.
 
 ## Deployment caution
 
-This branch alone does not change production. Before merging, inspect the Supabase migration dry run against the actual database. Reconcile the migration history and live schema first; do not assume a migration is applied because equivalent SQL may have been run manually. The repository's vercel.json disables Git-based Vercel deployments, so a merge does not prove that the live frontend received the change.
+This branch alone does not change production. A previous production dry run failed because migration 20261009173000 was missing from the remote ledger while a later migration was already recorded. The older local file is therefore proposed as an intentional no-op, and the workflow uses --include-all to reconcile it without replacing the later SQL functions. Confirm the next dry run on the target environment before relying on deployment. Reconcile the migration history and live schema; do not assume a migration is applied because equivalent SQL may have been run manually. The repository's vercel.json disables Git-based Vercel deployments, so a merge does not prove that the live frontend received the change.
 
 ## Validation and remaining work
 
