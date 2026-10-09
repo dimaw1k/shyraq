@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
+import { consumeRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
 
@@ -19,6 +20,20 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const limited = await consumeRateLimit(
+    "daily-report:submit",
+    user.id,
+    8,
+    10 * 60,
+    10 * 60,
+  );
+  if (!limited.allowed) {
+    return rateLimitResponse(
+      limited.retryAfterSeconds,
+      "Күндік есеп жіберу әрекеттері тым жиі орындалды. Қайта көріңіз.",
+    );
   }
 
   const body = await request.json().catch(() => null);
@@ -92,6 +107,17 @@ export async function POST(request: Request) {
     !Array.isArray(body.answers)
       ? (body.answers as Record<string, unknown>)
       : {};
+
+  const optionalTextFields = [body?.reflection, body?.difficulties, body?.nextDayGoal];
+  if (
+    optionalTextFields.some((value) => typeof value === "string" && value.length > 5000) ||
+    JSON.stringify(answers).length > 20000
+  ) {
+    return NextResponse.json(
+      { error: "Есеп жауабы тым ұзын. Қысқартып, қайта жіберіңіз." },
+      { status: 400 },
+    );
+  }
 
   const { data: questions, error: questionError } = await supabase
     .from("daily_report_questions")
