@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
+const MAX_ATTEMPT_BODY_BYTES = 64 * 1024;
+const MAX_TEXT_ANSWER_LENGTH = 5000;
+
 type QuestionRow = {
   id: string;
   points: number;
@@ -71,10 +74,31 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
   }
 
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\d+$/.test(contentLength) || Number(contentLength) > MAX_ATTEMPT_BODY_BYTES)
+  ) {
+    return NextResponse.json(
+      { error: "Жауаптар тым үлкен." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const body = await request.json().catch(() => null);
-  const answersInput = body?.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
-    ? (body.answers as Record<string, unknown>)
-    : {};
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
+  }
+  if (new TextEncoder().encode(JSON.stringify(body)).byteLength > MAX_ATTEMPT_BODY_BYTES) {
+    return NextResponse.json(
+      { error: "Жауаптар тым үлкен." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!body.answers || typeof body.answers !== "object" || Array.isArray(body.answers)) {
+    return NextResponse.json({ error: "Тест сұрақтарына жауап беру міндетті." }, { status: 400 });
+  }
+  const answersInput = body.answers as Record<string, unknown>;
 
   const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin
@@ -98,7 +122,16 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     if (!question) continue;
 
     if (question.question_type === "TEXT") {
-      if (typeof rawAnswer === "string" && rawAnswer.trim()) normalizedAnswers.set(questionId, rawAnswer.trim());
+      if (typeof rawAnswer === "string") {
+        const answer = rawAnswer.trim();
+        if (answer.length > MAX_TEXT_ANSWER_LENGTH) {
+          return NextResponse.json(
+            { error: "Мәтіндік жауап 5000 таңбадан аспауы керек." },
+            { status: 400 },
+          );
+        }
+        if (answer) normalizedAnswers.set(questionId, answer);
+      }
       continue;
     }
 
@@ -186,7 +219,22 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   }));
 
   const { error: answerError } = await admin.from("test_answers").insert(answerRows);
-  if (answerError) return NextResponse.json({ error: "Тест жауаптарын сақтау мүмкін болмады." }, { status: 500 });
+  if (answerError) {
+    // Attempt creation and answer persistence are separate HTTP database calls.
+    // Compensate if the second write fails so transient errors do not consume a
+    // student's attempt without saving their answers.
+    const { error: cleanupError } = await admin
+      .from("test_attempts")
+      .delete()
+      .eq("id", attempt.id)
+      .eq("student_id", user.id);
+    if (cleanupError) {
+      console.error("[tests/attempts] failed to roll back incomplete attempt", {
+        code: cleanupError.code,
+      });
+    }
+    return NextResponse.json({ error: "Тест жауаптарын сақтау мүмкін болмады." }, { status: 500 });
+  }
 
   const { data: rule } = await supabase.from("score_rules").select("weight,active").eq("code", "TESTS").maybeSingle();
   if (rule?.active && Number(rule.weight) !== 0 && questionResults.every((result) => !result.manualReview)) {
