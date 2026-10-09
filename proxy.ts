@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 const PRIVATE_PATH_ROOTS = [
@@ -72,7 +72,7 @@ export async function proxy(request: NextRequest) {
   // unavailable or the Preview environment has no Supabase credentials configured.
   // Protected workspaces and API routes continue through Supabase session refresh.
   const response = isPublicPath(request.nextUrl.pathname)
-    ? (await import("next/server")).NextResponse.next({
+    ? NextResponse.next({
         request: { headers: requestHeaders },
       })
     : await updateSession(request, requestHeaders);
