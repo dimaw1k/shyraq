@@ -10,11 +10,11 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "MENTOR") {
+  if (profile?.role !== "MENTOR" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
   }
 
@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     .from("teams")
     .select("id,mentor_id")
     .eq("id", teamId)
+    .eq("status", "ACTIVE")
     .maybeSingle();
 
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });

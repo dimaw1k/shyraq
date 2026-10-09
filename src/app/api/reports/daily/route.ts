@@ -21,6 +21,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
+  if (profile?.role !== "STUDENT" || profile.status === "INACTIVE") {
+    return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   const reportDate =
     typeof body?.reportDate === "string" ? body.reportDate : "";

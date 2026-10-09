@@ -121,6 +121,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: accountProfile } = await supabase
+        .from("profiles")
+        .select("status")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (accountProfile?.status === "INACTIVE") {
+        await supabase.auth.signOut({ scope: "local" });
+        return NextResponse.json(
+          { error: "Бұл аккаунт белсенді емес. Әкімшіге хабарласыңыз." },
+          { status: 403, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+    }
+
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch {
     return NextResponse.json(

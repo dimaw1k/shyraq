@@ -19,7 +19,14 @@ export async function GET() {
     supabaseReachable = false;
   }
 
-  const ok = supabaseReachable;
+  // A reachable Supabase Auth endpoint alone is not enough for this app to be ready:
+  // most server-side workflows need the server-only admin key for scoped operations.
+  // Report not-ready rather than returning a misleading green health check.
+  const serverAdminKeyConfigured = Boolean(
+    process.env.SUPABASE_SECRET_KEY?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+  const ok = supabaseReachable && serverAdminKeyConfigured;
 
   return NextResponse.json(
     { ok },

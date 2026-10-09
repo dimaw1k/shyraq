@@ -46,11 +46,11 @@ export async function POST(request: Request) {
 
   const { data: me } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (me?.role !== "CHIEF_MENTOR") {
+  if (me?.role !== "CHIEF_MENTOR" || me.status !== "ACTIVE") {
     return NextResponse.json(
       { error: "Chief Mentor access required" },
       { status: 403 },

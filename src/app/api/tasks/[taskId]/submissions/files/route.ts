@@ -10,6 +10,11 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
+  if (profile?.role !== "STUDENT" || profile.status === "INACTIVE") {
+    return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+
   const { taskId } = await context.params;
   const form = await request.formData();
   const submissionId = String(form.get("submissionId") ?? "");

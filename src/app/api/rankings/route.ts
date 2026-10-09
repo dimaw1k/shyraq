@@ -7,8 +7,8 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!profile?.role) return NextResponse.json({ error: "Profile not found" }, { status: 403 });
+  const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
+  if (!profile?.role || profile.status === "INACTIVE" || (profile.role !== "STUDENT" && profile.status !== "ACTIVE")) return NextResponse.json({ error: "Profile not found or inactive" }, { status: 403 });
 
   const admin = createAdminSupabaseClient();
   let scope: "global" | "team" = "global";

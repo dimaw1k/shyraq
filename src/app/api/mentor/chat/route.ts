@@ -10,11 +10,11 @@ async function getMentorContext(studentId: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,role")
+    .select("id,role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "MENTOR") {
+  if (profile?.role !== "MENTOR" || profile.status !== "ACTIVE") {
     return { supabase, error: NextResponse.json({ error: "Mentor access required" }, { status: 403 }) };
   }
 
