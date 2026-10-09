@@ -6,6 +6,7 @@ import {
   consumeRateLimit,
   getClientIp,
   rateLimitResponse,
+  rateLimitUnavailableResponse,
 } from "@/lib/security/rate-limit";
 
 type RegisterPayload = {
@@ -52,7 +53,12 @@ export async function POST(request: Request) {
       ),
     ]);
 
-    const blocked = [ipBurst, ipHourly, emailBurst].find((result) => !result.allowed);
+    const limitResults = [ipBurst, ipHourly, emailBurst];
+    if (limitResults.some((result) => !result.available)) {
+      return rateLimitUnavailableResponse();
+    }
+
+    const blocked = limitResults.find((result) => !result.allowed);
     if (blocked) {
       return rateLimitResponse(
         blocked.retryAfterSeconds,
