@@ -34,13 +34,13 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const {data:current}=await admin.from("marathon_banners").select("*").eq("id",id).maybeSingle();
   if(!current)return NextResponse.json({error:"Banner табылмады."},{status:404});
   const {data,error}=await admin.from("marathon_banners").update({
-    title:typeof input.title==="string"&&body.title.trim()?body.title.trim():current.title,
-    description:input.description===null?null:typeof input.description==="string"?body.description.trim()||null:current.description,
+    title:typeof input.title==="string"&&input.title.trim()?input.title.trim():current.title,
+    description:input.description===null?null:typeof input.description==="string"?input.description.trim()||null:current.description,
     href:input.href===null?null:typeof input.href==="string"?input.href.trim()||null:current.href,
-    published:typeof input.published==="boolean"?body.published:current.published,
-    starts_at:input.startsAt===null||input.startsAt===""?null:typeof input.startsAt==="string"?body.startsAt:current.starts_at,
-    ends_at:input.endsAt===null||input.endsAt===""?null:typeof input.endsAt==="string"?body.endsAt:current.ends_at,
-    sort_order:typeof input.sortOrder==="number"?Math.floor(body.sortOrder):current.sort_order,
+    published:typeof input.published==="boolean"?input.published:current.published,
+    starts_at:input.startsAt===null||input.startsAt===""?null:typeof input.startsAt==="string"?input.startsAt:current.starts_at,
+    ends_at:input.endsAt===null||input.endsAt===""?null:typeof input.endsAt==="string"?input.endsAt:current.ends_at,
+    sort_order:typeof input.sortOrder==="number"?Math.floor(input.sortOrder):current.sort_order,
   }).eq("id",id).select("*").single();
   if(error||!data)return NextResponse.json({error:"Banner жаңартылмады."},{status:500});
   await admin.from("audit_logs").insert({actor_id:profile.id,actor_role:profile.role,action:"BANNER_UPDATED",entity_type:"MARATHON_BANNER",entity_id:id,metadata:{published:data.published}});
