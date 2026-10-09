@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Профиль суретін сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  if (oldPath && oldPath.startsWith(`${user.id}/`) && !oldPath.includes("..") && !oldPath.includes("\\\\")) {
+  if (oldPath && oldPath.startsWith(`${user.id}/`) && !oldPath.includes("..") && !oldPath.includes("\\")) {
     await admin.storage.from("avatars").remove([oldPath]);
   }
 
