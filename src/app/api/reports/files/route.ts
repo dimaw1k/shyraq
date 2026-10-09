@@ -110,9 +110,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Тексерілген есепке файл қосуға болмайды." }, { status: 409 });
     }
 
-    const fileName = body.fileName.trim();
-    const mimeType = body.mimeType as string;
-    const sizeBytes = body.sizeBytes as number;
+    const fileName = typeof body.fileName === "string" ? body.fileName.trim() : "";
+    const mimeType = typeof body.mimeType === "string" ? body.mimeType : "";
+    const sizeBytes = typeof body.sizeBytes === "number" ? body.sizeBytes : 0;
     const storagePath = typeof body.storagePath === "string" ? body.storagePath : "";
     const admin = createAdminSupabaseClient();
 
