@@ -22,7 +22,7 @@ export default async function HabitsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name,role")
+    .select("full_name,role,status")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -39,6 +39,8 @@ export default async function HabitsPage() {
             : "/dashboard",
     );
   }
+
+  if (profile?.status !== "ACTIVE") redirect("/dashboard");
 
   const today = todayInTimezone("Asia/Almaty");
 
