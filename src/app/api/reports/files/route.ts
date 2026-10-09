@@ -233,9 +233,21 @@ export async function POST(request: Request) {
     if (existingFiles?.length) {
       const oldIds = existingFiles.map((item) => item.id);
       const oldPaths = existingFiles.map((item) => item.storage_path);
-      const { error: deleteError } = await supabase.from("report_files").delete().in("id", oldIds);
+      // RLS allowed this user to read only their report's current files above.
+      // Use the privileged client for this already-authorized cleanup because
+      // students intentionally do not have a direct DELETE policy on report_files.
+      const { error: deleteError } = await admin
+        .from("report_files")
+        .delete()
+        .in("id", oldIds)
+        .eq("report_id", reportId)
+        .eq("slot", slot);
+
       if (!deleteError) {
-        const { error: cleanupError } = await admin.storage.from("submissions").remove(oldPaths);
+        const { error: cleanupError } = await admin.storage
+          .from("submissions")
+          .remove(oldPaths);
+
         if (cleanupError) {
           console.error("[report-file-upload] old file cleanup failed", {
             message: cleanupError.message,
