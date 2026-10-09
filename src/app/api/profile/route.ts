@@ -120,6 +120,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Электрондық пошта дұрыс емес." }, { status: 400 });
   }
 
+  // Never silently confirm a new mailbox with the service-role API.
+  // Email changes must use a separate verification flow before this endpoint can support them.
+  if (email !== current.email) {
+    return NextResponse.json(
+      { error: "Қауіпсіздік үшін жаңа email мекенжайын растау процесінсіз ауыстыруға болмайды." },
+      { status: 409, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
 
   const newPassword =
     typeof body.newPassword === "string" && body.newPassword.length > 0
@@ -155,7 +164,6 @@ export async function PATCH(request: Request) {
     full_name: fullName,
     phone,
     updated_at: new Date().toISOString(),
-    ...(email !== current.email ? { email } : {}),
   };
 
   const { error: profileError } = await admin
@@ -197,9 +205,8 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (email !== current.email || newPassword || fullName !== current.full_name || phone !== current.phone) {
+  if (newPassword || fullName !== current.full_name || phone !== current.phone) {
     const authUpdate = await admin.auth.admin.updateUserById(user.id, {
-      ...(email !== current.email ? { email, email_confirm: true } : {}),
       ...(newPassword ? { password: newPassword } : {}),
       user_metadata: {
         ...(user.user_metadata ?? {}),
