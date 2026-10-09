@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
   getClientIp,
@@ -24,7 +25,17 @@ function text(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as RegisterPayload;
+    const parsedBody = await readLimitedJson(request, 16384);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Тіркелу деректері дұрыс емес." },
+        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+      return NextResponse.json({ error: "Тіркелу деректері дұрыс емес." }, { status: 400 });
+    }
+    const body = parsedBody.value as unknown as RegisterPayload;
 
     const phone = text(body.phone);
     const email = text(body.email).toLowerCase();
