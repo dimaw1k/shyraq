@@ -64,6 +64,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { data: userProfile, error: userProfileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (userProfileError) {
+      return NextResponse.json({ error: "Профильді тексеру мүмкін болмады." }, { status: 503 });
+    }
+    if (userProfile?.role !== "STUDENT") {
+      return NextResponse.json({ error: "Есепке файлды тек оқушы тіркей алады." }, { status: 403 });
+    }
+
     const body = (await request.json().catch(() => null)) as UploadBody | null;
     const action = body?.action;
     const reportId = typeof body?.reportId === "string" ? body.reportId : "";
