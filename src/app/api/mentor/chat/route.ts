@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function getMentorContext(studentId: string) {
   const supabase = await createServerSupabaseClient();
@@ -44,7 +48,7 @@ async function getMentorContext(studentId: string) {
 
 export async function GET(request: Request) {
   const studentId = new URL(request.url).searchParams.get("studentId")?.trim() ?? "";
-  if (!studentId) return NextResponse.json({ error: "studentId is required" }, { status: 400 });
+  if (!UUID_RE.test(studentId)) return NextResponse.json({ error: "studentId дұрыс емес." }, { status: 400 });
 
   const context = await getMentorContext(studentId);
   if ("error" in context) return context.error;
@@ -64,16 +68,31 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  const studentId = typeof body?.studentId === "string" ? body.studentId.trim() : "";
-  const messageBody = typeof body?.body === "string" ? body.body.trim().slice(0, 4000) : "";
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Хабарлама тым үлкен." : "Хабарлама деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Хабарлама деректері дұрыс емес." }, { status: 400 });
+  }
 
-  if (!studentId || !messageBody) {
-    return NextResponse.json({ error: "studentId және message body қажет." }, { status: 400 });
+  const body = parsedBody.value as Record<string, unknown>;
+  const studentId = typeof body.studentId === "string" ? body.studentId.trim() : "";
+  const messageBody = typeof body.body === "string" ? body.body.trim() : "";
+
+  if (!UUID_RE.test(studentId) || !messageBody || messageBody.length > 4000) {
+    return NextResponse.json({ error: "Дұрыс оқушы ID және 1–4000 таңбалы хабарлама қажет." }, { status: 400 });
   }
 
   const context = await getMentorContext(studentId);
   if ("error" in context) return context.error;
+
+  const limited = await consumeRateLimit("mentor-chat:send", context.mentorId, 30, 10 * 60, 10 * 60);
+  if (!limited.available) return rateLimitUnavailableResponse();
+  if (!limited.allowed) return rateLimitResponse(limited.retryAfterSeconds, "Хабарламалар тым жиі жіберілді. Кейінірек көріңіз.");
 
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
