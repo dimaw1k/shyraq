@@ -40,22 +40,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Students often register through the same school Wi-Fi/NAT IP.
-    // Cohort mode relaxes only the shared-IP quotas; per-email limits remain strict.
     const cohortMode =
       process.env.NODE_ENV === "production" &&
       process.env.REGISTRATION_COHORT_MODE === "true";
 
     const [ipBurst, ipHourly, emailBurst] = await Promise.all([
       consumeRateLimit(
-        cohortMode ? "auth:register:cohort:ip:burst" : "auth:register:ip:burst",
+        cohortMode ? "auth:register:cohort:v2:ip:burst" : "auth:register:ip:burst",
         clientIp,
         cohortMode ? 100 : 5,
         10 * 60,
         10 * 60,
       ),
       consumeRateLimit(
-        cohortMode ? "auth:register:cohort:ip:hour" : "auth:register:ip:hour",
+        cohortMode ? "auth:register:cohort:v2:ip:hour" : "auth:register:ip:hour",
         clientIp,
         cohortMode ? 300 : 30,
         60 * 60,
@@ -93,8 +91,6 @@ export async function POST(request: Request) {
     if (lastName.length < 2) {
       return NextResponse.json({ field: "lastName", error: "Тегіңізді дұрыс енгізіңіз." }, { status: 400 });
     }
-
-
 
     const passwordError = getPasswordValidationError(password, [
       firstName,
@@ -208,7 +204,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { userId: data.user?.id ?? null, email },
-      { status: 201 },
+      { status: 201, headers: { "Cache-Control": "no-store" } },
     );
   } catch {
     return NextResponse.json(

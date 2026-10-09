@@ -3,7 +3,16 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { consumeRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
-export async function POST(request: Request) {
+function safeDownloadName(value: string) {
+  const name = value
+    .replace(/[\r\n"\\/]/g, "_")
+    .replace(/[^\p{L}\p{N}._ -]/gu, "_")
+    .trim()
+    .slice(0, 160);
+  return name || "report-file";
+}
+
+export async function GET(request: Request) {
   try {
     const supabase = await createServerSupabaseClient();
     const {
@@ -14,22 +23,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const limited = await consumeRateLimit("report-file:signed-url", user.id, 60, 10 * 60, 10 * 60);
+    const limited = await consumeRateLimit("report-file:download", user.id, 60, 10 * 60, 10 * 60);
     if (!limited.allowed) {
       return rateLimitResponse(limited.retryAfterSeconds, "Файл ашу әрекеттері тым жиі орындалды. Қайта көріңіз.");
     }
 
-    const body = await request.json().catch(() => null);
-    const fileId = typeof body?.fileId === "string" ? body.fileId : "";
+    const fileId = new URL(request.url).searchParams.get("fileId") ?? "";
     if (!/^[0-9a-f-]{36}$/i.test(fileId)) {
       return NextResponse.json({ error: "Файл табылмады." }, { status: 404 });
     }
 
-    // RLS determines whether the current user owns the report or is assigned
-    // staff. Never mint a service-role signed URL before this read succeeds.
+    // This query deliberately uses the user's RLS-scoped client. A valid
+    // session alone is not enough: the owner or assigned staff must be allowed
+    // to see the report_files row before any privileged signed URL is minted.
     const { data: file, error: fileError } = await supabase
       .from("report_files")
-      .select("id,storage_path")
+      .select("id,storage_path,file_name")
       .eq("id", fileId)
       .maybeSingle();
 
@@ -40,18 +49,24 @@ export async function POST(request: Request) {
     const admin = createAdminSupabaseClient();
     const { data, error } = await admin.storage
       .from("submissions")
-      .createSignedUrl(file.storage_path, 120, { download: true });
+      .createSignedUrl(file.storage_path, 120, { download: safeDownloadName(file.file_name) });
 
     if (error || !data?.signedUrl) {
-      return NextResponse.json({ error: "Уақытша сілтеме жасау мүмкін болмады." }, { status: 503 });
+      console.error("[report-file-download] signed URL creation failed", {
+        message: error?.message,
+      });
+      return NextResponse.json({ error: "Файлға уақытша сілтеме жасау мүмкін болмады." }, { status: 503 });
     }
 
-    return NextResponse.json(
-      { url: data.signedUrl, expiresIn: 120 },
-      { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } },
-    );
+    return NextResponse.redirect(data.signedUrl, {
+      status: 302,
+      headers: {
+        "Cache-Control": "private, no-store",
+        "Referrer-Policy": "no-referrer",
+      },
+    });
   } catch (error) {
-    console.error("[report-file-signed-url] failed", {
+    console.error("[report-file-download] unexpected failure", {
       message: error instanceof Error ? error.message : "unknown",
     });
     return NextResponse.json({ error: "Файлды ашу кезінде қате болды." }, { status: 500 });

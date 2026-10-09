@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, ChevronDown, Clock3, FileText, MessageSquareText } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3, Download, FileText, MessageSquareText, Paperclip } from "lucide-react";
 import { MentorReportReviewActions } from "@/components/mentor/MentorReportReviewActions";
 import { StatusPill } from "@/components/ui/ShyraqUI";
 import type { MentorReport } from "@/lib/mentor/workspace";
@@ -109,6 +109,38 @@ export function MentorReportsManager({ reports }: { reports: MentorReport[] }) {
                             {report.next_day_goal || "Келесі күнге мақсат көрсетілмеген."}
                           </p>
                         </div>
+                      </div>
+
+                      <div className="rounded-[18px] border border-[#EAE3DC] bg-white p-4">
+                        <div className="flex items-center gap-2">
+                          <Paperclip size={15} className="text-[#FF8000]" />
+                          <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#A19890]">
+                            ЕСЕПКЕ ТІРКЕЛГЕН ФАЙЛДАР
+                          </p>
+                        </div>
+                        {report.files?.length ? (
+                          <div className="mt-3 space-y-2">
+                            {report.files.map((file) => (
+                              <a
+                                key={file.id}
+                                href={"/api/reports/files/download?fileId=" + encodeURIComponent(file.id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 rounded-[14px] border border-[#F0EBE6] bg-[#FFFCF9] px-3.5 py-3 transition hover:border-[#FFDDBB] hover:bg-[#FFF9F3]"
+                              >
+                                <span className="min-w-0 flex-1">
+                                  <span className="block break-all text-[11px] font-bold text-[#403830]">{file.file_name}</span>
+                                  <span className="mt-1 block text-[9px] font-semibold text-[#9A9189]">
+                                    {file.slot.replace(/_/g, " ")} · {(file.size_bytes / (1024 * 1024)).toFixed(2)} МБ
+                                  </span>
+                                </span>
+                                <Download size={14} className="shrink-0 text-[#C25100]" />
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="mt-3 text-[11px] font-semibold text-[#9A9189]">Есепке файл тіркелмеген.</p>
+                        )}
                       </div>
 
                       <div className="rounded-[18px] border border-[#EAE3DC] bg-white p-4">

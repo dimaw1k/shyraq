@@ -54,6 +54,14 @@ export type MentorMeetSpace = {
   active: boolean;
 } | null;
 
+export type MentorReportFile = {
+  id: string;
+  slot: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+};
+
 export type MentorReport = {
   id: string;
   student_id: string;
@@ -70,6 +78,7 @@ export type MentorReport = {
   submitted_at: string | null;
   reviewed_at: string | null;
   review_comment: string | null;
+  files: MentorReportFile[];
 };
 
 export async function getMentorWorkspaceData(
@@ -203,6 +212,34 @@ export async function getMentorWorkspaceData(
           .in("student_id", studentIds)
       : Promise.resolve({ data: [] as Array<Record<string, never>> }),
   ]);
+
+  const reportIds = (reports ?? []).map((report) => report.id);
+  const { data: reportFiles, error: reportFilesError } = reportIds.length
+    ? await supabase
+        .from("report_files")
+        .select("id,report_id,slot,file_name,mime_type,size_bytes")
+        .in("report_id", reportIds)
+    : { data: [] as Array<{ id: string; report_id: string; slot: string; file_name: string; mime_type: string; size_bytes: number }> };
+
+  if (reportFilesError) {
+    console.error("[mentor/workspace] report files lookup failed", {
+      code: reportFilesError.code,
+      message: reportFilesError.message,
+    });
+  }
+
+  const reportFilesMap = new Map<string, MentorReportFile[]>();
+  for (const file of reportFiles ?? []) {
+    const files = reportFilesMap.get(file.report_id) ?? [];
+    files.push({
+      id: file.id,
+      slot: file.slot,
+      file_name: file.file_name,
+      mime_type: file.mime_type,
+      size_bytes: Number(file.size_bytes ?? 0),
+    });
+    reportFilesMap.set(file.report_id, files);
+  }
 
   const scoreMap = new Map<string, number>();
   const attendanceMap = new Map<string, number[]>();
@@ -339,6 +376,7 @@ export async function getMentorWorkspaceData(
       submitted_at: report.submitted_at ?? null,
       reviewed_at: report.reviewed_at ?? null,
       review_comment: report.review_comment ?? null,
+      files: reportFilesMap.get(report.id) ?? [],
     }));
 
   const mentorTaskRows: MentorTask[] = tasks.map((task) => ({

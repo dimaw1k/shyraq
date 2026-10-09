@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { Download, FileText, Paperclip } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { uiLabel } from "@/lib/ui-labels";
 import { Card, EmptyState, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
@@ -23,6 +23,20 @@ export default async function ChiefMentorReportsPage({ searchParams }: { searchP
     : { data: [] as Array<{ id: string; full_name: string }> };
 
   const nameMap = new Map((students ?? []).map((student) => [student.id, student.full_name]));
+  const reportIds = (reports ?? []).map((report) => report.id);
+  const { data: reportFiles } = reportIds.length
+    ? await supabase
+        .from("report_files")
+        .select("id,report_id,slot,file_name,size_bytes")
+        .in("report_id", reportIds)
+    : { data: [] as Array<{ id: string; report_id: string; slot: string; file_name: string; size_bytes: number }> };
+
+  const filesByReport = new Map<string, NonNullable<typeof reportFiles>>();
+  for (const file of reportFiles ?? []) {
+    const items = filesByReport.get(file.report_id) ?? [];
+    items.push(file);
+    filesByReport.set(file.report_id, items);
+  }
 
   return (
     <AppShell
@@ -68,6 +82,24 @@ export default async function ChiefMentorReportsPage({ searchParams }: { searchP
                       <p className="mt-1 text-[9px] text-[#9A9189]">
                         {new Date(report.report_date).toLocaleDateString("kk-KZ")}
                       </p>
+                      {filesByReport.get(report.id)?.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {filesByReport.get(report.id)!.map((file) => (
+                            <a
+                              key={file.id}
+                              href={"/api/reports/files/download?fileId=" + encodeURIComponent(file.id)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex max-w-full items-center gap-1 rounded-lg border border-[#FFDDBB] bg-[#FFF9F3] px-2 py-1 text-[9px] font-bold text-[#9C5600] hover:bg-[#FFF0E8]"
+                              title={file.file_name}
+                            >
+                              <Paperclip size={10} />
+                              <span className="max-w-[120px] truncate">{file.slot.replace(/_/g, " ")}</span>
+                              <Download size={10} />
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 

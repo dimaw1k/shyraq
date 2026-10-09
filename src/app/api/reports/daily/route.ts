@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
+import { consumeRateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
 
@@ -19,6 +20,33 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: userProfile, error: userProfileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (userProfileError) {
+    return NextResponse.json({ error: "Профильді тексеру мүмкін болмады." }, { status: 503 });
+  }
+  if (userProfile?.role !== "STUDENT") {
+    return NextResponse.json({ error: "Күндік есепті тек оқушы жібере алады." }, { status: 403 });
+  }
+
+  const limited = await consumeRateLimit(
+    "daily-report:submit",
+    user.id,
+    8,
+    10 * 60,
+    10 * 60,
+  );
+  if (!limited.allowed) {
+    return rateLimitResponse(
+      limited.retryAfterSeconds,
+      "Күндік есеп жіберу әрекеттері тым жиі орындалды. Қайта көріңіз.",
+    );
   }
 
   const body = await request.json().catch(() => null);
@@ -92,6 +120,17 @@ export async function POST(request: Request) {
     !Array.isArray(body.answers)
       ? (body.answers as Record<string, unknown>)
       : {};
+
+  const optionalTextFields = [body?.reflection, body?.difficulties, body?.nextDayGoal];
+  if (
+    optionalTextFields.some((value) => typeof value === "string" && value.length > 5000) ||
+    JSON.stringify(answers).length > 20000
+  ) {
+    return NextResponse.json(
+      { error: "Есеп жауабы тым ұзын. Қысқартып, қайта жіберіңіз." },
+      { status: 400 },
+    );
+  }
 
   const { data: questions, error: questionError } = await supabase
     .from("daily_report_questions")
@@ -170,6 +209,27 @@ export async function POST(request: Request) {
   );
 
   const derivedCompletedTaskCount = Math.max(0, Number(completedTaskCount ?? 0));
+
+  const { data: existingReport, error: existingReportError } = await supabase
+    .from("daily_reports")
+    .select("id,status")
+    .eq("student_id", user.id)
+    .eq("report_date", reportDate)
+    .eq("report_type", reportType)
+    .maybeSingle();
+
+  if (existingReportError) {
+    return NextResponse.json(
+      { error: "Бұрынғы есептің күйін тексеру мүмкін болмады." },
+      { status: 503 },
+    );
+  }
+  if (existingReport?.status === "REVIEWED") {
+    return NextResponse.json(
+      { error: "Тексерілген есепті өзгертуге болмайды." },
+      { status: 409 },
+    );
+  }
 
   const { data, error } = await supabase
     .from("daily_reports")
