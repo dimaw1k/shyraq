@@ -48,6 +48,9 @@ export async function PATCH(
   if (body.status !== undefined && (typeof body.status !== "string" || !STATUS.has(body.status))) {
     return NextResponse.json({ error: "Жарамсыз статус." }, { status: 400 });
   }
+  if (promotingStudent && body.status !== undefined && body.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Жаңа ментор белсенді мәртебемен қосылуы керек." }, { status: 400 });
+  }
 
   const updates: Record<string, string> = {};
   if (body.role === "MENTOR") updates.role = "MENTOR";
