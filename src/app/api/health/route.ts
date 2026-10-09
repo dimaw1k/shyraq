@@ -6,13 +6,14 @@ export async function GET() {
 
   try {
     const { url, publishableKey } = getSupabaseConfig();
-    const response = await fetch(
-      url + "/rest/v1/marathon_settings?select=id&limit=1",
-      {
-        headers: { apikey: publishableKey },
-        cache: "no-store",
-      },
-    );
+    // Health must not query a private table with the anonymous/publishable key:
+    // its RLS policy correctly denies anonymous reads, which caused false 503s.
+    // Supabase documents this Auth endpoint as the service health check.
+    const response = await fetch(url + "/auth/v1/health", {
+      headers: { apikey: publishableKey },
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
     supabaseReachable = response.ok;
   } catch {
     supabaseReachable = false;
