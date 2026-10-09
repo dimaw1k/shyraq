@@ -47,7 +47,7 @@ export async function proxy(request: NextRequest) {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self' https://accounts.google.com",
-    "script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' https://*.kinescope.io https://kinescope.io",
+    "script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' https://*.kinescope.io https://kinescope.io https://www.youtube.com https://youtube.com",
     // Nonce-protect style elements while retaining support for CSS style attributes
     // used by some UI components. Do not add unsafe-inline to script-src.
     "style-src 'self' 'nonce-" + nonce + "'",
@@ -56,7 +56,7 @@ export async function proxy(request: NextRequest) {
     "font-src 'self' data:",
     "media-src 'self' blob: data: https://*.kinescope.io https://kinescope.io",
     "connect-src 'self' https://sqjjqnisnndulkzcqfwb.supabase.co https://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://*.kinescope.io wss://*.supabase.co",
-    "frame-src 'self' https://*.kinescope.io https://kinescope.io",
+    "frame-src 'self' https://*.kinescope.io https://kinescope.io https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
     isProduction ? "upgrade-insecure-requests" : "",
   ]
     .filter(Boolean)
