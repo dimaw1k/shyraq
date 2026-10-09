@@ -4,5 +4,10 @@ import { getSupabaseConfig } from "./config";
 export function createBrowserSupabaseClient() {
   const { url, publishableKey } = getSupabaseConfig();
 
-  return createBrowserClient(url, publishableKey);
+  return createBrowserClient(url, publishableKey, {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
+  });
 }

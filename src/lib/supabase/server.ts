@@ -7,6 +7,10 @@ export async function createServerSupabaseClient() {
   const { url, publishableKey } = getSupabaseConfig();
 
   return createServerClient(url, publishableKey, {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();
