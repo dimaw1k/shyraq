@@ -151,20 +151,19 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     (watchedPercent(storedRanges, lesson.duration_seconds) / 100) * lesson.duration_seconds,
   );
   const nowMs = Date.now();
-  const storedFirstStartedAtMs = existing?.first_started_at
-    ? Date.parse(existing.first_started_at)
+  const lastWatchedMs = existing?.last_watched_at
+    ? Date.parse(existing.last_watched_at)
     : NaN;
-  // For legacy rows with no first_started_at, backdate once by their already
-  // recorded coverage. The timestamp is persisted below, so tolerance cannot reset.
-  const firstStartedAtMs = Number.isFinite(storedFirstStartedAtMs)
-    ? storedFirstStartedAtMs
-    : nowMs - previousWatchedSeconds * 1000;
-  const elapsedSinceFirstStartSeconds = Math.max(0, (nowMs - firstStartedAtMs) / 1000);
+  const newCoverageSeconds = Math.max(0, watchedSeconds - previousWatchedSeconds);
+  // On the first sync allow up to 45 seconds to account for the player starting
+  // before its first heartbeat. On subsequent syncs, credit only the newly watched
+  // delta allowed by elapsed server time, capped at 30 seconds. The cap prevents
+  // a long idle gap from becoming a free test-unlock allowance.
+  const elapsedAllowance = Number.isFinite(lastWatchedMs)
+    ? Math.min(30, Math.max(0, (nowMs - lastWatchedMs) / 1000) + 5)
+    : INITIAL_PLAYBACK_ALLOWANCE_SECONDS;
 
-  // A fixed 45-second allowance is available across the whole playback session,
-  // not per request. Repeated or parallel POSTs therefore cannot repeatedly add
-  // 30+ seconds of synthetic coverage while barely any real time passes.
-  if (watchedSeconds > elapsedSinceFirstStartSeconds + INITIAL_PLAYBACK_ALLOWANCE_SECONDS) {
+  if (newCoverageSeconds > elapsedAllowance) {
     return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
   }
 
@@ -179,7 +178,7 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     watched_ranges: ranges,
     completed: percent >= 100,
     test_unlocked: unlocked,
-    first_started_at: new Date(firstStartedAtMs).toISOString(),
+    first_started_at: existing?.first_started_at ?? new Date(nowMs).toISOString(),
     last_watched_at: new Date(nowMs).toISOString(),
   };
 
