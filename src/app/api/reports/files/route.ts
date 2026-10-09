@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { hasAllowedFileSignature } from "@/lib/security/file-signature";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -55,8 +55,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const form = await request.formData().catch(() => null);
-  if (!form) return NextResponse.json({ error: "Файл форматы дұрыс емес." }, { status: 400 });
+  const boundedForm = await readLimitedFormData(request, MAX_BYTES + 128 * 1024);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Файл өлшемі 4 MB шегінен асады." : "Файл форматы дұрыс емес." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
   const reportId = String(form.get("reportId") ?? "");
   const slot = String(form.get("slot") ?? "");
   const file = form.get("file");
@@ -80,9 +86,6 @@ export async function POST(request: Request) {
       { error: "Бұл файл түріне рұқсат жоқ." },
       { status: 400 },
     );
-  }
-  if (!(await hasAllowedFileSignature(file))) {
-    return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
   }
 
   const { data: report } = await supabase
