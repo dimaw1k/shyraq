@@ -42,6 +42,11 @@ export async function GET(_request: Request, context: { params: Promise<{ lesson
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
   }
 
+  const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
+  if (profile?.role !== "STUDENT" || profile.status === "INACTIVE") {
+    return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+
   const { lessonId } = await context.params;
   const access = await getAccessibleLesson(supabase, lessonId, user.id);
   if (!access.lesson) {
