@@ -39,9 +39,8 @@ export function AppPreferences() {
         if (!settings || !active) return;
 
         if (settings.language === "kk" || settings.language === "ru" || settings.language === "en") {
-          window.localStorage.setItem(STUDENT_LANGUAGE_KEY, settings.language);
-          document.cookie = `shyraq-language=${settings.language}; path=/; max-age=31536000; samesite=lax`;
-          document.documentElement.lang = settings.language;
+          // Centralize localStorage, document language and cookie updates so every
+          // language change uses the same Secure/SameSite cookie policy.
           setStudentLanguage(settings.language);
         }
 
