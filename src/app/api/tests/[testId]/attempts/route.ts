@@ -71,10 +71,29 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
   }
 
-  const body = await request.json().catch(() => null);
-  const answersInput = body?.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
-    ? (body.answers as Record<string, unknown>)
-    : {};
+  const maxBodyBytes = 64 * 1024;
+  const contentLength = request.headers.get("content-length");
+  if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxBodyBytes)) {
+    return NextResponse.json({ error: "Жауаптар тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  }
+  const rawBody = await request.text().catch(() => "");
+  if (new TextEncoder().encode(rawBody).byteLength > maxBodyBytes) {
+    return NextResponse.json({ error: "Жауаптар тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  }
+  let body: unknown;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
+  }
+  const parsedBody = body as Record<string, unknown>;
+  if (!parsedBody.answers || typeof parsedBody.answers !== "object" || Array.isArray(parsedBody.answers)) {
+    return NextResponse.json({ error: "Тест сұрақтарына жауап беру міндетті." }, { status: 400 });
+  }
+  const answersInput = parsedBody.answers as Record<string, unknown>;
 
   const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin
@@ -98,7 +117,13 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     if (!question) continue;
 
     if (question.question_type === "TEXT") {
-      if (typeof rawAnswer === "string" && rawAnswer.trim()) normalizedAnswers.set(questionId, rawAnswer.trim());
+      if (typeof rawAnswer === "string") {
+        const answer = rawAnswer.trim();
+        if (answer.length > 5000) {
+          return NextResponse.json({ error: "Мәтіндік жауап 5000 таңбадан аспауы керек." }, { status: 400 });
+        }
+        if (answer) normalizedAnswers.set(questionId, answer);
+      }
       continue;
     }
 
