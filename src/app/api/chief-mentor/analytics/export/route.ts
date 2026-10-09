@@ -5,9 +5,9 @@ import { getAuthenticatedStaff } from "@/lib/staff/server";
 function csvCell(value: string | number) {
  const text = String(value);
  if (typeof value === "number") return text;
- const leadingTrimmed = text.replace(/^[\\u0000-\\u0020]+/, "");
- const safe = /^[=+\\-@]/.test(leadingTrimmed) ? "\\'" + text : text;
- return "\\"" + safe.replace(/\\"/g, "\\"\\"") + "\\"";
+ const formulaLike = ["=", "+", "-", "@"].some((prefix) => text.trimStart().startsWith(prefix));
+ const safe = formulaLike ? "'" + text : text;
+ return '"' + safe.replace(/"/g, '""') + '"';
 }
 
 export async function GET(request:Request){
@@ -26,6 +26,6 @@ export async function GET(request:Request){
  const {data:students}=ids.length?await admin.from("profiles").select("id,full_name,email").in("id",ids):{data:[] as Array<{id:string;full_name:string;email:string}>};
  const names=new Map((students??[]).map(x=>[x.id,x]));
  const values=ids.map(id=>{const a=(attendance??[]).filter(x=>x.student_id===id);const r=(reports??[]).filter(x=>x.student_id===id);const s=(subs??[]).filter(x=>x.student_id===id);const v=(video??[]).filter(x=>x.student_id===id);return{id,name:names.get(id)?.full_name??"",email:names.get(id)?.email??"",attendance:a.length?a.reduce((x,y)=>x+Number(y.attendance_percent??0),0)/a.length:0,reports:r.length,tasks:s.length,video:v.length?v.reduce((x,y)=>x+Number(y.watched_percent??0),0)/v.length:0};});
- const head="id,name,email,attendance_percent,reports,tasks,video_percent\n";const body=values.map(x=>[x.id,JSON.stringify(x.name),JSON.stringify(x.email),x.attendance.toFixed(2),x.reports,x.tasks,x.video.toFixed(2)].join(",")).join("\n");
+ const body=values.map(x=>[x.id,x.name,x.email,x.attendance.toFixed(2),x.reports,x.tasks,x.video.toFixed(2)].map(csvCell).join(",")).join("\n");
  return new NextResponse(head+body,{headers:{"Content-Type":"text/csv; charset=utf-8","Content-Disposition":"attachment; filename=shyraq-chief-mentor-analytics.csv","Cache-Control":"private, no-store, max-age=0","X-Content-Type-Options":"nosniff"}});
 }
