@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const MAX_SETTINGS_BODY_BYTES = 32 * 1024;
 const MAX_NAME_LENGTH = 120;
@@ -67,20 +68,17 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const rawBody = await request.text().catch(() => "");
-  if (new TextEncoder().encode(rawBody).byteLength > MAX_SETTINGS_BODY_BYTES) {
-    return NextResponse.json({ error: "Баптау деректері тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  const parsedBody = await readLimitedJson(request, MAX_SETTINGS_BODY_BYTES);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Баптау деректері тым үлкен." : "Баптау деректерінің пішімі дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
-  let parsedBody: unknown;
-  try {
-    parsedBody = JSON.parse(rawBody);
-  } catch {
+  if (!isObject(parsedBody.value)) {
     return NextResponse.json({ error: "Баптау деректерінің пішімі дұрыс емес." }, { status: 400 });
   }
-  if (!isObject(parsedBody)) {
-    return NextResponse.json({ error: "Баптау деректерінің пішімі дұрыс емес." }, { status: 400 });
-  }
-  const body = parsedBody;
+  const body = parsedBody.value;
 
   const admin = createAdminSupabaseClient();
   let settingsUpdate: Record<string, string | number> | null = null;
