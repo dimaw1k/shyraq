@@ -262,10 +262,11 @@ export function ProfileClient() {
             required
             type="email"
             value={form.email}
-            onChange={(event) => setField("email", event.target.value)}
-            className={inputClass}
+            readOnly
+            aria-describedby="email-update-hint"
+            className={inputClass + " cursor-not-allowed opacity-80"}
           />
-          <span className="mt-1 block text-[8px] font-medium text-[#9A9189]">{t("emailUpdateHint")}</span>
+          <span id="email-update-hint" className="mt-1 block text-[8px] font-medium text-[#9A9189]">{t("emailUpdateHint")}</span>
         </label>
 
         <label className="text-[10px] font-extrabold text-[#3F3832]">
