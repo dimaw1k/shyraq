@@ -49,7 +49,7 @@ const SIGNATURES: Record<string, (bytes: Uint8Array) => boolean> = {
     bytes[3] === 0x04,
 };
 
-export async function hasValidFileSignature(file: File, mimeType: string) {
+export async function hasValidFileSignature(file: Blob, mimeType: string) {
   const validator = SIGNATURES[mimeType];
   if (!validator) return false;
 
@@ -62,7 +62,7 @@ export function isSafeHref(value: string | null | undefined) {
 
   const href = value.trim();
   if (href.length > 2000) return false;
-  if(/[\u0000-\u001f\u007f]/.test(href)) return false;
+  if (/[\u0000-\u001f\u007f]/.test(href)) return false;
 
   if (href.startsWith("/") && !href.startsWith("//")) return true;
 
