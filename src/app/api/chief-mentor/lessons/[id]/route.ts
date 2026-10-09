@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const { id } = await params;
-  const body = await request.json().catch(() => null);
+  const parsedBody = await readLimitedJson(request, 64 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сабақ деректері тым үлкен." : "Сабақ деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Сабақ деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
   const admin = createAdminSupabaseClient();
 
   const { data: current, error: currentError } = await admin
@@ -19,14 +30,64 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   function getKinescopeId(value: string) {
     const raw = value.trim();
-    if (!raw) return "";
+    if (!raw || raw.length > 128) return "";
     try {
       const url = new URL(raw);
-      if (!url.hostname.includes("kinescope.io")) return raw;
-      const parts = url.pathname.split("/").filter(Boolean);
-      return parts.at(-1) ?? raw;
+      if (url.protocol !== "https:" || !(url.hostname === "kinescope.io" || url.hostname.endsWith(".kinescope.io"))) return "";
+      const id = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
+      return /^[a-zA-Z0-9_-]{1,128}$/.test(id) ? id : "";
     } catch {
-      return raw;
+      return /^[a-zA-Z0-9_-]{1,128}$/.test(raw) ? raw : "";
+    }
+  }
+
+  function isSafeMaterialUrl(value: string) {
+    const raw = value.trim();
+    if (!raw || raw.length > 500 || /[\\\u0000-\u001f\u007f]/.test(raw)) return false;
+    if (raw.startsWith("/") && !raw.startsWith("//")) return true;
+    try {
+      const url = new URL(raw);
+      return (url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password;
+    } catch {
+      return false;
+    }
+  }
+
+  if (body.title !== undefined && (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 120)) {
+    return NextResponse.json({ error: "Сабақ атауы 1–120 таңба болуы керек." }, { status: 400 });
+  }
+  if (body.description !== undefined && body.description !== null && (typeof body.description !== "string" || body.description.length > 5000)) {
+    return NextResponse.json({ error: "Сабақ сипаттамасы 5000 таңбадан аспауы керек." }, { status: 400 });
+  }
+  if (body.requiredWatchPercent !== undefined && (
+    typeof body.requiredWatchPercent !== "number" ||
+    !Number.isFinite(body.requiredWatchPercent) ||
+    body.requiredWatchPercent < 1 ||
+    body.requiredWatchPercent > 100
+  )) {
+    return NextResponse.json({ error: "Видео көру пайызы 1–100 аралығында болуы керек." }, { status: 400 });
+  }
+  if (body.published !== undefined && typeof body.published !== "boolean") {
+    return NextResponse.json({ error: "Сабақтың жариялану күйі дұрыс емес." }, { status: 400 });
+  }
+  if (body.sortOrder !== undefined && (typeof body.sortOrder !== "number" || !Number.isInteger(body.sortOrder) || body.sortOrder < 0 || body.sortOrder > 10000)) {
+    return NextResponse.json({ error: "sortOrder 0–10000 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+  if (body.lessonOrder !== undefined && (typeof body.lessonOrder !== "number" || !Number.isInteger(body.lessonOrder) || body.lessonOrder < 0 || body.lessonOrder > 10000)) {
+    return NextResponse.json({ error: "lessonOrder 0–10000 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+  if (Array.isArray(body.materials) && body.materials.some((item) =>
+    !item || typeof item !== "object" || Array.isArray(item) ||
+    typeof (item as { label?: unknown }).label !== "string" ||
+    typeof (item as { url?: unknown }).url !== "string" ||
+    !isSafeMaterialUrl((item as { url: string }).url)
+  )) {
+    return NextResponse.json({ error: "Материал сілтемесі HTTP/HTTPS немесе ішкі жол болуы керек." }, { status: 400 });
+  }
+  for (const field of ["startsAt", "deadlineAt"] as const) {
+    const value = body[field];
+    if (value !== undefined && value !== null && value !== "" && (typeof value !== "string" || !Number.isFinite(Date.parse(value)))) {
+      return NextResponse.json({ error: "Сабақ уақыты дұрыс емес." }, { status: 400 });
     }
   }
 
@@ -58,14 +119,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
   }
 
-  const nextVideo = typeof body?.kinescopeVideo === "string" ? getKinescopeId(body.kinescopeVideo) : current.kinescope_video_id;
+  const nextVideo = typeof body.kinescopeVideo === "string" ? getKinescopeId(body.kinescopeVideo) : current.kinescope_video_id;
+  if (typeof body.kinescopeVideo === "string" && !nextVideo) {
+    return NextResponse.json({ error: "Kinescope бейне сілтемесі дұрыс емес." }, { status: 400 });
+  }
 
   const updatedData = {
     title: typeof body?.title === "string" && body.title.trim() ? body.title.trim() : current.title,
     description: body?.description === null ? null : typeof body?.description === "string" ? body.description.trim() || null : current.description,
     kinescope_video_id: nextVideo || current.kinescope_video_id,
     duration_seconds: typeof body?.durationSeconds === "number" && Number.isFinite(body.durationSeconds) ? Math.max(1, Math.floor(body.durationSeconds)) : current.duration_seconds,
-    required_watch_percent: typeof body?.requiredWatchPercent === "number" && Number.isFinite(body.requiredWatchPercent) ? Math.min(100, Math.max(0, body.requiredWatchPercent)) : Number(current.required_watch_percent),
+    required_watch_percent: typeof body.requiredWatchPercent === "number" ? body.requiredWatchPercent : Math.min(100, Math.max(1, Number(current.required_watch_percent) || 85)),
     sort_order: typeof body?.sortOrder === "number" ? Math.floor(body.sortOrder) : current.sort_order,
     lesson_order: typeof body?.lessonOrder === "number" ? Math.floor(body.lessonOrder) : current.lesson_order,
     marathon_day: nextDay,
