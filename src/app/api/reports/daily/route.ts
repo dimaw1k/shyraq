@@ -5,6 +5,10 @@ import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
+const MAX_REPORT_BODY_BYTES = 64 * 1024;
+const MAX_LONG_ANSWER_LENGTH = 5000;
+const MAX_SHORT_ANSWER_LENGTH = 300;
+const MAX_OPTIONAL_TEXT_LENGTH = 3000;
 
 function shiftDateKey(value: string, delta: number) {
   const [year, month, day] = value.split("-").map(Number);
@@ -27,13 +31,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
   }
 
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\d+$/.test(contentLength) ||
+      Number(contentLength) > MAX_REPORT_BODY_BYTES)
+  ) {
+    return NextResponse.json(
+      { error: "Есеп деректері тым үлкен." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Есеп деректері дұрыс емес." }, { status: 400 });
+  }
+
+  if (new TextEncoder().encode(JSON.stringify(body)).byteLength > MAX_REPORT_BODY_BYTES) {
+    return NextResponse.json(
+      { error: "Есеп деректері тым үлкен." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const reportDate =
-    typeof body?.reportDate === "string" ? body.reportDate : "";
-  const reportType =
-    typeof body?.reportType === "string" && REPORT_TYPES.has(body.reportType)
-      ? body.reportType
-      : "EVENING";
+    typeof body.reportDate === "string" ? body.reportDate : "";
+  const rawReportType = body.reportType ?? "EVENING";
+  if (typeof rawReportType !== "string" || !REPORT_TYPES.has(rawReportType)) {
+    return NextResponse.json({ error: "Есеп түрі дұрыс емес." }, { status: 400 });
+  }
+  const reportType = rawReportType;
   const marathonDay =
     typeof body?.marathonDay === "number" && Number.isInteger(body.marathonDay)
       ? body.marathonDay
@@ -92,16 +120,37 @@ export async function POST(request: Request) {
     );
   }
 
-  const answers =
-    body?.answers &&
-    typeof body.answers === "object" &&
-    !Array.isArray(body.answers)
-      ? (body.answers as Record<string, unknown>)
-      : {};
+  if (
+    [body.reflection, body.difficulties, body.nextDayGoal].some(
+      (value) => value !== undefined && value !== null && typeof value !== "string",
+    )
+  ) {
+    return NextResponse.json({ error: "Есеп мәтіндері дұрыс емес." }, { status: 400 });
+  }
+
+  if (
+    [body.reflection, body.difficulties, body.nextDayGoal].some(
+      (value) => typeof value === "string" && value.length > MAX_OPTIONAL_TEXT_LENGTH,
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Қорытынды, қиындық және келесі күн мақсаты 3000 таңбадан аспауы керек." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    body.answers !== undefined &&
+    (!body.answers || typeof body.answers !== "object" || Array.isArray(body.answers))
+  ) {
+    return NextResponse.json({ error: "Есеп жауаптарының пішімі дұрыс емес." }, { status: 400 });
+  }
+
+  const answers = (body.answers ?? {}) as Record<string, unknown>;
 
   const { data: questions, error: questionError } = await supabase
     .from("daily_report_questions")
-    .select("field_key,required")
+    .select("field_key,field_type,required")
     .eq("active", true)
     .eq("report_type", reportType)
     .or(
@@ -116,12 +165,70 @@ export async function POST(request: Request) {
     );
   }
 
+  const questionByKey = new Map((questions ?? []).map((question) => [question.field_key, question]));
+  const normalizedAnswers: Record<string, string> = Object.create(null);
+
+  for (const [fieldKey, rawValue] of Object.entries(answers)) {
+    const question = questionByKey.get(fieldKey);
+    if (!question) {
+      return NextResponse.json(
+        { error: "Есепке белгісіз сұрақ жауабы қосылған." },
+        { status: 400 },
+      );
+    }
+    if (typeof rawValue !== "string") {
+      return NextResponse.json(
+        { error: "Сұрақ жауабы мәтін түрінде жіберілуі керек." },
+        { status: 400 },
+      );
+    }
+
+    const value = rawValue.trim();
+    const maxLength =
+      question.field_type === "LONG_TEXT" ? MAX_LONG_ANSWER_LENGTH :
+      question.field_type === "SHORT_TEXT" ? MAX_SHORT_ANSWER_LENGTH :
+      question.field_type === "NUMBER" ? 32 : 0;
+
+    if (!maxLength) {
+      console.error("[reports] unsupported report question type", { fieldType: question.field_type });
+      return NextResponse.json(
+        { error: "Есеп сұрағының баптауы дұрыс емес." },
+        { status: 500 },
+      );
+    }
+
+    if (value.length > maxLength) {
+      return NextResponse.json(
+        { error: question.field_type === "LONG_TEXT"
+          ? "Ұзын жауап 5000 таңбадан аспауы керек."
+          : question.field_type === "SHORT_TEXT"
+            ? "Қысқа жауап 300 таңбадан аспауы керек."
+            : "Сандық жауап тым ұзын." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      question.field_type === "NUMBER" &&
+      value !== "" &&
+      (!/^\d+(?:\.\d+)?$/.test(value) ||
+        !Number.isFinite(Number(value)) ||
+        Number(value) > 1_000_000)
+    ) {
+      return NextResponse.json(
+        { error: "Сандық жауапты нөл немесе одан үлкен санмен енгізіңіз." },
+        { status: 400 },
+      );
+    }
+
+    normalizedAnswers[fieldKey] = value;
+  }
+
   const missing = (questions ?? []).filter(
     (question) =>
       question.required &&
-      (answers[question.field_key] === undefined ||
-        answers[question.field_key] === null ||
-        String(answers[question.field_key]).trim() === ""),
+      (!Object.prototype.hasOwnProperty.call(normalizedAnswers, question.field_key) ||
+        normalizedAnswers[question.field_key] === ""),
   );
 
   if (missing.length) {
@@ -226,7 +333,7 @@ export async function POST(request: Request) {
           typeof body?.nextDayGoal === "string"
             ? body.nextDayGoal.trim() || null
             : null,
-        answers,
+        answers: normalizedAnswers,
         status: "SUBMITTED",
         submitted_at: new Date().toISOString(),
       },
