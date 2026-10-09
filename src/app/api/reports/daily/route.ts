@@ -22,6 +22,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: userProfile, error: userProfileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (userProfileError) {
+    return NextResponse.json({ error: "Профильді тексеру мүмкін болмады." }, { status: 503 });
+  }
+  if (userProfile?.role !== "STUDENT") {
+    return NextResponse.json({ error: "Күндік есепті тек оқушы жібере алады." }, { status: 403 });
+  }
+
   const limited = await consumeRateLimit(
     "daily-report:submit",
     user.id,
