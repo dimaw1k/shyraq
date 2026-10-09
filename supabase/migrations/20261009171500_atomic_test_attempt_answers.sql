@@ -26,7 +26,7 @@ BEGIN
 
   IF EXISTS (
     SELECT 1
-    FROM jsonb_array_elements(p_answers) AS answer
+    FROM jsonb_array_elements(p_answers) AS items(answer)
     WHERE NOT EXISTS (
       SELECT 1
       FROM public.test_questions AS question
