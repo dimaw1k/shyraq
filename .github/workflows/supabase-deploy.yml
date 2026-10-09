@@ -21,7 +21,17 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Reconcile superseded historical migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          history="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
+          if printf '%s\n' "$history" | awk '$1 == "20261009173500" && $3 == "20261009173500" { found=1 } END { exit found ? 0 : 1 }'; then
+            if ! printf '%s\n' "$history" | awk '$1 == "20261009173000" && $3 == "20261009173000" { found=1 } END { exit found ? 0 : 1 }'; then
+              supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+            fi
+          fi
       - name: Validate pending migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
       - name: Deploy migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
+        run: supabase db push --db-url "$SUPABASE_DB_URL"
