@@ -1,34 +1,41 @@
 import { createHash } from "node:crypto";
+import { isIP } from "node:net";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 type RateLimitResult = {
   allowed: boolean;
+  available: boolean;
   retryAfterSeconds: number;
   hits: number;
 };
 
 function getRateLimitSecret() {
-  return (
-    process.env.SUPABASE_SECRET_KEY ??
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    "shyraq-local-rate-limit-salt"
-  );
+  const secret =
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!secret || secret.trim().length < 16) {
+    throw new Error("Supabase server secret key is missing or invalid");
+  }
+
+  return secret.trim();
 }
 
+/**
+ * Vercel overwrites X-Forwarded-For at its edge to prevent client IP spoofing.
+ * Do not prioritize arbitrary CF-Connecting-IP or other client-controlled headers
+ * unless the deployment is explicitly behind a trusted Cloudflare proxy.
+ */
 export function getClientIp(request: Request) {
-  const cfIp = request.headers.get("cf-connecting-ip")?.trim();
-  if (cfIp) return cfIp;
-
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
-
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  if (forwarded) return forwarded;
-
-  return "unknown";
+  return forwarded && isIP(forwarded) ? forwarded : "unknown";
 }
 
 function hashBucketKey(scope: string, value: string) {
+  if (value.length > 512) {
+    throw new Error("Rate limit key input is too long");
+  }
+
   return createHash("sha256")
     .update(getRateLimitSecret())
     .update("\0")
@@ -45,10 +52,9 @@ export async function consumeRateLimit(
   windowSeconds: number,
   blockSeconds = windowSeconds,
 ): Promise<RateLimitResult> {
-  const bucketKey = hashBucketKey(scope, value);
-  const admin = createAdminSupabaseClient();
-
   try {
+    const bucketKey = hashBucketKey(scope, value);
+    const admin = createAdminSupabaseClient();
     const { data, error } = await admin.rpc("consume_security_rate_limit", {
       p_bucket_key: bucketKey,
       p_limit: limit,
@@ -57,28 +63,50 @@ export async function consumeRateLimit(
     });
 
     if (error) {
-      console.error("[security/rate-limit] consume failed", {
-        scope,
-        code: error.code,
-        message: error.message,
-      });
-      return { allowed: true, retryAfterSeconds: 0, hits: 0 };
+      throw new Error(`Rate-limit RPC failed (${error.code || "unknown"})`);
     }
 
     const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row.allowed !== "boolean") {
+      throw new Error("Rate-limit RPC returned an invalid response");
+    }
 
     return {
-      allowed: row?.allowed !== false,
-      retryAfterSeconds: Number(row?.retry_after_seconds ?? 0),
-      hits: Number(row?.hits ?? 0),
+      allowed: row.allowed,
+      available: true,
+      retryAfterSeconds: Number(row.retry_after_seconds ?? 0),
+      hits: Number(row.hits ?? 0),
     };
   } catch (error) {
-    console.error("[security/rate-limit] unexpected failure", {
+    // Fail closed. Authentication endpoints must never continue when the shared
+    // rate-limit store is unavailable or its server-only credentials are missing.
+    console.error("[security/rate-limit] request denied because limiter is unavailable", {
       scope,
       message: error instanceof Error ? error.message : "unknown",
     });
-    return { allowed: true, retryAfterSeconds: 0, hits: 0 };
+    return {
+      allowed: false,
+      available: false,
+      retryAfterSeconds: 60,
+      hits: limit + 1,
+    };
   }
+}
+
+export function rateLimitUnavailableResponse() {
+  return new Response(
+    JSON.stringify({
+      error: "Қауіпсіздік тексерісін уақытша орындау мүмкін емес. Кейінірек қайта көріңіз.",
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Retry-After": "60",
+      },
+    },
+  );
 }
 
 export function rateLimitResponse(
