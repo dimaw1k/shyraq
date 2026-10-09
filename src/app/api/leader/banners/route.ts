@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
@@ -26,6 +27,7 @@ export async function POST(request:Request){
   if(!(file instanceof File))return NextResponse.json({error:"Banner суреті қажет."},{status:400});
   if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 4 MB-тан аспауы керек."},{status:400});
   if(!ALLOWED.has(file.type))return NextResponse.json({error:"JPG, PNG немесе WebP ғана рұқсат."},{status:400});
+  if(!(await hasValidFileSignature(file,file.type)))return NextResponse.json({error:"Файл мазмұны мәлімделген форматқа сәйкес емес."},{status:400});
   const title=String(form.get("title")??"").trim() || "Баннер";
   const admin=createAdminSupabaseClient();
   const path=profile.id+"/"+crypto.randomUUID()+"-"+safeName(file.name);
