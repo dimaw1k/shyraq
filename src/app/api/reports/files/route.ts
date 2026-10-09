@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { hasAllowedFileSignature } from "@/lib/security/file-signature";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -53,7 +54,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const form = await request.formData();
+  const form = await request.formData().catch(() => null);
+  if (!form) return NextResponse.json({ error: "Файл форматы дұрыс емес." }, { status: 400 });
   const reportId = String(form.get("reportId") ?? "");
   const slot = String(form.get("slot") ?? "");
   const file = form.get("file");
@@ -77,6 +79,9 @@ export async function POST(request: Request) {
       { error: "Бұл файл түріне рұқсат жоқ." },
       { status: 400 },
     );
+  }
+  if (!(await hasAllowedFileSignature(file))) {
+    return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
   }
 
   const { data: report } = await supabase
@@ -103,7 +108,7 @@ export async function POST(request: Request) {
     .eq("report_id", reportId)
     .eq("slot", slot);
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
   const storagePath =
     user.id +
     "/reports/" +
