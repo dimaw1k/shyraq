@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { getTrustedAppUrl } from "@/lib/app-url";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
   getClientIp,
@@ -15,7 +16,17 @@ function normalizeEmail(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readLimitedJson(request, 16384);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Сұраныс деректері дұрыс емес." },
+        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+      return NextResponse.json({ error: "Сұраныс деректері дұрыс емес." }, { status: 400 });
+    }
+    const body = parsedBody.value;
     const email = normalizeEmail(body?.email);
     const clientIp = getClientIp(request);
 
