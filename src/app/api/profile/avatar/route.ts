@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function safeName(name: string) {
@@ -15,6 +15,18 @@ export async function POST(request: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\\d+$/.test(contentLength) ||
+      Number(contentLength) > MAX_BYTES + 128 * 1024)
+  ) {
+    return NextResponse.json(
+      { error: "Файл өлшемі 4 MB шегінен асады." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File)) {
@@ -22,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   if (file.size <= 0 || file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "Фото 5 MB-тан үлкен болмауы керек." }, { status: 400 });
+    return NextResponse.json({ error: "Фото 4 MB-тан үлкен болмауы керек." }, { status: 400 });
   }
 
   if (!ALLOWED.has(file.type)) {
@@ -58,7 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Профиль суретін сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  if (oldPath) {
+  if (oldPath && oldPath.startsWith(`${user.id}/`) && !oldPath.includes("..") && !oldPath.includes("\\")) {
     await admin.storage.from("avatars").remove([oldPath]);
   }
 

@@ -40,6 +40,14 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
       setMessage("Суретті таңдаңыз.");
       return;
     }
+    if (file.size <= 0 || file.size > 4 * 1024 * 1024) {
+      setMessage("Banner 4 MB-тан аспауы керек.");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setMessage("JPG, PNG немесе WebP ғана рұқсат.");
+      return;
+    }
 
     const startsAtIso = parseKzDateTime(startsAt);
     const endsAtIso = parseKzDateTime(endsAt);

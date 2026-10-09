@@ -136,6 +136,16 @@ export function ProfileClient() {
   }
 
   async function uploadAvatar(file: File) {
+    if (file.size <= 0 || file.size > 4 * 1024 * 1024) {
+      setMessageTone("error");
+      setMessage("Фото 4 MB-тан үлкен болмауы керек.");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setMessageTone("error");
+      setMessage("JPG, PNG немесе WebP қана рұқсат.");
+      return;
+    }
     setUploading(true);
     setMessage("");
 
