@@ -12,7 +12,7 @@ export async function POST(request:Request){
   const contentLength = request.headers.get("content-length");
   if (
     contentLength !== null &&
-    (!/^\\d+$/.test(contentLength) ||
+    (!/^\d+$/.test(contentLength) ||
       Number(contentLength) > MAX_BYTES + 128 * 1024)
   ) {
     return NextResponse.json(
