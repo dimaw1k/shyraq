@@ -10,7 +10,7 @@ export async function GET() {
   const [{ data: profile }, { data: membership }, { data: reports }, { data: scores }, { data: progress }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id,full_name,status")
+      .select("id,full_name,role,status")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -34,6 +34,10 @@ export async function GET() {
       .select("lesson_id,watched_percent,test_unlocked")
       .eq("student_id", user.id),
   ]);
+
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
 
   const score = (scores ?? []).reduce((sum, item) => sum + Number(item.points ?? 0), 0);
   const scoreBreakdown = (scores ?? []).reduce<Record<string, number>>((result, item) => {
