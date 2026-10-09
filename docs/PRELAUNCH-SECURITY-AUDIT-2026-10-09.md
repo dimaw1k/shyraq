@@ -13,6 +13,8 @@ Focused source review of the current application code for authentication and sta
 - Validate stored attachment paths before generating temporary signed URLs.
 - Disable unverified email changes through the privileged profile endpoint; the profile screen explains that a dedicated new-email verification flow is required.
 - Add a migration constraining the test-question storage bucket size/MIME types.
+- Revoke direct client writes to `video_progress`, `test_attempts` and `test_answers`; preserve read access while forcing progress and submitted scores/answers through server validation and the server-only atomic RPCs.
+- Enforce a database `required_watch_percent` constraint from 1 to 100 so lesson video gates cannot be disabled through another write path.
 - Reconcile the out-of-order 20261009173000 migration by conditionally recording it as applied only when 20261009173500 is already recorded both locally and remotely; then run the ordinary migration dry-run and deploy.
 
 ## Deployment caution
@@ -23,6 +25,6 @@ This branch alone does not change production. A previous production dry run fail
 
 - GitHub Actions should run the repository's existing typecheck, lint and production build on this pull request. Those checks do not replace runtime tests.
 - Verify Supabase Auth leaked-password protection and production environment variables.
-- Confirm RLS/policy behavior with real Supabase roles, including service-role-only RPC grants and Storage bucket policies.
+- Confirm RLS/policy behavior with real Supabase roles, including the new revocations on `video_progress`, `test_attempts`, `test_answers`, service-role-only RPC grants and Storage bucket policies.
 - Exercise registration/login, student/mentor/leader/chief-mentor authorization, lesson/team gates, test retries/history, uploads/downloads, Google OAuth/Meet sync and cron authentication against staging.
 - Run database migrations only after the migration dry run is clean, then check production health and application logs.
