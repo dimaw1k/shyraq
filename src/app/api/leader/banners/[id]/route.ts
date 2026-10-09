@@ -1,15 +1,42 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+
+function isSafeHref(value: string) {
+  const href = value.trim();
+  if (!href || href.length > 2048 || /[\\\u0000-\u001f\u007f]/.test(href)) return false;
+  if (href.startsWith("/") && !href.startsWith("//")) return true;
+  try {
+    const parsed = new URL(href);
+    return parsed.protocol === "https:" && Boolean(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
-  const {profile}=await getAuthenticatedStaff("LEADER"); const {id}=await params; const body=await request.json().catch(()=>null); const admin=createAdminSupabaseClient();
+  const {profile}=await getAuthenticatedStaff("LEADER");
+  const {id}=await params;
+  const parsedBody=await readLimitedJson(request,16*1024);
+  if(!parsedBody.ok){
+    return NextResponse.json({error:parsedBody.reason==="too-large"?"Banner деректері тым үлкен.":"Banner деректері дұрыс емес."},{status:parsedBody.reason==="too-large"?413:400,headers:{"Cache-Control":"no-store"}});
+  }
+  const body=parsedBody.value;
+  if(!body||typeof body!=="object"||Array.isArray(body)){
+    return NextResponse.json({error:"Banner деректері дұрыс емес."},{status:400});
+  }
+  const input=body as Record<string,unknown>;
+  if(input.href!==undefined&&input.href!==null&&(typeof input.href!=="string"||!isSafeHref(input.href))){
+    return NextResponse.json({error:"Banner сілтемесі қауіпсіз HTTPS немесе ішкі жол болуы керек."},{status:400});
+  }
+  const admin=createAdminSupabaseClient();
   const {data:current}=await admin.from("marathon_banners").select("*").eq("id",id).maybeSingle();
   if(!current)return NextResponse.json({error:"Banner табылмады."},{status:404});
   const {data,error}=await admin.from("marathon_banners").update({
     title:typeof body?.title==="string"&&body.title.trim()?body.title.trim():current.title,
     description:body?.description===null?null:typeof body?.description==="string"?body.description.trim()||null:current.description,
-    href:body?.href===null?null:typeof body?.href==="string"?body.href.trim()||null:current.href,
+    href:input.href===null?null:typeof input.href==="string"?input.href.trim()||null:current.href,
     published:typeof body?.published==="boolean"?body.published:current.published,
     starts_at:body?.startsAt===null||body?.startsAt===""?null:typeof body?.startsAt==="string"?body.startsAt:current.starts_at,
     ends_at:body?.endsAt===null||body?.endsAt===""?null:typeof body?.endsAt==="string"?body.endsAt:current.ends_at,
