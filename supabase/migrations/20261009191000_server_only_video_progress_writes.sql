@@ -1,7 +1,9 @@
 -- Students may read their own progress, but cannot forge playback coverage or
 -- set test_unlocked directly through the Supabase REST API. Progress writes must
 -- go through the authenticated server route, which validates elapsed playback.
-REVOKE INSERT, UPDATE, DELETE ON TABLE public.video_progress FROM PUBLIC, anon, authenticated;
+REVOKE INSERT, UPDATE, DELETE
+  ON TABLE public.video_progress
+  FROM PUBLIC, anon, authenticated;
 
 DROP POLICY IF EXISTS video_progress_insert ON public.video_progress;
 DROP POLICY IF EXISTS video_progress_update ON public.video_progress;
@@ -16,3 +18,20 @@ CREATE POLICY video_progress_select
     student_id = (SELECT auth.uid())
     OR (SELECT is_chief_mentor_or_above())
   );
+
+-- A student-owned test_attempts INSERT policy lets a client forge score,
+-- attempt number and submitted_at. Attempts must be created only through the
+-- server-validated create_test_attempt_with_answers RPC.
+REVOKE INSERT, UPDATE, DELETE
+  ON TABLE public.test_attempts
+  FROM PUBLIC, anon, authenticated;
+
+DROP POLICY IF EXISTS test_attempts_insert ON public.test_attempts;
+
+-- Answers are written transactionally together with the attempt via the same
+-- server-only RPC; preserve SELECT policy so authorized result views keep working.
+REVOKE INSERT, UPDATE, DELETE
+  ON TABLE public.test_answers
+  FROM PUBLIC, anon, authenticated;
+
+DROP POLICY IF EXISTS test_answers_insert ON public.test_answers;
