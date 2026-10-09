@@ -9,5 +9,5 @@
 DO $$
 BEGIN
   NULL;
-END
+END;
 $$;
