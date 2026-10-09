@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
       return NextResponse.json({ error: "Қалпына келтіру деректері дұрыс емес." }, { status: 400 });
     }
-    const body = parsedBody.value;
+    const body = parsedBody.value as Record<string, unknown>;
     const password =
       typeof body?.password === "string" ? body.password : "";
 
