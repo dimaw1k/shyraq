@@ -13,7 +13,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
 
   const { taskId } = await params;
   const [{ data: profile }, { data: membership }, { data: task }, { data: submission }] = await Promise.all([
-    supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name,role,status").eq("id", user.id).maybeSingle(),
     supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
     supabase.from("tasks").select("id,title,description,instructions,deadline,starts_at,points,late_points_percent,attachment_required,max_files,team_id,marathon_day").eq("id", taskId).eq("active", true).maybeSingle(),
     supabase.from("task_submissions").select("id,status,text_answer,submitted_at,submitted_late,link_url,review_comment,resubmission_deadline").eq("task_id", taskId).eq("student_id", user.id).maybeSingle(),
@@ -21,6 +21,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
   if (!task) notFound();
 
   const role = profile?.role ?? "STUDENT";
+  if (role === "STUDENT" && profile?.status !== "ACTIVE") redirect("/dashboard");
   if (role === "STUDENT" && task.team_id && task.team_id !== membership?.team_id) notFound();
 
   const now = new Date().getTime();
