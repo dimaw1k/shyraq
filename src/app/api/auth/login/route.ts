@@ -36,9 +36,18 @@ export async function POST(request: Request) {
 
     const clientIp = getClientIp(request);
     const normalizedIdentifierKey = rawIdentifier.toLowerCase();
+    const cohortMode =
+      process.env.NODE_ENV === "production" &&
+      process.env.REGISTRATION_COHORT_MODE === "true";
 
     const [ipBurst, identifierBurst] = await Promise.all([
-      consumeRateLimit("auth:login:ip", clientIp, 12, 10 * 60, 10 * 60),
+      consumeRateLimit(
+        cohortMode ? "auth:login:cohort:v1:ip" : "auth:login:ip",
+        clientIp,
+        cohortMode ? 300 : 12,
+        10 * 60,
+        10 * 60,
+      ),
       consumeRateLimit(
         "auth:login:identifier",
         normalizedIdentifierKey,
