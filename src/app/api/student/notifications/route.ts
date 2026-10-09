@@ -6,6 +6,19 @@ export async function GET() {
   const {data:{user}}=await supabase.auth.getUser();
   if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
+  }
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
+
   const now=new Date();
   const horizon=new Date(now.getTime()+24*60*60*1000);
   const [{data:tasks},{data:lessons},{data:tickets}]=await Promise.all([
