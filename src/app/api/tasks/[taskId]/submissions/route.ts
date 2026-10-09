@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 export async function POST(request: Request, context: { params: Promise<{ taskId: string }> }) {
   const supabase = await createServerSupabaseClient();
@@ -13,20 +14,40 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   }
 
   const { taskId } = await context.params;
-  const body = await request.json().catch(() => null);
-  const textAnswer = typeof body?.textAnswer === "string" ? body.textAnswer.trim() : null;
-  const linkUrl = typeof body?.linkUrl === "string" ? body.linkUrl.trim() : null;
+  const parsedBody = await readLimitedJson(request, 64 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Жіберілетін жауап тым үлкен." : "Жауап деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Жауап деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const textAnswer = typeof body.textAnswer === "string" ? body.textAnswer.trim() : null;
+  const linkUrl = typeof body.linkUrl === "string" ? body.linkUrl.trim() : null;
+
+  if (textAnswer !== null && textAnswer.length > 10000) {
+    return NextResponse.json({ error: "Жауап 10000 таңбадан аспауы керек." }, { status: 400 });
+  }
+  if (linkUrl !== null && linkUrl.length > 2048) {
+    return NextResponse.json({ error: "Сілтеме тым ұзын." }, { status: 400 });
+  }
 
   if (linkUrl) {
     try {
       const url = new URL(linkUrl);
-      if (!["http:", "https:"].includes(url.protocol)) throw new Error("bad protocol");
+      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) throw new Error("bad protocol");
     } catch {
       return NextResponse.json({ error: "Сілтеме дұрыс емес. http:// немесе https:// қолдан." }, { status: 400 });
     }
   }
 
-  const finalize = body?.finalize !== false;
+  if (body.finalize !== undefined && typeof body.finalize !== "boolean") {
+    return NextResponse.json({ error: "Тапсыру күйі дұрыс емес." }, { status: 400 });
+  }
+  const finalize = body.finalize !== false;
   const { data: task } = await supabase.from("tasks").select(
     "id,team_id,active,starts_at,deadline,points,attachment_required,max_files",
   ).eq("id", taskId).maybeSingle();
