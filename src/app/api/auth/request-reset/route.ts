@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { getTrustedAppUrl } from "@/lib/app-url";
 import {
   consumeRateLimit,
   getClientIp,
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       },
     });
 
-    const redirectTo = new URL("/auth/recovery", request.url).toString();
+    const redirectTo = new URL("/auth/recovery", getTrustedAppUrl()).toString();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
