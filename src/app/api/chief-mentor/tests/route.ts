@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { hasAllowedFileSignature } from "@/lib/security/file-signature";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 type ExistingAttachment = { name: string; path: string; mime: string; size: number };
@@ -35,23 +36,6 @@ const ALLOWED_MIME = new Set([
 
 function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
-}
-
-async function hasValidFileSignature(file: File): Promise<boolean> {
-  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
-  const startsWith = (signature: number[]) => signature.every((byte, index) => bytes[index] === byte);
-  const ascii = (start: number, end: number) => String.fromCharCode(...bytes.slice(start, end));
-
-  switch (file.type) {
-    case "image/jpeg": return startsWith([0xff, 0xd8, 0xff]);
-    case "image/png": return startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    case "image/webp": return ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
-    case "application/pdf": return ascii(0, 5) === "%PDF-";
-    case "application/msword": return startsWith([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
-    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-      return startsWith([0x50, 0x4b, 0x03, 0x04]);
-    default: return false;
-  }
 }
 
 function attachmentList(value: unknown): ExistingAttachment[] {
@@ -286,7 +270,7 @@ export async function POST(request: Request) {
         }
         if (fileValue.size > MAX_FILE_BYTES) throw new Error("Бір файл 3 МБ-тан аспауы керек.");
         if (!ALLOWED_MIME.has(fileValue.type)) throw new Error("Сурет, PDF немесе Word құжатына ғана рұқсат.");
-        if (!(await hasValidFileSignature(fileValue))) throw new Error("Файл мазмұны мәлімделген форматқа сәйкес емес.");
+        if (!(await hasAllowedFileSignature(fileValue))) throw new Error("Файл мазмұны мәлімделген форматқа сәйкес емес.");
         totalUploadBytes += fileValue.size;
         if (totalUploadBytes > MAX_TOTAL_FILE_BYTES) throw new Error("Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек.");
 
