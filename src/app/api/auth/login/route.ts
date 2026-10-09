@@ -45,6 +45,12 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (rawIdentifier.length > 180 || password.length > 1024) {
+      return NextResponse.json(
+        { error: "Кіру деректерінің ұзындығы рұқсат етілген шектен асты." },
+        { status: 400 },
+      );
+    }
 
     const clientIp = getClientIp(request);
     const normalizedIdentifierKey = looksLikePhone(rawIdentifier)
