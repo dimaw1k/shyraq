@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     const clientIp = getClientIp(request);
     const normalizedIdentifierKey = looksLikePhone(rawIdentifier)
-      ? normalizePhone(rawIdentifier) ?? rawIdentifier.replace(/[\\s()\\-]/g, "").toLowerCase()
+      ? normalizePhone(rawIdentifier) ?? rawIdentifier.replace(/[\s()-]/g, "").toLowerCase()
       : rawIdentifier.toLowerCase();
 
     const [ipBurst, identifierBurst] = await Promise.all([
