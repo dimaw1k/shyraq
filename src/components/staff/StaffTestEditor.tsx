@@ -44,6 +44,10 @@ const questionTypeOptions = [
   { value: "TEXT", label: "Мәтіндік жауап" },
 ];
 
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
+const MAX_TOTAL_FILE_BYTES = 3 * 1024 * 1024;
+const MAX_FILES_PER_QUESTION = 3;
+
 function createQuestion(): TestQuestion {
   return {
     text: "",
@@ -149,11 +153,45 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
 
   function addFiles(questionIndex: number, list: FileList | null) {
     if (!list) return;
-    setQuestions((current) => current.map((question, currentQuestionIndex) => {
-      if (currentQuestionIndex !== questionIndex) return question;
-      const incoming = Array.from(list).slice(0, 3 - question.files.length);
-      return { ...question, files: [...question.files, ...incoming] };
-    }));
+
+    const selected = Array.from(list);
+    const currentQuestion = questions[questionIndex];
+    if (!currentQuestion) return;
+
+    const slots = Math.max(
+      0,
+      MAX_FILES_PER_QUESTION - currentQuestion.attachments.length - currentQuestion.files.length,
+    );
+    const candidates = selected.slice(0, slots);
+    const alreadySelectedBytes = questions.reduce(
+      (sum, question) => sum + question.files.reduce((fileSum, file) => fileSum + file.size, 0),
+      0,
+    );
+    let remainingBytes = Math.max(0, MAX_TOTAL_FILE_BYTES - alreadySelectedBytes);
+    let rejected = selected.length > candidates.length;
+    const accepted: File[] = [];
+
+    for (const file of candidates) {
+      if (file.size <= 0 || file.size > MAX_FILE_BYTES || file.size > remainingBytes) {
+        rejected = true;
+        continue;
+      }
+      accepted.push(file);
+      remainingBytes -= file.size;
+    }
+
+    if (rejected) {
+      setMessage("Бір файл 3 МБ-тан аспауы керек. Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспасын және әр сұрақта 3 файлдан артық болмасын.");
+    } else if (accepted.length) {
+      setMessage("");
+    }
+
+    if (!accepted.length) return;
+    setQuestions((current) => current.map((question, currentQuestionIndex) =>
+      currentQuestionIndex === questionIndex
+        ? { ...question, files: [...question.files, ...accepted] }
+        : question,
+    ));
   }
 
   function removeFile(questionIndex: number, fileIndex: number) {
@@ -209,6 +247,8 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
 
       setMessage("Тест сақталды.");
       setOpen(false);
+    } catch {
+      setMessage("Тестті сақтау кезінде байланыс қатесі шықты. Қайталап көріңіз.");
     } finally {
       setLoading(false);
     }
@@ -344,7 +384,7 @@ export function StaffTestEditor({ lessonId, test, questions: initialQuestions }:
                         }}
                       />
                     </label>
-                    <p className="mt-1 text-[8px] font-semibold text-[#9A9189]">Сурет, PDF немесе Word · 10 МБ-қа дейін</p>
+                    <p className="mt-1 text-[8px] font-semibold text-[#9A9189]">Сурет, PDF немесе Word · бір файл 3 МБ-қа дейін, жаңа файлдар жиынтығы 3 МБ-тан аспасын</p>
                     {(question.attachments.length || question.files.length) ? (
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {question.attachments.map((attachment) => (
