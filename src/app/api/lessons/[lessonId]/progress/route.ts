@@ -168,7 +168,7 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
   }
 
-  const maximumPosition = Math.floor(Math.max(0, ...ranges.map((range) => range.end)));
+  const maximumPosition = Math.floor(ranges.reduce((maximum, range) => Math.max(maximum, range.end), 0));
 
   const payload = {
     lesson_id: lessonId,
