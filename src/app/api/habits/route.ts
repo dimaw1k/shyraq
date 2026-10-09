@@ -37,11 +37,11 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "STUDENT") {
+  if (profile?.role !== "STUDENT" || profile.status === "INACTIVE") {
     return NextResponse.json(
       { error: "Әдеттер бөлімі тек оқушыларға арналған." },
       { status: 403 },
