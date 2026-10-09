@@ -15,12 +15,17 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
 
   const { lessonId } = await params;
   const [{ data: profile }, { data: lesson }, { data: test }, { data: membership }, { data: progress }] = await Promise.all([
-    supabase.from("profiles").select("full_name,role").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name,role,status").eq("id", user.id).maybeSingle(),
     supabase.from("lessons").select("id,published,starts_at,team_id,kinescope_video_id").eq("id", lessonId).maybeSingle(),
     supabase.from("lesson_tests").select("id,title,instructions,max_attempts,active").eq("lesson_id", lessonId).eq("active", true).maybeSingle(),
     supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
     supabase.from("video_progress").select("test_unlocked").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle(),
   ]);
+
+  // This is a student-facing exam screen that fetches protected question
+  // metadata using the server-only Supabase client. Never let staff, inactive
+  // accounts, or users with a missing profile enter this path.
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") notFound();
 
   if (!lesson?.published || !test) notFound();
 
