@@ -6,7 +6,7 @@ Focused source review of the current application code for authentication and sta
 
 ## Changes proposed in this branch
 
-- Validate Chief Mentor settings and score-rule updates, validate request bytes before JSON parsing, enforce value/type bounds and return database write errors instead of silently ignoring them.
+- Validate Chief Mentor and Leader score-rule updates, validate request bytes before JSON parsing, enforce value/type bounds, reject duplicate rule codes and return database write errors instead of silently ignoring them.
 - Add a shared rate limit for video progress updates; cap body size before parsing; reject malformed payloads and remove repeated per-request playback grace.
 - Keep the current atomic test-editor database RPC and add strict request/field limits to its API, including file signature checks, MIME allow-list, a 3 MiB aggregate file bound and text/number bounds.
 - Bound student test answer payloads to 64 KiB and free-text answers to 5,000 characters while preserving the atomic attempt-and-answers RPC.
