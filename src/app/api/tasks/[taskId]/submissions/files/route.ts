@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
-const MAX_BYTES = 20 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
 
 export async function POST(request: Request, context: { params: Promise<{ taskId: string }> }) {
@@ -16,11 +16,23 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   }
 
   const { taskId } = await context.params;
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\\d+$/.test(contentLength) ||
+      Number(contentLength) > MAX_BYTES + 128 * 1024)
+  ) {
+    return NextResponse.json(
+      { error: "Файл өлшемі 4 MB шегінен асады." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const form = await request.formData();
   const submissionId = String(form.get("submissionId") ?? "");
   const file = form.get("file");
   if (!submissionId || !(file instanceof File)) return NextResponse.json({ error: "submissionId and file are required" }, { status: 400 });
-  if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ error: "Файл 20 MB-тан аспауы керек." }, { status: 400 });
+  if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ error: "Файл 4 MB-тан аспауы керек." }, { status: 400 });
   if (!ALLOWED.has(file.type)) return NextResponse.json({ error: "Бұл файл түріне рұқсат жоқ." }, { status: 400 });
 
   const { data: submission } = await supabase.from("task_submissions").select("id,task_id,student_id,status").eq("id", submissionId).eq("task_id", taskId).eq("student_id", user.id).maybeSingle();
