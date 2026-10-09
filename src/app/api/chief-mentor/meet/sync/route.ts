@@ -9,6 +9,8 @@ import {
   sessionDurationSeconds,
 } from "@/lib/google-meet";
 import { recordAttendanceScore } from "@/lib/attendance-scoring";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 type StudyTime = "ALL" | "MORNING" | "EVENING" | "EXTRA";
 
@@ -57,23 +59,56 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json().catch(() => ({}));
-  const allTeams = body?.allTeams === true;
-  const requestedTeamId =
-    typeof body?.teamId === "string" ? body.teamId : "";
-  const studyTime = parseStudyTime(body?.studyTime);
+  const rateLimit = await consumeRateLimit("google-meet:chief-sync", user.id, 6, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet синхрондауы тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
+
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Сұраныс деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Сұраныс деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  if (body.allTeams !== undefined && typeof body.allTeams !== "boolean") {
+    return NextResponse.json({ error: "allTeams параметрі дұрыс емес." }, { status: 400 });
+  }
+  const allTeams = body.allTeams === true;
+  const requestedTeamId = typeof body.teamId === "string" ? body.teamId.trim() : "";
+  if (requestedTeamId.length > 100) return NextResponse.json({ error: "teamId дұрыс емес." }, { status: 400 });
+  const studyTime = parseStudyTime(body.studyTime);
 
   if (!allTeams && !requestedTeamId) {
     return NextResponse.json({ error: "teamId қажет." }, { status: 400 });
   }
 
   const now = new Date();
-  const startTime =
-    typeof body?.startTime === "string"
-      ? body.startTime
-      : new Date(now.getTime() - 7 * 86400000).toISOString();
-  const endTime =
-    typeof body?.endTime === "string" ? body.endTime : now.toISOString();
+  const startTime = typeof body.startTime === "string"
+    ? body.startTime
+    : new Date(now.getTime() - 7 * 86400000).toISOString();
+  const endTime = typeof body.endTime === "string" ? body.endTime : now.toISOString();
+  const startMs = Date.parse(startTime);
+  const endMs = Date.parse(endTime);
+  const maxSyncRangeMs = 90 * 24 * 60 * 60 * 1000;
+
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    startMs >= endMs ||
+    endMs > now.getTime() + 5 * 60 * 1000 ||
+    endMs - startMs > maxSyncRangeMs
+  ) {
+    return NextResponse.json(
+      { error: "Синхрондау аралығы дұрыс емес. 90 күннен аспайтын нақты күндерді таңдаңыз." },
+      { status: 400 },
+    );
+  }
 
   const admin = createAdminSupabaseClient();
 
