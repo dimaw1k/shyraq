@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
 
@@ -176,7 +177,34 @@ export async function POST(request: Request) {
 
   const derivedCompletedTaskCount = Math.max(0, Number(completedTaskCount ?? 0));
 
-  const { data, error } = await supabase
+  // Daily reports are server-written in production. The RLS policy correctly
+  // prevents students from inserting/updating this table directly; perform the
+  // write with the server-only client only after checking this user's identity,
+  // role, active status, today's date, and all report fields above.
+  const { data: existingReport, error: existingReportError } = await supabase
+    .from("daily_reports")
+    .select("id,status")
+    .eq("student_id", user.id)
+    .eq("report_date", reportDate)
+    .eq("report_type", reportType)
+    .maybeSingle();
+
+  if (existingReportError) {
+    return NextResponse.json(
+      { error: "Алдыңғы есептің күйін тексеру мүмкін болмады." },
+      { status: 500 },
+    );
+  }
+
+  if (existingReport?.status === "REVIEWED") {
+    return NextResponse.json(
+      { error: "Тексерілген есепті өзгертуге болмайды." },
+      { status: 409 },
+    );
+  }
+
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
     .from("daily_reports")
     .upsert(
       {
