@@ -16,7 +16,7 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "STUDENT" || profile.status === "INACTIVE") {
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
   }
 
