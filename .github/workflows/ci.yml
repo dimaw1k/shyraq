@@ -8,7 +8,7 @@ on:
       - "fix/**"
       - "security-*"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "security-hardening-2026-10-07"]
 
 jobs:
   quality:
