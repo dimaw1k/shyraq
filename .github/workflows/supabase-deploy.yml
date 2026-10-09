@@ -22,6 +22,6 @@ jobs:
         with:
           version: latest
       - name: Validate pending migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all --include-all --dry-run
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run
       - name: Deploy migrations
-        run: supabase db push --db-url "$SUPABASE_DB_URL"
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
