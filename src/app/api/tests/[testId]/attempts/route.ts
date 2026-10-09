@@ -159,34 +159,40 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   });
 
   const attemptNumber = Number(existingAttempts ?? 0) + 1;
+  const submittedAt = new Date().toISOString();
 
-  const { data: attempt, error } = await admin
-    .from("test_attempts")
-    .insert({
-      test_id: testId,
-      student_id: user.id,
-      attempt_number: attemptNumber,
-      score,
-      submitted_at: new Date().toISOString(),
-    })
-    .select("*")
-    .single();
+  // Do not populate the UUID option column with a TEXT answer. The old mapping
+  // sent arbitrary answer text into selected_option_id as well as text_answer,
+  // causing text-question submissions to fail UUID validation.
+  const answerRows = Array.from(normalizedAnswers.entries()).map(([questionId, answer]) => {
+    const isTextAnswer = questionMap.get(questionId)?.question_type === "TEXT";
+    return {
+      question_id: questionId,
+      selected_option_id: typeof answer === "string" && !isTextAnswer ? answer : null,
+      selected_option_ids: Array.isArray(answer) ? answer : null,
+      text_answer: typeof answer === "string" && isTextAnswer ? answer : null,
+    };
+  });
+
+  // One database function inserts the attempt and every answer in the same
+  // transaction. If any row fails, the attempt is rolled back too.
+  const { data: attemptResult, error } = await admin.rpc("create_test_attempt_with_answers", {
+    p_test_id: testId,
+    p_student_id: user.id,
+    p_attempt_number: attemptNumber,
+    p_score: score,
+    p_submitted_at: submittedAt,
+    p_answers: answerRows,
+  });
 
   if (error) {
     if (error.code === "23505") return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
-    return NextResponse.json({ error: "Тесті сақтау мүмкін болмады." }, { status: 400 });
+    console.error("[tests/attempts] atomic submission failed", { code: error.code });
+    return NextResponse.json({ error: "Тест пен жауаптарды сақтау мүмкін болмады. Қайта жіберіңіз." }, { status: 400 });
   }
 
-  const answerRows = Array.from(normalizedAnswers.entries()).map(([questionId, answer]) => ({
-    attempt_id: attempt.id,
-    question_id: questionId,
-    selected_option_id: typeof answer === "string" ? answer : null,
-    selected_option_ids: Array.isArray(answer) ? answer : null,
-    text_answer: typeof answer === "string" && questionMap.get(questionId)?.question_type === "TEXT" ? answer : null,
-  }));
-
-  const { error: answerError } = await admin.from("test_answers").insert(answerRows);
-  if (answerError) return NextResponse.json({ error: "Тест жауаптарын сақтау мүмкін болмады." }, { status: 500 });
+  const attempt = Array.isArray(attemptResult) ? attemptResult[0] : attemptResult;
+  if (!attempt) return NextResponse.json({ error: "Тест нәтижесін растау мүмкін болмады." }, { status: 500 });
 
   const { data: rule } = await supabase.from("score_rules").select("weight,active").eq("code", "TESTS").maybeSingle();
   if (rule?.active && Number(rule.weight) !== 0 && questionResults.every((result) => !result.manualReview)) {
