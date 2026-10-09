@@ -11,6 +11,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
+  }
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
+
   const params = new URL(request.url).searchParams;
   const day = Number(params.get("day") ?? 0);
   const reportType = params.get("type") === "MORNING" ? "MORNING" : "EVENING";
