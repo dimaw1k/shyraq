@@ -14,7 +14,9 @@ export function AppPreferences() {
     const applyStored = () => {
       const storedLanguage = window.localStorage.getItem(STUDENT_LANGUAGE_KEY);
       if (storedLanguage === "ru" || storedLanguage === "en" || storedLanguage === "kk") {
-        document.documentElement.lang = storedLanguage;
+        // Re-write existing preferences through the shared helper so cookies
+        // created by older versions gain the current Secure/SameSite attributes.
+        setStudentLanguage(storedLanguage);
       }
     };
 
