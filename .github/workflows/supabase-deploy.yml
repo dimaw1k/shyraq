@@ -26,8 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           history="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
-          if printf '%s\n' "$history" | awk '$1 == "20261009173500" && $3 == "20261009173500" { found=1 } END { exit found ? 0 : 1 }'; then
-            if ! printf '%s\n' "$history" | awk '$1 == "20261009173000" && $3 == "20261009173000" { found=1 } END { exit found ? 0 : 1 }'; then
+          if printf '%s\n' "$history" | awk '$1 == "20261009173500" && $2 == "20261009173500" { found=1 } END { exit found ? 0 : 1 }'; then
+            if printf '%s\n' "$history" | awk '$1 == "20261009173000" { found=1 } END { exit found ? 0 : 1 }' &&
+               ! printf '%s\n' "$history" | awk '$2 == "20261009173000" { found=1 } END { exit found ? 0 : 1 }'; then
               supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
             fi
           fi
