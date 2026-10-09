@@ -4,6 +4,11 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasReachedWatchGate, watchedPercent, mergeTimeRanges, type TimeRange } from "@/lib/video/coverage";
 import { recordScoreEvent } from "@/lib/scoring-events";
 
+const MAX_WATCH_RANGES_PER_REQUEST = 512;
+// A fixed total head start accommodates the first client sync, but must not reset
+// on every request; otherwise callers can earn the tolerance repeatedly by spamming.
+const INITIAL_PLAYBACK_ALLOWANCE_SECONDS = 45;
+
 async function getAccessibleLesson(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, lessonId: string, userId: string) {
   const [{ data: lesson }, { data: membership }] = await Promise.all([
     supabase
@@ -86,13 +91,16 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
 
   const { data: existing } = await supabase
     .from("video_progress")
-    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at")
+    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at,first_started_at")
     .eq("lesson_id", lessonId)
     .eq("student_id", user.id)
     .maybeSingle();
 
   const body = await request.json().catch(() => null);
   const rawRanges: unknown[] = Array.isArray(body?.ranges) ? body.ranges : [];
+  if (rawRanges.length > MAX_WATCH_RANGES_PER_REQUEST) {
+    return NextResponse.json({ error: "Too many watch ranges in one update." }, { status: 413 });
+  }
   const incoming: TimeRange[] = [];
 
   for (const value of rawRanges) {
@@ -107,7 +115,10 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
       end: Math.max(0, Math.min(lesson.duration_seconds, raw.end)),
     };
 
-    if (range.end > range.start && range.end - range.start <= 5) incoming.push(range);
+    // The client sends merged coverage intervals, which naturally exceed five
+    // seconds during normal uninterrupted playback. The cumulative server-side
+    // elapsed-time check below prevents fabricated progress from unlocking tests.
+    if (range.end > range.start) incoming.push(range);
   }
 
   if (!incoming.length && !existing) {
@@ -134,19 +145,27 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   const percent = watchedPercent(ranges, lesson.duration_seconds);
   const unlocked = hasReachedWatchGate(ranges, lesson.duration_seconds, lesson.required_watch_percent);
   const watchedSeconds = Math.floor((percent / 100) * lesson.duration_seconds);
-  const previousWatchedSeconds = Number(existing?.watched_seconds ?? Math.floor((watchedPercent(storedRanges, lesson.duration_seconds) / 100) * lesson.duration_seconds));
-  const newCoverageSeconds = Math.max(0, watchedSeconds - previousWatchedSeconds);
+  // Derive prior coverage from stored ranges rather than trusting a persisted
+  // counter; that keeps the elapsed-time check anchored to the actual coverage.
+  const previousWatchedSeconds = Math.floor(
+    (watchedPercent(storedRanges, lesson.duration_seconds) / 100) * lesson.duration_seconds,
+  );
+  const nowMs = Date.now();
+  const storedFirstStartedAtMs = existing?.first_started_at
+    ? Date.parse(existing.first_started_at)
+    : NaN;
+  // For legacy rows with no first_started_at, backdate once by their already
+  // recorded coverage. The timestamp is persisted below, so tolerance cannot reset.
+  const firstStartedAtMs = Number.isFinite(storedFirstStartedAtMs)
+    ? storedFirstStartedAtMs
+    : nowMs - previousWatchedSeconds * 1000;
+  const elapsedSinceFirstStartSeconds = Math.max(0, (nowMs - firstStartedAtMs) / 1000);
 
-  if (newCoverageSeconds > 0) {
-    const nowMs = Date.now();
-    const lastWatchedMs = existing?.last_watched_at ? Date.parse(existing.last_watched_at) : NaN;
-    const elapsedAllowance = Number.isFinite(lastWatchedMs)
-      ? Math.max(0, (nowMs - lastWatchedMs) / 1000) + 30
-      : 45;
-
-    if (newCoverageSeconds > elapsedAllowance) {
-      return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
-    }
+  // A fixed 45-second allowance is available across the whole playback session,
+  // not per request. Repeated or parallel POSTs therefore cannot repeatedly add
+  // 30+ seconds of synthetic coverage while barely any real time passes.
+  if (watchedSeconds > elapsedSinceFirstStartSeconds + INITIAL_PLAYBACK_ALLOWANCE_SECONDS) {
+    return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
   }
 
   const maximumPosition = Math.floor(Math.max(0, ...ranges.map((range) => range.end)));
@@ -160,8 +179,8 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     watched_ranges: ranges,
     completed: percent >= 100,
     test_unlocked: unlocked,
-    first_started_at: existing ? undefined : new Date().toISOString(),
-    last_watched_at: new Date().toISOString(),
+    first_started_at: new Date(firstStartedAtMs).toISOString(),
+    last_watched_at: new Date(nowMs).toISOString(),
   };
 
   const admin = createAdminSupabaseClient();
