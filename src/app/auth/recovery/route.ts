@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getTrustedAppUrl } from "@/lib/app-url";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const flowId = requestUrl.searchParams.get("sb_flow_id");
-  const origin = requestUrl.origin;
+  const origin = getTrustedAppUrl();
 
   if (!code) {
     return NextResponse.redirect(
