@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
@@ -22,7 +23,14 @@ export async function POST(request:Request){
     );
   }
 
-  const form=await request.formData();
+  const boundedForm = await readLimitedFormData(request, MAX_BYTES + 128 * 1024);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Файл өлшемі 4 MB шегінен асады." : "Banner форматы дұрыс емес." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
   const file=form.get("file");
   if(!(file instanceof File))return NextResponse.json({error:"Banner суреті қажет."},{status:400});
   if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 4 MB-тан аспауы керек."},{status:400});
