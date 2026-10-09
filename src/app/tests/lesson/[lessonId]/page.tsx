@@ -53,7 +53,10 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
       .select("id,question_text,points,sort_order,question_type,attachments,test_options(id,option_text,sort_order)")
       .eq("test_id", test.id)
       .order("sort_order"),
-    supabase
+    // Result-visibility RLS hides attempt rows before the limit is used.
+    // This server component may read them with service role, but scores are
+    // redacted below until the attempt limit is exhausted.
+    admin
       .from("test_attempts")
       .select("id,attempt_number,score,submitted_at")
       .eq("test_id", test.id)
