@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const email = normalizeEmail(body?.email);
     const clientIp = getClientIp(request);
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
+    if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 180) {
       return NextResponse.json(
         { error: "Электрондық пошта мекенжайын дұрыс енгізіңіз." },
         { status: 400 },
