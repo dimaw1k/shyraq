@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 function isSafeBucketPath(path: string) {
-  return path.length > 0 && !path.includes("\\") && !path.includes("..");
+  return path.length > 0 && !path.includes("\\") && !path.split("/").includes("..");
 }
 
 export async function POST(request: Request) {
@@ -24,6 +24,25 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!file || !isSafeBucketPath(file.storage_path)) {
+    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  }
+
+  // A visible metadata row is not sufficient authorization for service-role
+  // signing: legacy or malicious metadata may point at another object's path.
+  // Validate the object path against the actual parent submission using the
+  // caller-scoped client before asking Storage to mint a privileged URL.
+  const { data: submission } = await supabase
+    .from("task_submissions")
+    .select("id,student_id")
+    .eq("id", file.submission_id)
+    .maybeSingle();
+
+  if (!submission) {
+    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  }
+
+  const expectedPrefix = submission.student_id + "/" + submission.id + "/";
+  if (!file.storage_path.startsWith(expectedPrefix)) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
