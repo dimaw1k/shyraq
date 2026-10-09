@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     .eq("id", studentId)
     .maybeSingle();
 
-  if (!student || student.role !== "STUDENT" || student.status === "INACTIVE") {
+  if (!student || student.role !== "STUDENT" || student.status !== "ACTIVE") {
     return NextResponse.json({ error: "Active student not found" }, { status: 404 });
   }
 
