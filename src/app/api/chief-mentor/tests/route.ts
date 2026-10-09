@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { hasAllowedFileSignature } from "@/lib/security/file-signature";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 type ExistingAttachment = { name: string; path: string; mime: string; size: number };
@@ -65,8 +66,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Тест деректерінің пішімі дұрыс емес." }, { status: 415 });
   }
 
-  const form = await request.formData().catch(() => null);
-  if (!form) return NextResponse.json({ error: "Тест деректерін оқу мүмкін болмады." }, { status: 400 });
+  const boundedForm = await readLimitedFormData(request, MAX_REQUEST_BYTES);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Тест файлдары мен деректері 4 МБ-тан аспауы керек." : "Тест деректерін оқу мүмкін болмады." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
 
   const payloadValue = form.get("payload");
   if (typeof payloadValue !== "string") {
@@ -270,7 +277,7 @@ export async function POST(request: Request) {
         }
         if (fileValue.size > MAX_FILE_BYTES) throw new Error("Бір файл 3 МБ-тан аспауы керек.");
         if (!ALLOWED_MIME.has(fileValue.type)) throw new Error("Сурет, PDF немесе Word құжатына ғана рұқсат.");
-        if (!(await hasAllowedFileSignature(fileValue))) throw new Error("Файл мазмұны мәлімделген форматқа сәйкес емес.");
+        if (!(await hasValidFileSignature(fileValue, fileValue.type))) throw new Error("Файл мазмұны мәлімделген форматқа сәйкес емес.");
         totalUploadBytes += fileValue.size;
         if (totalUploadBytes > MAX_TOTAL_FILE_BYTES) throw new Error("Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек.");
 
