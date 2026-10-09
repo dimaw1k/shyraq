@@ -64,3 +64,13 @@ as $function$
       and t.status = 'ACTIVE'
   );
 $function$;
+-- CREATE OR REPLACE preserves ACLs on existing deployments; keep the policy
+-- helpers callable by authenticated RLS evaluation without restoring PUBLIC/anon access.
+revoke all privileges on function private.is_chief_mentor_or_above() from public, anon;
+revoke all privileges on function private.is_leader() from public, anon;
+revoke all privileges on function private.is_staff() from public, anon;
+revoke all privileges on function private.is_team_mentor(uuid) from public, anon;
+grant execute on function private.is_chief_mentor_or_above() to authenticated, service_role;
+grant execute on function private.is_leader() to authenticated, service_role;
+grant execute on function private.is_staff() to authenticated, service_role;
+grant execute on function private.is_team_mentor(uuid) to authenticated, service_role;
