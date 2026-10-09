@@ -62,11 +62,20 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
   }
 
-  const { count: existingAttempts } = await supabase
+  // The result-visibility RLS policy intentionally hides attempt rows until
+  // the configured limit is exhausted. Count attempts with the server-only
+  // client so later submissions still receive the correct attempt number.
+  const admin = createAdminSupabaseClient();
+  const { count: existingAttempts, error: attemptCountError } = await admin
     .from("test_attempts")
     .select("*", { count: "exact", head: true })
     .eq("test_id", testId)
     .eq("student_id", user.id);
+
+  if (attemptCountError) {
+    console.error("[tests/attempts] attempt count failed", { code: attemptCountError.code });
+    return NextResponse.json({ error: "Тест мүмкіндіктерін тексеру мүмкін болмады." }, { status: 500 });
+  }
 
   if (Number(existingAttempts ?? 0) >= Number(test.max_attempts ?? 1)) {
     return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
@@ -89,7 +98,6 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   }
   const answersInput = answerPayload as Record<string, unknown>;
 
-  const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin
     .from("test_questions")
     .select("id,points,question_type,test_options(id,is_correct)")
