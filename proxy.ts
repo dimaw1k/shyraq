@@ -29,6 +29,15 @@ function requiresPrivateNoStore(pathname: string) {
   );
 }
 
+function isPublicPath(pathname: string) {
+  return (
+    pathname === "/" ||
+    ["/login", "/register", "/reset-password", "/auth/recovery"].some(
+      (root) => pathname === root || pathname.startsWith(`${root}/`),
+    )
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = crypto.randomBytes(16).toString("base64");
   const isProduction = process.env.NODE_ENV === "production";
@@ -59,7 +68,14 @@ export async function proxy(request: NextRequest) {
   // Sending the policy only on the response is not enough for nonce propagation.
   requestHeaders.set("Content-Security-Policy", csp);
 
-  const response = await updateSession(request, requestHeaders);
+  // Public marketing/auth entry pages must still render if Supabase is temporarily
+  // unavailable or the Preview environment has no Supabase credentials configured.
+  // Protected workspaces and API routes continue through Supabase session refresh.
+  const response = isPublicPath(request.nextUrl.pathname)
+    ? (await import("next/server")).NextResponse.next({
+        request: { headers: requestHeaders },
+      })
+    : await updateSession(request, requestHeaders);
   response.headers.set("Content-Security-Policy", csp);
 
   // Authenticated pages and API responses may contain user-specific information.
