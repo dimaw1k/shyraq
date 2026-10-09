@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const STATUSES = new Set(["ACTIVE", "INACTIVE"]);
 
@@ -11,12 +12,17 @@ export async function PATCH(
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const { id } = await params;
 
-  let body: { name?: string; mentorId?: string | null; capacity?: number; status?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "JSON деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Деректер дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
 
   const admin = createAdminSupabaseClient();
   const { data: current, error: currentError } = await admin
