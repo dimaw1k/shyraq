@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 type QuestionRow = {
   id: string;
@@ -71,29 +72,22 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
   }
 
-  const maxBodyBytes = 64 * 1024;
-  const contentLength = request.headers.get("content-length");
-  if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxBodyBytes)) {
-    return NextResponse.json({ error: "Жауаптар тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  const parsedBody = await readLimitedJson(request, 64 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Жауаптар тым үлкен." : "Тест жауабының пішімі дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
-  const rawBody = await request.text().catch(() => "");
-  if (new TextEncoder().encode(rawBody).byteLength > maxBodyBytes) {
-    return NextResponse.json({ error: "Жауаптар тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
-  }
-  let body: unknown;
-  try {
-    body = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
-  }
+  const body = parsedBody.value;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
   }
-  const parsedBody = body as Record<string, unknown>;
-  if (!parsedBody.answers || typeof parsedBody.answers !== "object" || Array.isArray(parsedBody.answers)) {
+  const answerPayload = (body as Record<string, unknown>).answers;
+  if (!answerPayload || typeof answerPayload !== "object" || Array.isArray(answerPayload)) {
     return NextResponse.json({ error: "Тест сұрақтарына жауап беру міндетті." }, { status: 400 });
   }
-  const answersInput = parsedBody.answers as Record<string, unknown>;
+  const answersInput = answerPayload as Record<string, unknown>;
 
   const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin
