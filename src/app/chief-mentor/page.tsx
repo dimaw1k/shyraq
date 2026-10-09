@@ -97,6 +97,7 @@ export default async function ChiefMentorPage() {
       .limit(8),
   ]);
 
+  // eslint-disable-next-line react-hooks/purity -- this Server Component evaluates banner visibility once per request.
   const now = Date.now();
   const bannerItems = (
     await Promise.all(
