@@ -3,6 +3,12 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasReachedWatchGate, watchedPercent, mergeTimeRanges, type TimeRange } from "@/lib/video/coverage";
 import { recordScoreEvent } from "@/lib/scoring-events";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import {
+  consumeRateLimit,
+  rateLimitResponse,
+  rateLimitUnavailableResponse,
+} from "@/lib/security/rate-limit";
 
 const MAX_WATCH_RANGES_PER_REQUEST = 512;
 // A fixed total head start accommodates the first client sync, but must not reset
@@ -89,6 +95,35 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
 
   const lesson = access.lesson;
 
+  const contentLength = request.headers.get("content-length");
+  if (
+    contentLength !== null &&
+    (!/^\d+$/.test(contentLength) || Number(contentLength) > 128 * 1024)
+  ) {
+    return NextResponse.json(
+      { error: "Progress update payload is too large." },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  // A student can legitimately save progress every 15 seconds. This shared
+  // server-side limiter prevents rapid replay/parallel requests from repeatedly
+  // claiming the per-request timing tolerance to unlock a test.
+  const progressLimit = await consumeRateLimit(
+    "video:progress",
+    user.id + ":" + lessonId,
+    8,
+    60,
+    60,
+  );
+  if (!progressLimit.available) return rateLimitUnavailableResponse();
+  if (!progressLimit.allowed) {
+    return rateLimitResponse(
+      progressLimit.retryAfterSeconds,
+      "Бейне ілгерілеуі тым жиі жаңартылды. Бір минуттан кейін жалғастырыңыз.",
+    );
+  }
+
   const { data: existing } = await supabase
     .from("video_progress")
     .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at,first_started_at")
@@ -96,8 +131,20 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     .eq("student_id", user.id)
     .maybeSingle();
 
-  const body = await request.json().catch(() => null);
-  const rawRanges: unknown[] = Array.isArray(body?.ranges) ? body.ranges : [];
+  const parsedBody = await readLimitedJson(request, 128 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Progress update payload is too large." : "Invalid progress payload." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = parsedBody.value;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Invalid progress payload." }, { status: 400 });
+  }
+  const rawRanges: unknown[] = Array.isArray((body as Record<string, unknown>).ranges)
+    ? ((body as Record<string, unknown>).ranges as unknown[])
+    : [];
   if (rawRanges.length > MAX_WATCH_RANGES_PER_REQUEST) {
     return NextResponse.json({ error: "Too many watch ranges in one update." }, { status: 413 });
   }
@@ -160,7 +207,10 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   // delta allowed by elapsed server time, capped at 30 seconds. The cap prevents
   // a long idle gap from becoming a free test-unlock allowance.
   const elapsedAllowance = Number.isFinite(lastWatchedMs)
-    ? Math.min(30, Math.max(0, (nowMs - lastWatchedMs) / 1000) + 5)
+    // Round up only to the next second to avoid rejecting normal player timer
+    // quantization. No fixed per-request bonus is added, so rapid replay cannot
+    // multiply a five-second grace period.
+    ? Math.min(30, Math.ceil(Math.max(0, (nowMs - lastWatchedMs) / 1000)))
     : INITIAL_PLAYBACK_ALLOWANCE_SECONDS;
 
   if (newCoverageSeconds > elapsedAllowance) {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const ALLOWED_CODES = ["TASKS", "TESTS", "VIDEO", "ATTENDANCE", "REPORTS", "STREAK"] as const;
 type ScoreCode = (typeof ALLOWED_CODES)[number];
@@ -24,35 +26,55 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const { supabase, profile } = await getAuthenticatedStaff("LEADER");
-  const body = await request.json().catch(() => null);
+  const { profile } = await getAuthenticatedStaff("LEADER");
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Ұпай ережелерінің деректері тым үлкен." : "JSON деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = parsedBody.value;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Деректер форматы дұрыс емес." }, { status: 400 });
+  }
+  const admin = createAdminSupabaseClient();
 
-  if (!Array.isArray(body?.rules)) {
-    return NextResponse.json({ error: "rules массиві қажет." }, { status: 400 });
+  const rawRules = (body as Record<string, unknown>).rules;
+  if (!Array.isArray(rawRules) || rawRules.length === 0 || rawRules.length > ALLOWED_CODES.length) {
+    return NextResponse.json({ error: "1–6 аралығында ұпай ережесін жіберіңіз." }, { status: 400 });
   }
 
-  const submitted = new Map<string, { code: ScoreCode; weight: number; active: boolean }>();
+  const submitted = new Map<ScoreCode, { code: ScoreCode; weight: number; active: boolean }>();
 
-  for (const item of body.rules) {
-    const code = typeof item?.code === "string" ? item.code : "";
-    const weight = Number(item?.weight);
-    const active = Boolean(item?.active);
+  for (const item of rawRules) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return NextResponse.json({ error: "Ұпай ережесінің форматы дұрыс емес." }, { status: 400 });
+    }
+
+    const input = item as Record<string, unknown>;
+    const code = typeof input.code === "string" ? input.code : "";
 
     if (!isAllowedCode(code)) {
       return NextResponse.json({ error: "Жарамсыз score rule коды." }, { status: 400 });
     }
 
-    if (!Number.isFinite(weight) || weight < 0 || weight > 10000) {
-      return NextResponse.json(
-        { error: code + " үшін weight 0 мен 10000 арасында болуы керек." },
-        { status: 400 },
-      );
+    if (submitted.has(code)) {
+      return NextResponse.json({ error: "Ұпай ережесінің коды қайталанды." }, { status: 400 });
+    }
+
+    if (typeof input.weight !== "number" || !Number.isFinite(input.weight) || input.weight < 0 || input.weight > 10000) {
+      return NextResponse.json({ error: code + " үшін weight 0 мен 10000 арасында сан болуы керек." }, { status: 400 });
+    }
+
+    if (typeof input.active !== "boolean") {
+      return NextResponse.json({ error: code + " үшін active true немесе false болуы керек." }, { status: 400 });
     }
 
     submitted.set(code, {
       code,
-      weight: Number(weight.toFixed(2)),
-      active,
+      weight: Number(input.weight.toFixed(2)),
+      active: input.active,
     });
   }
 
@@ -67,33 +89,30 @@ export async function PATCH(request: Request) {
       updated_at: new Date().toISOString(),
     }));
 
-  if (!rows.length) {
-    return NextResponse.json({ error: "Кемінде бір rule жіберіңіз." }, { status: 400 });
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("score_rules")
     .upsert(rows, { onConflict: "code" })
     .select("id,code,label,weight,active,updated_at")
     .order("code");
 
   if (error) {
+    console.error("[leader/score-rules] update failed", { code: error.code });
     return NextResponse.json({ error: "Ұпай ережелерін сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  await supabase.from("audit_logs").insert({
+  const { error: auditError } = await admin.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "SCORE_RULES_UPDATED",
     entity_type: "SCORE_RULES",
     metadata: {
-      rules: rows.map((row) => ({
-        code: row.code,
-        weight: row.weight,
-        active: row.active,
-      })),
+      rules: rows.map((row) => ({ code: row.code, weight: row.weight, active: row.active })),
     },
   });
+
+  if (auditError) {
+    console.error("[leader/score-rules] audit log failed", { code: auditError.code });
+  }
 
   return NextResponse.json({ rules: data ?? [] });
 }

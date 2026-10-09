@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 export async function GET() {
   const supabase = await createServerSupabaseClient();
@@ -22,20 +23,33 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json().catch(() => null);
-  const category = typeof body?.category === "string" ? body.category.trim().slice(0, 40) : "OTHER";
-  const subject = typeof body?.subject === "string" ? body.subject.trim() : "";
-  const message = typeof body?.message === "string" ? body.message.trim() : "";
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Өтініш деректері тым үлкен." : "Өтініш деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Өтініш деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const category = typeof body.category === "string" ? body.category.trim().slice(0, 40) : "OTHER";
+  const subject = typeof body.subject === "string" ? body.subject.trim() : "";
+  const message = typeof body.message === "string" ? body.message.trim() : "";
 
   if (!subject || !message) return NextResponse.json({ error: "Тақырып пен хабарлама міндетті." }, { status: 400 });
+  if (subject.length > 160 || message.length > 5000) {
+    return NextResponse.json({ error: "Тақырып 160, хабарлама 5000 таңбадан аспауы керек." }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("support_tickets")
     .insert({
       student_id: user.id,
       category,
-      subject: subject.slice(0, 160),
-      message: message.slice(0, 5000),
+      subject,
+      message,
     })
     .select("id,category,subject,message,status,created_at")
     .single();

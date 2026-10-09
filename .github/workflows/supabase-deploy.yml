@@ -21,6 +21,70 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Reconcile superseded historical migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          history="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
+          has_local_and_remote_migration() {
+            printf '%s\n' "$history" | awk -v id="$1" '
+              function trim(value) {
+                sub(/^[[:space:]]+/, "", value)
+                sub(/[[:space:]]+$/, "", value)
+                return value
+              }
+              {
+                line=$0
+                gsub(/│/, "|", line)
+                sub(/^[[:space:]|]+/, "", line)
+                sub(/[[:space:]|]+$/, "", line)
+                n=split(line, columns, /\|/)
+                if (n >= 2 && trim(columns[1]) == id && trim(columns[2]) == id) found=1
+              }
+              END { exit found ? 0 : 1 }
+            '
+          }
+          has_local_migration() {
+            printf '%s\n' "$history" | awk -v id="$1" '
+              function trim(value) {
+                sub(/^[[:space:]]+/, "", value)
+                sub(/[[:space:]]+$/, "", value)
+                return value
+              }
+              {
+                line=$0
+                gsub(/│/, "|", line)
+                sub(/^[[:space:]|]+/, "", line)
+                sub(/[[:space:]|]+$/, "", line)
+                n=split(line, columns, /\|/)
+                if (n >= 1 && trim(columns[1]) == id) found=1
+              }
+              END { exit found ? 0 : 1 }
+            '
+          }
+          has_remote_migration() {
+            printf '%s\n' "$history" | awk -v id="$1" '
+              function trim(value) {
+                sub(/^[[:space:]]+/, "", value)
+                sub(/[[:space:]]+$/, "", value)
+                return value
+              }
+              {
+                line=$0
+                gsub(/│/, "|", line)
+                sub(/^[[:space:]|]+/, "", line)
+                sub(/[[:space:]|]+$/, "", line)
+                n=split(line, columns, /\|/)
+                if (n >= 2 && trim(columns[2]) == id) found=1
+              }
+              END { exit found ? 0 : 1 }
+            '
+          }
+          if has_local_and_remote_migration "20261009173500" &&
+             has_local_migration "20261009173000" &&
+             ! has_remote_migration "20261009173000"; then
+            supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+          fi
       - name: Validate pending migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
       - name: Deploy migrations

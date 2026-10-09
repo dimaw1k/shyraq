@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
@@ -27,7 +29,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const form = await request.formData();
+  const boundedForm = await readLimitedFormData(request, MAX_BYTES + 128 * 1024);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Файл өлшемі 4 MB шегінен асады." : "Файл форматы дұрыс емес." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
   const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Фото қажет." }, { status: 400 });
@@ -50,6 +59,10 @@ export async function POST(request: Request) {
 
   const oldPath = typeof current?.avatar_path === "string" ? current.avatar_path : null;
   const path = user.id + "/" + crypto.randomUUID() + "-" + safeName(file.name);
+  if (!(await hasValidFileSignature(file, file.type))) {
+    return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await admin.storage

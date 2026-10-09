@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const ROLES = new Set(["MENTOR", "CHIEF_MENTOR", "LEADER"]);
 
@@ -15,12 +16,30 @@ export async function PATCH(
     return NextResponse.json({ error: "Өз рөліңізді өзіңіз өзгерте алмайсыз." }, { status: 400 });
   }
 
-  let body: { role?: string; status?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "JSON деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Деректер дұрыс емес." }, { status: 400 });
+  }
+  const input = parsedBody.value as Record<string, unknown>;
+  const allowedStatuses = new Set(["REGISTERED", "WAITING_FOR_TEAM", "ACTIVE", "INACTIVE", "COMPLETED"]);
+  if (input.role !== undefined && (typeof input.role !== "string" || !ROLES.has(input.role))) {
+    return NextResponse.json({ error: "Жарамсыз staff рөлі." }, { status: 400 });
+  }
+  if (input.status !== undefined && (typeof input.status !== "string" || !allowedStatuses.has(input.status))) {
+    return NextResponse.json({ error: "Жарамсыз статус." }, { status: 400 });
+  }
+  if (input.role === undefined && input.status === undefined) {
+    return NextResponse.json({ error: "Өзгертілетін өріс жіберілмеді." }, { status: 400 });
+  }
+  const body: { role?: string; status?: string } = {};
+  if (typeof input.role === "string") body.role = input.role;
+  if (typeof input.status === "string") body.status = input.status;
 
   const admin = createAdminSupabaseClient();
 
@@ -98,12 +117,6 @@ export async function PATCH(
   }
 
   if (body.status !== undefined) {
-    const allowedStatuses = new Set(["REGISTERED", "WAITING_FOR_TEAM", "ACTIVE", "INACTIVE", "COMPLETED"]);
-
-    if (!allowedStatuses.has(body.status)) {
-      return NextResponse.json({ error: "Жарамсыз статус." }, { status: 400 });
-    }
-
     const { error } = await admin.from("profiles").update({ status: body.status }).eq("id", id);
 
     if (error) return NextResponse.json({ error: "Статусты өзгерту сәтсіз аяқталды." }, { status: 500 });

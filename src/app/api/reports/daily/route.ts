@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
 const MAX_REPORT_BODY_BYTES = 64 * 1024;
@@ -31,29 +32,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
   }
 
-  const contentLength = request.headers.get("content-length");
-  if (
-    contentLength !== null &&
-    (!/^\d+$/.test(contentLength) ||
-      Number(contentLength) > MAX_REPORT_BODY_BYTES)
-  ) {
+  const parsedBody = await readLimitedJson(request, MAX_REPORT_BODY_BYTES);
+  if (!parsedBody.ok) {
     return NextResponse.json(
-      { error: "Есеп деректері тым үлкен." },
-      { status: 413, headers: { "Cache-Control": "no-store" } },
+      { error: parsedBody.reason === "too-large" ? "Есеп деректері тым үлкен." : "Есеп деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
     );
   }
-
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
     return NextResponse.json({ error: "Есеп деректері дұрыс емес." }, { status: 400 });
   }
-
-  if (new TextEncoder().encode(JSON.stringify(body)).byteLength > MAX_REPORT_BODY_BYTES) {
-    return NextResponse.json(
-      { error: "Есеп деректері тым үлкен." },
-      { status: 413, headers: { "Cache-Control": "no-store" } },
-    );
-  }
+  const body = parsedBody.value as Record<string, unknown>;
 
   const reportDate =
     typeof body.reportDate === "string" ? body.reportDate : "";

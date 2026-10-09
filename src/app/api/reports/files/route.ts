@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
@@ -53,7 +55,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const form = await request.formData();
+  const boundedForm = await readLimitedFormData(request, MAX_BYTES + 128 * 1024);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Файл өлшемі 4 MB шегінен асады." : "Файл форматы дұрыс емес." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
   const reportId = String(form.get("reportId") ?? "");
   const slot = String(form.get("slot") ?? "");
   const file = form.get("file");
@@ -103,7 +112,7 @@ export async function POST(request: Request) {
     .eq("report_id", reportId)
     .eq("slot", slot);
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
   const storagePath =
     user.id +
     "/reports/" +
@@ -116,6 +125,10 @@ export async function POST(request: Request) {
     safeName;
 
   const admin = createAdminSupabaseClient();
+  if (!(await hasValidFileSignature(file, file.type))) {
+    return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await admin.storage

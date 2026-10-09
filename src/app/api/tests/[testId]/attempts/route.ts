@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 type QuestionRow = {
   id: string;
@@ -61,22 +62,42 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
   }
 
-  const { count: existingAttempts } = await supabase
+  // The result-visibility RLS policy intentionally hides attempt rows until
+  // the configured limit is exhausted. Count attempts with the server-only
+  // client so later submissions still receive the correct attempt number.
+  const admin = createAdminSupabaseClient();
+  const { count: existingAttempts, error: attemptCountError } = await admin
     .from("test_attempts")
     .select("*", { count: "exact", head: true })
     .eq("test_id", testId)
     .eq("student_id", user.id);
 
+  if (attemptCountError) {
+    console.error("[tests/attempts] attempt count failed", { code: attemptCountError.code });
+    return NextResponse.json({ error: "Тест мүмкіндіктерін тексеру мүмкін болмады." }, { status: 500 });
+  }
+
   if (Number(existingAttempts ?? 0) >= Number(test.max_attempts ?? 1)) {
     return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
   }
 
-  const body = await request.json().catch(() => null);
-  const answersInput = body?.answers && typeof body.answers === "object" && !Array.isArray(body.answers)
-    ? (body.answers as Record<string, unknown>)
-    : {};
+  const parsedBody = await readLimitedJson(request, 64 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Жауаптар тым үлкен." : "Тест жауабының пішімі дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = parsedBody.value;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Тест жауабының пішімі дұрыс емес." }, { status: 400 });
+  }
+  const answerPayload = (body as Record<string, unknown>).answers;
+  if (!answerPayload || typeof answerPayload !== "object" || Array.isArray(answerPayload)) {
+    return NextResponse.json({ error: "Тест сұрақтарына жауап беру міндетті." }, { status: 400 });
+  }
+  const answersInput = answerPayload as Record<string, unknown>;
 
-  const admin = createAdminSupabaseClient();
   const { data: questions, error: questionError } = await admin
     .from("test_questions")
     .select("id,points,question_type,test_options(id,is_correct)")
@@ -98,7 +119,13 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     if (!question) continue;
 
     if (question.question_type === "TEXT") {
-      if (typeof rawAnswer === "string" && rawAnswer.trim()) normalizedAnswers.set(questionId, rawAnswer.trim());
+      if (typeof rawAnswer === "string") {
+        const answer = rawAnswer.trim();
+        if (answer.length > 5000) {
+          return NextResponse.json({ error: "Мәтіндік жауап 5000 таңбадан аспауы керек." }, { status: 400 });
+        }
+        if (answer) normalizedAnswers.set(questionId, answer);
+      }
       continue;
     }
 

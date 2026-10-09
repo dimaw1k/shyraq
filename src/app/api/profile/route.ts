@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { displayKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
@@ -88,8 +89,15 @@ export async function PATCH(request: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object") {
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Деректер дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Деректер дұрыс емес." }, { status: 400 });
   }
 
@@ -120,6 +128,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Электрондық пошта дұрыс емес." }, { status: 400 });
   }
 
+  // Never silently confirm a new mailbox with the service-role API.
+  // Email changes must use a separate verification flow before this endpoint can support them.
+  if (email !== current.email) {
+    return NextResponse.json(
+      { error: "Қауіпсіздік үшін жаңа email мекенжайын растау процесінсіз ауыстыруға болмайды." },
+      { status: 409, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
 
   const newPassword =
     typeof body.newPassword === "string" && body.newPassword.length > 0
@@ -127,6 +144,7 @@ export async function PATCH(request: Request) {
       : null;
   const currentPassword =
     typeof body.currentPassword === "string" ? body.currentPassword : "";
+  const phoneChanged = phone !== current.phone;
 
   if (newPassword) {
     const passwordError = getPasswordValidationError(newPassword, [
@@ -140,14 +158,24 @@ export async function PATCH(request: Request) {
     }
   }
 
-  if (newPassword) {
+  if (phoneChanged || newPassword) {
+    if (!currentPassword) {
+      return NextResponse.json(
+        { error: "Телефонды немесе құпиясөзді өзгерту үшін қазіргі құпиясөзді енгізіңіз." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: current.email,
       password: currentPassword,
     });
 
     if (verifyError) {
-      return NextResponse.json({ error: "Құпиясөзді өзгерту үшін қазіргі құпиясөзді дұрыс енгізіңіз." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Қазіргі құпиясөз дұрыс емес." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
     }
   }
 
@@ -155,7 +183,6 @@ export async function PATCH(request: Request) {
     full_name: fullName,
     phone,
     updated_at: new Date().toISOString(),
-    ...(email !== current.email ? { email } : {}),
   };
 
   const { error: profileError } = await admin
@@ -197,9 +224,8 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (email !== current.email || newPassword || fullName !== current.full_name || phone !== current.phone) {
+  if (newPassword || fullName !== current.full_name || phone !== current.phone) {
     const authUpdate = await admin.auth.admin.updateUserById(user.id, {
-      ...(email !== current.email ? { email, email_confirm: true } : {}),
       ...(newPassword ? { password: newPassword } : {}),
       user_metadata: {
         ...(user.user_metadata ?? {}),

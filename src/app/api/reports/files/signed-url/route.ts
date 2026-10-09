@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 function isSafeBucketPath(path: string) {
   return path.length > 0 && !path.includes("\\") && !path.split("/").includes("..");
@@ -11,9 +12,19 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json().catch(() => null);
-  const fileId = typeof body?.fileId === "string" ? body.fileId : "";
-  if (!fileId) return NextResponse.json({ error: "fileId is required" }, { status: 400 });
+  const parsedBody = await readLimitedJson(request, 8 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Деректер дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Деректер дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const fileId = typeof body.fileId === "string" ? body.fileId : "";
+  if (!fileId || fileId.length > 100) return NextResponse.json({ error: "fileId дұрыс емес" }, { status: 400 });
 
   const { data: file } = await supabase.from("report_files")
     .select("id,report_id,slot,storage_path")

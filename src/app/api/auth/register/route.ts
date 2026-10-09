@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
   getClientIp,
@@ -24,7 +25,17 @@ function text(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as RegisterPayload;
+    const parsedBody = await readLimitedJson(request, 16384);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Тіркелу деректері дұрыс емес." },
+        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+      return NextResponse.json({ error: "Тіркелу деректері дұрыс емес." }, { status: 400 });
+    }
+    const body = parsedBody.value as unknown as RegisterPayload;
 
     const phone = text(body.phone);
     const email = text(body.email).toLowerCase();
@@ -70,19 +81,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ field: "phone", error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
+    if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 180) {
       return NextResponse.json({ field: "email", error: "Email мекенжайын дұрыс енгізіңіз." }, { status: 400 });
     }
 
-    if (firstName.length < 2) {
+    if (firstName.length < 2 || firstName.length > 120) {
       return NextResponse.json({ field: "firstName", error: "Атыңызды дұрыс енгізіңіз." }, { status: 400 });
     }
 
-    if (lastName.length < 2) {
+    if (lastName.length < 2 || lastName.length > 120) {
       return NextResponse.json({ field: "lastName", error: "Тегіңізді дұрыс енгізіңіз." }, { status: 400 });
     }
 
 
+
+    if (password.length > 1024) {
+      return NextResponse.json({ field: "password", error: "Құпиясөз тым ұзын." }, { status: 400 });
+    }
 
     const passwordError = getPasswordValidationError(password, [
       firstName,
