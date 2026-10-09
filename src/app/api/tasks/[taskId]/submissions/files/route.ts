@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { hasAllowedFileSignature } from "@/lib/security/file-signature";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp","application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
@@ -30,15 +30,20 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
     );
   }
 
-  const form = await request.formData().catch(() => null);
-  if (!form) return NextResponse.json({ error: "Файл форматы дұрыс емес." }, { status: 400 });
+  const boundedForm = await readLimitedFormData(request, MAX_BYTES + 128 * 1024);
+  if (!boundedForm.ok) {
+    return NextResponse.json(
+      { error: boundedForm.reason === "too-large" ? "Файл өлшемі 4 MB шегінен асады." : "Файл форматы дұрыс емес." },
+      { status: boundedForm.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const form = boundedForm.value;
   const submissionId = String(form.get("submissionId") ?? "");
   const file = form.get("file");
   if (!submissionId || !(file instanceof File)) return NextResponse.json({ error: "submissionId and file are required" }, { status: 400 });
   if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ error: "Файл 4 MB-тан аспауы керек." }, { status: 400 });
   if (!ALLOWED.has(file.type)) return NextResponse.json({ error: "Бұл файл түріне рұқсат жоқ." }, { status: 400 });
   if (!(await hasValidFileSignature(file, file.type))) return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
-  if (!(await hasAllowedFileSignature(file))) return NextResponse.json({ error: "Файл мазмұны мәлімделген форматқа сәйкес емес." }, { status: 400 });
 
   const { data: submission } = await supabase.from("task_submissions").select("id,task_id,student_id,status").eq("id", submissionId).eq("task_id", taskId).eq("student_id", user.id).maybeSingle();
   if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
