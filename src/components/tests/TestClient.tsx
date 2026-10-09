@@ -14,7 +14,7 @@ type Question = {
   attachments: Attachment[];
   test_options: Option[];
 };
-type Attempt = { id: string; attempt_number: number; score: number; submitted_at: string | null };
+type Attempt = { id: string; attempt_number: number; score: number | null; submitted_at: string | null };
 type QuestionResult = {
   questionId: string;
   type: QuestionType;
@@ -87,7 +87,7 @@ export function TestClient({
       const attempt: Attempt = {
         id: String(body.attempt?.id ?? crypto.randomUUID()),
         attempt_number: Number(body.attempt?.attempt_number ?? attempts.length + 1),
-        score: Number(body.attempt?.score ?? 0),
+        score: typeof body.attempt?.score === "number" ? body.attempt.score : null,
         submitted_at: body.attempt?.submitted_at ?? new Date().toISOString(),
       };
 
@@ -95,7 +95,11 @@ export function TestClient({
       setAttemptsRemaining((current) => Math.max(0, current - 1));
       setQuestionResults(body.questionResults ?? []);
       setAnswers({});
-      setResult("Тест қабылданды. Нәтиже: " + attempt.score + " балл");
+      setResult(
+        body.answersRevealed && attempt.score !== null
+          ? "Тест қабылданды. Нәтиже: " + attempt.score + " балл"
+          : "Жауаптарыңыз сақталды. Нәтиже соңғы мүмкіндік аяқталғаннан кейін ашылады.",
+      );
     } catch (error) {
       setResult(error instanceof Error ? error.message : "Қате шықты.");
     } finally {
@@ -207,7 +211,7 @@ export function TestClient({
                   <p className="text-xs font-extrabold text-[#3F3832]">{attempt.attempt_number}-мүмкіндік</p>
                   <p className="mt-0.5 text-[10px] font-medium text-[#9A9189]">{attempt.submitted_at ? new Date(attempt.submitted_at).toLocaleString("kk-KZ") : "—"}</p>
                 </div>
-                <span className="text-sm font-extrabold text-[#172235]">{attempt.score} балл</span>
+                <span className="text-sm font-extrabold text-[#172235]">{attempt.score === null ? "Нәтиже жасырылған" : attempt.score + " балл"}</span>
               </div>
             ))}
           </div>

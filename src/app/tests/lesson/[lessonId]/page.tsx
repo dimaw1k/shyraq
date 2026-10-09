@@ -82,11 +82,14 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
     }),
   );
 
-  const role = profile?.role ?? "STUDENT";
+  const role = profile.role;
+  const attemptsExhausted = (attempts ?? []).length >= Number(test.max_attempts ?? 1);
+  // Do not leak per-attempt score history while the student still has attempts
+  // remaining. Otherwise refreshes would bypass response-side result redaction.
   const initialAttempts = (attempts ?? []).map((attempt) => ({
     id: attempt.id,
     attempt_number: attempt.attempt_number,
-    score: Number(attempt.score ?? 0),
+    score: attemptsExhausted ? Number(attempt.score ?? 0) : null,
     submitted_at: attempt.submitted_at,
   }));
 

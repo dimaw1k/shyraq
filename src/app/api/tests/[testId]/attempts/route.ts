@@ -204,17 +204,30 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     }
   }
 
+  // Reveal scores and correct answers only when the current attempt exhausts
+  // the configured limit. Returning them earlier lets students brute-force a
+  // multi-attempt test using correctness feedback or by refreshing the page.
+  const answersRevealed = attemptNumber >= Number(test.max_attempts ?? 1);
+
   return NextResponse.json({
-    attempt,
-    questionResults: questionResults.map(({ questionId, type, selectedOptionId, selectedOptionIds, correctOptionId, correctOptionIds, isCorrect, manualReview }) => ({
-      questionId,
-      type,
-      selectedOptionId,
-      selectedOptionIds,
-      correctOptionId,
-      correctOptionIds,
-      isCorrect,
-      manualReview,
-    })),
+    answersRevealed,
+    attempt: {
+      id: attempt.id,
+      attempt_number: attempt.attempt_number,
+      score: answersRevealed ? Number(attempt.score ?? 0) : null,
+      submitted_at: attempt.submitted_at,
+    },
+    questionResults: answersRevealed
+      ? questionResults.map(({ questionId, type, selectedOptionId, selectedOptionIds, correctOptionId, correctOptionIds, isCorrect, manualReview }) => ({
+          questionId,
+          type,
+          selectedOptionId,
+          selectedOptionIds,
+          correctOptionId,
+          correctOptionIds,
+          isCorrect,
+          manualReview,
+        }))
+      : [],
   });
 }
