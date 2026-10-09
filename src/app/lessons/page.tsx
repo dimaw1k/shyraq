@@ -34,7 +34,7 @@ export default async function LessonsPage({
     await Promise.all([
       supabase
         .from("profiles")
-        .select("full_name,role")
+        .select("full_name,role,status")
         .eq("id", user.id)
         .maybeSingle(),
       supabase
@@ -68,6 +68,7 @@ export default async function LessonsPage({
     ]);
 
   const role = profile?.role ?? "STUDENT";
+  if (role === "STUDENT" && profile?.status !== "ACTIVE") redirect("/dashboard");
   const teamId = membership?.team_id ?? null;
   const visibleLessons =
     role === "STUDENT"
