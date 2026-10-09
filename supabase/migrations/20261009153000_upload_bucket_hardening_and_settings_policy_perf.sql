@@ -1,5 +1,5 @@
 -- Defense-in-depth upload limits for the public image buckets.
--- Match the maximum sizes and formats accepted by the server upload handlers.
+-- Match the 4 MiB maximum accepted by server upload handlers (Vercel function body limit).
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'avatars') THEN
@@ -13,13 +13,13 @@ $$;
 
 UPDATE storage.buckets
 SET
-  file_size_limit = 5242880,
+  file_size_limit = 4194304,
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp']
 WHERE id = 'avatars';
 
 UPDATE storage.buckets
 SET
-  file_size_limit = 8388608,
+  file_size_limit = 4194304,
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp']
 WHERE id = 'banners';
 
