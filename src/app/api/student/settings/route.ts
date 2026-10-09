@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const DEFAULT_REMINDERS = {
   enabled: true,
@@ -80,7 +81,17 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => ({}));
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Баптау деректері тым үлкен." : "Баптау деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Баптау деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
   const language = isLanguage(body.language) ? body.language : "kk";
   const reminders = cleanReminders(body.reminders);
   const notificationsEnabled = body.notificationsEnabled === true;
@@ -123,7 +134,17 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => ({}));
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Баптау деректері тым үлкен." : "Баптау деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Баптау деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
   if (!isLanguage(body.language)) {
     return NextResponse.json({ error: "Invalid language" }, { status: 400 });
   }
