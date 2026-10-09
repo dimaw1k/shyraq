@@ -48,14 +48,14 @@ export async function POST(request: Request) {
 
     const [ipBurst, ipHourly, emailBurst] = await Promise.all([
       consumeRateLimit(
-        "auth:register:ip:burst",
+        cohortMode ? "auth:register:cohort:ip:burst" : "auth:register:ip:burst",
         clientIp,
         cohortMode ? 600 : 5,
         10 * 60,
         10 * 60,
       ),
       consumeRateLimit(
-        "auth:register:ip:hour",
+        cohortMode ? "auth:register:cohort:ip:hour" : "auth:register:ip:hour",
         clientIp,
         cohortMode ? 1000 : 30,
         60 * 60,
