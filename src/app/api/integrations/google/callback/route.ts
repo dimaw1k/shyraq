@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { encryptGoogleToken } from "@/lib/google-token";
+import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
 
 type TokenResponse = {
   access_token: string;
@@ -17,19 +18,22 @@ type UserInfo = {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const appUrl = getTrustedAppUrl();
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return NextResponse.redirect(new URL("/login", request.url));
+  if (!user) return NextResponse.redirect(new URL("/login", appUrl));
 
   const stateCookie = (await import("next/headers")).cookies;
   const cookieStore = await stateCookie();
   const expectedState = cookieStore.get("shyraq_google_oauth_state")?.value;
   const returnTo = cookieStore.get("shyraq_google_return_to")?.value ?? "/dashboard";
-  const safeReturnTo =
-    returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
-  const withStatus = (status: string) =>
-    new URL(`${safeReturnTo}${safeReturnTo.includes("?") ? "&" : "?"}google=${status}`, request.url);
+  const safeReturnTo = sanitizeLocalReturnTo(returnTo, "/dashboard");
+  const withStatus = (status: string) => {
+    const target = new URL(safeReturnTo, appUrl);
+    target.searchParams.set("google", status);
+    return target;
+  };
 
   const state = url.searchParams.get("state");
 
@@ -39,6 +43,19 @@ export async function GET(request: Request) {
 
   const error = url.searchParams.get("error");
   if (error) return NextResponse.redirect(withStatus("cancelled"));
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || profile?.role !== "CHIEF_MENTOR" || profile.status !== "ACTIVE") {
+    const response = NextResponse.redirect(withStatus("forbidden"));
+    response.cookies.delete("shyraq_google_oauth_state");
+    response.cookies.delete("shyraq_google_return_to");
+    return response;
+  }
 
   const code = url.searchParams.get("code");
   const clientId = process.env.GOOGLE_CLIENT_ID;
