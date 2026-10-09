@@ -13,8 +13,17 @@ type IncomingQuestion = {
   newFileCount?: number;
 };
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
+const MAX_PAYLOAD_BYTES = 512 * 1024;
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
+const MAX_TOTAL_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_FILES_PER_QUESTION = 3;
+const MAX_TITLE_LENGTH = 120;
+const MAX_INSTRUCTIONS_LENGTH = 3000;
+const MAX_QUESTION_LENGTH = 5000;
+const MAX_OPTION_LENGTH = 500;
+const MAX_POINTS = 1000;
+const MAX_ATTEMPTS = 100;
 const ALLOWED_MIME = new Set([
   "image/jpeg",
   "image/png",
@@ -26,6 +35,23 @@ const ALLOWED_MIME = new Set([
 
 function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
+}
+
+async function hasValidFileSignature(file: File): Promise<boolean> {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const startsWith = (signature: number[]) => signature.every((byte, index) => bytes[index] === byte);
+  const ascii = (start: number, end: number) => String.fromCharCode(...bytes.slice(start, end));
+
+  switch (file.type) {
+    case "image/jpeg": return startsWith([0xff, 0xd8, 0xff]);
+    case "image/png": return startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case "image/webp": return ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
+    case "application/pdf": return ascii(0, 5) === "%PDF-";
+    case "application/msword": return startsWith([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+      return startsWith([0x50, 0x4b, 0x03, 0x04]);
+    default: return false;
+  }
 }
 
 function attachmentList(value: unknown): ExistingAttachment[] {
@@ -44,9 +70,52 @@ function attachmentList(value: unknown): ExistingAttachment[] {
 
 export async function POST(request: Request) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
-  const form = await request.formData();
 
-  let body: {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > MAX_REQUEST_BYTES)) {
+    return NextResponse.json({ error: "Тест файлдары мен деректері 4 МБ-тан аспауы керек." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  }
+
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("multipart/form-data;")) {
+    return NextResponse.json({ error: "Тест деректерінің пішімі дұрыс емес." }, { status: 415 });
+  }
+
+  const form = await request.formData().catch(() => null);
+  if (!form) return NextResponse.json({ error: "Тест деректерін оқу мүмкін болмады." }, { status: 400 });
+
+  const payloadValue = form.get("payload");
+  if (typeof payloadValue !== "string") {
+    return NextResponse.json({ error: "Тест деректері жіберілмеді." }, { status: 400 });
+  }
+  if (new TextEncoder().encode(payloadValue).byteLength > MAX_PAYLOAD_BYTES) {
+    return NextResponse.json({ error: "Тест мәтіні тым үлкен." }, { status: 413 });
+  }
+
+  let parsedBody: unknown;
+  try {
+    parsedBody = JSON.parse(payloadValue);
+  } catch {
+    return NextResponse.json({ error: "Тест деректері дұрыс емес." }, { status: 400 });
+  }
+  if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+    return NextResponse.json({ error: "Тест деректері дұрыс емес." }, { status: 400 });
+  }
+
+  let receivedFileBytes = 0;
+  for (const [key, value] of form.entries()) {
+    if (value instanceof File) {
+      receivedFileBytes += value.size;
+      if (receivedFileBytes > MAX_TOTAL_FILE_BYTES) {
+        return NextResponse.json({ error: "Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек." }, { status: 413 });
+      }
+      if (!/^q\d+_file\d+$/.test(key)) {
+        return NextResponse.json({ error: "Күтпеген файл тіркемесі табылды." }, { status: 400 });
+      }
+    }
+  }
+
+  const body = parsedBody as {
     lessonId?: string;
     title?: string;
     instructions?: string | null;
@@ -56,26 +125,43 @@ export async function POST(request: Request) {
     questions?: IncomingQuestion[];
   };
 
-  try {
-    body = JSON.parse(String(form.get("payload") ?? "{}"));
-  } catch {
-    return NextResponse.json({ error: "Тест деректері дұрыс емес." }, { status: 400 });
+  if (typeof body.lessonId !== "string" || !body.lessonId.trim()) return NextResponse.json({ error: "Сабақ таңдалмады." }, { status: 400 });
+  if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > MAX_TITLE_LENGTH) return NextResponse.json({ error: "Тест атауы 1–120 таңба болуы керек." }, { status: 400 });
+  if (body.instructions !== undefined && body.instructions !== null && (typeof body.instructions !== "string" || body.instructions.length > MAX_INSTRUCTIONS_LENGTH)) {
+    return NextResponse.json({ error: "Тест нұсқаулығы 3000 таңбадан аспауы керек." }, { status: 400 });
   }
-
-  if (typeof body.lessonId !== "string" || !body.lessonId) return NextResponse.json({ error: "Сабақ таңдалмады." }, { status: 400 });
-  if (typeof body.title !== "string" || !body.title.trim()) return NextResponse.json({ error: "Тест атауы қажет." }, { status: 400 });
-  if (!Array.isArray(body.questions) || body.questions.length === 0 || body.questions.length > 50) return NextResponse.json({ error: "Кемінде бір сұрақ қажет." }, { status: 400 });
+  if (body.active !== undefined && typeof body.active !== "boolean") return NextResponse.json({ error: "Тест күйі дұрыс емес." }, { status: 400 });
+  if (body.passingScore !== undefined && body.passingScore !== null && (typeof body.passingScore !== "number" || !Number.isFinite(body.passingScore) || body.passingScore < 0 || body.passingScore > 100)) {
+    return NextResponse.json({ error: "Өту ұпайы 0–100 аралығында болуы керек." }, { status: 400 });
+  }
+  if (body.maxAttempts !== undefined && (!Number.isInteger(body.maxAttempts) || Number(body.maxAttempts) < 1 || Number(body.maxAttempts) > MAX_ATTEMPTS)) {
+    return NextResponse.json({ error: "Тапсыру мүмкіндігі 1–100 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+  if (!Array.isArray(body.questions) || body.questions.length === 0 || body.questions.length > 50) return NextResponse.json({ error: "Тестте 1–50 сұрақ болуы керек." }, { status: 400 });
 
   for (const question of body.questions) {
+    if (!question || typeof question !== "object" || Array.isArray(question)) return NextResponse.json({ error: "Сұрақ деректері дұрыс емес." }, { status: 400 });
     const type = question.type ?? "SINGLE";
     if (!["SINGLE", "MULTIPLE", "TEXT"].includes(type)) return NextResponse.json({ error: "Сұрақ түрі дұрыс таңдалмаған." }, { status: 400 });
-    if (typeof question.text !== "string" || !question.text.trim()) return NextResponse.json({ error: "Әр сұрақтың мәтіні болуы керек." }, { status: 400 });
+    if (typeof question.text !== "string" || !question.text.trim() || question.text.trim().length > MAX_QUESTION_LENGTH) return NextResponse.json({ error: "Сұрақ мәтіні 1–5000 таңба болуы керек." }, { status: 400 });
+    if (question.points !== undefined && (typeof question.points !== "number" || !Number.isFinite(question.points) || question.points < 0 || question.points > MAX_POINTS)) {
+      return NextResponse.json({ error: "Сұрақ ұпайы 0–1000 аралығында болуы керек." }, { status: 400 });
+    }
+    if (question.newFileCount !== undefined && (typeof question.newFileCount !== "number" || !Number.isInteger(question.newFileCount) || question.newFileCount < 0 || question.newFileCount > MAX_FILES_PER_QUESTION)) {
+      return NextResponse.json({ error: "Бір сұраққа ең көбі 3 жаңа файл қосуға болады." }, { status: 400 });
+    }
+    if (question.attachments !== undefined && (!Array.isArray(question.attachments) || question.attachments.length > MAX_FILES_PER_QUESTION)) {
+      return NextResponse.json({ error: "Бір сұраққа ең көбі 3 сақталған файл тіркеуге болады." }, { status: 400 });
+    }
 
     if (type === "TEXT") {
       question.options = [];
     } else {
       if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6) {
         return NextResponse.json({ error: "Нұсқалы сұрақта 2–6 жауап нұсқасы болуы керек." }, { status: 400 });
+      }
+      if (question.options.some((option) => !option || typeof option !== "object" || typeof option.text !== "string" || option.text.trim().length === 0 || option.text.trim().length > MAX_OPTION_LENGTH)) {
+        return NextResponse.json({ error: "Жауап нұсқасы 1–500 таңба болуы керек." }, { status: 400 });
       }
       const correctCount = question.options.filter((option) => option.isCorrect === true && typeof option.text === "string" && option.text.trim()).length;
       if (type === "SINGLE" && correctCount !== 1) return NextResponse.json({ error: "Бір дұрыс жауапты сұрақта бір ғана дұрыс нұсқа болуы керек." }, { status: 400 });
@@ -123,6 +209,7 @@ export async function POST(request: Request) {
     for (const attachment of attachmentList(question.attachments)) {
       if (
         !expectedAttachmentPrefix ||
+        attachment.path.length > 1024 ||
         !attachment.path.startsWith(expectedAttachmentPrefix) ||
         attachment.path.includes("\\") ||
         attachment.path.split("/").includes("..")
@@ -165,6 +252,7 @@ export async function POST(request: Request) {
   if (testError || !test) return NextResponse.json({ error: "Тестті сақтау сәтсіз аяқталды." }, { status: 500 });
 
   const uploadedPaths: string[] = [];
+  let totalUploadBytes = 0;
   try {
     const keepPaths = new Set<string>();
     const preparedQuestions: Array<{
@@ -196,8 +284,11 @@ export async function POST(request: Request) {
         if (!(fileValue instanceof File) || fileValue.size === 0) {
           throw new Error("Тіркеме файлы табылмады. Қайта таңдап көріңіз.");
         }
-        if (fileValue.size > MAX_FILE_BYTES) throw new Error("Бір файл 10 МБ-тан аспауы керек.");
+        if (fileValue.size > MAX_FILE_BYTES) throw new Error("Бір файл 3 МБ-тан аспауы керек.");
         if (!ALLOWED_MIME.has(fileValue.type)) throw new Error("Сурет, PDF немесе Word құжатына ғана рұқсат.");
+        if (!(await hasValidFileSignature(fileValue))) throw new Error("Файл мазмұны мәлімделген форматқа сәйкес емес.");
+        totalUploadBytes += fileValue.size;
+        if (totalUploadBytes > MAX_TOTAL_FILE_BYTES) throw new Error("Жаңа файлдардың жалпы өлшемі 3 МБ-тан аспауы керек.");
 
         const path = "test/" + test.id + "/" + crypto.randomUUID() + "-" + safeName(fileValue.name);
         const { error: uploadError } = await admin.storage.from("test-question-files").upload(
