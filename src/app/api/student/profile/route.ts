@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/phone";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 async function withProfileContext<T extends Record<string, unknown>>(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
@@ -63,7 +64,7 @@ export async function PATCH(request: Request) {
 
   const { data: currentProfile, error: profileError } = await supabase
     .from("profiles")
-    .select("role,status")
+    .select("role,status,email,phone")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -78,7 +79,14 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Бұл аккаунт белсенді емес." }, { status: 403 });
   }
 
-  const body = await request.json().catch(() => null);
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Деректер дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = parsedBody.value as Record<string, unknown>;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Деректер дұрыс емес." }, { status: 400 });
   }
@@ -104,6 +112,31 @@ export async function PATCH(request: Request) {
 
   if (!Object.keys(updates).length) {
     return NextResponse.json({ error: "Өзгертілетін дерек жіберілмеді." }, { status: 400 });
+  }
+
+  const phoneChanged =
+    typeof updates.phone === "string" && updates.phone !== currentProfile.phone;
+
+  if (phoneChanged) {
+    const currentPassword =
+      typeof body.currentPassword === "string" ? body.currentPassword : "";
+    if (!currentPassword) {
+      return NextResponse.json(
+        { error: "Телефонды өзгерту үшін қазіргі құпиясөзді енгізіңіз." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: currentProfile.email,
+      password: currentPassword,
+    });
+    if (verifyError) {
+      return NextResponse.json(
+        { error: "Қазіргі құпиясөз дұрыс емес." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
   }
 
   // The profile hardening migration revokes direct UPDATE from authenticated
