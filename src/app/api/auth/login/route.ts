@@ -6,6 +6,7 @@ import {
   consumeRateLimit,
   getClientIp,
   rateLimitResponse,
+  rateLimitUnavailableResponse,
 } from "@/lib/security/rate-limit";
 
 type LoginPayload = {
@@ -35,7 +36,9 @@ export async function POST(request: Request) {
     }
 
     const clientIp = getClientIp(request);
-    const normalizedIdentifierKey = rawIdentifier.toLowerCase();
+    const normalizedIdentifierKey = looksLikePhone(rawIdentifier)
+      ? normalizePhone(rawIdentifier) ?? rawIdentifier.replace(/[\\s()\\-]/g, "").toLowerCase()
+      : rawIdentifier.toLowerCase();
 
     const [ipBurst, identifierBurst] = await Promise.all([
       consumeRateLimit("auth:login:ip", clientIp, 12, 10 * 60, 10 * 60),
@@ -48,7 +51,12 @@ export async function POST(request: Request) {
       ),
     ]);
 
-    const blocked = [ipBurst, identifierBurst].find((result) => !result.allowed);
+    const limitResults = [ipBurst, identifierBurst];
+    if (limitResults.some((result) => !result.available)) {
+      return rateLimitUnavailableResponse();
+    }
+
+    const blocked = limitResults.find((result) => !result.allowed);
     if (blocked) {
       return rateLimitResponse(
         blocked.retryAfterSeconds,
