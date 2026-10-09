@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 const ALLOWED_CODES = ["TASKS", "TESTS", "VIDEO", "ATTENDANCE", "REPORTS", "STREAK"] as const;
 type ScoreCode = (typeof ALLOWED_CODES)[number];
@@ -24,29 +26,19 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const { supabase, profile } = await getAuthenticatedStaff("LEADER");
-
-  const contentLength = request.headers.get("content-length");
-  const maxBodyBytes = 16 * 1024;
-  if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxBodyBytes)) {
-    return NextResponse.json({ error: "Ұпай ережелерінің деректері тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
+  const { profile } = await getAuthenticatedStaff("LEADER");
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Ұпай ережелерінің деректері тым үлкен." : "JSON деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
-
-  const rawBody = await request.text().catch(() => "");
-  if (new TextEncoder().encode(rawBody).byteLength > maxBodyBytes) {
-    return NextResponse.json({ error: "Ұпай ережелерінің деректері тым үлкен." }, { status: 413, headers: { "Cache-Control": "no-store" } });
-  }
-
-  let body: unknown;
-  try {
-    body = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json({ error: "JSON деректері дұрыс емес." }, { status: 400 });
-  }
-
+  const body = parsedBody.value;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Деректер форматы дұрыс емес." }, { status: 400 });
   }
+  const admin = createAdminSupabaseClient();
 
   const rawRules = (body as Record<string, unknown>).rules;
   if (!Array.isArray(rawRules) || rawRules.length === 0 || rawRules.length > ALLOWED_CODES.length) {
@@ -97,7 +89,7 @@ export async function PATCH(request: Request) {
       updated_at: new Date().toISOString(),
     }));
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("score_rules")
     .upsert(rows, { onConflict: "code" })
     .select("id,code,label,weight,active,updated_at")
@@ -108,7 +100,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Ұпай ережелерін сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  const { error: auditError } = await supabase.from("audit_logs").insert({
+  const { error: auditError } = await admin.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "SCORE_RULES_UPDATED",
