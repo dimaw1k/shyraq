@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasReachedWatchGate, watchedPercent, mergeTimeRanges, type TimeRange } from "@/lib/video/coverage";
 import { recordScoreEvent } from "@/lib/scoring-events";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
   rateLimitResponse,
@@ -130,19 +131,14 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     .eq("student_id", user.id)
     .maybeSingle();
 
-  const rawBody = await request.text().catch(() => "");
-  if (new TextEncoder().encode(rawBody).byteLength > 128 * 1024) {
+  const parsedBody = await readLimitedJson(request, 128 * 1024);
+  if (!parsedBody.ok) {
     return NextResponse.json(
-      { error: "Progress update payload is too large." },
-      { status: 413, headers: { "Cache-Control": "no-store" } },
+      { error: parsedBody.reason === "too-large" ? "Progress update payload is too large." : "Invalid progress payload." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
     );
   }
-  let body: unknown;
-  try {
-    body = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json({ error: "Invalid progress payload." }, { status: 400 });
-  }
+  const body = parsedBody.value;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Invalid progress payload." }, { status: 400 });
   }
