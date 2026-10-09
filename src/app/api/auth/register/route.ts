@@ -48,14 +48,14 @@ export async function POST(request: Request) {
       consumeRateLimit(
         cohortMode ? "auth:register:cohort:v2:ip:burst" : "auth:register:ip:burst",
         clientIp,
-        cohortMode ? 250 : 5,
+        cohortMode ? 100 : 5,
         10 * 60,
         10 * 60,
       ),
       consumeRateLimit(
         cohortMode ? "auth:register:cohort:v2:ip:hour" : "auth:register:ip:hour",
         clientIp,
-        cohortMode ? 600 : 30,
+        cohortMode ? 300 : 30,
         60 * 60,
         30 * 60,
       ),
