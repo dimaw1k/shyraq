@@ -2,17 +2,34 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { displayKzPhone, isValidKzPhone, normalizePhone } from "@/lib/phone";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
-  await getAuthenticatedStaff("CHIEF_MENTOR");
+  const { profile: actor } = await getAuthenticatedStaff("CHIEF_MENTOR");
 
-  const body = await request.json().catch(() => null);
-  const identifier =
-    typeof body?.identifier === "string" ? body.identifier.trim() : "";
+  const rateLimit = await consumeRateLimit("chief-mentor:mentor-lookup", actor.id, 30, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Менторды іздеу тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
 
-  if (!identifier) {
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
     return NextResponse.json(
-      { error: "Телефон немесе email енгізіңіз." },
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Іздеу деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Іздеу деректері дұрыс емес." }, { status: 400 });
+  }
+
+  const body = parsedBody.value as Record<string, unknown>;
+  const identifier = typeof body.identifier === "string" ? body.identifier.trim() : "";
+  if (!identifier || identifier.length > 180) {
+    return NextResponse.json(
+      { error: identifier ? "Телефон немесе email тым ұзын." : "Телефон немесе email енгізіңіз." },
       { status: 400 },
     );
   }
@@ -20,7 +37,9 @@ export async function POST(request: Request) {
   const admin = createAdminSupabaseClient();
   const looksLikeEmail = identifier.includes("@");
 
-  if (!looksLikeEmail && !isValidKzPhone(identifier)) {
+  if (looksLikeEmail
+    ? !/^\\S+@\\S+\\.\\S+$/.test(identifier)
+    : !isValidKzPhone(identifier)) {
     return NextResponse.json(
       { error: "Телефон нөмірін немесе email-ды дұрыс енгізіңіз." },
       { status: 400 },
