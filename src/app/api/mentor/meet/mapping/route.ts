@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const googleUserId = typeof body.googleUserId === "string" ? body.googleUserId.trim() : "";
   const studentId = typeof body.studentId === "string" ? body.studentId.trim() : "";
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!googleUserId || googleUserId.length > 320 || /[\\u0000-\\u001f\\u007f]/.test(googleUserId) || !uuidPattern.test(studentId)) {
+  if (!googleUserId || googleUserId.length > 320 || /[\u0000-\u001f\u007f]/.test(googleUserId) || !uuidPattern.test(studentId)) {
     return NextResponse.json({ error: "googleUserId және жарамды studentId қажет." }, { status: 400 });
   }
 
