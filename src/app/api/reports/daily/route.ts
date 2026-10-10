@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { todayInTimezone } from "@/lib/streak";
 import { isReportOpen, formatReportOpenTime } from "@/lib/report-schedule";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const REPORT_TYPES = new Set(["MORNING", "EVENING"]);
 const MAX_REPORT_BODY_BYTES = 64 * 1024;
@@ -30,6 +31,11 @@ export async function POST(request: Request) {
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+  const rateLimit = await consumeRateLimit("student:daily-report-submit", user.id, 10, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Күнделікті есеп жіберу әрекеттері тым жиі орындалды.");
   }
 
   const parsedBody = await readLimitedJson(request, MAX_REPORT_BODY_BYTES);
