@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 function isSafeBucketPath(path: string) {
   return path.length > 0 && !path.includes("\\") && !path.split("/").includes("..");
@@ -11,6 +12,11 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rateLimit = await consumeRateLimit("student:submission-file-signed-url", user.id, 60, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Файл сілтемесін алу сұраныстары тым жиі орындалды.");
+  }
 
   const parsedBody = await readLimitedJson(request, 8 * 1024);
   if (!parsedBody.ok) {

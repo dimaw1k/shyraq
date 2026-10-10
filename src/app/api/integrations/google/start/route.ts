@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const scope = [
   "openid",
@@ -30,6 +31,11 @@ export async function GET(request: Request) {
 
   if (!profile?.role || !allowedRoles.has(profile.role) || profile.status !== "ACTIVE") {
     return NextResponse.redirect(new URL("/dashboard?google=forbidden", appUrl));
+  }
+  const rateLimit = await consumeRateLimit("chief-mentor:google-oauth-start", user.id, 10, 900, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Google аккаунтын қосу әрекеттері тым жиі орындалды.");
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;

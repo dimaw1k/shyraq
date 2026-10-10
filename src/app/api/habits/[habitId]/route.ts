@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function DELETE(
   _request: Request,
@@ -16,6 +17,11 @@ export async function DELETE(
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+  const rateLimit = await consumeRateLimit("student:habit-delete", user.id, 10, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Әдетті өшіру әрекеттері тым жиі орындалды.");
   }
 
   const { habitId } = await context.params;
