@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/supabase/config";
-import { getTrustedAppUrl } from "@/lib/app-url";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
@@ -10,44 +7,58 @@ import {
   rateLimitUnavailableResponse,
 } from "@/lib/security/rate-limit";
 
+function response(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
+  });
+}
+
 function normalizeEmail(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
+/**
+ * This endpoint enforces the app-side recovery-request quota. The browser
+ * initiates Supabase PKCE recovery itself so the code verifier is stored in
+ * the same browser and can be exchanged securely in /auth/recovery.
+ */
 export async function POST(request: Request) {
   try {
-    const parsedBody = await readLimitedJson(request, 16384);
+    const parsedBody = await readLimitedJson(request, 12_288);
     if (!parsedBody.ok) {
-      return NextResponse.json(
-        { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Сұраныс деректері дұрыс емес." },
-        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+      return response(
+        { error: "Сұраныс деректері дұрыс емес." },
+        parsedBody.reason === "too-large" ? 413 : 400,
       );
     }
-    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
-      return NextResponse.json({ error: "Сұраныс деректері дұрыс емес." }, { status: 400 });
+
+    if (
+      !parsedBody.value ||
+      typeof parsedBody.value !== "object" ||
+      Array.isArray(parsedBody.value)
+    ) {
+      return response({ error: "Сұраныс деректері дұрыс емес." }, 400);
     }
+
     const body = parsedBody.value as Record<string, unknown>;
-    const email = normalizeEmail(body?.email);
-    const clientIp = getClientIp(request);
+    const email = normalizeEmail(body.email);
 
     if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 180) {
-      return NextResponse.json(
-        { error: "Электрондық пошта мекенжайын дұрыс енгізіңіз." },
-        { status: 400 },
-      );
+      return response({ error: "Электрондық пошта мекенжайын дұрыс енгізіңіз." }, 400);
     }
 
     const [ipLimit, emailLimit] = await Promise.all([
-      consumeRateLimit("auth:reset-request:ip", clientIp, 5, 60 * 60, 60 * 60),
+      consumeRateLimit("auth:reset-request:ip", getClientIp(request), 5, 60 * 60, 60 * 60),
       consumeRateLimit("auth:reset-request:email", email, 3, 60 * 60, 60 * 60),
     ]);
 
-    const limitResults = [ipLimit, emailLimit];
-    if (limitResults.some((result) => !result.available)) {
+    const results = [ipLimit, emailLimit];
+    if (results.some((result) => !result.available)) {
       return rateLimitUnavailableResponse();
     }
 
-    const blocked = limitResults.find((result) => !result.allowed);
+    const blocked = results.find((result) => !result.allowed);
     if (blocked) {
       return rateLimitResponse(
         blocked.retryAfterSeconds,
@@ -55,55 +66,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const { url, publishableKey } = getSupabaseConfig();
-    const supabase = createClient(url, publishableKey, {
-      auth: {
-        // The email callback is handled in the browser from the one-time recovery
-        // token fragment. Do not create an unpersisted PKCE verifier on the server.
-        flowType: "implicit",
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
+    // Do not reveal whether the email is registered. This is only a preflight
+    // quota check; Supabase Auth enforces its own rate limits on email sending.
+    return response({ ok: true });
+  } catch (error) {
+    console.error("[auth/reset-request] request validation failed", {
+      message: error instanceof Error ? error.message : "unknown",
     });
-
-    const redirectTo = new URL("/auth/recovery", getTrustedAppUrl()).toString();
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    });
-
-    if (error) {
-      console.error("[auth/reset-request] Supabase reset request failed", {
-        status: error.status,
-        message: error.message,
-      });
-
-      // Keep the message generic so the response does not reveal whether an
-      // email is registered, but don't claim a message was queued on a service error.
-      return NextResponse.json(
-        { error: "Қалпына келтіру хатын қазір жіберу мүмкін болмады. Кейінірек қайталап көріңіз." },
-        {
-          status: 503,
-          headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
-        },
-      );
-    }
-
-    return NextResponse.json(
-      { ok: true },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "no-store",
-          Pragma: "no-cache",
-        },
-      },
-    );
-  } catch {
-    return NextResponse.json(
-      { error: "Қалпына келтіру сілтемесін жіберу кезінде қате болды." },
-      { status: 503 },
+    return response(
+      { error: "Қалпына келтіру сұрауын қазір орындау мүмкін емес. Кейінірек қайталаңыз." },
+      503,
     );
   }
 }
