@@ -55,8 +55,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from("student_settings")
     .select("language,reminders,notifications_enabled")
     .eq("user_id", user.id)
