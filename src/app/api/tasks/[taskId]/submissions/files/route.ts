@@ -22,11 +22,7 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   if (!rateLimit.allowed) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Файлдар тым жиі жүктелді. Біраздан кейін қайта көріңіз.");
   }
-  const rateLimit = await consumeRateLimit("student:file-upload", user.id, 20, 10 * 60, 10 * 60);
-  if (!rateLimit.available) return rateLimitUnavailableResponse();
-  if (!rateLimit.allowed) {
-    return rateLimitResponse(rateLimit.retryAfterSeconds, "Файлдар тым жиі жүктелді. Біраздан кейін қайта көріңіз.");
-  }
+
 
   const { taskId } = await context.params;
   const contentLength = request.headers.get("content-length");
