@@ -101,7 +101,7 @@ export default async function MentorPage() {
                 <Card className="flex items-center justify-between p-5 transition hover:-translate-y-0.5">
                   <div>
                     <p className="text-[13px] font-extrabold text-[#172235]">Кездесу</p>
-                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">{workspace.meetSpace?.display_name ?? "Бейне кездесу"}</p>
+                    <p className="mt-1 text-[9px] font-semibold text-[#9A9189]">{workspace.meetSpaces.length ? workspace.meetSpaces.map((space) => space.study_time === "MORNING" ? "Таңғы Meet" : space.study_time === "EVENING" ? "Кешкі Meet" : "Қосымша Meet").join(" · ") : "Meet қосылмаған"}</p>
                   </div>
                   <Activity size={18} className="text-[#FF8000]" />
                 </Card>
