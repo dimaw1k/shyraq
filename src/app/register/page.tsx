@@ -132,7 +132,7 @@ export default function RegisterPage() {
             </div>
 
             <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("registerUpper")}</p>
-            <h1 className="mt-1.5 text-[27px] font-extrabold leading-none tracking-[-.05em] sm:text-[29px]">
+            <h1 className="mt-1.5 text-[24px] font-extrabold leading-none tracking-[-.05em] sm:text-[26px]">
               {t("registrationHeading")}
             </h1>
           </div>
