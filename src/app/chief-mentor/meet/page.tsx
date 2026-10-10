@@ -193,7 +193,9 @@ export default async function ChiefMentorMeetPage({
       };
     });
 
-  const totalMeetings = rows.filter((row) => row.has_conference).length;
+  const totalMeetings = new Set(
+    rows.map((row) => row.conference_id).filter((id): id is string => Boolean(id)),
+  ).size;
   const totalAttended = rows.reduce((sum, row) => sum + row.attended, 0);
   const avgAttendance = history.length
     ? history.reduce((sum, row) => sum + row.percent, 0) / history.length
