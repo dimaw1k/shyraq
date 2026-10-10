@@ -19,6 +19,7 @@ Audit scope: GitHub source and migration history, staff/student API authorizatio
 - PR #90 — track and verify Google-account ownership for Meet spaces; repair per-space/cron/manual sync logic; add Meet owner migration and clearer Google connection UI.
 - PR #91 — rate-limit high-impact staff mutations, including test/lesson/team/task/report-review/settings/staff-role/support/banner/score-rule operations.
 - PR #93 — close an authentication callback open-redirect: use the canonical configured app origin and the shared same-origin redirect sanitizer.
+- PR #94 — rate-limit password-reset submissions after validating the recovery bearer token.
 
 Relevant repo: https://github.com/dimaw1k/shyraq
 
@@ -32,7 +33,7 @@ Relevant repo: https://github.com/dimaw1k/shyraq
 - `npm run build`: passed on the validated PR #91 head.
 - Snyk status: passed for PR #91.
 - Netlify deploy preview: passed for PR #91.
-- CI passed for the final PR #91 head (typecheck, lint, build, Snyk and Netlify preview). PR #93 also passed typecheck, lint, build, Snyk and Netlify preview before merge. The post-merge main run for PR #93 was queued while this note was being updated; check the latest main run before release.
+- CI passed on the final PR #91, PR #93 and PR #94 heads (typecheck, lint and production build); Snyk and Netlify preview checks passed on those PRs as well. Re-check the latest main CI status before release, especially after the most recent merge.
 
 These checks establish that the reviewed source type-checks, lints and builds. They do not prove that every user flow works against production integrations.
 
