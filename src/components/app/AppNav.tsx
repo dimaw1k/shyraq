@@ -36,13 +36,9 @@ const studentLinks: NavItem[] = [
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
+// The Mentor workspace is temporarily closed while its sections are being edited.
+// Keep the shared profile page available for account management.
 const mentorLinks: NavItem[] = [
-  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
-  { label: "Команда", href: "/mentor/team", icon: UsersRound },
-  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck },
-  { label: "Есептер", href: "/mentor/reports", icon: FileText },
-  { label: "Кездесу", href: "/mentor/meet", icon: Activity },
-  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
@@ -51,16 +47,8 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Менторлар", href: "/chief-mentor/mentors", icon: Users },
   { label: "Командалар", href: "/chief-mentor/teams", icon: UsersRound },
   { label: "Оқушылар", href: "/chief-mentor/students", icon: Users },
-  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen },
-  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList },
-  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck },
-  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText },
   { label: "Кездесулер", href: "/chief-mentor/meet", icon: CalendarCheck2 },
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
-  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
-  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
-  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy },
-  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
@@ -235,7 +223,7 @@ function MobileBottomNav({
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
       aria-label={t("mobileNavigation")}
     >
-      <div className={["mx-auto grid max-w-[520px] px-1", links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
+      <div className={["mx-auto grid max-w-[520px] px-1", links.length === 1 ? "grid-cols-1" : links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
         {links.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
