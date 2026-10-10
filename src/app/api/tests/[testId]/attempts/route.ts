@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { recordScoreEvent } from "@/lib/scoring-events";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 type QuestionRow = {
   id: string;
@@ -19,6 +20,11 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+  const rateLimit = await consumeRateLimit("student:test-attempt-submit", user.id, 10, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Тест жауаптары тым жиі жіберілді. Кейінірек қайта көріңіз.");
   }
 
   const { testId } = await context.params;
