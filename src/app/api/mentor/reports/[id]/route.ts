@@ -24,7 +24,7 @@ export async function PATCH(
   }
   const body = parsedBody.value as Record<string, unknown>;
 
-  if (!body?.status || !ALLOWED_STATUSES.has(body.status)) {
+  if (typeof body.status !== "string" || !ALLOWED_STATUSES.has(body.status)) {
     return NextResponse.json({ error: "Жарамсыз есеп статусы." }, { status: 400 });
   }
 
