@@ -11,7 +11,7 @@ const scope = [
   "https://www.googleapis.com/auth/meetings.space.created",
 ].join(" ");
 
-const allowedRoles = new Set(["CHIEF_MENTOR"]);
+const allowedRoles = new Set(["CHIEF_MENTOR", "MENTOR"]);
 
 export async function GET(request: Request) {
   const appUrl = getTrustedAppUrl();
@@ -39,8 +39,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/dashboard?google=not_configured", appUrl));
   }
 
-  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/dashboard";
-  const returnTo = sanitizeLocalReturnTo(requestedReturnTo, "/chief-mentor/meet");
+  const defaultReturnTo = profile.role === "MENTOR" ? "/mentor/meet" : "/chief-mentor/meet";
+  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? defaultReturnTo;
+  const returnTo = sanitizeLocalReturnTo(requestedReturnTo, defaultReturnTo);
 
   const state = crypto.randomBytes(24).toString("base64url");
   const response = NextResponse.redirect(
