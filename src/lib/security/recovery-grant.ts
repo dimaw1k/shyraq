@@ -29,6 +29,64 @@ function sign(value: string) {
     .digest("base64url");
 }
 
+/**
+ * Validate the access token issued by Supabase after an email recovery code
+ * was exchanged. The caller must first ask Supabase Auth to validate the
+ * session/user; JWT decoding alone is not a signature check.
+ */
+export function isRecentRecoveryAccessToken(
+  accessToken: string,
+  expectedUserId: string,
+) {
+  try {
+    const parts = accessToken.split(".");
+    if (parts.length !== 3 || !parts[1]) return false;
+
+    const claims = JSON.parse(
+      Buffer.from(parts[1], "base64url").toString("utf8"),
+    ) as {
+      aud?: unknown;
+      sub?: unknown;
+      iat?: unknown;
+      exp?: unknown;
+      amr?: unknown;
+    };
+
+    if (!claims || typeof claims !== "object" || Array.isArray(claims)) {
+      return false;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const methods = Array.isArray(claims.amr)
+      ? claims.amr.map((entry) => {
+          if (typeof entry === "string") return entry;
+          if (typeof entry === "object" && entry !== null && "method" in entry) {
+            return (entry as { method?: unknown }).method;
+          }
+          return null;
+        })
+      : [];
+
+    const audienceIsAuthenticated =
+      claims.aud === "authenticated" ||
+      (Array.isArray(claims.aud) && claims.aud.includes("authenticated"));
+
+    return (
+      audienceIsAuthenticated &&
+      claims.sub === expectedUserId &&
+      typeof claims.iat === "number" &&
+      Number.isInteger(claims.iat) &&
+      claims.iat <= now + 60 &&
+      claims.iat >= now - 15 * 60 &&
+      typeof claims.exp === "number" &&
+      claims.exp > now &&
+      (methods.includes("recovery") || methods.includes("otp"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function createRecoveryGrant(userId: string) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
     throw new Error("Invalid recovery user identifier");
