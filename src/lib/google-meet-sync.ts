@@ -101,7 +101,21 @@ export async function getGoogleAccessTokenForMeetSpace(
     if (!connectedIds.has(space.google_user_id) || !eligibleIds.has(space.google_user_id)) {
       throw new Error("The Google account assigned to this Meet space is not connected or active.");
     }
-    return getGoogleAccessToken(space.google_user_id);
+    const token = await getGoogleAccessToken(space.google_user_id);
+    const resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
+    const remoteSpace = await getMeetSpace(token, resource);
+    if (typeof remoteSpace.name !== "string" || remoteSpace.name !== resource) {
+      throw new Error("The assigned Google account cannot access this Meet space.");
+    }
+    if (resource !== space.external_space_id) {
+      const { error: canonicalUpdateError } = await admin
+        .from("meet_spaces")
+        .update({ external_space_id: resource, updated_at: new Date().toISOString() })
+        .eq("id", space.id);
+      if (canonicalUpdateError) throw new Error("The verified Meet space ID could not be saved.");
+      space.external_space_id = resource;
+    }
+    return token;
   }
 
   const candidates = [...new Set([
