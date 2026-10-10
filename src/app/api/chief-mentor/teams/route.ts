@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_TEAM_NAME_LENGTH = 80;
@@ -8,6 +9,11 @@ const MAX_TEAM_CAPACITY = 1000;
 
 export async function POST(request: Request) {
   const { supabase, profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:team-create", profile.id, 10, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Команда құру әрекеттері тым жиі орындалды.");
+  }
 
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
