@@ -53,12 +53,12 @@ jobs:
               ("remote", "20261009173500"): 0,
           }
 
-          # Supabase CLI formats this table with the Unicode box-drawing separator │,
-          # not an ASCII pipe. Parse the displayed columns explicitly and fail closed.
+          # Supabase CLI releases may print Unicode box drawing or ASCII pipes.
+          # Parse either table separator explicitly and fail closed.
           for line in sys.argv[1].splitlines():
-              if "│" not in line:
+              if "│" not in line and "|" not in line:
                   continue
-              columns = [column.strip() for column in line.split("│")]
+              columns = [column.strip() for column in re.split(r"[│|]", line)]
               if len(columns) < 3:
                   continue
               local_version, remote_version = columns[0], columns[1]
