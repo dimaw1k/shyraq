@@ -2,7 +2,7 @@
 
 ## Release decision
 
-**Conditional go for staging; not yet a verified production hand-off.** The source review and connected Supabase checks found and fixed several security and integrity issues. GitHub CI has passed on earlier reviewed heads, and the current hardening changes are undergoing fresh CI checks. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
+**Conditional go for staging; not yet a verified production hand-off.** The current `main` commit `118e542eaf491390000a5baf522ea2dfd64b2a6b` passed GitHub Actions (`npm ci`, typecheck, lint and production build), and the Supabase migration workflow succeeded through `20261010110000_atomic_leader_student_promotion`. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
 
 This is a targeted repository, database-configuration and CI audit. It is not a third-party penetration test or proof that no vulnerabilities remain.
 
@@ -36,8 +36,9 @@ The connected database was inspected directly. The audited checks found:
 - No direct `anon` or `PUBLIC` grants on audited `public` tables were found. Public views were not found in the checked schema.
 - Reviewed SECURITY DEFINER RPCs were restricted to `service_role`; the rate-limit cleanup RPC and stale-row index were present.
 - Integrity queries returned zero for missing profile/auth-user pairs, duplicate normalized phone numbers, students with multiple active memberships, inactive mentors assigned to active teams, orphaned video-progress rows, test answers without attempts and attempts without tests.
-- The Supabase deployment workflow successfully dry-ran and applied migrations through `20261010081000_track_meet_space_google_owner`.
+- The Supabase deployment workflow successfully dry-ran and applied migrations through `20261010110000_atomic_leader_student_promotion`.
 - The Meet owner column/index/trigger/RLS rules were present after migration. The trigger helper was not executable by `authenticated`.
+- The Leader student-to-staff promotion RPC exists after migration; execute is denied to `anon` and `authenticated` and granted only to `service_role`.
 - The security advisor still reports leaked-password protection as disabled. The rate-limit table has an informational RLS-without-policy warning; this is intentional because no client grants exist and the service-role RPC is the only intended access path.
 
 ### Dependency audit
