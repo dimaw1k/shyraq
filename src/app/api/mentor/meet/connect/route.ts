@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getGoogleAccessToken } from "@/lib/google-oauth";
 import { getMeetSpace } from "@/lib/google-meet";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
@@ -103,7 +104,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Google Meet жарамды сілтемесін растау мүмкін болмады." }, { status: 502 });
   }
 
-  const { data, error } = await supabase.from("meet_spaces").upsert({
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.from("meet_spaces").upsert({
     team_id: teamId,
     study_time: studyTime,
     external_space_id: canonical,
@@ -114,6 +116,27 @@ export async function POST(request: Request) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "team_id,study_time" }).select("*").single();
 
-  if (error || !data) return NextResponse.json({ error: "Meet кеңістігін сақтау сәтсіз аяқталды." }, { status: 500 });
+  if (error || !data) {
+    console.error("[mentor/meet/connect] verified Meet space save failed", { code: error?.code });
+    return NextResponse.json({ error: "Meet кеңістігін сақтау сәтсіз аяқталды." }, { status: 500 });
+  }
+
+  const { error: auditError } = await admin.from("audit_logs").insert({
+    actor_id: user.id,
+    actor_role: "MENTOR",
+    action: "MENTOR_MEET_SPACE_CONNECTED",
+    entity_type: "MEET_SPACE",
+    entity_id: data.id,
+    metadata: {
+      team_id: teamId,
+      study_time: studyTime,
+      external_space_id: canonical,
+      google_user_id: user.id,
+    },
+  });
+  if (auditError) {
+    console.error("[mentor/meet/connect] audit log failed", { code: auditError.code });
+  }
+
   return NextResponse.json({ meetSpace: data }, { headers: { "Cache-Control": "no-store" } });
 }
