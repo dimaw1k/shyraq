@@ -306,49 +306,57 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("daily_reports")
-    .upsert(
-      {
-        student_id: user.id,
-        report_date: reportDate,
-        report_type: reportType,
-        marathon_day: marathonDay,
-        study_minutes: Math.max(0, Math.floor(studyMinutes)),
-        completed_task_count: derivedCompletedTaskCount,
-        reflection:
-          typeof body?.reflection === "string"
-            ? body.reflection.trim() || null
-            : null,
-        difficulties:
-          typeof body?.difficulties === "string"
-            ? body.difficulties.trim() || null
-            : null,
-        next_day_goal:
-          typeof body?.nextDayGoal === "string"
-            ? body.nextDayGoal.trim() || null
-            : null,
-        answers: normalizedAnswers,
-        status: "SUBMITTED",
-        submitted_at: new Date().toISOString(),
-      },
-      { onConflict: "student_id,report_date,report_type" },
-    )
-    .select(
-      "id,student_id,report_date,report_type,marathon_day,study_minutes,completed_task_count,reflection,difficulties,next_day_goal,answers,status,submitted_at",
-    )
-    .single();
+  const { data: savedReport, error } = await admin.rpc("save_daily_report_submission", {
+    p_student_id: user.id,
+    p_report_date: reportDate,
+    p_report_type: reportType,
+    p_marathon_day: marathonDay,
+    p_study_minutes: Math.max(0, Math.floor(studyMinutes)),
+    p_completed_task_count: derivedCompletedTaskCount,
+    p_reflection: typeof body.reflection === "string" ? body.reflection.trim() || null : null,
+    p_difficulties: typeof body.difficulties === "string" ? body.difficulties.trim() || null : null,
+    p_next_day_goal: typeof body.nextDayGoal === "string" ? body.nextDayGoal.trim() || null : null,
+    p_answers: normalizedAnswers,
+  });
 
   if (error) {
-    console.error("[reports] save failed", {
-      code: error.code,
-      message: error.message,
-    });
-    return NextResponse.json(
-      { error: "Есепті сақтау мүмкін болмады." },
-      { status: 400 },
-    );
+    if (error.code === "42501") {
+      return NextResponse.json({ error: "Белсенді оқушы ретінде есеп жіберуге рұқсат жоқ." }, { status: 403 });
+    }
+    if (error.code === "55000") {
+      return NextResponse.json({ error: "Есептің күйі немесе қабылдау уақыты өзгерді. Есеп күйін жаңартып көріңіз." }, { status: 409 });
+    }
+    if (error.code === "22023") {
+      return NextResponse.json({ error: "Есеп деректері дұрыс емес немесе есеп күні өзгерген." }, { status: 400 });
+    }
+    if (error.code === "P0002") {
+      console.error("[reports] settings or report row unavailable", { code: error.code });
+      return NextResponse.json({ error: "Есепті сақтау үшін қажетті деректер қолжетімсіз." }, { status: 500 });
+    }
+    console.error("[reports] atomic save failed", { code: error.code });
+    return NextResponse.json({ error: "Есепті сақтау мүмкін болмады." }, { status: 500 });
   }
 
-  return NextResponse.json({ report: data });
+  const report = Array.isArray(savedReport) ? savedReport[0] : savedReport;
+  if (!report) {
+    return NextResponse.json({ error: "Сақталған есепті растау мүмкін болмады." }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    report: {
+      id: report.id,
+      student_id: report.student_id,
+      report_date: report.report_date,
+      report_type: report.report_type,
+      marathon_day: report.marathon_day,
+      study_minutes: report.study_minutes,
+      completed_task_count: report.completed_task_count,
+      reflection: report.reflection,
+      difficulties: report.difficulties,
+      next_day_goal: report.next_day_goal,
+      answers: report.answers,
+      status: report.status,
+      submitted_at: report.submitted_at,
+    },
+  }, { headers: { "Cache-Control": "no-store" } });
 }
