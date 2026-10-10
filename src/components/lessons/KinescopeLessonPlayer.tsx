@@ -81,10 +81,30 @@ export function KinescopeLessonPlayer({
   const youtubeContainerRef=useRef<HTMLDivElement|null>(null);
   const youtubePlayerRef=useRef<YouTubePlayer|null>(null);
   const youtubePollRef=useRef<number|null>(null);
+  const gateConfigRef = useRef({ videoId, durationSeconds, requiredWatchPercent });
   const youtubeId=getYouTubeId(videoId);
   const shouldTrackProgress=trackProgress;
 
   useEffect(()=>{rangesRef.current=ranges;},[ranges]);
+
+  useEffect(() => {
+    const previous = gateConfigRef.current;
+    const changed =
+      previous.videoId !== videoId ||
+      previous.durationSeconds !== durationSeconds ||
+      previous.requiredWatchPercent !== requiredWatchPercent;
+
+    if (changed) {
+      // A video or its gate settings changed while this component remained mounted.
+      // Never carry old-player ranges or an old unlocked state into the new lesson version.
+      rangesRef.current = [];
+      lastTime.current = null;
+      setRanges([]);
+      setPercent(0);
+    }
+
+    gateConfigRef.current = { videoId, durationSeconds, requiredWatchPercent };
+  }, [videoId, durationSeconds, requiredWatchPercent]);
 
   const persist=useCallback(async(nextRanges:TimeRange[])=>{
     if(!nextRanges.length)return;
@@ -94,11 +114,11 @@ export function KinescopeLessonPlayer({
         method:"POST",
         keepalive:true,
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ranges:nextRanges}),
+        body:JSON.stringify({videoId,ranges:nextRanges}),
       });
       if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
     }finally{setSaving(false);}
-  },[lessonId]);
+  },[lessonId,videoId]);
 
   const handleTimeUpdate=useCallback((event:{currentTime:number})=>{
     if(!shouldTrackProgress)return;

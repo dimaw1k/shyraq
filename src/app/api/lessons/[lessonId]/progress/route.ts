@@ -19,7 +19,7 @@ async function getAccessibleLesson(supabase: Awaited<ReturnType<typeof createSer
   const [{ data: lesson }, { data: membership }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id,duration_seconds,required_watch_percent,published,starts_at,team_id")
+      .select("id,kinescope_video_id,duration_seconds,required_watch_percent,published,starts_at,team_id")
       .eq("id", lessonId)
       .maybeSingle(),
     supabase
@@ -64,13 +64,19 @@ export async function GET(_request: Request, context: { params: Promise<{ lesson
 
   const { data, error } = await supabase
     .from("video_progress")
-    .select("lesson_id,watched_seconds,watched_percent,maximum_position_seconds,watched_ranges,completed,test_unlocked,first_started_at,last_watched_at")
+    .select("lesson_id,watched_seconds,watched_percent,maximum_position_seconds,watched_ranges,completed,test_unlocked,first_started_at,last_watched_at,kinescope_video_id_snapshot,duration_seconds_snapshot,required_watch_percent_snapshot")
     .eq("lesson_id", lessonId)
     .eq("student_id", user.id)
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: "Unable to load progress" }, { status: 400 });
-  return NextResponse.json({ progress: data });
+  const currentProgress = data &&
+    data.kinescope_video_id_snapshot === access.lesson.kinescope_video_id &&
+    Number(data.duration_seconds_snapshot) === Number(access.lesson.duration_seconds) &&
+    Number(data.required_watch_percent_snapshot) === Number(access.lesson.required_watch_percent)
+      ? data
+      : null;
+  return NextResponse.json({ progress: currentProgress });
 }
 
 export async function POST(request: Request, context: { params: Promise<{ lessonId: string }> }) {
@@ -124,9 +130,9 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     );
   }
 
-  const { data: existing } = await supabase
+  const { data: storedProgress } = await supabase
     .from("video_progress")
-    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at,first_started_at")
+    .select("id,test_unlocked,watched_seconds,watched_ranges,last_watched_at,first_started_at,kinescope_video_id_snapshot,duration_seconds_snapshot,required_watch_percent_snapshot")
     .eq("lesson_id", lessonId)
     .eq("student_id", user.id)
     .maybeSingle();
@@ -142,7 +148,25 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Invalid progress payload." }, { status: 400 });
   }
-  const rawRanges: unknown[] = Array.isArray((body as Record<string, unknown>).ranges)
+  const bodyRecord = body as Record<string, unknown>;
+  if (typeof bodyRecord.videoId !== "string" || bodyRecord.videoId !== lesson.kinescope_video_id) {
+    return NextResponse.json(
+      { error: "The lesson video changed. Reload the lesson before continuing." },
+      { status: 409, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  // Ignore stored ranges from an older video/duration/watch threshold. A
+  // concurrent lesson edit may reset the row while this request is in flight;
+  // the snapshot is also checked by the test-submission RPC before accepting an attempt.
+  const existing = storedProgress &&
+    storedProgress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
+    Number(storedProgress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
+    Number(storedProgress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent)
+      ? storedProgress
+      : null;
+
+  const rawRanges: unknown[] = Array.isArray(bodyRecord.ranges)
     ? ((body as Record<string, unknown>).ranges as unknown[])
     : [];
   if (rawRanges.length > MAX_WATCH_RANGES_PER_REQUEST) {
@@ -222,6 +246,9 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
   const payload = {
     lesson_id: lessonId,
     student_id: user.id,
+    kinescope_video_id_snapshot: lesson.kinescope_video_id,
+    duration_seconds_snapshot: lesson.duration_seconds,
+    required_watch_percent_snapshot: lesson.required_watch_percent,
     watched_seconds: watchedSeconds,
     watched_percent: Number(percent.toFixed(2)),
     maximum_position_seconds: maximumPosition,
@@ -241,7 +268,18 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
 
   if (error) return NextResponse.json({ error: "Progress save failed" }, { status: 400 });
 
-  if (unlocked && !existing?.test_unlocked) {
+  const { data: latestLesson, error: latestLessonError } = await admin
+    .from("lessons")
+    .select("kinescope_video_id,duration_seconds,required_watch_percent")
+    .eq("id", lessonId)
+    .maybeSingle();
+  const savedGateStillCurrent = !latestLessonError && latestLesson &&
+    latestLesson.kinescope_video_id === data.kinescope_video_id_snapshot &&
+    Number(latestLesson.duration_seconds) === Number(data.duration_seconds_snapshot) &&
+    Number(latestLesson.required_watch_percent) === Number(data.required_watch_percent_snapshot) &&
+    data.test_unlocked === true;
+
+  if (unlocked && !existing?.test_unlocked && savedGateStillCurrent) {
     const { data: rule } = await supabase.from("score_rules").select("weight,active").eq("code", "VIDEO").maybeSingle();
     const { data: membership } = await supabase.from("team_members")
       .select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle();

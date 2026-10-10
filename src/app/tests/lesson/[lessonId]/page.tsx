@@ -23,10 +23,10 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
   const { lessonId } = await params;
   const [{ data: profile }, { data: lesson }, { data: test }, { data: membership }, { data: progress }] = await Promise.all([
     supabase.from("profiles").select("full_name,role,status").eq("id", user.id).maybeSingle(),
-    supabase.from("lessons").select("id,published,starts_at,team_id,kinescope_video_id").eq("id", lessonId).maybeSingle(),
+    supabase.from("lessons").select("id,published,starts_at,team_id,kinescope_video_id,duration_seconds,required_watch_percent").eq("id", lessonId).maybeSingle(),
     supabase.from("lesson_tests").select("id,title,instructions,max_attempts,active").eq("lesson_id", lessonId).eq("active", true).maybeSingle(),
     supabase.from("team_members").select("team_id").eq("student_id", user.id).eq("status", "ACTIVE").maybeSingle(),
-    supabase.from("video_progress").select("test_unlocked").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle(),
+    supabase.from("video_progress").select("test_unlocked,kinescope_video_id_snapshot,duration_seconds_snapshot,required_watch_percent_snapshot").eq("lesson_id", lessonId).eq("student_id", user.id).maybeSingle(),
   ]);
 
   // This is a student-facing exam screen that fetches protected question
@@ -44,7 +44,13 @@ export default async function LessonTestPage({ params }: { params: Promise<{ les
     notFound();
   }
 
-  if (!progress?.test_unlocked) redirect("/lessons/" + lessonId);
+  const progressMatchesCurrentGate = Boolean(
+    progress?.test_unlocked === true &&
+    progress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
+    Number(progress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
+    Number(progress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent)
+  );
+  if (!progressMatchesCurrentGate) redirect("/lessons/" + lessonId);
 
   const admin = createAdminSupabaseClient();
   const [{ data: rawQuestions }, { data: attempts }] = await Promise.all([
