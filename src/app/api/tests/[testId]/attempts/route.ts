@@ -39,7 +39,7 @@ export async function POST(request: Request, context: { params: Promise<{ testId
   const [{ data: lesson }, { data: membership }, { data: progress }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id,published,starts_at,team_id,kinescope_video_id")
+      .select("id,published,starts_at,team_id,kinescope_video_id,duration_seconds,required_watch_percent")
       .eq("id", test.lesson_id)
       .maybeSingle(),
     supabase
@@ -50,7 +50,7 @@ export async function POST(request: Request, context: { params: Promise<{ testId
       .maybeSingle(),
     supabase
       .from("video_progress")
-      .select("test_unlocked")
+      .select("test_unlocked,kinescope_video_id_snapshot,duration_seconds_snapshot,required_watch_percent_snapshot")
       .eq("lesson_id", test.lesson_id)
       .eq("student_id", user.id)
       .maybeSingle(),
@@ -64,8 +64,17 @@ export async function POST(request: Request, context: { params: Promise<{ testId
     return NextResponse.json({ error: "Бұл тест сіздің командаңызға арналмаған." }, { status: 403 });
   }
 
-  if (!progress?.test_unlocked) {
-    return NextResponse.json({ error: "Алдымен бейненің қажетті бөлігін көру керек." }, { status: 403 });
+  const progressMatchesCurrentGate = Boolean(
+    progress?.test_unlocked === true &&
+    progress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
+    Number(progress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
+    Number(progress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent)
+  );
+  if (!progressMatchesCurrentGate) {
+    return NextResponse.json(
+      { error: "Алдымен осы сабақтың ағымдағы бейнесін қажетті пайызға дейін көріңіз." },
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   // The result-visibility RLS policy intentionally hides attempt rows until
@@ -220,6 +229,12 @@ export async function POST(request: Request, context: { params: Promise<{ testId
 
   if (error) {
     if (error.code === "23505") return NextResponse.json({ error: "Бұл тест бойынша мүмкіндік аяқталды." }, { status: 409 });
+    if (error.code === "42501") {
+      return NextResponse.json(
+        { error: "Сабақ немесе видео көру шарты өзгерді. Бетті жаңартып, ағымдағы бейнені көріңіз." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     console.error("[tests/attempts] atomic submission failed", { code: error.code });
     return NextResponse.json({ error: "Тест пен жауаптарды сақтау мүмкін болмады. Қайта жіберіңіз." }, { status: 400 });
   }
