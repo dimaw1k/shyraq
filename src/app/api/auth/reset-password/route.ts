@@ -1,117 +1,147 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getPasswordValidationError } from "@/lib/security/password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
-import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
+import {
+  consumeRateLimit,
+  rateLimitResponse,
+  rateLimitUnavailableResponse,
+} from "@/lib/security/rate-limit";
+import { verifyRecoveryGrant } from "@/lib/security/recovery-grant";
+
+const RECOVERY_COOKIE = "shyraq_recovery_grant";
+
+function response(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
+  });
+}
+
+function clearRecoveryCookie(result: NextResponse) {
+  result.cookies.set(RECOVERY_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
+  return result;
+}
 
 export async function POST(request: Request) {
   try {
-    const authorization = request.headers.get("authorization") ?? "";
-    const token = authorization.startsWith("Bearer ")
-      ? authorization.slice(7).trim()
-      : "";
+    const cookieStore = await cookies();
+    const grant = verifyRecoveryGrant(cookieStore.get(RECOVERY_COOKIE)?.value);
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "Қалпына келтіру сессиясы жарамсыз немесе мерзімі өткен." },
-        { status: 401 },
+    if (!grant) {
+      return clearRecoveryCookie(
+        response(
+          { error: "Қалпына келтіру сілтемесі жарамсыз немесе мерзімі өткен. Жаңа сілтеме сұраңыз." },
+          401,
+        ),
       );
     }
 
-    const parsedBody = await readLimitedJson(request, 16384);
+    const parsedBody = await readLimitedJson(request, 16_384);
     if (!parsedBody.ok) {
-      return NextResponse.json(
+      return response(
         { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Қалпына келтіру деректері дұрыс емес." },
-        { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+        parsedBody.reason === "too-large" ? 413 : 400,
       );
     }
-    if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
-      return NextResponse.json({ error: "Қалпына келтіру деректері дұрыс емес." }, { status: 400 });
+    if (
+      !parsedBody.value ||
+      typeof parsedBody.value !== "object" ||
+      Array.isArray(parsedBody.value)
+    ) {
+      return response({ error: "Қалпына келтіру деректері дұрыс емес." }, 400);
     }
+
     const body = parsedBody.value as Record<string, unknown>;
-    const password =
-      typeof body?.password === "string" ? body.password : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
-    const { url, publishableKey } = getSupabaseConfig();
-    const supabase = createClient(url, publishableKey, {
-      global: {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      },
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !userData.user) {
-      return NextResponse.json(
-        { error: "Қалпына келтіру сессиясы жарамсыз немесе мерзімі өткен." },
-        { status: 401 },
-      );
-    }
-
-    // A valid recovery token is a credential. Limit repeated password changes
-    // tied to that account, including invalid-password attempts.
-    const resetLimit = await consumeRateLimit(
-      "auth:reset-password",
-      userData.user.id,
-      5,
-      15 * 60,
-      15 * 60,
+    const admin = createAdminSupabaseClient();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(
+      grant.userId,
     );
-    if (!resetLimit.available) return rateLimitUnavailableResponse();
-    if (!resetLimit.allowed) {
-      return rateLimitResponse(
-        resetLimit.retryAfterSeconds,
-        "Құпиясөзді жаңарту әрекеттері тым жиі орындалды. Кейінірек қайталап көріңіз.",
+
+    if (userError || !userData.user?.id || !userData.user.email) {
+      console.error("[auth/reset-password] recovery account lookup failed", {
+        status: userError?.status ?? null,
+      });
+      return clearRecoveryCookie(
+        response({ error: "Қалпына келтіру сессиясы жарамсыз. Жаңа сілтеме сұраңыз." }, 401),
       );
     }
 
     const passwordError = getPasswordValidationError(password, [
-      userData.user.email ?? "",
+      userData.user.email,
     ]);
-
     if (passwordError) {
-      return NextResponse.json(
-        { error: passwordError },
-        { status: 400 },
+      return response({ error: passwordError }, 400);
+    }
+
+    // Keep an account-level limit as well as a one-use limit bound to this grant.
+    const userLimit = await consumeRateLimit(
+      "auth:reset-password",
+      grant.userId,
+      5,
+      15 * 60,
+      15 * 60,
+    );
+    if (!userLimit.available) return rateLimitUnavailableResponse();
+    if (!userLimit.allowed) {
+      return rateLimitResponse(
+        userLimit.retryAfterSeconds,
+        "Құпиясөзді жаңарту әрекеттері тым жиі орындалды. Кейінірек қайталап көріңіз.",
       );
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      password,
-    });
+    const grantLimit = await consumeRateLimit(
+      "auth:reset-grant",
+      grant.jti,
+      1,
+      10 * 60,
+      10 * 60,
+    );
+    if (!grantLimit.available) return rateLimitUnavailableResponse();
+    if (!grantLimit.allowed) {
+      return clearRecoveryCookie(
+        response(
+          { error: "Бұл қалпына келтіру сілтемесі қолданылған. Жаңа сілтеме сұраңыз." },
+          401,
+        ),
+      );
+    }
+
+    const { error: updateError } = await admin.auth.admin.updateUserById(
+      grant.userId,
+      { password },
+    );
 
     if (updateError) {
       console.error("[auth/reset-password] password update failed", {
         status: updateError.status,
-        message: updateError.message,
+        code: updateError.code ?? null,
       });
-
-      return NextResponse.json(
-        { error: "Құпиясөзді жаңарту мүмкін болмады." },
-        { status: 400 },
+      return clearRecoveryCookie(
+        response(
+          { error: "Құпиясөзді жаңарту мүмкін болмады. Жаңа қалпына келтіру сілтемесін сұраңыз." },
+          400,
+        ),
       );
     }
 
-    return NextResponse.json(
-      { ok: true },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
-  } catch {
-    return NextResponse.json(
-      { error: "Құпиясөзді жаңарту кезінде қате болды." },
-      { status: 500 },
+    return clearRecoveryCookie(response({ ok: true }));
+  } catch (error) {
+    console.error("[auth/reset-password] password update failed", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return response(
+      { error: "Құпиясөзді жаңарту кезінде қате болды. Қайта көріңіз." },
+      500,
     );
   }
 }
