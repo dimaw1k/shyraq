@@ -15,6 +15,43 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: Report high-severity npm audit findings
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > "$RUNNER_TEMP/npm-audit.json"
+          audit_exit=$?
+          set -e
+          node - "$RUNNER_TEMP/npm-audit.json" "$audit_exit" <<'NODE'
+          const fs = require("node:fs");
+          const [file, exitCode] = process.argv.slice(2);
+          let audit;
+          try {
+            audit = JSON.parse(fs.readFileSync(file, "utf8"));
+          } catch (error) {
+            console.error("npm audit did not return valid JSON:", error.message);
+            process.exit(0);
+          }
+          const counts = audit.metadata?.vulnerabilities ?? {};
+          console.log("npm audit counts:", JSON.stringify(counts));
+          for (const [name, item] of Object.entries(audit.vulnerabilities ?? {})) {
+            if (!["high", "critical"].includes(item.severity)) continue;
+            const via = (item.via ?? [])
+              .map((entry) => typeof entry === "string" ? entry : entry.title)
+              .filter(Boolean);
+            console.log(JSON.stringify({
+              package: name,
+              severity: item.severity,
+              isDirect: item.isDirect,
+              range: item.range,
+              fixAvailable: item.fixAvailable,
+              advisories: via
+            }));
+          }
+          if (Number(exitCode) !== 0 && !counts.high && !counts.critical) {
+            console.log("npm audit returned non-zero; see npm audit JSON report metadata for context.");
+          }
+          NODE
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
