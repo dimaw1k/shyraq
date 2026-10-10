@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { displayKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { checkPwnedPassword } from "@/lib/security/pwned-password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
@@ -192,6 +193,22 @@ export async function PATCH(request: Request) {
     if (verifyError) {
       return NextResponse.json(
         { error: "Қазіргі құпиясөз дұрыс емес." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
+  if (newPassword) {
+    const breachedPassword = await checkPwnedPassword(newPassword);
+    if (breachedPassword.status === "unavailable") {
+      return NextResponse.json(
+        { error: "Құпиясөздің қауіпсіздігін тексеру уақытша қолжетімсіз. Кейінірек қайта көріңіз." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (breachedPassword.status === "pwned") {
+      return NextResponse.json(
+        { error: "Бұл құпиясөз бұрын деректер таралымдарында кездескен. Басқа құпиясөз таңдаңыз." },
         { status: 400, headers: { "Cache-Control": "no-store" } },
       );
     }
