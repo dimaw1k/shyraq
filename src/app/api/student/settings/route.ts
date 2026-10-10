@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
@@ -82,6 +83,16 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (profileError) return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
+
   const rateLimit = await consumeRateLimit("account:settings-write", user.id, 60, 10 * 60, 60);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -103,7 +114,8 @@ export async function PUT(request: Request) {
   const reminders = cleanReminders(body.reminders);
   const notificationsEnabled = body.notificationsEnabled === true;
 
-  const { data, error } = await supabase
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
     .from("student_settings")
     .upsert(
       {
@@ -141,6 +153,16 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (profileError) return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
+
   const rateLimit = await consumeRateLimit("account:settings-write", user.id, 60, 10 * 60, 60);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -162,7 +184,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid language" }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
     .from("student_settings")
     .upsert(
       {

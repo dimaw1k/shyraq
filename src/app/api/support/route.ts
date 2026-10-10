@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
@@ -23,6 +24,17 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role,status")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (profileError) return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
+  if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Active student access required" }, { status: 403 });
+  }
+
   const rateLimit = await consumeRateLimit("student:support-ticket", user.id, 5, 60 * 60, 60 * 60);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -49,7 +61,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Тақырып 160, хабарлама 5000 таңбадан аспауы керек." }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
     .from("support_tickets")
     .insert({
       student_id: user.id,
@@ -60,6 +73,9 @@ export async function POST(request: Request) {
     .select("id,category,subject,message,status,created_at")
     .single();
 
-  if (error) return NextResponse.json({ error: "Support өтінішін жіберу сәтсіз аяқталды." }, { status: 400 });
-  return NextResponse.json({ ticket: data });
+  if (error) {
+    console.error("[support] ticket creation failed", { code: error.code });
+    return NextResponse.json({ error: "Support өтінішін жіберу сәтсіз аяқталды." }, { status: 500 });
+  }
+  return NextResponse.json({ ticket: data }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
