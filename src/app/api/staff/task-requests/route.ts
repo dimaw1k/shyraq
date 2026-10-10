@@ -48,7 +48,7 @@ export async function PATCH(request: Request) {
   const requestId = typeof body?.requestId === "string" ? body.requestId.trim() : "";
   const status = body?.status === "APPROVED" || body?.status === "REJECTED" ? body.status : null;
   const reviewComment = typeof body?.reviewComment === "string" ? body.reviewComment.trim().slice(0, 3000) : null;
-  const updates = body?.updates && typeof body.updates === "object" ? body.updates : null;
+  const updates = body.updates && typeof body.updates === "object" && !Array.isArray(body.updates) ? body.updates as Record<string, unknown> : null;
 
   if (!requestId || !status) {
     return NextResponse.json({ error: "requestId және status қажет." }, { status: 400 });
