@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function GET(){
  const {profile}=await getAuthenticatedStaff(["MENTOR","CHIEF_MENTOR","LEADER"]);
@@ -13,6 +14,11 @@ export async function GET(){
 
 export async function POST(request:Request){
  const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:report-question-write", profile.id, 30, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп сұрақтарын өзгерту әрекеттері тым жиі орындалды.");
+  }
   const parsedBody = await readLimitedJson(request, 16 * 1024);
  if (!parsedBody.ok) {
    return NextResponse.json(
@@ -39,6 +45,11 @@ export async function POST(request:Request){
 
 export async function PATCH(request:Request){
  const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:report-question-write", profile.id, 30, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп сұрақтарын өзгерту әрекеттері тым жиі орындалды.");
+  }
  const parsedBody = await readLimitedJson(request, 16 * 1024);
  if(!parsedBody.ok) return NextResponse.json({error:parsedBody.reason==="too-large"?"Сұраныс тым үлкен.":"Есеп сұрағының деректері дұрыс емес."},{status:parsedBody.reason==="too-large"?413:400,headers:{"Cache-Control":"no-store"}});
  if(!parsedBody.value||typeof parsedBody.value!=="object"||Array.isArray(parsedBody.value)) return NextResponse.json({error:"Есеп сұрағының деректері дұрыс емес."},{status:400});
@@ -53,6 +64,11 @@ export async function PATCH(request:Request){
 
 export async function DELETE(request:Request){
  const {profile}=await getAuthenticatedStaff(["CHIEF_MENTOR","LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:report-question-write", profile.id, 30, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп сұрақтарын өзгерту әрекеттері тым жиі орындалды.");
+  }
  const id=new URL(request.url).searchParams.get("id");
  if(!id)return NextResponse.json({error:"Question ID қажет."},{status:400});
  const admin=createAdminSupabaseClient();

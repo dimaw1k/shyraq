@@ -42,6 +42,11 @@ export async function POST(request:Request){
 
 export async function PATCH(request:Request){
  const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");
+  const patchLimit = await consumeRateLimit("chief-mentor:staff-message-read-update", profile.id, 120, 600, 60);
+  if (!patchLimit.available) return rateLimitUnavailableResponse();
+  if (!patchLimit.allowed) {
+    return rateLimitResponse(patchLimit.retryAfterSeconds, "Хабарлама күйін жаңарту сұраныстары тым жиі жіберілді.");
+  }
  const parsedBody=await readLimitedJson(request,16*1024);
  if(!parsedBody.ok) return NextResponse.json({error:parsedBody.reason==="too-large"?"Сұраныс тым үлкен.":"Хабарлама деректері дұрыс емес."},{status:parsedBody.reason==="too-large"?413:400,headers:{"Cache-Control":"no-store"}});
  if(!parsedBody.value||typeof parsedBody.value!=="object"||Array.isArray(parsedBody.value)) return NextResponse.json({error:"Хабарлама деректері дұрыс емес."},{status:400});
