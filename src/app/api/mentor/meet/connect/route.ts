@@ -3,6 +3,7 @@ import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getGoogleAccessToken } from "@/lib/google-oauth";
 import { getMeetSpace } from "@/lib/google-meet";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -26,6 +27,11 @@ export async function POST(request: Request) {
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
   const spaceInput = typeof body?.space === "string" ? body.space.trim() : "";
   if (!teamId || !spaceInput) return NextResponse.json({ error: "teamId and space are required" }, { status: 400 });
+  const rateLimit = await consumeRateLimit("mentor:meet-connect", user.id, 10, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet қосылымын тексеру тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
 
   const { data: team } = await supabase.from("teams").select("id,mentor_id").eq("id", teamId).maybeSingle();
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
