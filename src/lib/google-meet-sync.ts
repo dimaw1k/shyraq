@@ -4,7 +4,7 @@ import { getMeetSpace, listConferences, listParticipants, listParticipantSession
 import { recordAttendanceScore } from "@/lib/attendance-scoring";
 
 function normalizeName(value: string) {
-  return value.normalize("NFKC").toLocaleLowerCase("kk-KZ").replace(/[\\s_]+/gu, " ").trim();
+  return value.normalize("NFKC").toLocaleLowerCase("kk-KZ").replace(/[\s_]+/gu, " ").trim();
 }
 
 function conferenceDurationSeconds(start?: string, end?: string) {
