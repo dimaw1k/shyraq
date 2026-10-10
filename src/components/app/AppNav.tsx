@@ -27,7 +27,12 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useStudentLanguage } from "@/lib/student-language";
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
+type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  underDevelopment?: boolean;
+};
 
 const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
@@ -36,10 +41,14 @@ const studentLinks: NavItem[] = [
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
-// The Mentor workspace is temporarily closed while its sections are being edited.
-// Keep the shared profile page available for account management.
 const mentorLinks: NavItem[] = [
-  { label: "Профиль", href: "/profile", icon: Users },
+  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard, underDevelopment: true },
+  { label: "Команда", href: "/mentor/team", icon: UsersRound, underDevelopment: true },
+  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck, underDevelopment: true },
+  { label: "Есептер", href: "/mentor/reports", icon: FileText, underDevelopment: true },
+  { label: "Кездесу", href: "/mentor/meet", icon: Activity, underDevelopment: true },
+  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy, underDevelopment: true },
+  { label: "Профиль", href: "/profile", icon: Users, underDevelopment: true },
 ];
 
 const chiefMentorLinks: NavItem[] = [
@@ -47,8 +56,16 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Менторлар", href: "/chief-mentor/mentors", icon: Users },
   { label: "Командалар", href: "/chief-mentor/teams", icon: UsersRound },
   { label: "Оқушылар", href: "/chief-mentor/students", icon: Users },
+  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen, underDevelopment: true },
+  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList, underDevelopment: true },
+  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck, underDevelopment: true },
+  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText, underDevelopment: true },
   { label: "Кездесулер", href: "/chief-mentor/meet", icon: CalendarCheck2 },
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
+  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3, underDevelopment: true },
+  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock, underDevelopment: true },
+  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy, underDevelopment: true },
+  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings, underDevelopment: true },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
@@ -181,7 +198,12 @@ function NavLinks({
             ].join(" ")}
           >
             <Icon size={17} strokeWidth={active ? 2.25 : 1.9} />
-            <span className="truncate">{labelFor ? labelFor(item.href, item.label) : item.label}</span>
+            <span className="min-w-0 flex-1 truncate">{labelFor ? labelFor(item.href, item.label) : item.label}</span>
+            {item.underDevelopment ? (
+              <span className="ml-auto shrink-0 whitespace-nowrap pl-1 text-[9px] font-semibold text-red-600">
+                Өңделуде
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -249,6 +271,11 @@ function MobileBottomNav({
               <span className="max-w-full truncate text-[9px] font-extrabold leading-none">
                 {label}
               </span>
+              {item.underDevelopment ? (
+                <span className="max-w-full truncate text-[7px] font-semibold leading-none text-red-600">
+                  Өңделуде
+                </span>
+              ) : null}
             </Link>
           );
         })}
