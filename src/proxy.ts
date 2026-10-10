@@ -1,12 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "./lib/supabase/config";
+import { verifyRecoveryGrant } from "./lib/security/recovery-grant";
 
 export default async function proxy(request: NextRequest) {
   // A recovery grant is intentionally not an application login session.
   // Until it is consumed, allow only the recovery flow and block every other
   // page/API route, even if a caller tries to navigate directly to an endpoint.
-  const recoveryGrant = request.cookies.get("shyraq_recovery_grant")?.value;
+  const recoveryGrant = verifyRecoveryGrant(
+    request.cookies.get("shyraq_recovery_grant")?.value,
+  );
   if (recoveryGrant) {
     const pathname = request.nextUrl.pathname;
     const allowedRecoveryPaths = new Set([
