@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const STATUS = new Set(["ACTIVE", "INACTIVE", "COMPLETED"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -15,6 +16,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { profile: actor } = await getAuthenticatedStaff("CHIEF_MENTOR");
+  const rateLimit = await consumeRateLimit("chief-mentor:mentor-status-change", actor.id, 10, 900, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Ментор рөлін немесе мәртебесін өзгерту әрекеттері тым жиі орындалды.");
+  }
   const { id } = await params;
 
   if (!UUID_RE.test(id)) {
