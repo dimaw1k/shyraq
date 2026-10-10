@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 function csvCell(value: string | number) {
  const text = String(value);
@@ -11,7 +12,12 @@ function csvCell(value: string | number) {
 }
 
 export async function GET(request:Request){
- await getAuthenticatedStaff("CHIEF_MENTOR");
+ const { profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
+ const rateLimit = await consumeRateLimit("chief-mentor:analytics-export", profile.id, 10, 10 * 60, 10 * 60);
+ if (!rateLimit.available) return rateLimitUnavailableResponse();
+ if (!rateLimit.allowed) {
+  return rateLimitResponse(rateLimit.retryAfterSeconds, "Analytics export сұраныстары тым жиі орындалды.");
+ }
  const admin=createAdminSupabaseClient();
  const days=new URL(request.url).searchParams.get("range")==="30"?30:7;
  const start=new Date(Date.now()-days*86400000).toISOString();
