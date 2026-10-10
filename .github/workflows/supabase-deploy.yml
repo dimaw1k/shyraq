@@ -42,23 +42,39 @@ jobs:
           printf '%s\n' "$migration_list"
 
           read -r local_old local_final remote_old remote_final < <(
-            printf '%s\n' "$migration_list" | awk -F '|' '
-              function trim(value) {
-                gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
-                return value
-              }
-              {
-                local_version = trim($1)
-                remote_version = trim($2)
-                if (local_version == "20261009173000") local_old = 1
-                if (local_version == "20261009173500") local_final = 1
-                if (remote_version == "20261009173000") remote_old = 1
-                if (remote_version == "20261009173500") remote_final = 1
-              }
-              END {
-                printf "%d %d %d %d\n", local_old + 0, local_final + 0, remote_old + 0, remote_final + 0
-              }
-            '
+            python3 - "$migration_list" <<'PY'
+          import re
+          import sys
+
+          found = {
+              ("local", "20261009173000"): 0,
+              ("local", "20261009173500"): 0,
+              ("remote", "20261009173000"): 0,
+              ("remote", "20261009173500"): 0,
+          }
+
+          # Supabase CLI formats this table with the Unicode box-drawing separator │,
+          # not an ASCII pipe. Parse the displayed columns explicitly and fail closed.
+          for line in sys.argv[1].splitlines():
+              if "│" not in line:
+                  continue
+              columns = [column.strip() for column in line.split("│")]
+              if len(columns) < 3:
+                  continue
+              local_version, remote_version = columns[0], columns[1]
+              for version in ("20261009173000", "20261009173500"):
+                  if re.fullmatch(r"\d{14}", local_version) and local_version == version:
+                      found[("local", version)] = 1
+                  if re.fullmatch(r"\d{14}", remote_version) and remote_version == version:
+                      found[("remote", version)] = 1
+
+          print(
+              found[("local", "20261009173000")],
+              found[("local", "20261009173500")],
+              found[("remote", "20261009173000")],
+              found[("remote", "20261009173500")],
+          )
+          PY
           )
 
           if [[ "$local_old" == "1" && "$local_final" == "1" && "$remote_final" == "1" && "$remote_old" == "0" ]]; then
