@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
-import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 export async function GET(){
  const {profile}=await getAuthenticatedStaff(["MENTOR","CHIEF_MENTOR","LEADER"]);
