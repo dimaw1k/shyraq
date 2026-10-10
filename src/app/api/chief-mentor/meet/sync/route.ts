@@ -106,11 +106,17 @@ export async function POST(request: Request) {
     !Number.isFinite(startMs) ||
     !Number.isFinite(endMs) ||
     startMs >= endMs ||
-    endMs > now.getTime() + 5 * 60 * 1000 ||
     endMs - startMs > maxSyncRangeMs
   ) {
     return NextResponse.json(
       { error: "Синхрондау аралығы дұрыс емес. 90 күннен аспайтын нақты күндерді таңдаңыз." },
+      { status: 400 },
+    );
+  }
+
+  if (endMs > now.getTime() + 5 * 60 * 1000) {
+    return NextResponse.json(
+      { error: "Синхрондаудың аяқталу уақыты болашақта болмауы керек." },
       { status: 400 },
     );
   }
