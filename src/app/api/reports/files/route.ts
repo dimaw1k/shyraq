@@ -113,12 +113,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: existingFiles } = await supabase
-    .from("report_files")
-    .select("id,storage_path")
-    .eq("report_id", reportId)
-    .eq("slot", slot);
-
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
   const storagePath =
     user.id +
@@ -152,33 +146,50 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: record, error: recordError } = await supabase
-    .from("report_files")
-    .insert({
-      report_id: reportId,
-      slot,
-      storage_path: storagePath,
-      file_name: file.name,
-      mime_type: file.type,
-      size_bytes: file.size,
-    })
-    .select("*")
-    .single();
+  const displayName = file.name.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 255) || "file";
+  const { data: replaceResult, error: recordError } = await admin.rpc("replace_daily_report_file", {
+    p_student_id: user.id,
+    p_report_id: reportId,
+    p_slot: slot,
+    p_storage_path: storagePath,
+    p_file_name: displayName,
+    p_mime_type: file.type,
+    p_size_bytes: file.size,
+  });
 
   if (recordError) {
     await admin.storage.from("submissions").remove([storagePath]);
-    return NextResponse.json(
-      { error: "Фото туралы дерек сақталмады." },
-      { status: 400 },
-    );
+    if (recordError.code === "42501") {
+      return NextResponse.json({ error: "Бұл файл осы есепке қосуға рұқсат етілмеген." }, { status: 403 });
+    }
+    if (recordError.code === "P0002") {
+      return NextResponse.json({ error: "Есеп табылмады." }, { status: 404 });
+    }
+    if (recordError.code === "55000") {
+      return NextResponse.json({ error: "Тексерілген есепке файл қосуға болмайды." }, { status: 409 });
+    }
+    if (recordError.code === "22023") {
+      return NextResponse.json({ error: "Файл деректері дұрыс емес." }, { status: 400 });
+    }
+    console.error("[reports/files] metadata write failed", { code: recordError.code });
+    return NextResponse.json({ error: "Фото туралы дерек сақталмады." }, { status: 500 });
   }
 
-  if (existingFiles?.length) {
-    const oldIds = existingFiles.map((item) => item.id);
-    const oldPaths = existingFiles.map((item) => item.storage_path);
-    await supabase.from("report_files").delete().in("id", oldIds);
-    await admin.storage.from("submissions").remove(oldPaths);
+  const result = Array.isArray(replaceResult) ? replaceResult[0] : replaceResult;
+  const record = result && typeof result === "object" ? (result as { file?: unknown }).file : null;
+  const rawOldPaths = result && typeof result === "object" ? (result as { old_paths?: unknown }).old_paths : null;
+  if (!record || typeof record !== "object") {
+    await admin.storage.from("submissions").remove([storagePath]);
+    return NextResponse.json({ error: "Сақталған файл деректерін растау мүмкін болмады." }, { status: 500 });
   }
 
-  return NextResponse.json({ file: record });
+  const oldPaths = Array.isArray(rawOldPaths)
+    ? rawOldPaths.filter((value): value is string => typeof value === "string" && value.length <= 1024)
+    : [];
+  if (oldPaths.length) {
+    const { error: cleanupError } = await admin.storage.from("submissions").remove(oldPaths);
+    if (cleanupError) console.error("[reports/files] old file cleanup failed", { code: cleanupError.name });
+  }
+
+  return NextResponse.json({ file: record }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
