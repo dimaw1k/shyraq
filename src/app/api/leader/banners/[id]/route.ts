@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 function isSafeHref(value: string) {
   const href = value.trim();
@@ -16,7 +17,12 @@ function isSafeHref(value: string) {
 }
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
-  const {profile}=await getAuthenticatedStaff("LEADER");
+  const {profile}=await getAuthenticatedStaff("LEADER")
+  const rateLimit = await consumeRateLimit("leader:banner-mutate", profile.id, 30, 600, 120);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Banner өзгерту әрекеттері тым жиі орындалды.");
+  };
   const {id}=await params;
   const parsedBody=await readLimitedJson(request,16*1024);
   if(!parsedBody.ok){
@@ -48,7 +54,12 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
 }
 
 export async function DELETE(_request:Request,{params}:{params:Promise<{id:string}>}){
-  const {profile}=await getAuthenticatedStaff("LEADER"); const {id}=await params; const admin=createAdminSupabaseClient();
+  const {profile}=await getAuthenticatedStaff("LEADER")
+  const rateLimit = await consumeRateLimit("leader:banner-mutate", profile.id, 30, 600, 120);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Banner өзгерту әрекеттері тым жиі орындалды.");
+  }; const {id}=await params; const admin=createAdminSupabaseClient();
   const {data:current}=await admin.from("marathon_banners").select("id,image_path").eq("id",id).maybeSingle();
   if(!current)return NextResponse.json({error:"Banner табылмады."},{status:404});
   const {error}=await admin.from("marathon_banners").delete().eq("id",id);
