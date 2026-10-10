@@ -2,21 +2,44 @@ const MEET_API = "https://meet.googleapis.com/v2";
 
 type JsonRecord = Record<string, unknown>;
 
+const MEET_API_TIMEOUT_MS = 10_000;
+const RESOURCE_PATH_RE = /^\/[A-Za-z0-9_./-]+$/;
+
 async function getJson(path: string, accessToken: string, searchParams?: URLSearchParams) {
+  if (
+    !RESOURCE_PATH_RE.test(path) ||
+    path.includes("..") ||
+    path.includes("//") ||
+    !accessToken ||
+    accessToken.length > 8192
+  ) {
+    throw new Error("Google Meet request parameters are invalid.");
+  }
+
   const url = new URL(MEET_API + path);
   if (searchParams) url.search = searchParams.toString();
 
-  const response = await fetch(url, {
-    headers: { Authorization: "Bearer " + accessToken },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error("Google Meet API " + response.status + ": " + text.slice(0, 500));
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: "Bearer " + accessToken },
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(MEET_API_TIMEOUT_MS),
+    });
+  } catch {
+    throw new Error("Google Meet API is temporarily unavailable.");
   }
 
-  return (await response.json()) as JsonRecord;
+  if (!response.ok) {
+    throw new Error("Google Meet API request failed (" + response.status + ").");
+  }
+
+  try {
+    return (await response.json()) as JsonRecord;
+  } catch {
+    throw new Error("Google Meet API returned an invalid response.");
+  }
 }
 
 export type CreatedMeetSpace = {
@@ -28,22 +51,36 @@ export type CreatedMeetSpace = {
 export async function createMeetSpace(
   accessToken: string,
 ): Promise<CreatedMeetSpace> {
-  const response = await fetch(MEET_API + "/spaces", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + accessToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({}),
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error("Google Meet API " + response.status + ": " + text.slice(0, 500));
+  if (!accessToken || accessToken.length > 8192) {
+    throw new Error("Google Meet access token is invalid.");
   }
 
-  return (await response.json()) as CreatedMeetSpace;
+  let response: Response;
+  try {
+    response = await fetch(MEET_API + "/spaces", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(MEET_API_TIMEOUT_MS),
+    });
+  } catch {
+    throw new Error("Google Meet API is temporarily unavailable.");
+  }
+
+  if (!response.ok) {
+    throw new Error("Google Meet space creation failed (" + response.status + ").");
+  }
+
+  try {
+    return (await response.json()) as CreatedMeetSpace;
+  } catch {
+    throw new Error("Google Meet API returned an invalid response.");
+  }
 }
 
 export type MeetConference = {
