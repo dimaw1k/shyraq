@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { getGoogleAccessToken } from "@/lib/google-oauth";
 import { createMeetSpace } from "@/lib/google-meet";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   const { profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
@@ -18,6 +19,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Meet space деректері дұрыс емес." }, { status: 400 });
   }
   const body = parsedBody.value as Record<string, unknown>;
+  const allTeamsRequested = body.allTeams === true;
+  const rateLimit = await consumeRateLimit(
+    allTeamsRequested ? "chief-mentor:meet-space-all-teams" : "chief-mentor:meet-space-create",
+    profile.id,
+    allTeamsRequested ? 2 : 8,
+    allTeamsRequested ? 15 * 60 : 10 * 60,
+    allTeamsRequested ? 15 * 60 : 10 * 60,
+  );
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet кеңістіктерін құру тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
 
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
   const displayName =
