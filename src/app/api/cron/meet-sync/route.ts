@@ -55,10 +55,16 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({
-    ok: true,
-    checkedTeams: eligibleTeams.length,
-    range: { startTime, endTime },
-    results,
-  });
+  const failedTeams = results.filter((result) => result.ok === false);
+  return NextResponse.json(
+    {
+      ok: failedTeams.length === 0,
+      checkedTeams: eligibleTeams.length,
+      succeededTeams: results.length - failedTeams.length,
+      failedTeams: failedTeams.length,
+      range: { startTime, endTime },
+      results,
+    },
+    { status: failedTeams.length === 0 ? 200 : 500 },
+  );
 }
