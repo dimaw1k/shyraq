@@ -114,11 +114,7 @@ async function syncSingleSpace(
       .map((mapping) => [mapping.google_user_id, mapping.student_id]),
   );
 
-  let importedConferences = 0;
-  let importedParticipants = 0;
-  let matchedParticipants = 0;
-  let unmatchedParticipants = 0;
-  let attendanceRows = 0;
+
 
   for (const conference of conferences) {
     const externalConferenceId = conference.name;
