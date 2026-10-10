@@ -12,7 +12,6 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { useStudentLanguage } from "@/lib/student-language";
 import { studentText } from "@/lib/student-translations";
 import { getPasswordValidationError } from "@/lib/security/password";
@@ -53,18 +52,26 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      const supabase = createBrowserSupabaseClient();
-      const { data, error: userError } = await supabase.auth.getUser();
+      try {
+        const response = await fetch("/api/auth/recovery/session", {
+          method: "GET",
+          cache: "no-store",
+        });
 
-      if (!active) return;
+        if (!active) return;
 
-      if (data.user && !userError) {
-        setMode("update");
-        return;
+        if (response.ok) {
+          setMode("update");
+          return;
+        }
+
+        setMode("request");
+        setError(studentText(language, "invalidReset"));
+      } catch {
+        if (!active) return;
+        setMode("request");
+        setError(studentText(language, "invalidReset"));
       }
-
-      setMode("request");
-      setError(studentText(language, "invalidReset"));
     }
 
     void checkRecoverySession();
@@ -113,46 +120,19 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    setLoading(true);
-
-    const supabase = createBrowserSupabaseClient();
-    const { data: userData } = await supabase.auth.getUser();
-
-    if (!userData.user) {
-      setError(t("invalidReset"));
-      setLoading(false);
-      setMode("request");
-      return;
-    }
-
-    const passwordError = getPasswordValidationError(
-      password,
-      [userData.user.email ?? ""],
-    );
-
+    const passwordError = getPasswordValidationError(password);
     if (passwordError) {
       setError(t("passwordMin"));
-      setLoading(false);
       return;
     }
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-
-    if (!accessToken) {
-      setError(t("invalidReset"));
-      setLoading(false);
-      setMode("request");
-      return;
-    }
+    setLoading(true);
 
     try {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + accessToken,
-        },
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({ password }),
       });
 
@@ -161,10 +141,10 @@ export default function ResetPasswordPage() {
       if (!response.ok) {
         setError(result.error ?? t("resetUpdateFailed"));
         setLoading(false);
+        if (response.status === 401) setMode("request");
         return;
       }
 
-      await supabase.auth.signOut();
       router.replace("/login?reset=success");
     } catch {
       setError(t("resetUpdateFailed"));
