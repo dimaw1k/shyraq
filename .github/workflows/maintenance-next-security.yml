@@ -1,0 +1,84 @@
+name: One-off Next.js security dependency trial
+
+on:
+  push:
+    branches:
+      - maintenance/next-164-security
+
+permissions:
+  contents: write
+
+concurrency:
+  group: next-security-dependency-trial
+  cancel-in-progress: false
+
+jobs:
+  update-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout maintenance branch
+        uses: actions/checkout@v5
+        with:
+          ref: maintenance/next-164-security
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Update Next.js and matching ESLint config
+        run: npm install --save-exact next@16.4.0 eslint-config-next@16.4.0
+      - name: Verify a clean lockfile install
+        run: npm ci
+      - name: Report high-severity advisories
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > "$RUNNER_TEMP/npm-audit.json"
+          audit_exit=$?
+          set -e
+          node - "$RUNNER_TEMP/npm-audit.json" "$audit_exit" <<'NODE'
+          const fs = require("node:fs");
+          const [file, exitCode] = process.argv.slice(2);
+          let audit;
+          try {
+            audit = JSON.parse(fs.readFileSync(file, "utf8"));
+          } catch (error) {
+            console.error("npm audit JSON parse failed:", error.message);
+            process.exit(1);
+          }
+          const counts = audit.metadata?.vulnerabilities ?? {};
+          console.log("npm audit counts:", JSON.stringify(counts));
+          for (const [name, item] of Object.entries(audit.vulnerabilities ?? {})) {
+            if (!["high", "critical"].includes(item.severity)) continue;
+            console.log(JSON.stringify({
+              package: name,
+              severity: item.severity,
+              isDirect: item.isDirect,
+              range: item.range,
+              fixAvailable: item.fixAvailable,
+              via: (item.via ?? []).map((entry) =>
+                typeof entry === "string" ? entry : entry.title
+              )
+            }));
+          }
+          console.log("npm audit exit code:", exitCode);
+          NODE
+      - name: TypeScript
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
+      - name: Persist validated lockfile changes to this maintenance branch
+        shell: bash
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "No dependency changes were produced."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: update Next.js security toolchain"
+          git push origin HEAD:maintenance/next-164-security
