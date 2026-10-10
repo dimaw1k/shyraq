@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const DEFAULT_REMINDERS = {
   enabled: true,
@@ -81,6 +82,12 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rateLimit = await consumeRateLimit("account:settings-write", user.id, 60, 10 * 60, 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Баптаулар тым жиі өзгертілді. Кейінірек қайта көріңіз.");
+  }
+
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
@@ -132,6 +139,12 @@ export async function PATCH(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimit = await consumeRateLimit("account:settings-write", user.id, 60, 10 * 60, 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Баптаулар тым жиі өзгертілді. Кейінірек қайта көріңіз.");
   }
 
   const parsedBody = await readLimitedJson(request, 16 * 1024);

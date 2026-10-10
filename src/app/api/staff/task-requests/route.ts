@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function GET() {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
@@ -39,6 +40,12 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("staff:task-request-review", profile.id, 30, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Тапсырма сұраныстарын өңдеу тым жиі орындалды.");
+  }
+
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
@@ -77,6 +84,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Бұл сұраныс бұрын өңделген." }, { status: 409 });
   }
 
+  if (status === "APPROVED" && updates) {
+    if (updates.title !== undefined && (
+      typeof updates.title !== "string" || !updates.title.trim() || updates.title.trim().length > 120
+    )) {
+      return NextResponse.json({ error: "Тапсырма атауы 1–120 таңба болуы керек." }, { status: 400 });
+    }
+    if (updates.description !== undefined && updates.description !== null && (
+      typeof updates.description !== "string" || updates.description.length > 5000
+    )) {
+      return NextResponse.json({ error: "Тапсырма сипаттамасы 5000 таңбадан аспауы керек." }, { status: 400 });
+    }
+    if (updates.deadline !== undefined && updates.deadline !== null && updates.deadline !== "" && (
+      typeof updates.deadline !== "string" || !Number.isFinite(Date.parse(updates.deadline))
+    )) {
+      return NextResponse.json({ error: "Тапсырманың соңғы мерзімі дұрыс емес." }, { status: 400 });
+    }
+    if (updates.points !== undefined && (
+      typeof updates.points !== "number" || !Number.isFinite(updates.points) || updates.points < 0 || updates.points > 10000
+    )) {
+      return NextResponse.json({ error: "Тапсырма ұпайы 0–10000 аралығында болуы керек." }, { status: 400 });
+    }
+  }
+
   if (status === "REJECTED") {
     const { data: updated, error: updateError } = await admin
       .from("mentor_task_requests")
@@ -87,11 +117,15 @@ export async function PATCH(request: Request) {
         reviewed_at: new Date().toISOString(),
       })
       .eq("id", requestId)
+      .eq("status", "REQUESTED")
       .select("*")
-      .single();
+      .maybeSingle();
 
-    if (updateError || !updated) {
+    if (updateError) {
       return NextResponse.json({ error: "Сұранысты қайтару сәтсіз аяқталды." }, { status: 500 });
+    }
+    if (!updated) {
+      return NextResponse.json({ error: "Бұл сұранысты басқа қызметкер өңдеп қойды." }, { status: 409 });
     }
 
     await admin.from("audit_logs").insert({
@@ -109,7 +143,13 @@ export async function PATCH(request: Request) {
   const nextTitle = typeof updates?.title === "string" && updates.title.trim() ? updates.title.trim() : current.title;
   const nextDescription = typeof updates?.description === "string" ? updates.description.trim() : current.description;
   const nextDeadline = updates?.deadline === null ? null : typeof updates?.deadline === "string" && updates.deadline ? updates.deadline : current.deadline;
-  const nextPoints = typeof updates?.points === "number" && Number.isFinite(updates.points) ? Math.max(0, updates.points) : Number(current.points ?? 0);
+  const nextPoints = typeof updates?.points === "number" && Number.isFinite(updates.points)
+    ? updates.points
+    : Number(current.points ?? 0);
+
+  if (nextDeadline && current.starts_at && Date.parse(nextDeadline) < Date.parse(current.starts_at)) {
+    return NextResponse.json({ error: "Тапсырманың соңғы мерзімі басталу уақытынан бұрын болмауы керек." }, { status: 400 });
+  }
 
   const { data: task, error: taskError } = await admin
     .from("tasks")
@@ -146,11 +186,15 @@ export async function PATCH(request: Request) {
       created_task_id: task.id,
     })
     .eq("id", requestId)
+    .eq("status", "REQUESTED")
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (updateError || !updated) {
     await admin.from("tasks").delete().eq("id", task.id);
+    if (!updateError && !updated) {
+      return NextResponse.json({ error: "Бұл сұранысты басқа қызметкер өңдеп қойды." }, { status: 409 });
+    }
     return NextResponse.json({ error: "Сұранысты бекіту сәтсіз аяқталды." }, { status: 500 });
   }
 

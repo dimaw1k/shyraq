@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/phone";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 async function withProfileContext<T extends Record<string, unknown>>(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
@@ -118,6 +119,23 @@ export async function PATCH(request: Request) {
     typeof updates.phone === "string" && updates.phone !== currentProfile.phone;
 
   if (phoneChanged) {
+    // Share the same limiter bucket as /api/profile so using either endpoint
+    // cannot multiply password-confirmation attempts.
+    const sensitiveUpdateLimit = await consumeRateLimit(
+      "profile:sensitive-update",
+      user.id,
+      5,
+      15 * 60,
+      15 * 60,
+    );
+    if (!sensitiveUpdateLimit.available) return rateLimitUnavailableResponse();
+    if (!sensitiveUpdateLimit.allowed) {
+      return rateLimitResponse(
+        sensitiveUpdateLimit.retryAfterSeconds,
+        "Қауіпсіздік үшін профильді қорғау әрекеттері уақытша шектелді. Кейінірек қайталап көріңіз.",
+      );
+    }
+
     const currentPassword =
       typeof body.currentPassword === "string" ? body.currentPassword : "";
     if (!currentPassword) {

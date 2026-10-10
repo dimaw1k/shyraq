@@ -3,6 +3,18 @@ import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_TASK_TITLE_LENGTH = 120;
+const MAX_TASK_DESCRIPTION_LENGTH = 5000;
+const MAX_TASK_INSTRUCTIONS_LENGTH = 10000;
+
+function parseOptionalDate(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) return undefined;
+  return new Date(Date.parse(value)).toISOString();
+}
+
 export async function POST(request: Request) {
   const { supabase, profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const rateLimit = await consumeRateLimit("chief-mentor:task-create", profile.id, 20, 600, 300);
@@ -10,6 +22,7 @@ export async function POST(request: Request) {
   if (!rateLimit.allowed) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Тапсырма құру әрекеттері тым жиі орындалды.");
   }
+
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
@@ -20,55 +33,115 @@ export async function POST(request: Request) {
   if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
     return NextResponse.json({ error: "Тапсырма деректері дұрыс емес." }, { status: 400 });
   }
-  const body = parsedBody.value as Record<string, unknown>;
 
-  if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 120) {
-    return NextResponse.json({ error: "Тапсырма атауы қажет." }, { status: 400 });
+  const body = parsedBody.value as Record<string, unknown>;
+  if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > MAX_TASK_TITLE_LENGTH) {
+    return NextResponse.json({ error: "Тапсырма атауы 1–120 таңба болуы керек." }, { status: 400 });
   }
-  if (typeof body.description !== "string" || !body.description.trim() || body.description.trim().length > 5000) {
-    return NextResponse.json({ error: "Тапсырма сипаттамасы қажет." }, { status: 400 });
+  if (
+    typeof body.description !== "string" ||
+    !body.description.trim() ||
+    body.description.trim().length > MAX_TASK_DESCRIPTION_LENGTH
+  ) {
+    return NextResponse.json({ error: "Тапсырма сипаттамасы 1–5000 таңба болуы керек." }, { status: 400 });
+  }
+  if (body.instructions !== undefined && body.instructions !== null && (
+    typeof body.instructions !== "string" || body.instructions.length > MAX_TASK_INSTRUCTIONS_LENGTH
+  )) {
+    return NextResponse.json({ error: "Нұсқаулық 10000 таңбадан аспауы керек." }, { status: 400 });
+  }
+  if (body.points !== undefined && (
+    typeof body.points !== "number" || !Number.isFinite(body.points) || body.points < 0 || body.points > 10000
+  )) {
+    return NextResponse.json({ error: "Ұпай 0–10000 аралығында болуы керек." }, { status: 400 });
+  }
+  if (body.attachmentRequired !== undefined && typeof body.attachmentRequired !== "boolean") {
+    return NextResponse.json({ error: "Файл міндеттілігі параметрі дұрыс емес." }, { status: 400 });
+  }
+  if (body.active !== undefined && typeof body.active !== "boolean") {
+    return NextResponse.json({ error: "Тапсырма күйі дұрыс емес." }, { status: 400 });
+  }
+
+  const maxFiles = body.maxFiles === undefined || body.maxFiles === "" ? 5 : body.maxFiles;
+  if (typeof maxFiles !== "number" || !Number.isInteger(maxFiles) || maxFiles < 1 || maxFiles > 10) {
+    return NextResponse.json({ error: "Файл саны 1–10 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+
+  const latePointsPercent = body.latePointsPercent === undefined || body.latePointsPercent === "" ? 100 : body.latePointsPercent;
+  if (
+    typeof latePointsPercent !== "number" ||
+    !Number.isFinite(latePointsPercent) ||
+    latePointsPercent < 0 ||
+    latePointsPercent > 100
+  ) {
+    return NextResponse.json({ error: "Кеш тапсырғандағы ұпай пайызы 0–100 аралығында болуы керек." }, { status: 400 });
   }
 
   const marathonDay =
     body.marathonDay === null || body.marathonDay === undefined || body.marathonDay === ""
       ? null
-      : Number(body.marathonDay);
-
-  if (marathonDay !== null && (!Number.isInteger(marathonDay) || marathonDay < 1 || marathonDay > 21)) {
-    return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
+      : body.marathonDay;
+  if (marathonDay !== null && (
+    typeof marathonDay !== "number" || !Number.isInteger(marathonDay) || marathonDay < 1 || marathonDay > 21
+  )) {
+    return NextResponse.json({ error: "Марафон күні 1–21 аралығындағы бүтін сан болуы керек." }, { status: 400 });
   }
 
-  const maxFiles =
-    body.maxFiles === undefined || body.maxFiles === ""
-      ? 5
-      : Math.max(1, Math.min(10, Number(body.maxFiles)));
-  const latePointsPercent =
-    body.latePointsPercent === undefined || body.latePointsPercent === ""
-      ? 100
-      : Math.max(0, Math.min(100, Number(body.latePointsPercent)));
+  const taskOrder = body.taskOrder === undefined || body.taskOrder === "" ? 0 : body.taskOrder;
+  if (typeof taskOrder !== "number" || !Number.isInteger(taskOrder) || taskOrder < 0 || taskOrder > 10000) {
+    return NextResponse.json({ error: "Тапсырма реті 0–10000 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+
+  const rawTeamId = body.teamId;
+  let teamId: string | null = null;
+  if (rawTeamId !== undefined && rawTeamId !== null && rawTeamId !== "") {
+    if (typeof rawTeamId !== "string" || !UUID_RE.test(rawTeamId)) {
+      return NextResponse.json({ error: "Команда идентификаторы дұрыс емес." }, { status: 400 });
+    }
+    teamId = rawTeamId;
+    const { data: team, error: teamError } = await supabase
+      .from("teams")
+      .select("id,status")
+      .eq("id", teamId)
+      .maybeSingle();
+    if (teamError) return NextResponse.json({ error: "Команданы тексеру сәтсіз аяқталды." }, { status: 500 });
+    if (!team || team.status !== "ACTIVE") {
+      return NextResponse.json({ error: "Белсенді команда табылмады." }, { status: 400 });
+    }
+  }
+
+  const startsAt = parseOptionalDate(body.startsAt);
+  const deadline = parseOptionalDate(body.deadline);
+  if ((body.startsAt !== undefined && startsAt === undefined) || (body.deadline !== undefined && deadline === undefined)) {
+    return NextResponse.json({ error: "Тапсырма уақыты дұрыс емес." }, { status: 400 });
+  }
+  if (startsAt && deadline && Date.parse(startsAt) > Date.parse(deadline)) {
+    return NextResponse.json({ error: "Соңғы мерзім басталу уақытынан бұрын болмауы керек." }, { status: 400 });
+  }
 
   const { data, error } = await supabase.from("tasks").insert({
     title: body.title.trim(),
     description: body.description.trim(),
     instructions: typeof body.instructions === "string" ? body.instructions.trim() || null : null,
-    team_id: typeof body.teamId === "string" && body.teamId ? body.teamId : null,
-    starts_at: typeof body.startsAt === "string" && body.startsAt ? body.startsAt : null,
-    deadline: typeof body.deadline === "string" && body.deadline ? body.deadline : null,
-    points: typeof body.points === "number" ? Math.max(0, body.points) : 0,
-    attachment_required: Boolean(body.attachmentRequired),
+    team_id: teamId,
+    starts_at: startsAt ?? null,
+    deadline: deadline ?? null,
+    points: typeof body.points === "number" ? body.points : 0,
+    attachment_required: body.attachmentRequired === true,
     max_files: maxFiles,
     late_points_percent: latePointsPercent,
     marathon_day: marathonDay,
-    task_order: typeof body.taskOrder === "number" ? Math.floor(body.taskOrder) : 0,
+    task_order: taskOrder,
     active: body.active !== false,
     created_by: profile.id,
   }).select("*").single();
 
-  if (error) {
-    return NextResponse.json({ error: "Тапсырманы сақтау сәтсіз аяқталды." }, { status: 400 });
+  if (error || !data) {
+    console.error("[chief-mentor/tasks] create failed", { code: error?.code ?? "NO_ROW" });
+    return NextResponse.json({ error: "Тапсырманы сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  await supabase.from("audit_logs").insert({
+  const { error: auditError } = await supabase.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "TASK_CREATED",
@@ -83,6 +156,9 @@ export async function POST(request: Request) {
       late_points_percent: data.late_points_percent,
     },
   });
+  if (auditError) {
+    console.error("[chief-mentor/tasks] audit log failed", { code: auditError.code });
+  }
 
-  return NextResponse.json({ task: data });
+  return NextResponse.json({ task: data }, { status: 201 });
 }

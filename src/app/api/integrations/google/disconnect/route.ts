@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const allowedRoles = new Set(["CHIEF_MENTOR"]);
 
@@ -24,6 +25,12 @@ export async function POST() {
   }
   if (!profile?.role || !allowedRoles.has(profile.role) || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Chief Mentor access required" }, { status: 403 });
+  }
+
+  const rateLimit = await consumeRateLimit("google:disconnect", user.id, 5, 15 * 60, 5 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Google аккаунтын ажырату сұраныстары тым жиі орындалды.");
   }
 
   const { error } = await createAdminSupabaseClient()

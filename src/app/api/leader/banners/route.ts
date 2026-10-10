@@ -10,6 +10,13 @@ const ALLOWED = new Set(["image/jpeg","image/png","image/webp"]);
 
 function safeName(name:string){return name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100);}
 
+function parseOptionalDate(value: FormDataEntryValue | null): string | null | undefined {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  const timestamp = Date.parse(raw);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : undefined;
+}
+
 export async function POST(request:Request){
   const {profile}=await getAuthenticatedStaff("LEADER");
   const rateLimit = await consumeRateLimit("leader:banner-upload", profile.id, 10, 3600, 600);
@@ -42,7 +49,25 @@ export async function POST(request:Request){
   if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 4 MB-тан аспауы керек."},{status:400});
   if(!ALLOWED.has(file.type))return NextResponse.json({error:"JPG, PNG немесе WebP ғана рұқсат."},{status:400});
   if(!(await hasValidFileSignature(file,file.type)))return NextResponse.json({error:"Файл мазмұны мәлімделген форматқа сәйкес емес."},{status:400});
-  const title=String(form.get("title")??"").trim() || "Баннер";
+
+  const submittedTitle = String(form.get("title") ?? "").trim();
+  if (submittedTitle.length > 120) {
+    return NextResponse.json({ error: "Banner атауы 120 таңбадан аспауы керек." }, { status: 400 });
+  }
+  const title = submittedTitle || "Баннер";
+  const publishedValue = form.get("published");
+  if (publishedValue !== null && publishedValue !== "true" && publishedValue !== "false") {
+    return NextResponse.json({ error: "Banner жариялану күйі дұрыс емес." }, { status: 400 });
+  }
+  const startsAt = parseOptionalDate(form.get("startsAt"));
+  const endsAt = parseOptionalDate(form.get("endsAt"));
+  if ((form.get("startsAt") && startsAt === undefined) || (form.get("endsAt") && endsAt === undefined)) {
+    return NextResponse.json({ error: "Banner жариялану уақыты дұрыс емес." }, { status: 400 });
+  }
+  if (startsAt && endsAt && Date.parse(startsAt) > Date.parse(endsAt)) {
+    return NextResponse.json({ error: "Banner аяқталу уақыты басталу уақытынан бұрын болмауы керек." }, { status: 400 });
+  }
+
   const admin=createAdminSupabaseClient();
   const path=profile.id+"/"+crypto.randomUUID()+"-"+safeName(file.name);
   const {error:uploadError}=await admin.storage.from("banners").upload(path,Buffer.from(await file.arrayBuffer()),{contentType:file.type,upsert:false});
@@ -52,9 +77,9 @@ export async function POST(request:Request){
     description:null,
     href:null,
     image_path:path,
-    published:form.get("published")==="true",
-    starts_at:String(form.get("startsAt")??"").trim()||null,
-    ends_at:String(form.get("endsAt")??"").trim()||null,
+    published:publishedValue === "true",
+    starts_at:startsAt ?? null,
+    ends_at:endsAt ?? null,
     sort_order:0,
     created_by:profile.id,
   }).select("*").single();

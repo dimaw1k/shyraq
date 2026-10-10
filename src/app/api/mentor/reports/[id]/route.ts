@@ -70,15 +70,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Бұл есеп сіздің командаңызға тиесілі емес." }, { status: 403 });
   }
 
-  if (existing.status === "REVIEWED" && body.status === "REJECTED") {
-    return NextResponse.json({ error: "Тексерілген есепті кері қайтаруға болмайды." }, { status: 409 });
-  }
-
   if (existing.status === body.status && existing.review_comment === comment) {
     return NextResponse.json({ report: existing });
   }
 
   const nextStatus = body.status as "REVIEWED" | "REJECTED";
+  if (existing.status !== "SUBMITTED" && existing.status !== nextStatus) {
+    return NextResponse.json({ error: "Есепті тек жіберілген күйде тексеруге болады. Оқушы алдымен есепті қайта жіберуі керек." }, { status: 409 });
+  }
   const { data: updated, error: updateError } = await admin
     .from("daily_reports")
     .update({
@@ -88,12 +87,33 @@ export async function PATCH(
       review_comment: comment,
     })
     .eq("id", id)
+    .eq("status", existing.status)
     .select("id,student_id,report_date,status,reviewed_at,reviewed_by,review_comment")
-    .single();
+    .maybeSingle();
 
-  if (updateError || !updated) {
+  if (updateError) {
     return NextResponse.json({ error: "Есеп статусын өзгерту сәтсіз аяқталды." }, { status: 500 });
   }
+  if (!updated) {
+    return NextResponse.json({ error: "Есепті басқа қызметкер өңдеп қойды. Бетті жаңартыңыз." }, { status: 409 });
+  }
+
+  const rollbackReview = async () => {
+    const { error: rollbackError } = await admin
+      .from("daily_reports")
+      .update({
+        status: existing.status,
+        reviewed_at: existing.reviewed_at,
+        reviewed_by: existing.reviewed_by,
+        review_comment: existing.review_comment,
+      })
+      .eq("id", id)
+      .eq("status", nextStatus)
+      .eq("reviewed_by", profile.id);
+    if (rollbackError) {
+      console.error("[mentor/reports] review rollback failed", { code: rollbackError.code });
+    }
+  };
 
   if (nextStatus === "REVIEWED") {
     const { data: rules } = await admin
@@ -112,6 +132,7 @@ export async function PATCH(
         metadata: { reportDate: existing.report_date, reviewerId: profile.id },
       });
       if (scoreError && scoreError.code !== "23505") {
+        await rollbackReview();
         return NextResponse.json({ error: "Есеп ұпайын есептеу сәтсіз аяқталды." }, { status: 500 });
       }
     }
@@ -140,6 +161,7 @@ export async function PATCH(
         metadata: { reportDate: existing.report_date, currentStreak, reviewerId: profile.id },
       });
       if (streakError && streakError.code !== "23505") {
+        await rollbackReview();
         return NextResponse.json({ error: "Streak ұпайын есептеу сәтсіз аяқталды." }, { status: 500 });
       }
     }

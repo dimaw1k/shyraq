@@ -22,7 +22,6 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - WhatsApp API
 - Payment automation
 - OTP/SMS login
-- Password recovery
 - YouTube lesson hosting
 - Native mobile apps
 - AI features
@@ -36,6 +35,7 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - Leader operational workspace with staff/student/team/content management, submission review, analytics, audit log and settings
 - Scheduled Meet attendance sync endpoint and Vercel cron configuration
 - Student registration/login flow with KZ phone normalization
+- Password reset flow with canonical callback URLs and server-side recovery-token validation
 - Student-first role creation
 - Mentor phone lookup and team assignment backend
 - Team/task/report APIs
@@ -85,9 +85,7 @@ npm run build
 
 ## Database
 
-Apply repository migrations in order. The connected production database already contains the migration history through `20261002185843_lesson_team_assignment`.
-
-The repository also contains `20261003002500_security_and_fk_indexes.sql`. Its SQL has already been applied directly to the connected Shyraq database; use your normal Supabase migration reconciliation command before the next schema change so the remote migration ledger and the repository remain aligned.
+Apply repository migrations in order. The connected Shyraq Supabase database was verified through migration `20261010081000_track_meet_space_google_owner` on 2026-10-10. The Supabase Deploy workflow checks migration history, validates pending migrations with a dry run, and only then applies them. Do not bypass the workflow or assume a migration is applied merely because similar SQL was run manually.
 
 ## Important product rules
 
@@ -103,7 +101,7 @@ The lesson test remains locked until the backend confirms the required unique wa
 
 ### Google Meet
 
-Each team has its own Meet space. Shyraq imports conferences, participants and participant sessions and calculates attendance from session duration.
+Each team can have separate MORNING, EVENING and EXTRA Meet spaces. Shyraq imports conferences, participants and participant sessions using the verified Google account that owns each space, then calculates attendance from session duration.
 
 Uncertain participant identity is not silently assigned; a unique name match or explicit mentor mapping is required.
 
@@ -117,15 +115,11 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 
 ## Production deployment
 
-The `main` branch is connected to the Shyraq Vercel project.
+The GitHub repository is associated with the Shyraq Vercel project, but automatic Git deployments are currently disabled in `vercel.json` (`git.deploymentEnabled: false`). A merge to `main` therefore does not prove that the public site is running the latest audited code.
 
-Current audited GitHub `main` head:
+At the last Vercel inspection during the 2026-10-10 audit, the latest listed production deployment referenced older commit `ab5dfe9a82ebca9d355456e167b1d7137baebfef`, not the audited `main` head. No manual production frontend deployment was performed as part of this audit. Verify the active production alias and deploy the reviewed commit deliberately after the required authenticated smoke tests.
 
-```text
-009465a5bec9c15ec3a132b4af22cc515838f86c
-```
-
-The latest responsive mobile-web changes are included in this head, covering the shared mobile app shell, role-aware slide-out navigation, bottom navigation, safe-area handling, mobile spacing, table overflow handling, viewport metadata, and mobile-safe authentication/lesson screens.
+The current responsive mobile-web implementation includes the shared mobile app shell, role-aware slide-out navigation, bottom navigation, safe-area handling, mobile spacing, table overflow handling, viewport metadata, and mobile-safe authentication/lesson screens.
 
 Production URL:
 
@@ -143,7 +137,7 @@ https://shyraq-nu.vercel.app/api/health
 
 The repository includes GitHub Actions for typecheck, lint and production build on pushes and pull requests.
 
-The responsive mobile changes were verified by CI with successful typecheck, lint and production build before the current Vercel deployment.
+The responsive mobile changes have passed the repository CI checks. This does not establish that those changes—or the later security fixes—are present on the live Vercel production alias.
 
 For security, enable Supabase Auth leaked-password protection before the production release. The connected Supabase advisor currently reports this as a warning.
 
