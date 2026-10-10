@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
+const allowedRoles = new Set(["CHIEF_MENTOR"]);
+
 export async function POST() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -20,7 +22,7 @@ export async function POST() {
   if (profileError) {
     return NextResponse.json({ error: "Аккаунтты тексеру мүмкін болмады." }, { status: 500 });
   }
-  if (profile?.role !== "CHIEF_MENTOR" || profile.status !== "ACTIVE") {
+  if (!profile?.role || !allowedRoles.has(profile.role) || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Chief Mentor access required" }, { status: 403 });
   }
 

@@ -214,17 +214,27 @@ export function ChiefMentorMeetManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[25px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[30px]">
           Кездесулер
         </h1>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[11px] bg-[var(--accent)] px-4 text-[10px] font-extrabold text-white shadow-[0_8px_18px_rgba(255,128,0,.13)]"
-        >
-          <Plus size={14} /> Meet жасау
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {!googleConnected ? (
+            <a
+              href="/api/integrations/google/start?returnTo=%2Fchief-mentor%2Fmeet"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[11px] border border-[#E8E1DA] bg-white px-3.5 text-[10px] font-extrabold text-[#5B534C] hover:bg-[#FFFCF9]"
+            >
+              Google аккаунтын қосу
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[11px] bg-[var(--accent)] px-4 text-[10px] font-extrabold text-white shadow-[0_8px_18px_rgba(255,128,0,.13)]"
+          >
+            <Plus size={14} /> Meet жасау
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

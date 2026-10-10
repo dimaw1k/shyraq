@@ -158,6 +158,7 @@ export async function POST(request: Request) {
                 ? "Evening Study Time"
                 : "Extra Meet"),
         study_time: studyTime,
+        google_user_id: profile.id,
         active: true,
         updated_at: new Date().toISOString(),
       };

@@ -54,20 +54,131 @@ export type MeetSyncResult = {
 };
 
 type MeetSyncCounters = Omit<MeetSyncResult, "teamId" | "startTime" | "endTime">;
-type MeetSpace = {
+export type MeetSpaceForSync = {
   id: string;
   team_id: string;
   external_space_id: string;
   meeting_url: string | null;
   active: boolean;
   study_time: string;
+  google_user_id: string | null;
 };
 type AdminClient = ReturnType<typeof createAdminSupabaseClient>;
+
+const GOOGLE_OWNER_ROLES = ["MENTOR", "CHIEF_MENTOR", "LEADER"] as const;
+
+/**
+ * Resolve the OAuth principal that can actually access a Meet space.
+ * New rows carry google_user_id. Older unowned rows are resolved by testing only
+ * active staff accounts with stored OAuth connections, then recording the winner.
+ */
+export async function getGoogleAccessTokenForMeetSpace(
+  admin: AdminClient,
+  space: MeetSpaceForSync,
+  fallbackMentorId: string | null,
+  preferredUserId?: string | null,
+): Promise<string> {
+  const { data: connections, error: connectionError } = await admin
+    .from("google_connections")
+    .select("user_id");
+  if (connectionError) throw new Error("Unable to load Google account connections.");
+
+  const connectedIds = new Set((connections ?? []).map((row) => row.user_id));
+  const ownerIds = [...connectedIds];
+  const { data: profiles, error: profilesError } = ownerIds.length
+    ? await admin
+        .from("profiles")
+        .select("id,role,status")
+        .in("id", ownerIds)
+        .in("role", [...GOOGLE_OWNER_ROLES])
+        .eq("status", "ACTIVE")
+    : { data: [] as Array<{ id: string; role: string; status: string }> };
+
+  if (profilesError) throw new Error("Unable to validate Google account owners.");
+  const eligibleProfiles = profiles ?? [];
+  const eligibleIds = new Set(eligibleProfiles.map((profile) => profile.id));
+
+  if (space.google_user_id) {
+    if (!connectedIds.has(space.google_user_id) || !eligibleIds.has(space.google_user_id)) {
+      throw new Error("The Google account assigned to this Meet space is not connected or active.");
+    }
+
+    const token = await getGoogleAccessToken(space.google_user_id);
+    const resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
+    const remoteSpace = await getMeetSpace(token, resource);
+    if (typeof remoteSpace.name !== "string" || remoteSpace.name !== resource) {
+      throw new Error("The assigned Google account cannot access this Meet space.");
+    }
+
+    if (resource !== space.external_space_id) {
+      const { error: canonicalUpdateError } = await admin
+        .from("meet_spaces")
+        .update({ external_space_id: resource, updated_at: new Date().toISOString() })
+        .eq("id", space.id);
+      if (canonicalUpdateError) throw new Error("The verified Meet space ID could not be saved.");
+      space.external_space_id = resource;
+    }
+    return token;
+  }
+
+  const rankedProfiles = eligibleProfiles.slice().sort((a, b) => {
+    const rank = (role: string) =>
+      role === "CHIEF_MENTOR" ? 0 : role === "MENTOR" ? 1 : 2;
+    return rank(a.role) - rank(b.role);
+  });
+  const candidates = [...new Set([
+    preferredUserId ?? "",
+    fallbackMentorId ?? "",
+    ...rankedProfiles.map((profile) => profile.id),
+  ].filter(Boolean))].filter((id) => connectedIds.has(id) && eligibleIds.has(id));
+
+  for (const userId of candidates) {
+    let token: string;
+    let resource: string;
+    try {
+      token = await getGoogleAccessToken(userId);
+      resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
+      const remoteSpace = await getMeetSpace(token, resource);
+      if (typeof remoteSpace.name !== "string" || remoteSpace.name !== resource) continue;
+    } catch {
+      // A candidate may have OAuth revoked or lack access to this particular
+      // space. Try the next connected, active staff account without exposing
+      // external provider details to the caller.
+      continue;
+    }
+
+    // Keep persistence outside the provider-validation catch: a database error
+    // must fail the sync rather than being mistaken for an account-access miss.
+    const { data: savedOwner, error: ownerUpdateError } = await admin
+      .from("meet_spaces")
+      .update({
+        google_user_id: userId,
+        external_space_id: resource,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", space.id)
+      .is("google_user_id", null)
+      .select("google_user_id")
+      .maybeSingle();
+
+    if (ownerUpdateError) throw new Error("Meet space owner could not be saved.");
+    if (savedOwner?.google_user_id !== userId) {
+      // Another sync may have resolved this legacy row concurrently. Do not
+      // continue with a token that wasn't persisted as its owner.
+      throw new Error("Meet space ownership changed during sync; retry the sync.");
+    }
+    space.google_user_id = userId;
+    space.external_space_id = resource;
+    return token;
+  }
+
+  throw new Error("No connected staff Google account can access this Meet space.");
+}
 
 async function syncSingleSpace(
   admin: AdminClient,
   teamId: string,
-  space: MeetSpace,
+  space: MeetSpaceForSync,
   accessToken: string,
   rangeStart: string,
   rangeEnd: string,
@@ -263,13 +374,11 @@ export async function syncTeamMeet(
     .maybeSingle();
 
   if (teamError || !team) throw new Error("Team not found or inactive.");
-  if (!team.mentor_id) throw new Error("Team mentor is not assigned.");
-
   // A team can have separate active MORNING, EVENING and EXTRA meeting spaces.
   // maybeSingle() silently made all syncs fail when more than one was configured.
   const { data: spaces, error: spacesError } = await admin
     .from("meet_spaces")
-    .select("id,team_id,external_space_id,meeting_url,active,study_time")
+    .select("id,team_id,external_space_id,meeting_url,active,study_time,google_user_id")
     .eq("team_id", teamId)
     .eq("active", true)
     .order("study_time", { ascending: true });
@@ -280,8 +389,6 @@ export async function syncTeamMeet(
   const now = new Date();
   const rangeStart = startTime ?? new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
   const rangeEnd = endTime ?? now.toISOString();
-  const accessToken = await getGoogleAccessToken(team.mentor_id);
-
   const totals: MeetSyncCounters = {
     importedConferences: 0,
     importedParticipants: 0,
@@ -291,8 +398,9 @@ export async function syncTeamMeet(
   };
 
   const failedSpaces: string[] = [];
-  for (const space of spaces as MeetSpace[]) {
+  for (const space of spaces as MeetSpaceForSync[]) {
     try {
+      const accessToken = await getGoogleAccessTokenForMeetSpace(admin, space, team.mentor_id);
       const counters = await syncSingleSpace(admin, teamId, space, accessToken, rangeStart, rangeEnd);
       totals.importedConferences += counters.importedConferences;
       totals.importedParticipants += counters.importedParticipants;

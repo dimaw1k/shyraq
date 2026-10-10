@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/dashboard?google=not_configured", appUrl));
   }
 
-  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/dashboard";
+  const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/chief-mentor/meet";
   const returnTo = sanitizeLocalReturnTo(requestedReturnTo, "/chief-mentor/meet");
 
   const state = crypto.randomBytes(24).toString("base64url");

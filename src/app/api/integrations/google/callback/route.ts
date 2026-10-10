@@ -5,6 +5,8 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { encryptGoogleToken } from "@/lib/google-token";
 import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
 
+const allowedRoles = new Set(["CHIEF_MENTOR"]);
+
 type TokenResponse = {
   access_token: string;
   refresh_token?: string;
@@ -50,7 +52,7 @@ export async function GET(request: Request) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profileError || profile?.role !== "CHIEF_MENTOR" || profile.status !== "ACTIVE") {
+  if (profileError || !profile?.role || !allowedRoles.has(profile.role) || profile.status !== "ACTIVE") {
     const response = NextResponse.redirect(withStatus("forbidden"));
     response.cookies.delete("shyraq_google_oauth_state");
     response.cookies.delete("shyraq_google_return_to");
