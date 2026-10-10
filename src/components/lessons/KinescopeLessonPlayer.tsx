@@ -76,6 +76,7 @@ export function KinescopeLessonPlayer({
   const [ranges,setRanges]=useState<TimeRange[]>(initialRanges);
   const [percent,setPercent]=useState(()=>watchedPercent(initialRanges,durationSeconds));
   const [saving,setSaving]=useState(false);
+  const [testUnlocked,setTestUnlocked]=useState(initialTestUnlocked);
   const lastTime=useRef<number|null>(null);
   const rangesRef=useRef<TimeRange[]>(initialRanges);
   const youtubeContainerRef=useRef<HTMLDivElement|null>(null);
@@ -97,6 +98,8 @@ export function KinescopeLessonPlayer({
         body:JSON.stringify({ranges:nextRanges}),
       });
       if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
+      const data=await response.json().catch(()=>null) as {progress?:{test_unlocked?:unknown}}|null;
+      if(data?.progress?.test_unlocked===true)setTestUnlocked(true);
     }finally{setSaving(false);}
   },[lessonId]);
 
@@ -195,7 +198,7 @@ export function KinescopeLessonPlayer({
     return()=>window.removeEventListener("beforeunload",flush);
   },[persist,shouldTrackProgress]);
 
-  const unlocked=initialTestUnlocked || percent>=requiredWatchPercent;
+  const unlocked=testUnlocked;
 
   if(youtubeId){
     return (
