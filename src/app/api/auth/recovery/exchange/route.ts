@@ -24,16 +24,20 @@ function isRecentRecoveryToken(accessToken: string) {
       iat?: unknown;
     };
 
+    // In Supabase's implicit email-recovery flow, the URL has
+    // type=recovery while the JWT AMR can be recorded as "otp".
+    // Accept only email one-time/recovery methods; ordinary password and
+    // OAuth sessions must not be accepted for this endpoint.
     const hasRecoveryMethod =
       Array.isArray(claims.amr) &&
       claims.amr.some((entry) => {
-        if (entry === "recovery") return true;
-        return (
-          typeof entry === "object" &&
-          entry !== null &&
-          "method" in entry &&
-          (entry as { method?: unknown }).method === "recovery"
-        );
+        const method =
+          typeof entry === "string"
+            ? entry
+            : typeof entry === "object" && entry !== null && "method" in entry
+              ? (entry as { method?: unknown }).method
+              : null;
+        return method === "recovery" || method === "otp";
       });
 
     const now = Math.floor(Date.now() / 1000);
