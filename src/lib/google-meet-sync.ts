@@ -149,7 +149,7 @@ export async function getGoogleAccessTokenForMeetSpace(
 
     // Keep persistence outside the provider-validation catch: a database error
     // must fail the sync rather than being mistaken for an account-access miss.
-    const { error: ownerUpdateError } = await admin
+    const { data: savedOwner, error: ownerUpdateError } = await admin
       .from("meet_spaces")
       .update({
         google_user_id: userId,
@@ -157,9 +157,16 @@ export async function getGoogleAccessTokenForMeetSpace(
         updated_at: new Date().toISOString(),
       })
       .eq("id", space.id)
-      .is("google_user_id", null);
+      .is("google_user_id", null)
+      .select("google_user_id")
+      .maybeSingle();
 
     if (ownerUpdateError) throw new Error("Meet space owner could not be saved.");
+    if (savedOwner?.google_user_id !== userId) {
+      // Another sync may have resolved this legacy row concurrently. Do not
+      // continue with a token that wasn't persisted as its owner.
+      throw new Error("Meet space ownership changed during sync; retry the sync.");
+    }
     space.google_user_id = userId;
     space.external_space_id = resource;
     return token;
