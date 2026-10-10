@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 function educationLabel(value: string | null | undefined) {
   if (value === "SCHOOL") return "Мектеп";
@@ -11,12 +13,27 @@ function educationLabel(value: string | null | undefined) {
 }
 
 export async function POST(request: Request) {
-  await getAuthenticatedStaff("LEADER");
+  const { profile: actor } = await getAuthenticatedStaff("LEADER");
 
-  const body = await request.json().catch(() => null);
-  const rawPhone = typeof body?.phone === "string" ? body.phone : "";
+  const rateLimit = await consumeRateLimit("leader:staff-lookup", actor.id, 30, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Қолданушыны іздеу тым жиі орындалды. Кейінірек қайта көріңіз.");
+  }
 
-  if (!isValidKzPhone(rawPhone)) {
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Іздеу деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Іздеу деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const rawPhone = typeof body.phone === "string" ? body.phone.trim() : "";
+  if (rawPhone.length > 40 || !isValidKzPhone(rawPhone)) {
     return NextResponse.json({ error: "Телефон нөмірін толық енгізіңіз." }, { status: 400 });
   }
 
