@@ -51,15 +51,24 @@ export async function POST(request: Request) {
 
   const canonical = typeof space.name === "string" ? space.name : resource;
   const meetingUri = typeof space.meetingUri === "string" ? space.meetingUri : (typeof body.meetingUrl === "string" ? body.meetingUrl : null);
+  if (meetingUri) {
+    try {
+      const parsed = new URL(meetingUri);
+      if (parsed.protocol !== "https:" || parsed.hostname !== "meet.google.com" || !/^\/[a-z0-9-]+\/?$/i.test(parsed.pathname)) throw new Error("invalid meet URL");
+    } catch {
+      return NextResponse.json({ error: "Google Meet URL дұрыс емес." }, { status: 400 });
+    }
+  }
 
   const { data, error } = await supabase.from("meet_spaces").upsert({
     team_id: teamId,
+    study_time: studyTime,
     external_space_id: canonical,
     meeting_url: meetingUri,
     display_name: typeof body.displayName === "string" ? body.displayName.trim() : null,
     active: true,
     updated_at: new Date().toISOString(),
-  }, { onConflict: "team_id" }).select("*").single();
+  }, { onConflict: "team_id,study_time" }).select("*").single();
 
   if (error) return NextResponse.json({ error: "Meet space save failed" }, { status: 400 });
   return NextResponse.json({ meetSpace: data });
