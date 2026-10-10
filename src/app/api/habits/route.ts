@@ -9,6 +9,7 @@ import {
   isHabitRepeatUnit,
 } from "@/lib/habits";
 import { todayInTimezone } from "@/lib/streak";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const SECTIONS = ["Таңертең", "Күндіз", "Кешке", "Басқа"] as const;
 
@@ -47,6 +48,11 @@ export async function POST(request: Request) {
       { error: "Әдеттер бөлімі тек оқушыларға арналған." },
       { status: 403 },
     );
+  }
+  const rateLimit = await consumeRateLimit("student:habit-create", user.id, 10, 60 * 60, 60 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Жаңа әдеттер тым жиі құрылды. Кейінірек қайта көріңіз.");
   }
 
   const parsedBody = await readLimitedJson(request, 16 * 1024);
