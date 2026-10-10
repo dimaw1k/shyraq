@@ -41,7 +41,7 @@ export async function PATCH(
 
   const { data: existing, error: existingError } = await admin
     .from("daily_reports")
-    .select("id,student_id,status,report_date,reviewed_at,reviewed_by")
+    .select("id,student_id,status,report_date,reviewed_at,reviewed_by,review_comment")
     .eq("id", id)
     .maybeSingle();
 
@@ -57,9 +57,9 @@ export async function PATCH(
     return NextResponse.json({ report: existing });
   }
 
-  if (existing.status === "REVIEWED" && nextStatus === "REJECTED") {
+  if (existing.status !== "SUBMITTED") {
     return NextResponse.json(
-      { error: "Қаралған есепті кері қайтаруға болмайды." },
+      { error: "Есепті тек жіберілген күйде тексеруге болады. Оқушы алдымен есепті қайта жіберуі керек." },
       { status: 409 },
     );
   }
@@ -73,12 +73,33 @@ export async function PATCH(
       review_comment: reviewComment,
     })
     .eq("id", id)
+    .eq("status", existing.status)
     .select("id,student_id,report_date,status,reviewed_at,reviewed_by,review_comment")
-    .single();
+    .maybeSingle();
 
-  if (updateError || !updated) {
+  if (updateError) {
     return NextResponse.json({ error: "Есеп статусын өзгерту сәтсіз аяқталды." }, { status: 500 });
   }
+  if (!updated) {
+    return NextResponse.json({ error: "Есепті басқа қызметкер өңдеп қойды. Бетті жаңартыңыз." }, { status: 409 });
+  }
+
+  const rollbackReview = async () => {
+    const { error: rollbackError } = await admin
+      .from("daily_reports")
+      .update({
+        status: existing.status,
+        reviewed_at: existing.reviewed_at,
+        reviewed_by: existing.reviewed_by,
+        review_comment: existing.review_comment,
+      })
+      .eq("id", id)
+      .eq("status", nextStatus)
+      .eq("reviewed_by", profile.id);
+    if (rollbackError) {
+      console.error("[chief-mentor/reports] review rollback failed", { code: rollbackError.code });
+    }
+  };
 
   let scoreAwarded = false;
   let reportPoints = 0;
@@ -97,11 +118,7 @@ export async function PATCH(
       .in("code", ["REPORTS", "STREAK"]);
 
     if (rulesError) {
-      await admin.from("daily_reports").update({
-        status: existing.status,
-        reviewed_at: existing.reviewed_at,
-        reviewed_by: existing.reviewed_by,
-      }).eq("id", id);
+      await rollbackReview();
       return NextResponse.json({ error: "Ұпай ережелерін оқу сәтсіз аяқталды." }, { status: 500 });
     }
 
@@ -141,11 +158,7 @@ export async function PATCH(
       .limit(370);
 
     if (recentReportsError) {
-      await admin.from("daily_reports").update({
-        status: existing.status,
-        reviewed_at: existing.reviewed_at,
-        reviewed_by: existing.reviewed_by,
-      }).eq("id", id);
+      await rollbackReview();
       return NextResponse.json({ error: "Streak деректерін оқу сәтсіз аяқталды." }, { status: 500 });
     }
 
