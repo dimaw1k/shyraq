@@ -8,8 +8,8 @@ const scope = [
   "openid",
   "email",
   "profile",
-  "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/meetings.space.created",
+  "https://www.googleapis.com/auth/meetings.space.readonly",
 ].join(" ");
 
 const allowedRoles = new Set(["CHIEF_MENTOR"]);
