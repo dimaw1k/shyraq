@@ -14,6 +14,11 @@ export async function PATCH(
   if (!rateLimit.allowed) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Оқушыларды командаға бекіту әрекеттері тым жиі орындалды.");
   }
+  const rateLimit = await consumeRateLimit("chief-mentor:student-team-assignment", profile.id, 20, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Оқушыларды командаға бекіту әрекеттері тым жиі орындалды.");
+  }
   const { id } = await params;
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
