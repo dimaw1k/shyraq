@@ -29,11 +29,12 @@ function duration(start?: string | null, end?: string | null) {
   return Number.isFinite(s) && e > s ? Math.floor((e - s) / 1000) : 0;
 }
 
-function parseStudyTime(value: unknown): StudyTime {
-  if (value === "MORNING" || value === "EVENING" || value === "EXTRA") {
+function parseStudyTime(value: unknown): StudyTime | null {
+  if (value === undefined || value === null || value === "") return "MORNING";
+  if (value === "ALL" || value === "MORNING" || value === "EVENING" || value === "EXTRA") {
     return value;
   }
-  return value === "ALL" ? "ALL" : "MORNING";
+  return null;
 }
 
 export async function POST(request: Request) {
@@ -59,7 +60,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const rateLimit = await consumeRateLimit("google-meet:chief-sync", user.id, 6, 10 * 60, 10 * 60);
+  // The Chief Mentor screen performs a bounded background sync every 30 seconds.
+  // 24 requests per 10 minutes leaves room for that cadence plus manual refreshes.
+  const rateLimit = await consumeRateLimit("google-meet:chief-sync", user.id, 24, 10 * 60, 60);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet синхрондауы тым жиі орындалды. Кейінірек қайта көріңіз.");
@@ -83,6 +86,9 @@ export async function POST(request: Request) {
   const requestedTeamId = typeof body.teamId === "string" ? body.teamId.trim() : "";
   if (requestedTeamId.length > 100) return NextResponse.json({ error: "teamId дұрыс емес." }, { status: 400 });
   const studyTime = parseStudyTime(body.studyTime);
+  if (!studyTime) {
+    return NextResponse.json({ error: "studyTime параметрі дұрыс емес." }, { status: 400 });
+  }
 
   if (!allTeams && !requestedTeamId) {
     return NextResponse.json({ error: "teamId қажет." }, { status: 400 });
