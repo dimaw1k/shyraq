@@ -33,6 +33,7 @@ DECLARE
 BEGIN
   IF p_student_id IS NULL
      OR p_report_id IS NULL
+     OR p_slot IS NULL
      OR p_slot NOT IN ('MORNING_MEET', 'PLAN', 'SCREEN_TIME', 'PROCESS')
      OR p_storage_path IS NULL
      OR p_file_name IS NULL
