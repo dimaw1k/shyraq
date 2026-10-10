@@ -3,6 +3,7 @@ import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 type ExistingAttachment = { name: string; path: string; mime: string; size: number };
 type IncomingOption = { text?: string; isCorrect?: boolean };
@@ -55,6 +56,11 @@ function attachmentList(value: unknown): ExistingAttachment[] {
 
 export async function POST(request: Request) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:test-editor", profile.id, 10, 600, 600);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Тестті өзгерту әрекеттері тым жиі орындалды. Кейінірек қайталап көріңіз.");
+  }
 
   const contentLength = request.headers.get("content-length");
   if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > MAX_REQUEST_BYTES)) {
