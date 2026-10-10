@@ -62,20 +62,45 @@ export default async function MentorMeetPage({
 
           <section className="grid gap-4 lg:grid-cols-[1.05fr_.95fr]">
             <Card className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">БЕЙНЕ КЕЗДЕСУ</p>
-                  <h2 className="mt-1 text-[20px] font-extrabold text-[#172235]">{workspace.meetSpace?.display_name ?? "Кездесу кеңістігі"}</h2>
-                  <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">{selectedDay}-күннің Meet қатысуы бөлек есептеледі.</p>
-                </div>
-                <StatusPill tone={workspace.meetSpace?.active ? "green" : "red"}>{workspace.meetSpace?.active ? "Белсенді" : "Қосылмаған"}</StatusPill>
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">БЕЙНЕ КЕЗДЕСУЛЕР</p>
+                <h2 className="mt-1 text-[20px] font-extrabold text-[#172235]">Meet кеңістіктері</h2>
+                <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">{selectedDay}-күннің қатысу статистикасы бөлек есептеледі.</p>
               </div>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {workspace.meetSpace?.meeting_url ? (
-                  <a href={workspace.meetSpace.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white"><Video size={14} /> Кездесуге кіру</a>
-                ) : null}
-                {workspace.meetSpace?.meeting_url ? (
-                  <a href={workspace.meetSpace.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E3DD] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><ExternalLink size={13} /> Сілтемені ашу</a>
+
+              <div className="mt-5 space-y-3">
+                {workspace.meetSpaces.map((space) => {
+                  const typeLabel =
+                    space.study_time === "MORNING" ? "Таңғы Meet" :
+                    space.study_time === "EVENING" ? "Кешкі Meet" : "Қосымша Meet";
+
+                  return (
+                    <div key={space.id} className="rounded-[14px] border border-[#EFE8E1] bg-[#FFFCF9] p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#FF8000]">{typeLabel}</p>
+                          <h3 className="mt-1 break-words text-[13px] font-extrabold text-[#172235]">{space.display_name ?? typeLabel}</h3>
+                        </div>
+                        <StatusPill tone={space.active ? "green" : "red"}>{space.active ? "Белсенді" : "Қосылмаған"}</StatusPill>
+                      </div>
+
+                      {space.meeting_url ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <a href={space.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] bg-[#FF8000] px-4 py-2.5 text-[10px] font-extrabold text-white"><Video size={14} /> Кездесуге кіру</a>
+                          <a href={space.meeting_url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-[12px] border border-[#E8E3DD] bg-white px-4 py-2.5 text-[10px] font-extrabold text-[#3F3832]"><ExternalLink size={13} /> Сілтемені ашу</a>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-[10px] font-semibold text-[#9A9189]">Meet сілтемесі қосылмаған.</p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {!workspace.meetSpaces.length ? (
+                  <div className="rounded-[13px] border border-dashed border-[#E8E1DA] px-4 py-6 text-center">
+                    <p className="text-[12px] font-extrabold text-[#172235]">Meet әлі қосылмаған</p>
+                    <p className="mt-1 text-[10px] font-medium text-[#9A9189]">Бас ментордан Meet кеңістігін қосуды сұраңыз.</p>
+                  </div>
                 ) : null}
               </div>
             </Card>
