@@ -103,18 +103,38 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
 
   const late = Boolean(task.deadline && new Date(task.deadline).getTime() < now);
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin.from("task_submissions").upsert({
-    task_id: taskId,
-    student_id: user.id,
-    status: finalize ? "SUBMITTED" : "DRAFT",
-    text_answer: textAnswer,
-    link_url: linkUrl || null,
-    submitted_at: finalize ? new Date().toISOString() : null,
-    submitted_late: finalize ? late : false,
-  }, { onConflict: "task_id,student_id" }).select(
-    "id,task_id,student_id,status,text_answer,link_url,submitted_at,submitted_late,review_comment,resubmission_deadline",
-  ).single();
+  const { data: savedSubmission, error } = await admin.rpc("save_task_submission", {
+    p_task_id: taskId,
+    p_student_id: user.id,
+    p_text_answer: textAnswer,
+    p_link_url: linkUrl || null,
+    p_finalize: finalize,
+  });
 
-  if (error) return NextResponse.json({ error: "Submission failed" }, { status: 400 });
-  return NextResponse.json({ submission: data });
+  if (error) {
+    if (error.code === "42501") {
+      return NextResponse.json({ error: "Бұл тапсырма сіздің аккаунтыңызға немесе командаңызға рұқсат етілмеген." }, { status: 403 });
+    }
+    if (error.code === "P0002") {
+      return NextResponse.json({ error: "Тапсырма табылмады немесе белсенді емес." }, { status: 404 });
+    }
+    if (error.code === "23514") {
+      return NextResponse.json({ error: "Файл міндетті немесе файл лимиті толған." }, { status: 409 });
+    }
+    if (error.code === "55000") {
+      return NextResponse.json({ error: "Тапсырма жіберілді, тексерілуде немесе қайта тапсыру мерзімі аяқталды." }, { status: 409 });
+    }
+    if (error.code === "22023") {
+      return NextResponse.json({ error: "Жауап деректері дұрыс емес." }, { status: 400 });
+    }
+    console.error("[tasks/submissions] atomic save failed", { code: error.code });
+    return NextResponse.json({ error: "Жауапты сақтау сәтсіз аяқталды." }, { status: 500 });
+  }
+
+  const submission = Array.isArray(savedSubmission) ? savedSubmission[0] : savedSubmission;
+  if (!submission) {
+    return NextResponse.json({ error: "Сақталған жауапты растау мүмкін болмады." }, { status: 500 });
+  }
+
+  return NextResponse.json({ submission }, { headers: { "Cache-Control": "no-store" } });
 }
