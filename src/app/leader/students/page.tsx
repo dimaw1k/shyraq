@@ -11,12 +11,6 @@ import { Card, EmptyState, PageContainer, StatusPill } from "@/components/ui/Shy
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { displayKzPhone } from "@/lib/phone";
 
-function educationText(value: string | null) {
-  if (value === "SCHOOL") return "Мектеп";
-  if (value === "COLLEGE") return "Колледж";
-  if (value === "UNIVERSITY") return "Университет";
-  return "Басқа";
-}
 
 export default async function LeaderStudentsPage({ searchParams }: { searchParams?: Promise<{ day?: string }> }) {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
@@ -24,7 +18,7 @@ export default async function LeaderStudentsPage({ searchParams }: { searchParam
 
   const { data: students } = await supabase
     .from("profiles")
-    .select("id,full_name,email,phone,status,education_type,created_at")
+    .select("id,full_name,email,phone,status,created_at")
     .eq("role", "STUDENT")
     .order("created_at", { ascending: false })
     .limit(200);
@@ -150,7 +144,7 @@ export default async function LeaderStudentsPage({ searchParams }: { searchParam
                         </span>
                         <div className="min-w-0">
                           <p className="truncate text-[11px] font-extrabold text-[#354153]">{student.full_name}</p>
-                          <p className="mt-0.5 truncate text-[8px] font-semibold text-[#9A9189]">{educationText(student.education_type)}</p>
+                          <p className="mt-0.5 truncate text-[8px] font-semibold text-[#9A9189]">Тіркелген: {new Date(student.created_at).toLocaleDateString("kk-KZ")}</p>
                         </div>
                       </div>
                       <div className="text-[8px] font-semibold text-[#8B8179]">
