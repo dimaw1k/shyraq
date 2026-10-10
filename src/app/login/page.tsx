@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, AtSign, Eye, EyeOff, LockKeyhole, LogIn } from "lucide-react";
@@ -63,8 +63,14 @@ export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setNotice(params.get("verified") === "1" ? t("emailVerifiedMessage") : "");
+  }, [t]);
 
   function handleIdentifierChange(value: string) {
     if (/^[+\d\s()\-]*$/.test(value) && /\d/.test(value)) {
@@ -118,6 +124,15 @@ export default function LoginPage() {
               {t("loginHeading")}
             </h1>
           </div>
+
+          {notice ? (
+            <div
+              role="status"
+              className="mt-5 rounded-[13px] border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-[11px] font-semibold leading-4 text-emerald-800"
+            >
+              {notice}
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
             <label className="block">
