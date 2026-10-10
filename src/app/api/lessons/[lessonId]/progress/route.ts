@@ -234,10 +234,6 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     if (range.end > range.start) incoming.push(range);
   }
 
-  if (!incoming.length && !existing) {
-    return NextResponse.json({ error: "No valid watch ranges supplied" }, { status: 400 });
-  }
-
   const storedRanges: TimeRange[] = Array.isArray(existing?.watched_ranges)
     ? existing.watched_ranges
         .filter((value: unknown): value is { start: number; end: number } => {
