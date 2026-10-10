@@ -15,7 +15,6 @@ export default async function proxy(request: NextRequest) {
     const allowedRecoveryPaths = new Set([
       "/auth/recovery",
       "/reset-password",
-      "/api/auth/recovery/exchange",
       "/api/auth/recovery/session",
       "/api/auth/reset-password",
     ]);
