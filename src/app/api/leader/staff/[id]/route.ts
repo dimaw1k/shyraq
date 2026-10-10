@@ -90,7 +90,7 @@ export async function PATCH(
     }
   } else if (body.role !== undefined) {
     // Keep role + optional status in one conditional update for existing staff.
-    let updateQuery = admin
+    const updateQuery = admin
       .from("profiles")
       .update({
         role: body.role,
