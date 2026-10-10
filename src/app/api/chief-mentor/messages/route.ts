@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -20,6 +21,9 @@ export async function GET(request:Request){
 
 export async function POST(request:Request){
  const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");
+ const rateLimit = await consumeRateLimit("chief-mentor:staff-message", profile.id, 30, 10 * 60, 10 * 60);
+ if (!rateLimit.available) return rateLimitUnavailableResponse();
+ if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfterSeconds, "Қызметтік хабарламалар тым жиі жіберілді. Кейінірек қайта көріңіз.");
  const parsedBody=await readLimitedJson(request,16*1024);
  if(!parsedBody.ok) return NextResponse.json({error:parsedBody.reason==="too-large"?"Сұраныс тым үлкен.":"Хабарлама деректері дұрыс емес."},{status:parsedBody.reason==="too-large"?413:400,headers:{"Cache-Control":"no-store"}});
  if(!parsedBody.value||typeof parsedBody.value!=="object"||Array.isArray(parsedBody.value)) return NextResponse.json({error:"Хабарлама деректері дұрыс емес."},{status:400});
