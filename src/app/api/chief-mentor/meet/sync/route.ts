@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { getGoogleAccessToken } from "@/lib/google-oauth";
+import { getGoogleAccessTokenForMeetSpace, type MeetSpaceForSync } from "@/lib/google-meet-sync";
 import {
   listConferences,
   listParticipants,
@@ -29,11 +29,12 @@ function duration(start?: string | null, end?: string | null) {
   return Number.isFinite(s) && e > s ? Math.floor((e - s) / 1000) : 0;
 }
 
-function parseStudyTime(value: unknown): StudyTime {
-  if (value === "MORNING" || value === "EVENING" || value === "EXTRA") {
+function parseStudyTime(value: unknown): StudyTime | null {
+  if (value === undefined || value === null || value === "") return "MORNING";
+  if (value === "ALL" || value === "MORNING" || value === "EVENING" || value === "EXTRA") {
     return value;
   }
-  return value === "ALL" ? "ALL" : "MORNING";
+  return null;
 }
 
 export async function POST(request: Request) {
@@ -59,7 +60,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const rateLimit = await consumeRateLimit("google-meet:chief-sync", user.id, 6, 10 * 60, 10 * 60);
+  // The Meet page refreshes attendance every 30 seconds while open.
+  const rateLimit = await consumeRateLimit("google-meet:chief-sync", user.id, 24, 10 * 60, 60);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet синхрондауы тым жиі орындалды. Кейінірек қайта көріңіз.");
@@ -83,6 +85,9 @@ export async function POST(request: Request) {
   const requestedTeamId = typeof body.teamId === "string" ? body.teamId.trim() : "";
   if (requestedTeamId.length > 100) return NextResponse.json({ error: "teamId дұрыс емес." }, { status: 400 });
   const studyTime = parseStudyTime(body.studyTime);
+  if (!studyTime) {
+    return NextResponse.json({ error: "studyTime параметрі дұрыс емес." }, { status: 400 });
+  }
 
   if (!allTeams && !requestedTeamId) {
     return NextResponse.json({ error: "teamId қажет." }, { status: 400 });
@@ -139,7 +144,7 @@ export async function POST(request: Request) {
 
   let spaceQuery = admin
     .from("meet_spaces")
-    .select("id,team_id,external_space_id,study_time,active")
+    .select("id,team_id,external_space_id,meeting_url,study_time,active,google_user_id")
     .eq("active", true)
     .in("team_id", allowedTeamIds);
 
@@ -170,7 +175,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const token = await getGoogleAccessToken(user.id);
+  const mentorByTeamId = new Map((activeTeams ?? []).map((team) => [team.id, team.mentor_id]));
   const teamIds = [...new Set(spaces.map((space) => space.team_id))];
 
   const { data: members } = await admin
@@ -237,6 +242,12 @@ export async function POST(request: Request) {
   let processedSpaces = 0;
 
   for (const space of spaces) {
+    const token = await getGoogleAccessTokenForMeetSpace(
+      admin,
+      space as MeetSpaceForSync,
+      mentorByTeamId.get(space.team_id) ?? null,
+      user.id,
+    );
     const students = membersByTeam.get(space.team_id) ?? [];
     const buckets = new Map<string, string[]>();
 
