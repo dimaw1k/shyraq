@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -119,7 +120,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Соңғы мерзім басталу уақытынан бұрын болмауы керек." }, { status: 400 });
   }
 
-  const { data, error } = await supabase.from("tasks").insert({
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.from("tasks").insert({
     title: body.title.trim(),
     description: body.description.trim(),
     instructions: typeof body.instructions === "string" ? body.instructions.trim() || null : null,
@@ -141,7 +143,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Тапсырманы сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  const { error: auditError } = await supabase.from("audit_logs").insert({
+  const { error: auditError } = await admin.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "TASK_CREATED",

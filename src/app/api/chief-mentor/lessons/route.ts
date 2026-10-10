@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
@@ -136,7 +137,8 @@ export async function POST(request: Request) {
     type: typeof (item as { type?: unknown }).type === "string" ? (item as { type: string }).type.slice(0, 30) : "LINK",
   }));
 
-  const { data, error } = await supabase
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
     .from("lessons")
     .insert({
       title: body.title.trim(),
@@ -161,7 +163,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Сабақты сақтау сәтсіз аяқталды." }, { status: 400 });
   }
 
-  await supabase.from("audit_logs").insert({
+  await admin.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "LESSON_CREATED",

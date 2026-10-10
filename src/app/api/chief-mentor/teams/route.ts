@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
@@ -69,7 +70,8 @@ export async function POST(request: Request) {
     capacity = body.capacity;
   }
 
-  const { data, error } = await supabase.from("teams").insert({
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.from("teams").insert({
     name,
     mentor_id: mentorId,
     capacity,
@@ -84,7 +86,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Команданы сақтау сәтсіз аяқталды." }, { status: 400 });
   }
 
-  const { error: auditError } = await supabase.from("audit_logs").insert({
+  const { error: auditError } = await admin.from("audit_logs").insert({
     actor_id: profile.id,
     actor_role: profile.role,
     action: "TEAM_CREATED",
