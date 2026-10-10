@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { getPasswordValidationError } from "@/lib/security/password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -51,6 +52,23 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Қалпына келтіру сессиясы жарамсыз немесе мерзімі өткен." },
         { status: 401 },
+      );
+    }
+
+    // A valid recovery token is a credential. Limit repeated password changes
+    // tied to that account, including invalid-password attempts.
+    const resetLimit = await consumeRateLimit(
+      "auth:reset-password",
+      userData.user.id,
+      5,
+      15 * 60,
+      15 * 60,
+    );
+    if (!resetLimit.available) return rateLimitUnavailableResponse();
+    if (!resetLimit.allowed) {
+      return rateLimitResponse(
+        resetLimit.retryAfterSeconds,
+        "Құпиясөзді жаңарту әрекеттері тым жиі орындалды. Кейінірек қайталап көріңіз.",
       );
     }
 
