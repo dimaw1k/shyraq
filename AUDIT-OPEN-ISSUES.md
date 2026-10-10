@@ -2,7 +2,7 @@
 
 ## Release decision
 
-**Conditional go for staging; not yet a verified production hand-off.** The application-code commit `118e542eaf491390000a5baf522ea2dfd64b2a6b` passed GitHub Actions (`npm ci`, typecheck, lint and production build), and the Supabase migration workflow succeeded through `20261010110000_atomic_leader_student_promotion`. This audit document is being refreshed in a separate documentation-only change. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
+**Conditional go for staging; not yet a verified production hand-off.** The current application-code commit `fc8c3fa331824085921ab6a815598d927e213654` passed GitHub Actions (`npm ci`, typecheck, lint and production build). The Supabase migration workflow succeeded through `20261010210000_revoke_direct_staff_writes`; live SQL checks also confirmed the test-answer foreign key now uses `ON DELETE RESTRICT` and authenticated write grants were removed from the targeted server-managed tables. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
 
 This is a targeted repository, database-configuration and CI audit. It is not a third-party penetration test or proof that no vulnerabilities remain.
 
@@ -24,7 +24,7 @@ Relevant source repository: https://github.com/dimaw1k/shyraq
 
 ### Application and CI
 
-The repository's GitHub Actions pipeline runs `npm ci`, `npm run typecheck`, `npm run lint` and `npm run build`. These checks passed on prior hardening commits, including the fail-closed login fix. The current extended API-validation changes must also pass the same checks and the associated Snyk/preview checks before merge.
+The repository's GitHub Actions pipeline runs `npm ci`, `npm run typecheck`, `npm run lint` and `npm run build`. These checks passed for the current main commit `fc8c3fa331824085921ab6a815598d927e213654` after the direct staff-write lock and follow-up API fix. The follow-up PR's CI and preview checks also passed. CI confirms compilation and build health, not every authenticated workflow.
 
 CI checks confirm that source compiles, type-checks and builds. They do not prove all live data, permissions, OAuth or UI flows work end to end.
 
@@ -33,23 +33,24 @@ CI checks confirm that source compiles, type-checks and builds. They do not prov
 The connected database was inspected directly. The audited checks found:
 
 - All exposed `public` tables had RLS enabled; no RLS-disabled public tables were returned.
-- No direct `anon` or `PUBLIC` grants on audited `public` tables were found. Public views were not found in the checked schema.
+- The latest SQL grant check returned no `authenticated` INSERT/UPDATE/DELETE privileges on `audit_logs`, `lessons`, `profiles`, `tasks`, `team_members` or `teams`; legacy staff write policies on lessons/tasks/team memberships/teams were removed. This required the three chief-mentor create routes to move writes to the server-only service-role client; that follow-up fix is now in `main`.
 - Reviewed SECURITY DEFINER RPCs were restricted to `service_role`; the rate-limit cleanup RPC and stale-row index were present.
 - Integrity queries returned zero for missing profile/auth-user pairs, duplicate normalized phone numbers, students with multiple active memberships, inactive mentors assigned to active teams, orphaned video-progress rows, test answers without attempts and attempts without tests.
-- The Supabase deployment workflow successfully dry-ran and applied migrations through `20261010110000_atomic_leader_student_promotion`.
+- The live `test_answers_question_id_fkey` definition was verified as `ON DELETE RESTRICT`, preventing deletion of a question referenced by answer history.
+- The Supabase deployment workflow successfully dry-ran and applied migrations through `20261010210000_revoke_direct_staff_writes`.
 - The Meet owner column/index/trigger/RLS rules were present after migration. The trigger helper was not executable by `authenticated`.
 - The Leader student-to-staff promotion RPC exists after migration; execute is denied to `anon` and `authenticated` and granted only to `service_role`.
 - The security advisor still reports leaked-password protection as disabled. The rate-limit table has an informational RLS-without-policy warning; this is intentional because no client grants exist and the service-role RPC is the only intended access path.
 
 ### Dependency audit
 
-The CI `npm audit` report showed **5 high and 0 critical findings** in the development lint/build toolchain, involving `eslint-config-next`, `@next/eslint-plugin-next`, `fast-glob`, `micromatch` and `braces`. The suggested forced fix attempted to downgrade the Next.js ESLint configuration to a major version incompatible with this app. The report is visible in CI; do not run `npm audit fix --force` blindly. Recheck compatible patched versions during the next dependency update.
+The default `npm audit` report shows **5 high and 0 critical findings**, all in the development lint/build toolchain: `eslint-config-next`, `@next/eslint-plugin-next`, `fast-glob`, `micromatch` and `braces`. `npm audit --omit=dev` reports **0 production dependency vulnerabilities**. The latest package metadata checked still listed `braces@3.0.3` as the newest published version, within the advisory's affected range; npm's suggested forced fix would downgrade Next's ESLint config to an incompatible major version. Do not run `npm audit fix --force` or claim these development findings are fixed; recheck for a compatible upstream patch.
 
 ## Open release blockers and residual risks
 
-### P0 — live Vercel frontend is not confirmed up to date
+### P0 — live Vercel frontend commit is still unverified
 
-At the last Vercel inspection, `vercel.json` contained `"git": { "deploymentEnabled": false }`. The latest listed production deployment pointed to older commit `ab5dfe9a82ebca9d355456e167b1d7137baebfef`, not the audited GitHub `main` head. Merging source changes does **not** prove the public alias is serving them. No manual production frontend deployment was performed as part of this audit, consistent with the existing deployment-limit constraint.
+At the last Vercel project inspection, `vercel.json` contained `"git": { "deploymentEnabled": false }` and the latest listed production deployment referenced older commit `ab5dfe9a82ebca9d355456e167b1d7137baebfef`, not the audited GitHub `main` head. A direct unauthenticated request to `https://shyraq-nu.vercel.app/api/health` returned HTTP 200 with `{ "ok": true }`; unauthenticated requests to profile endpoints returned 401 and chief-mentor creation endpoints redirected to sign-in. This confirms the public alias currently responds and basic access gates are present, but the health response exposes no commit SHA, so it does **not** prove that `main` is deployed. No manual production frontend deployment was performed as part of this audit.
 
 Before client hand-off, identify the active production deployment and deliberately deploy the reviewed commit, or restore Git deployment through a controlled configuration change. Then confirm the public alias and `/api/health`.
 
