@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function GET() {
   const { profile } = await getAuthenticatedStaff("LEADER");
@@ -28,6 +29,11 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const { profile } = await getAuthenticatedStaff("LEADER");
+  const rateLimit = await consumeRateLimit("leader:support-update", profile.id, 60, 600, 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Support өтініштерін өзгерту сұраныстары тым жиі жіберілді.");
+  }
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
