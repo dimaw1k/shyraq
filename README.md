@@ -85,7 +85,7 @@ npm run build
 
 ## Database
 
-Apply repository migrations in order. The connected Shyraq Supabase database was verified through migration `20261010081000_track_meet_space_google_owner` on 2026-10-10. The Supabase Deploy workflow checks migration history, validates pending migrations with a dry run, and only then applies them. Do not bypass the workflow or assume a migration is applied merely because similar SQL was run manually.
+Apply repository migrations in order. The connected Shyraq Supabase database was verified through migration `20261010110000_atomic_leader_student_promotion` on 2026-10-10. The Supabase Deploy workflow checks migration history, validates pending migrations with a dry run, and only then applies them. Do not bypass the workflow or assume a migration is applied merely because similar SQL was run manually.
 
 ## Important product rules
 
