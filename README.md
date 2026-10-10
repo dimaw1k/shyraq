@@ -139,9 +139,9 @@ https://shyraq-nu.vercel.app/api/health
 
 The repository includes GitHub Actions for typecheck, lint and production build on pushes and pull requests.
 
-The responsive mobile changes have passed the repository CI checks. This does not establish that those changes—or the later security fixes—are present on the live Vercel production alias.
+The production alias was updated to application commit `fc8c3fa331824085921ab6a815598d927e213654` on 2026-10-10 and passed the public health/routing smoke tests listed above. Git-based Vercel deployment remains disabled, so future merges to `main` still require a deliberate deployment. These public checks do not replace authenticated end-to-end testing.
 
-For security, enable Supabase Auth leaked-password protection before the production release. The connected Supabase advisor currently reports this as a warning.
+Before a full production hand-off, enable Supabase Auth leaked-password protection and rerun the Security Advisor; the previous connected-project audit reported it as a warning.
 
 <!-- Vercel deployment sync: current main includes responsive mobile web UI changes. -->
 
