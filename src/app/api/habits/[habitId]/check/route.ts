@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 import { shiftDate, todayInTimezone } from "@/lib/streak";
 
 function validDate(value: unknown): value is string {
@@ -68,6 +69,11 @@ export async function POST(
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+  const rateLimit = await consumeRateLimit("student:habit-checkin", user.id, 60, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Әдет белгілеу сұраныстары тым жиі жіберілді.");
   }
 
   const { habitId } = await context.params;
