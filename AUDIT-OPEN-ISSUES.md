@@ -2,7 +2,7 @@
 
 ## Release decision
 
-**Conditional go for staging; not yet a verified production hand-off.** The current `main` commit `118e542eaf491390000a5baf522ea2dfd64b2a6b` passed GitHub Actions (`npm ci`, typecheck, lint and production build), and the Supabase migration workflow succeeded through `20261010110000_atomic_leader_student_promotion`. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
+**Conditional go for staging; not yet a verified production hand-off.** The application-code commit `118e542eaf491390000a5baf522ea2dfd64b2a6b` passed GitHub Actions (`npm ci`, typecheck, lint and production build), and the Supabase migration workflow succeeded through `20261010110000_atomic_leader_student_promotion`. This audit document is being refreshed in a separate documentation-only change. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
 
 This is a targeted repository, database-configuration and CI audit. It is not a third-party penetration test or proof that no vulnerabilities remain.
 
