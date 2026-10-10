@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { getGoogleAccessToken } from "@/lib/google-oauth";
+import { getMeetSpace } from "@/lib/google-meet";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -49,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const body = parsedBody.value as Record<string, unknown>;
-  const updates: { display_name?: string; meeting_url?: string; external_space_id?: string; active?: boolean } = {};
+  const updates: { display_name?: string; meeting_url?: string; external_space_id?: string; google_user_id?: string; active?: boolean } = {};
 
   if (Object.prototype.hasOwnProperty.call(body, "displayName")) {
     if (typeof body.displayName !== "string" || !body.displayName.trim() || body.displayName.trim().length > 120) {
@@ -81,6 +83,37 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const admin = createAdminSupabaseClient();
+  if (updates.external_space_id !== undefined || updates.meeting_url !== undefined) {
+    const { data: current, error: currentError } = await admin
+      .from("meet_spaces")
+      .select("external_space_id,meeting_url")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (currentError) return NextResponse.json({ error: "Meet space тексерілмеді." }, { status: 500 });
+    if (!current) return NextResponse.json({ error: "Meet space табылмады." }, { status: 404 });
+
+    const requestedSpaceId = updates.external_space_id ?? current.external_space_id;
+    const requestedUrl = updates.meeting_url ?? current.meeting_url ?? "";
+    let verifiedSpace: Record<string, unknown>;
+    try {
+      const accessToken = await getGoogleAccessToken(profile.id);
+      verifiedSpace = await getMeetSpace(accessToken, requestedSpaceId);
+    } catch {
+      return NextResponse.json({ error: "Бұл Google Meet кеңістігі қосылған аккаунттан қолжетімсіз." }, { status: 400 });
+    }
+
+    const verifiedSpaceId = typeof verifiedSpace.name === "string" ? verifiedSpace.name : "";
+    const verifiedUrl = typeof verifiedSpace.meetingUri === "string" ? verifiedSpace.meetingUri : "";
+    if (verifiedSpaceId !== requestedSpaceId || !isSafeMeetUrl(verifiedUrl) || requestedUrl !== verifiedUrl) {
+      return NextResponse.json({ error: "Meet ID және сілтеме Google тарапынан расталмады." }, { status: 400 });
+    }
+
+    updates.external_space_id = verifiedSpaceId;
+    updates.meeting_url = verifiedUrl;
+    updates.google_user_id = profile.id;
+  }
+
   const { data, error } = await admin
     .from("meet_spaces")
     .update({ ...updates, updated_at: new Date().toISOString() })
