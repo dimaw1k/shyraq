@@ -247,23 +247,45 @@ export async function POST(request: Request) {
   let unmatchedParticipants = 0;
   let processedSpaces = 0;
 
-  for (const space of spaces) {
+  // Multiple team rows may point to the same shared Google Meet room.
+  // Sync each Google space once and match attendees against all teams assigned
+  // to that room, so attendee/participant records aren't overwritten per team.
+  type SyncSpace = NonNullable<typeof spaces>[number];
+  const groupedSpaces = new Map<string, SyncSpace[]>();
+  for (const item of spaces) {
+    const group = groupedSpaces.get(item.external_space_id) ?? [];
+    group.push(item);
+    groupedSpaces.set(item.external_space_id, group);
+  }
+
+  for (const group of groupedSpaces.values()) {
+    const space = group[0];
+    const groupTeamIds = new Set(group.map((item) => item.team_id));
+    const students = [...groupTeamIds].flatMap(
+      (teamId) => membersByTeam.get(teamId) ?? [],
+    );
+    const groupStudentIds = new Set(students.map((student) => student.id));
+    const teamIdByStudentId = new Map<string, string>();
+    for (const teamId of groupTeamIds) {
+      for (const student of membersByTeam.get(teamId) ?? []) {
+        if (!teamIdByStudentId.has(student.id)) {
+          teamIdByStudentId.set(student.id, teamId);
+        }
+      }
+    }
+
+    const buckets = new Map<string, string[]>();
+    for (const student of students) {
+      const key = normalizeName(student.full_name);
+      buckets.set(key, [...(buckets.get(key) ?? []), student.id]);
+    }
+
     const token = await getGoogleAccessTokenForMeetSpace(
       admin,
       space as MeetSpaceForSync,
       mentorByTeamId.get(space.team_id) ?? null,
       user.id,
     );
-    const students = membersByTeam.get(space.team_id) ?? [];
-    const buckets = new Map<string, string[]>();
-
-    for (const student of students) {
-      const key = normalizeName(student.full_name);
-      buckets.set(key, [
-        ...(buckets.get(key) ?? []),
-        student.id,
-      ]);
-    }
 
     const conferences = await listConferences(
       token,
@@ -296,10 +318,7 @@ export async function POST(request: Request) {
       if (!conferenceRow) continue;
       importedConferences += 1;
 
-      const participants = await listParticipants(
-        token,
-        conference.name,
-      );
+      const participants = await listParticipants(token, conference.name);
 
       for (const participant of participants) {
         const googleUserId = participant.signedinUser?.user ?? null;
@@ -312,26 +331,22 @@ export async function POST(request: Request) {
         let studentId = googleUserId
           ? mappingMap.get(googleUserId) ?? null
           : null;
+        if (studentId && !groupStudentIds.has(studentId)) {
+          studentId = null;
+        }
 
-        let matchStatus = studentId
-          ? "MANUALLY_MATCHED"
-          : "UNMATCHED";
+        let matchStatus = studentId ? "MANUALLY_MATCHED" : "UNMATCHED";
 
         if (!studentId && displayName) {
-          const candidates =
-            buckets.get(normalizeName(displayName)) ?? [];
-
+          const candidates = buckets.get(normalizeName(displayName)) ?? [];
           if (candidates.length === 1) {
             studentId = candidates[0];
             matchStatus = "MATCHED";
           }
         }
 
-        if (studentId) {
-          matchedParticipants += 1;
-        } else {
-          unmatchedParticipants += 1;
-        }
+        if (studentId) matchedParticipants += 1;
+        else unmatchedParticipants += 1;
 
         const { data: participantRow } = await admin
           .from("meet_participants")
@@ -343,26 +358,18 @@ export async function POST(request: Request) {
               display_name: displayName,
               student_id: studentId,
               match_status: matchStatus,
-              earliest_start_time:
-                participant.earliestStartTime ?? null,
-              latest_end_time:
-                participant.latestEndTime ?? null,
+              earliest_start_time: participant.earliestStartTime ?? null,
+              latest_end_time: participant.latestEndTime ?? null,
               raw: participant,
             },
-            {
-              onConflict:
-                "conference_id,external_participant_id",
-            },
+            { onConflict: "conference_id,external_participant_id" },
           )
           .select("id")
           .single();
 
         if (!participantRow) continue;
 
-        const sessions = await listParticipantSessions(
-          token,
-          participant.name,
-        );
+        const sessions = await listParticipantSessions(token, participant.name);
 
         for (const session of sessions) {
           await admin
@@ -373,8 +380,7 @@ export async function POST(request: Request) {
                 external_session_id: session.name,
                 start_time: session.startTime ?? null,
                 end_time: session.endTime ?? null,
-                duration_seconds:
-                  sessionDurationSeconds(session),
+                duration_seconds: sessionDurationSeconds(session),
                 raw: session,
               },
               { onConflict: "participant_id,external_session_id" },
@@ -383,9 +389,9 @@ export async function POST(request: Request) {
 
         if (!studentId) continue;
 
+        const studentTeamId = teamIdByStudentId.get(studentId) ?? space.team_id;
         const attendedSeconds = sessions.reduce(
-          (sum, session) =>
-            sum + sessionDurationSeconds(session),
+          (sum, session) => sum + sessionDurationSeconds(session),
           0,
         );
         const meetingDuration = duration(
@@ -393,13 +399,7 @@ export async function POST(request: Request) {
           conference.endTime,
         );
         const attendancePercent = meetingDuration
-          ? Math.min(
-              100,
-              Math.max(
-                0,
-                (attendedSeconds / meetingDuration) * 100,
-              ),
-            )
+          ? Math.min(100, Math.max(0, (attendedSeconds / meetingDuration) * 100))
           : 0;
         const status =
           attendancePercent === 0
@@ -416,40 +416,32 @@ export async function POST(request: Request) {
           .from("attendance_records")
           .upsert(
             {
-              team_id: space.team_id,
+              team_id: studentTeamId,
               student_id: studentId,
-              external_conference_id:
-                externalConferenceId,
+              external_conference_id: externalConferenceId,
               session_count: sessions.length,
               attended_seconds: attendedSeconds,
               meeting_duration_seconds: meetingDuration,
-              attendance_percent: Number(
-                attendancePercent.toFixed(2),
-              ),
+              attendance_percent: Number(attendancePercent.toFixed(2)),
               status,
               started_at: conference.startTime ?? null,
               ended_at: conference.endTime ?? null,
               imported_at: new Date().toISOString(),
             },
-            {
-              onConflict:
-                "external_conference_id,student_id",
-            },
+            { onConflict: "external_conference_id,student_id" },
           )
           .select("id")
           .single();
 
         if (attendanceRow) {
           attendanceRows += 1;
-
           await recordAttendanceScore(admin, {
             attendanceId: attendanceRow.id,
             studentId,
-            teamId: space.team_id,
+            teamId: studentTeamId,
             attendancePercent,
             conferenceEnded: Boolean(
-              conference.endTime &&
-                Date.parse(conference.endTime) <= Date.now(),
+              conference.endTime && Date.parse(conference.endTime) <= Date.now(),
             ),
           });
         }
