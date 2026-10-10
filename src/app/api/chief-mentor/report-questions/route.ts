@@ -23,11 +23,11 @@ function parseSortOrder(value: unknown): number | undefined {
 
 type ParsedBodyResult =
   | { ok: true; body: Record<string, unknown> }
-  | { ok: false; response: NextResponse };
+  | { ok: false; response: Response };
 
 type MutationAuthorizationResult =
   | { ok: true; profile: Awaited<ReturnType<typeof getAuthenticatedStaff>>["profile"] }
-  | { ok: false; response: NextResponse };
+  | { ok: false; response: Response };
 
 async function readLimitedBody(request: Request): Promise<ParsedBodyResult> {
   const parsedBody = await readLimitedJson(request, 16 * 1024);
