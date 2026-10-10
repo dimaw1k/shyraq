@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   BarChart3,
-  Bell,
+  LifeBuoy,
   BookOpen,
   CalendarCheck2,
   ClipboardCheck,
@@ -17,7 +17,6 @@ import {
   FileClock,
   FileText,
   LayoutDashboard,
-  Mail,
   Menu,
   Settings,
   Trophy,
@@ -26,7 +25,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { NotificationBell } from "@/components/student/NotificationBell";
 import { useStudentLanguage } from "@/lib/student-language";
 
 type NavItem = { label: string; href: string; icon: LucideIcon };
@@ -60,9 +58,8 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Кездесулер", href: "/chief-mentor/meet", icon: CalendarCheck2 },
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
   { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
-  { label: "Хабарламалар", href: "/chief-mentor/messages", icon: Mail },
   { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
-  { label: "Қолдау", href: "/chief-mentor/support", icon: Bell },
+  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy },
   { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
@@ -77,7 +74,7 @@ const leaderLinks: NavItem[] = [
   { label: "Тапсырыстар", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
-  { label: "Қолдау", href: "/leader/support", icon: Bell },
+  { label: "Қолдау", href: "/leader/support", icon: LifeBuoy },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
@@ -350,7 +347,6 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            {role === "STUDENT" ? <NotificationBell /> : null}
             <UserChip
               name={profileName || userName}
               role={role}

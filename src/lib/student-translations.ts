@@ -9,7 +9,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     profileNav: "Профиль",
     studentRole: "Оқушы",
     language: "Тіл",
-    reminders: "Еске салғыштар",
+
     appearance: "Көрініс",
     security: "Қауіпсіздік",
     account: "Аккаунт",
@@ -28,10 +28,10 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     eveningMeet: "Кешкі Meet",
     eveningReport: "Кешкі есеп",
     habits: "Әдеттер",
-    browserNotifications: "Хабарландырулар",
-    allowNotifications: "Хабарландыруларға рұқсат беру",
-    notificationsOn: "Хабарландырулар қосулы",
-    testNotification: "Сынақ хабарламасын жіберу",
+
+
+
+
     password: "Құпиясөз",
     changePassword: "Құпиясөзді өзгерту",
     profile: "Профиль",
@@ -49,22 +49,22 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     enterMessage: "Хабарламаңызды жазыңыз",
     appName: "Shyraq Education",
     support: "Қолдау",
-    notificationDenied: "Браузер хабарландыруларына рұқсат берілмеген.",
-    notificationDeniedShort: "Рұқсат берілмеді",
-    notificationPermissionPending: "Рұқсат күтілуде. Браузер сұрауын растаңыз.",
-    notificationNeedPermission: "Алдымен хабарландыруларға рұқсат беріңіз.",
-    notificationWelcome: "Хабарландырулар сәтті қосылды.",
-    notificationTestBody: "Shyraq хабарламалары дұрыс жұмыс істеп тұр.",
-    notificationSent: "Сынақ хабарламасы жіберілді.",
-    notificationFailed: "Хабарламаны көрсету мүмкін болмады.",
-    notificationUnsupported: "Бұл браузер хабарландыруларды қолдамайды.",
-    reminderMorningMeet: "Таңғы Meet басталуына аз уақыт қалды.",
-    reminderMorningReport: "Таңғы есепті тапсыратын уақыт келді.",
-    reminderEveningMeet: "Кешкі Meet басталуына аз уақыт қалды.",
-    reminderEveningReport: "Кешкі есепті тапсыратын уақыт келді.",
-    reminderHabits: "Бүгінгі әдеттеріңді белгілеуді ұмытпа.",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     allDevices: "Барлық құрылғылардан шығу",
-    reminderCount: "қосулы",
+
     dashboard: "Басты бет",
     marathon: "Шырақ марафоны",
     days21: "21 күн",
@@ -127,7 +127,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Құпиясөзді қайталаңыз",
     updateSuccess: "Жаңартылды",
     registrationDescription: "Shyraq платформасына қосылу үшін деректеріңізді енгізіңіз.",
-    noNewNotifications: "Жаңа хабарландыру жоқ.",
+
     menuOpen: "Мәзірді ашу",
     menuClose: "Мәзірді жабу",
     mainNavigation: "Негізгі навигация",
@@ -249,8 +249,8 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     daySection: "Күндіз",
     eveningSection: "Кешке",
     otherSection: "Басқа",
-    reminder: "Еске салу",
-    reminderSaveTime: "Уақытын сақтап қоямыз",
+
+
     daysSelected: "/7 таңдалды",
     habitSaved: "Әдет сақталды",
     habitNameValidation: "Әдет атауы 2–60 таңба болуы керек.",
@@ -390,7 +390,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     profileNav: "Профиль",
     studentRole: "Ученик",
     language: "Язык",
-    reminders: "Напоминания",
+
     appearance: "Вид",
     security: "Безопасность",
     account: "Аккаунт",
@@ -409,10 +409,10 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     eveningMeet: "Вечерний Meet",
     eveningReport: "Вечерний отчёт",
     habits: "Привычки",
-    browserNotifications: "Уведомления",
-    allowNotifications: "Разрешить уведомления",
-    notificationsOn: "Уведомления включены",
-    testNotification: "Отправить тестовое уведомление",
+
+
+
+
     password: "Пароль",
     changePassword: "Изменить пароль",
     profile: "Профиль",
@@ -430,22 +430,22 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     enterMessage: "Напишите сообщение",
     appName: "Shyraq Education",
     support: "Поддержка",
-    notificationDenied: "Браузер запретил уведомления.",
-    notificationDeniedShort: "Доступ запрещён",
-    notificationPermissionPending: "Ожидается разрешение. Подтвердите запрос браузера.",
-    notificationNeedPermission: "Сначала разрешите уведомления.",
-    notificationWelcome: "Уведомления успешно включены.",
-    notificationTestBody: "Уведомления Shyraq работают корректно.",
-    notificationSent: "Тестовое уведомление отправлено.",
-    notificationFailed: "Не удалось показать уведомление.",
-    notificationUnsupported: "Этот браузер не поддерживает уведомления.",
-    reminderMorningMeet: "Скоро начнётся утренний Meet.",
-    reminderMorningReport: "Пора отправить утренний отчёт.",
-    reminderEveningMeet: "Скоро начнётся вечерний Meet.",
-    reminderEveningReport: "Пора отправить вечерний отчёт.",
-    reminderHabits: "Не забудь отметить привычки за сегодня.",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     allDevices: "Выйти со всех устройств",
-    reminderCount: "включено",
+
     dashboard: "Главная",
     marathon: "Марафон Шырақ",
     days21: "21 день",
@@ -508,7 +508,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Повторите пароль",
     updateSuccess: "Обновлено",
     registrationDescription: "Введите данные, чтобы присоединиться к платформе Shyraq.",
-    noNewNotifications: "Новых уведомлений нет.",
+
     menuOpen: "Открыть меню",
     menuClose: "Закрыть меню",
     mainNavigation: "Основная навигация",
@@ -630,8 +630,8 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     daySection: "Днём",
     eveningSection: "Вечером",
     otherSection: "Другое",
-    reminder: "Напоминание",
-    reminderSaveTime: "Сохраним время напоминания",
+
+
     daysSelected: "/7 выбрано",
     habitSaved: "Привычка сохранена",
     habitNameValidation: "Название привычки должно содержать 2–60 символов.",
@@ -771,7 +771,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     profileNav: "Profile",
     studentRole: "Student",
     language: "Language",
-    reminders: "Reminders",
+
     appearance: "Appearance",
     security: "Security",
     account: "Account",
@@ -790,10 +790,10 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     eveningMeet: "Evening Meet",
     eveningReport: "Evening report",
     habits: "Habits",
-    browserNotifications: "Notifications",
-    allowNotifications: "Allow notifications",
-    notificationsOn: "Notifications are on",
-    testNotification: "Send test notification",
+
+
+
+
     password: "Password",
     changePassword: "Change password",
     profile: "Profile",
@@ -811,22 +811,22 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     enterMessage: "Write a message",
     appName: "Shyraq Education",
     support: "Support",
-    notificationDenied: "Browser notification permission is denied.",
-    notificationDeniedShort: "Permission denied",
-    notificationPermissionPending: "Waiting for permission. Confirm the browser prompt.",
-    notificationNeedPermission: "Please allow notifications first.",
-    notificationWelcome: "Notifications were enabled successfully.",
-    notificationTestBody: "Shyraq notifications are working correctly.",
-    notificationSent: "Test notification sent.",
-    notificationFailed: "Could not display the notification.",
-    notificationUnsupported: "This browser does not support notifications.",
-    reminderMorningMeet: "Your morning Meet starts soon.",
-    reminderMorningReport: "It’s time to send your morning report.",
-    reminderEveningMeet: "Your evening Meet starts soon.",
-    reminderEveningReport: "It’s time to send your evening report.",
-    reminderHabits: "Don’t forget to check off today’s habits.",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     allDevices: "Sign out from all devices",
-    reminderCount: "enabled",
+
     dashboard: "Home",
     marathon: "Shyraq Marathon",
     days21: "21 days",
@@ -889,7 +889,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     confirmPassword: "Repeat password",
     updateSuccess: "Updated",
     registrationDescription: "Enter your details to join Shyraq.",
-    noNewNotifications: "No new notifications.",
+
     menuOpen: "Open menu",
     menuClose: "Close menu",
     mainNavigation: "Main navigation",
@@ -1011,8 +1011,8 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     daySection: "Daytime",
     eveningSection: "Evening",
     otherSection: "Other",
-    reminder: "Reminder",
-    reminderSaveTime: "We'll save the reminder time",
+
+
     daysSelected: "/7 selected",
     habitSaved: "Habit saved",
     habitNameValidation: "Habit name must be 2–60 characters.",

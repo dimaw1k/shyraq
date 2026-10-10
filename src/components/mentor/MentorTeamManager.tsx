@@ -7,7 +7,6 @@ import {
   ClipboardCheck,
   ExternalLink,
   FileText,
-  MessageCircle,
   RefreshCw,
   Search,
   UsersRound,
@@ -22,23 +21,8 @@ import { MentorTaskRequestForm } from "@/components/mentor/MentorTaskRequestForm
 
 type View = "dashboard" | "students" | "tasks" | "reports" | "meet";
 
-type Message = {
-  id: string;
-  body: string;
-  sender_id: string;
-  created_at: string;
-};
-
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "О";
-}
-
-function whatsappUrl(phone: string, name: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return null;
-  const normalized = digits.startsWith("8") ? "7" + digits.slice(1) : digits;
-  const message = "Сәлем, " + name + "! Shyraq бойынша хабарласқым келді.";
-  return "https://wa.me/" + normalized + "?text=" + encodeURIComponent(message);
 }
 
 function issueOf(student: MentorStudent) {
@@ -369,9 +353,6 @@ function WorkspacePanel({
 }
 
 function StudentDrawer({ student, onClose }: { student: MentorStudent; onClose: () => void }) {
-  const [chatOpen, setChatOpen] = useState(false);
-  const wa = whatsappUrl(student.phone, student.full_name);
-
   return (
     <div className="fixed inset-0 z-[70]">
       <button type="button" aria-label="Панельді жабу" onClick={onClose} className="absolute inset-0 bg-[#172235]/20 backdrop-blur-[2px]" />
@@ -379,84 +360,36 @@ function StudentDrawer({ student, onClose }: { student: MentorStudent; onClose: 
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#172235] text-[10px] font-extrabold text-white">{initials(student.full_name)}</span>
-            <div className="min-w-0"><p className="truncate text-[13px] font-extrabold text-[#243044]">{student.full_name}</p><p className="mt-0.5 truncate text-[9px] font-semibold text-[#9A9189]">{student.email}</p></div>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-extrabold text-[#243044]">{student.full_name}</p>
+              <p className="mt-0.5 truncate text-[9px] font-semibold text-[#9A9189]">{student.email}</p>
+            </div>
           </div>
           <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-[10px] border border-[var(--border)] bg-white"><X size={14} /></button>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2"><MiniStat label="Ұпай" value={String(student.score)} /><MiniStat label="Қатысу" value={student.attendanceStatus} /><MiniStat label="Есеп" value={String(student.reportCount)} /></div>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <MiniStat label="Ұпай" value={String(student.score)} />
+          <MiniStat label="Қатысу" value={student.attendanceStatus} />
+          <MiniStat label="Есеп" value={String(student.reportCount)} />
+        </div>
 
         <div className="mt-4 rounded-[14px] border border-[#EEE8E1] bg-white p-3.5">
-          <div className="flex items-center justify-between gap-3"><span className="text-[9px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">Белсенділік</span><span className="text-[9px] font-semibold text-[#71685F]">{dateLabel(student.lastActivityAt)}</span></div>
-          <div className="mt-3 space-y-2"><ProgressBar value={student.videoAverage} label="Видео" /><ProgressBar value={student.attendanceAverage} label="Қатысу" /></div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[9px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">Белсенділік</span>
+            <span className="text-[9px] font-semibold text-[#71685F]">{dateLabel(student.lastActivityAt)}</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            <ProgressBar value={student.videoAverage} label="Видео" />
+            <ProgressBar value={student.attendanceAverage} label="Қатысу" />
+          </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setChatOpen((value) => !value)} className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[11px] bg-[#172235] px-3 py-2 text-[10px] font-extrabold text-white"><MessageCircle size={13} /> Чат</button>
-          {wa ? <a href={wa} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[11px] bg-[var(--accent)] px-3 py-2 text-[10px] font-extrabold text-white">WhatsApp <ExternalLink size={12} /></a> : null}
+        <div className="mt-4 rounded-[14px] border border-[#EEE8E1] bg-white p-3.5">
+          <p className="text-[9px] font-extrabold uppercase tracking-[.08em] text-[#A19890]">Байланыс деректері</p>
+          <p className="mt-2 break-all text-[10px] font-semibold text-[#4B433C]">{student.phone || "Телефон көрсетілмеген"}</p>
         </div>
-
-        {chatOpen ? <ChatPanel studentId={student.id} /> : null}
       </aside>
     </div>
   );
-}
-
-function ChatPanel({ studentId }: { studentId: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [body, setBody] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch("/api/mentor/chat?studentId=" + encodeURIComponent(studentId), { cache: "no-store" });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error ?? "Чатты жүктеу сәтсіз аяқталды.");
-      setMessages(data.messages ?? []);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Қате");
-    } finally {
-      setLoading(false);
-    }
-  }, [studentId]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
-
-  async function send() {
-    const text = body.trim();
-    if (!text || sending) return;
-    setSending(true);
-    setError("");
-    try {
-      const response = await fetch("/api/mentor/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studentId, body: text }) });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error ?? "Хабарлама жіберу сәтсіз аяқталды.");
-      setMessages((current) => [...current, data.message]);
-      setBody("");
-    } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : "Қате");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return <div className="mt-3 rounded-[14px] border border-[#EEE8E1] bg-white p-3">
-    <div className="flex items-center justify-between"><p className="text-[10px] font-extrabold text-[#263247]">Чат</p><button type="button" onClick={() => void load()} className="text-[9px] font-extrabold text-[var(--accent)]">Жаңарту</button></div>
-    <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-[11px] bg-[#FAF7F3] p-2">
-      {loading ? <p className="p-2 text-[9px] text-[#9A9189]">Жүктелуде...</p> : null}
-      {!loading && !messages.length ? <p className="p-2 text-[9px] text-[#9A9189]">Хабарлама жоқ</p> : null}
-      {messages.map((item) => <div key={item.id} className="rounded-[10px] bg-white px-2.5 py-2"><p className="text-[9px] leading-4 text-[#4B433C]">{item.body}</p><p className="mt-1 text-[7px] font-semibold text-[#A19890]">{dateLabel(item.created_at)}</p></div>)}
-    </div>
-    <div className="mt-2 flex gap-2"><textarea value={body} onChange={(event) => setBody(event.target.value)} rows={2} placeholder="Хабарлама..." className="min-w-0 flex-1 resize-none rounded-[10px] border border-[var(--border)] px-2.5 py-2 text-[9px] font-semibold outline-none focus:border-[var(--accent)]" /><button type="button" onClick={() => void send()} disabled={sending || !body.trim()} className="self-end rounded-[10px] bg-[var(--accent)] px-3 py-2 text-[9px] font-extrabold text-white disabled:opacity-50">{sending ? "..." : "Жіберу"}</button></div>
-    {error ? <p className="mt-2 text-[8px] font-semibold text-[#B54D2B]">{error}</p> : null}
-  </div>;
 }
