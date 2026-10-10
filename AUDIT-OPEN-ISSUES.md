@@ -18,6 +18,7 @@ Audit scope: GitHub source and migration history, staff/student API authorizatio
 - PR #89 — make high/critical npm audit findings visible in CI output.
 - PR #90 — track and verify Google-account ownership for Meet spaces; repair per-space/cron/manual sync logic; add Meet owner migration and clearer Google connection UI.
 - PR #91 — rate-limit high-impact staff mutations, including test/lesson/team/task/report-review/settings/staff-role/support/banner/score-rule operations.
+- PR #93 — close an authentication callback open-redirect: use the canonical configured app origin and the shared same-origin redirect sanitizer.
 
 Relevant repo: https://github.com/dimaw1k/shyraq
 
@@ -31,7 +32,7 @@ Relevant repo: https://github.com/dimaw1k/shyraq
 - `npm run build`: passed on the validated PR #91 head.
 - Snyk status: passed for PR #91.
 - Netlify deploy preview: passed for PR #91.
-- The normal CI run on main after PR #91 merge was queued at the time this note was written; re-check it before release.
+- CI passed for the final PR #91 head (typecheck, lint, build, Snyk and Netlify preview). PR #93 also passed typecheck, lint, build, Snyk and Netlify preview before merge. The post-merge main run for PR #93 was queued while this note was being updated; check the latest main run before release.
 
 These checks establish that the reviewed source type-checks, lints and builds. They do not prove that every user flow works against production integrations.
 
@@ -71,6 +72,10 @@ At the database inspection time, `google_connections` had zero rows, and the two
 5. Confirm an unconnected or unauthorized Google account cannot take ownership of a space.
 
 Until that test is done with a real connected account, Meet attendance is **not production-verified**.
+
+### P1 — auth callback redirect must remain canonical
+
+A URL parsing check confirmed that `new URL("/\\\\external.example", "https://shyraq.example")` resolves to `https://external.example/`. The callback originally trusted the incoming request origin and only rejected strings beginning with `//`, so a specially formed `next` path could become an external redirect after parsing. PR #93 fixed this by always redirecting from `getTrustedAppUrl()` and reusing `sanitizeLocalReturnTo()`. Keep both protections in place if callback code is changed later.
 
 ### P1 — leaked-password protection remains disabled
 
