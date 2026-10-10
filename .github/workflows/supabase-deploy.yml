@@ -5,11 +5,14 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
-      - ".github/workflows/supabase-deploy.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: shyraq-production-supabase-migrations
+  cancel-in-progress: false
 
 jobs:
   deploy:
