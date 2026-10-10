@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   BarChart3,
-  Bell,
+  LifeBuoy,
   BookOpen,
   CalendarCheck2,
   ClipboardCheck,
@@ -59,7 +59,7 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
   { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
-  { label: "Қолдау", href: "/chief-mentor/support", icon: Bell },
+  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy },
   { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
@@ -74,7 +74,7 @@ const leaderLinks: NavItem[] = [
   { label: "Тапсырыстар", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
-  { label: "Қолдау", href: "/leader/support", icon: Bell },
+  { label: "Қолдау", href: "/leader/support", icon: LifeBuoy },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
