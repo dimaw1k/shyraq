@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
-const allowedRoles = new Set(["CHIEF_MENTOR", "MENTOR"]);
+const allowedRoles = new Set(["CHIEF_MENTOR"]);
 
 export async function POST() {
   const supabase = await createServerSupabaseClient();
