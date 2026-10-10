@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { checkPwnedPassword } from "@/lib/security/pwned-password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
@@ -109,6 +110,20 @@ export async function POST(request: Request) {
     if (passwordError) {
       return NextResponse.json(
         { field: "password", error: passwordError },
+        { status: 400 },
+      );
+    }
+
+    const breachedPassword = await checkPwnedPassword(password);
+    if (breachedPassword.status === "unavailable") {
+      return NextResponse.json(
+        { field: "password", error: "Құпиясөздің қауіпсіздігін тексеру уақытша қолжетімсіз. Кейінірек қайта көріңіз." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    if (breachedPassword.status === "pwned") {
+      return NextResponse.json(
+        { field: "password", error: "Бұл құпиясөз бұрын деректер таралымдарында кездескен. Басқа құпиясөз таңдаңыз." },
         { status: 400 },
       );
     }
