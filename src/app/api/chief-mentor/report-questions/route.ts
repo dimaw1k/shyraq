@@ -21,10 +21,19 @@ function parseSortOrder(value: unknown): number | undefined {
   return value;
 }
 
-async function readLimitedBody(request: Request) {
+type ParsedBodyResult =
+  | { ok: true; body: Record<string, unknown> }
+  | { ok: false; response: NextResponse };
+
+type MutationAuthorizationResult =
+  | { ok: true; profile: Awaited<ReturnType<typeof getAuthenticatedStaff>>["profile"] }
+  | { ok: false; response: NextResponse };
+
+async function readLimitedBody(request: Request): Promise<ParsedBodyResult> {
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return {
+      ok: false,
       response: NextResponse.json(
         { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Есеп сұрағының деректері дұрыс емес." },
         { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
@@ -32,19 +41,19 @@ async function readLimitedBody(request: Request) {
     };
   }
   if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
-    return { response: NextResponse.json({ error: "Есеп сұрағының деректері дұрыс емес." }, { status: 400 }) };
+    return { ok: false, response: NextResponse.json({ error: "Есеп сұрағының деректері дұрыс емес." }, { status: 400 }) };
   }
-  return { body: parsedBody.value as Record<string, unknown> };
+  return { ok: true, body: parsedBody.value as Record<string, unknown> };
 }
 
-async function authorizeMutation() {
+async function authorizeMutation(): Promise<MutationAuthorizationResult> {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const rateLimit = await consumeRateLimit("chief-mentor:report-question-write", profile.id, 30, 600, 300);
-  if (!rateLimit.available) return { response: rateLimitUnavailableResponse() };
+  if (!rateLimit.available) return { ok: false, response: rateLimitUnavailableResponse() };
   if (!rateLimit.allowed) {
-    return { response: rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп сұрақтарын өзгерту әрекеттері тым жиі орындалды.") };
+    return { ok: false, response: rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп сұрақтарын өзгерту әрекеттері тым жиі орындалды.") };
   }
-  return { profile };
+  return { ok: true, profile };
 }
 
 export async function GET() {
@@ -61,11 +70,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const authorization = await authorizeMutation();
-  if (authorization.response) return authorization.response;
+  if (!authorization.ok) return authorization.response;
   const { profile } = authorization;
 
   const parsed = await readLimitedBody(request);
-  if (parsed.response) return parsed.response;
+  if (!parsed.ok) return parsed.response;
   const body = parsed.body;
 
   const question = typeof body.question === "string" ? body.question.trim() : "";
@@ -131,11 +140,11 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const authorization = await authorizeMutation();
-  if (authorization.response) return authorization.response;
+  if (!authorization.ok) return authorization.response;
   const { profile } = authorization;
 
   const parsed = await readLimitedBody(request);
-  if (parsed.response) return parsed.response;
+  if (!parsed.ok) return parsed.response;
   const body = parsed.body;
   const id = typeof body.id === "string" ? body.id : "";
   if (!UUID_RE.test(id)) return NextResponse.json({ error: "Question ID дұрыс емес." }, { status: 400 });
@@ -193,7 +202,7 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   const authorization = await authorizeMutation();
-  if (authorization.response) return authorization.response;
+  if (!authorization.ok) return authorization.response;
   const { profile } = authorization;
   const id = new URL(request.url).searchParams.get("id") ?? "";
   if (!UUID_RE.test(id)) return NextResponse.json({ error: "Question ID дұрыс емес." }, { status: 400 });
