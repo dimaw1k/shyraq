@@ -11,9 +11,6 @@ import {
 } from "@/lib/security/rate-limit";
 
 const MAX_WATCH_RANGES_PER_REQUEST = 512;
-// A fixed total head start accommodates the first client sync, but must not reset
-// on every request; otherwise callers can earn the tolerance repeatedly by spamming.
-const INITIAL_PLAYBACK_ALLOWANCE_SECONDS = 45;
 
 async function getAccessibleLesson(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, lessonId: string, userId: string) {
   const [{ data: lesson }, { data: membership }] = await Promise.all([
@@ -156,22 +153,97 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     );
   }
 
-  // Ignore stored ranges from an older video/duration/watch threshold. A
-  // concurrent lesson edit may reset the row while this request is in flight;
-  // the snapshot is also checked by the test-submission RPC before accepting an attempt.
-  const existing = storedProgress &&
-    storedProgress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
-    Number(storedProgress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
-    Number(storedProgress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent)
-      ? storedProgress
-      : null;
-
-  const rawRanges: unknown[] = Array.isArray(bodyRecord.ranges)
-    ? ((body as Record<string, unknown>).ranges as unknown[])
-    : [];
+  const rawRanges: unknown[] = Array.isArray(bodyRecord.ranges) ? bodyRecord.ranges as unknown[] : [];
   if (rawRanges.length > MAX_WATCH_RANGES_PER_REQUEST) {
     return NextResponse.json({ error: "Too many watch ranges in one update." }, { status: 413 });
   }
+
+  // A session start stores a server timestamp before any watch ranges are accepted.
+  // This prevents the old 45-second first-request allowance from unlocking a
+  // short video in one fabricated progress update.
+  const existing = storedProgress &&
+    storedProgress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
+    Number(storedProgress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
+    Number(storedProgress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent) &&
+    Number.isFinite(Date.parse(storedProgress.last_watched_at ?? ""))
+      ? storedProgress
+      : null;
+
+  if (bodyRecord.action === "start") {
+    if (rawRanges.length > 0) {
+      return NextResponse.json({ error: "Progress session start cannot include watch ranges." }, { status: 400 });
+    }
+    if (existing?.test_unlocked) return NextResponse.json({ progress: existing });
+
+    const startedAt = new Date().toISOString();
+    const admin = createAdminSupabaseClient();
+
+    if (existing) {
+      // Do not let time spent away from the lesson count as playback. Rebase
+      // the elapsed-time check whenever a student resumes unfinished progress.
+      const { data: progress, error } = await admin
+        .from("video_progress")
+        .update({
+          last_watched_at: startedAt,
+          updated_at: startedAt,
+        })
+        .eq("id", existing.id)
+        .eq("kinescope_video_id_snapshot", lesson.kinescope_video_id)
+        .eq("duration_seconds_snapshot", lesson.duration_seconds)
+        .eq("required_watch_percent_snapshot", lesson.required_watch_percent)
+        .select("*")
+        .maybeSingle();
+
+      if (error) {
+        console.error("[lesson-progress] session resume failed", { code: error.code });
+        return NextResponse.json({ error: "Progress session could not be resumed." }, { status: 500 });
+      }
+      if (!progress) {
+        return NextResponse.json(
+          { error: "The lesson changed. Reload before continuing playback." },
+          { status: 409, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+      return NextResponse.json({ progress });
+    }
+
+    const { data: progress, error } = await admin
+      .from("video_progress")
+      .upsert({
+        lesson_id: lessonId,
+        student_id: user.id,
+        kinescope_video_id_snapshot: lesson.kinescope_video_id,
+        duration_seconds_snapshot: lesson.duration_seconds,
+        required_watch_percent_snapshot: lesson.required_watch_percent,
+        watched_seconds: 0,
+        watched_percent: 0,
+        maximum_position_seconds: 0,
+        watched_ranges: [],
+        completed: false,
+        test_unlocked: false,
+        first_started_at: startedAt,
+        last_watched_at: startedAt,
+      }, { onConflict: "lesson_id,student_id" })
+      .select("*")
+      .single();
+
+    if (error || !progress) {
+      console.error("[lesson-progress] session start failed", { code: error?.code ?? "NO_ROW" });
+      return NextResponse.json({ error: "Progress session could not be started." }, { status: 500 });
+    }
+    return NextResponse.json({ progress });
+  }
+
+  if (bodyRecord.action !== "ranges") {
+    return NextResponse.json({ error: "Progress action is invalid." }, { status: 400 });
+  }
+  if (!existing) {
+    return NextResponse.json(
+      { error: "Start the current lesson playback before syncing watch ranges." },
+      { status: 409, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const incoming: TimeRange[] = [];
 
   for (const value of rawRanges) {
@@ -190,10 +262,6 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     // seconds during normal uninterrupted playback. The cumulative server-side
     // elapsed-time check below prevents fabricated progress from unlocking tests.
     if (range.end > range.start) incoming.push(range);
-  }
-
-  if (!incoming.length && !existing) {
-    return NextResponse.json({ error: "No valid watch ranges supplied" }, { status: 400 });
   }
 
   const storedRanges: TimeRange[] = Array.isArray(existing?.watched_ranges)
@@ -222,20 +290,15 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     (watchedPercent(storedRanges, lesson.duration_seconds) / 100) * lesson.duration_seconds,
   );
   const nowMs = Date.now();
-  const lastWatchedMs = existing?.last_watched_at
-    ? Date.parse(existing.last_watched_at)
-    : NaN;
+  const lastWatchedMs = Date.parse(existing.last_watched_at);
   const newCoverageSeconds = Math.max(0, watchedSeconds - previousWatchedSeconds);
-  // On the first sync allow up to 45 seconds to account for the player starting
-  // before its first heartbeat. On subsequent syncs, credit only the newly watched
-  // delta allowed by elapsed server time, capped at 30 seconds. The cap prevents
-  // a long idle gap from becoming a free test-unlock allowance.
-  const elapsedAllowance = Number.isFinite(lastWatchedMs)
-    // Round up only to the next second to avoid rejecting normal player timer
-    // quantization. No fixed per-request bonus is added, so rapid replay cannot
-    // multiply a five-second grace period.
-    ? Math.min(30, Math.ceil(Math.max(0, (nowMs - lastWatchedMs) / 1000)))
-    : INITIAL_PLAYBACK_ALLOWANCE_SECONDS;
+  // Credit only newly covered seconds permitted by elapsed server time, capped
+  // at 30 seconds. There is no first-request head start: the start action creates
+  // a server timestamp before any watch ranges can be accepted.
+  const elapsedAllowance = Math.min(
+    30,
+    Math.ceil(Math.max(0, (nowMs - lastWatchedMs) / 1000)),
+  );
 
   if (newCoverageSeconds > elapsedAllowance) {
     return NextResponse.json({ error: "Progress update exceeds the server-side playback allowance" }, { status: 409 });
@@ -255,7 +318,7 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     watched_ranges: ranges,
     completed: percent >= 100,
     test_unlocked: unlocked,
-    first_started_at: existing?.first_started_at ?? new Date(nowMs).toISOString(),
+    first_started_at: existing.first_started_at ?? new Date(nowMs).toISOString(),
     last_watched_at: new Date(nowMs).toISOString(),
   };
 

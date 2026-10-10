@@ -82,6 +82,8 @@ export function KinescopeLessonPlayer({
   const youtubePlayerRef=useRef<YouTubePlayer|null>(null);
   const youtubePollRef=useRef<number|null>(null);
   const gateConfigRef = useRef({ videoId, durationSeconds, requiredWatchPercent });
+  const progressSessionReadyRef = useRef(false);
+  const progressSessionPromiseRef = useRef<Promise<boolean> | null>(null);
   const youtubeId=getYouTubeId(videoId);
   const shouldTrackProgress=trackProgress;
 
@@ -99,6 +101,8 @@ export function KinescopeLessonPlayer({
       // Never carry old-player ranges or an old unlocked state into the new lesson version.
       rangesRef.current = [];
       lastTime.current = null;
+      progressSessionReadyRef.current = false;
+      progressSessionPromiseRef.current = null;
       setRanges([]);
       setPercent(0);
     }
@@ -106,33 +110,79 @@ export function KinescopeLessonPlayer({
     gateConfigRef.current = { videoId, durationSeconds, requiredWatchPercent };
   }, [videoId, durationSeconds, requiredWatchPercent]);
 
-  const persist=useCallback(async(nextRanges:TimeRange[])=>{
-    if(!nextRanges.length)return;
-    setSaving(true);
-    try{
-      const response=await fetch("/api/lessons/"+lessonId+"/progress",{
-        method:"POST",
-        keepalive:true,
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({videoId,ranges:nextRanges}),
-      });
-      if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
-    }finally{setSaving(false);}
-  },[lessonId,videoId]);
+  const startProgressSession = useCallback(async () => {
+    if (!shouldTrackProgress) return false;
+    if (progressSessionReadyRef.current) return true;
+    if (progressSessionPromiseRef.current) return progressSessionPromiseRef.current;
 
-  const handleTimeUpdate=useCallback((event:{currentTime:number})=>{
-    if(!shouldTrackProgress)return;
-    const current=Math.max(0,Math.min(durationSeconds,event.currentTime));
-    const previous=lastTime.current;
-    lastTime.current=current;
-    if(previous===null)return;
-    const next=previous<=current&&current-previous<=4
-      ? mergeTimeRanges([...rangesRef.current,{start:previous,end:current}])
+    const requestedConfig = { videoId, durationSeconds, requiredWatchPercent };
+    const pending = (async () => {
+      try {
+        const response = await fetch("/api/lessons/" + lessonId + "/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "start", videoId, ranges: [] }),
+        });
+        const currentConfig = gateConfigRef.current;
+        const configStillCurrent =
+          currentConfig.videoId === requestedConfig.videoId &&
+          currentConfig.durationSeconds === requestedConfig.durationSeconds &&
+          currentConfig.requiredWatchPercent === requestedConfig.requiredWatchPercent;
+        if (response.ok && configStillCurrent) {
+          progressSessionReadyRef.current = true;
+          return true;
+        }
+      } catch {
+        // The next playback heartbeat will retry starting the session.
+      }
+      return false;
+    })();
+
+    progressSessionPromiseRef.current = pending;
+    const ready = await pending;
+    if (progressSessionPromiseRef.current === pending) progressSessionPromiseRef.current = null;
+    return ready;
+  }, [lessonId, videoId, durationSeconds, requiredWatchPercent, shouldTrackProgress]);
+
+  const persist = useCallback(async (nextRanges: TimeRange[]) => {
+    if (!shouldTrackProgress || !nextRanges.length) return;
+    setSaving(true);
+    try {
+      const sessionReady = await startProgressSession();
+      if (!sessionReady) return;
+
+      const response = await fetch("/api/lessons/" + lessonId + "/progress", {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ranges", videoId, ranges: nextRanges }),
+      });
+      if (!response.ok) {
+        console.error("[lesson-progress] sync rejected", { status: response.status });
+      }
+    } catch {
+      console.error("[lesson-progress] sync failed");
+    } finally {
+      setSaving(false);
+    }
+  }, [lessonId, videoId, shouldTrackProgress, startProgressSession]);
+
+  const handleTimeUpdate = useCallback((event: { currentTime: number }) => {
+    if (!shouldTrackProgress) return;
+    const current = Math.max(0, Math.min(durationSeconds, event.currentTime));
+    const previous = lastTime.current;
+    lastTime.current = current;
+    if (previous === null) {
+      void startProgressSession();
+      return;
+    }
+    const next = previous <= current && current - previous <= 4
+      ? mergeTimeRanges([...rangesRef.current, { start: previous, end: current }])
       : rangesRef.current;
-    rangesRef.current=next;
+    rangesRef.current = next;
     setRanges(next);
-    setPercent(watchedPercent(next,durationSeconds));
-  },[durationSeconds,shouldTrackProgress]);
+    setPercent(watchedPercent(next, durationSeconds));
+  }, [durationSeconds, shouldTrackProgress, startProgressSession]);
 
   useEffect(()=>{
     if(!youtubeId || !youtubeContainerRef.current || !shouldTrackProgress)return;
@@ -159,7 +209,7 @@ export function KinescopeLessonPlayer({
         events:{
           onReady:()=>{
             if(disposed)return;
-            startPolling();
+            // Wait for the first PLAYING event before opening a server progress session.
           },
           onStateChange:(event)=>{
             // YouTube PLAYING=1. Stop polling while paused/buffered/ended.
