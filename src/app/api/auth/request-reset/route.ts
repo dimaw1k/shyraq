@@ -58,8 +58,12 @@ export async function POST(request: Request) {
     const { url, publishableKey } = getSupabaseConfig();
     const supabase = createClient(url, publishableKey, {
       auth: {
+        // The email callback is handled in the browser from the one-time recovery
+        // token fragment. Do not create an unpersisted PKCE verifier on the server.
+        flowType: "implicit",
         autoRefreshToken: false,
         persistSession: false,
+        detectSessionInUrl: false,
       },
     });
 
