@@ -27,6 +27,7 @@ DECLARE
 BEGIN
   IF p_student_id IS NULL
      OR p_report_date IS NULL
+     OR p_report_type IS NULL
      OR p_report_type NOT IN ('MORNING', 'EVENING')
      OR p_marathon_day IS NOT NULL AND (p_marathon_day < 1 OR p_marathon_day > 21)
      OR p_study_minutes IS NULL OR p_study_minutes < 0 OR p_study_minutes > 1440
