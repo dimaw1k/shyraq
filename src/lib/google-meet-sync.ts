@@ -4,7 +4,7 @@ import { getMeetSpace, listConferences, listParticipants, listParticipantSession
 import { recordAttendanceScore } from "@/lib/attendance-scoring";
 
 function normalizeName(value: string) {
-  return value.normalize("NFKC").toLocaleLowerCase("kk-KZ").replace(/[\s_]+/gu, " ").trim();
+  return value.normalize("NFKC").toLocaleLowerCase("kk-KZ").replace(/[\\s_]+/gu, " ").trim();
 }
 
 function conferenceDurationSeconds(start?: string, end?: string) {
@@ -19,7 +19,7 @@ function meetingCodeFromUrl(meetingUrl?: string | null) {
   try {
     const url = new URL(meetingUrl);
     if (url.hostname !== "meet.google.com") return null;
-    const code = url.pathname.replace(/^\//, "").split("/")[0];
+    const code = url.pathname.replace(/^\\//, "").split("/")[0];
     return /^[a-z0-9-]{6,}$/i.test(code) ? code : null;
   } catch {
     return null;
@@ -53,33 +53,31 @@ export type MeetSyncResult = {
   endTime: string;
 };
 
-export async function syncTeamMeet(teamId: string, startTime?: string, endTime?: string): Promise<MeetSyncResult> {
-  const admin = createAdminSupabaseClient();
+type MeetSyncCounters = Omit<MeetSyncResult, "teamId" | "startTime" | "endTime">;
+type MeetSpace = {
+  id: string;
+  team_id: string;
+  external_space_id: string;
+  meeting_url: string | null;
+  active: boolean;
+  study_time: string;
+};
+type AdminClient = ReturnType<typeof createAdminSupabaseClient>;
 
-  const { data: team, error: teamError } = await admin
-    .from("teams")
-    .select("id,name,mentor_id,status")
-    .eq("id", teamId)
-    .eq("status", "ACTIVE")
-    .maybeSingle();
+async function syncSingleSpace(
+  admin: AdminClient,
+  teamId: string,
+  space: MeetSpace,
+  accessToken: string,
+  rangeStart: string,
+  rangeEnd: string,
+): Promise<MeetSyncCounters> {
+  let importedConferences = 0;
+  let importedParticipants = 0;
+  let matchedParticipants = 0;
+  let unmatchedParticipants = 0;
+  let attendanceRows = 0;
 
-  if (teamError || !team) throw new Error("Team not found or inactive.");
-  if (!team.mentor_id) throw new Error("Team mentor is not assigned.");
-
-  const { data: space, error: spaceError } = await admin
-    .from("meet_spaces")
-    .select("id,team_id,external_space_id,meeting_url,active")
-    .eq("team_id", teamId)
-    .eq("active", true)
-    .maybeSingle();
-
-  if (spaceError || !space) throw new Error("Meet space is not connected to this team.");
-
-  const now = new Date();
-  const rangeStart = startTime ?? new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-  const rangeEnd = endTime ?? now.toISOString();
-
-  const accessToken = await getGoogleAccessToken(team.mentor_id);
   const resolvedSpaceName = await resolveSpaceName(accessToken, space.external_space_id, space.meeting_url);
 
   if (resolvedSpaceName !== space.external_space_id) {
@@ -246,13 +244,78 @@ export async function syncTeamMeet(teamId: string, startTime?: string, endTime?:
   }
 
   return {
-    teamId,
     importedConferences,
     importedParticipants,
     matchedParticipants,
     unmatchedParticipants,
     attendanceRows,
-    startTime: rangeStart,
-    endTime: rangeEnd,
   };
+}
+
+export async function syncTeamMeet(
+  teamId: string,
+  startTime?: string,
+  endTime?: string,
+): Promise<MeetSyncResult> {
+  const admin = createAdminSupabaseClient();
+
+  const { data: team, error: teamError } = await admin
+    .from("teams")
+    .select("id,name,mentor_id,status")
+    .eq("id", teamId)
+    .eq("status", "ACTIVE")
+    .maybeSingle();
+
+  if (teamError || !team) throw new Error("Team not found or inactive.");
+  if (!team.mentor_id) throw new Error("Team mentor is not assigned.");
+
+  // A team can have separate active MORNING, EVENING and EXTRA meeting spaces.
+  // maybeSingle() silently made all syncs fail when more than one was configured.
+  const { data: spaces, error: spacesError } = await admin
+    .from("meet_spaces")
+    .select("id,team_id,external_space_id,meeting_url,active,study_time")
+    .eq("team_id", teamId)
+    .eq("active", true)
+    .order("study_time", { ascending: true });
+
+  if (spacesError) throw new Error("Unable to load Meet spaces for this team.");
+  if (!spaces?.length) throw new Error("Meet space is not connected to this team.");
+
+  const now = new Date();
+  const rangeStart = startTime ?? new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  const rangeEnd = endTime ?? now.toISOString();
+  const accessToken = await getGoogleAccessToken(team.mentor_id);
+
+  const totals: MeetSyncCounters = {
+    importedConferences: 0,
+    importedParticipants: 0,
+    matchedParticipants: 0,
+    unmatchedParticipants: 0,
+    attendanceRows: 0,
+  };
+
+  const failedSpaces: string[] = [];
+  for (const space of spaces as MeetSpace[]) {
+    try {
+      const counters = await syncSingleSpace(admin, teamId, space, accessToken, rangeStart, rangeEnd);
+      totals.importedConferences += counters.importedConferences;
+      totals.importedParticipants += counters.importedParticipants;
+      totals.matchedParticipants += counters.matchedParticipants;
+      totals.unmatchedParticipants += counters.unmatchedParticipants;
+      totals.attendanceRows += counters.attendanceRows;
+    } catch (error) {
+      console.error("[google-meet-sync] space sync failed", {
+        teamId,
+        studyTime: space.study_time,
+        message: error instanceof Error ? error.message : "unknown",
+      });
+      failedSpaces.push(space.study_time);
+    }
+  }
+
+  if (failedSpaces.length) {
+    throw new Error("Meet sync failed for study times: " + failedSpaces.join(", "));
+  }
+
+  return { teamId, ...totals, startTime: rangeStart, endTime: rangeEnd };
 }
