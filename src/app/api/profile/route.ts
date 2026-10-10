@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { displayKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 async function getContext(userId: string) {
   const admin = createAdminSupabaseClient();
@@ -163,6 +164,23 @@ export async function PATCH(request: Request) {
       return NextResponse.json(
         { error: "Телефонды немесе құпиясөзді өзгерту үшін қазіргі құпиясөзді енгізіңіз." },
         { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    // Phone/password changes verify the current password. Rate-limit this
+    // sensitive path separately so repeated guesses cannot hammer the auth API.
+    const sensitiveUpdateLimit = await consumeRateLimit(
+      "profile:sensitive-update",
+      user.id,
+      5,
+      15 * 60,
+      15 * 60,
+    );
+    if (!sensitiveUpdateLimit.available) return rateLimitUnavailableResponse();
+    if (!sensitiveUpdateLimit.allowed) {
+      return rateLimitResponse(
+        sensitiveUpdateLimit.retryAfterSeconds,
+        "Қауіпсіздік үшін профильді қорғау әрекеттері уақытша шектелді. Кейінірек қайталап көріңіз.",
       );
     }
 
