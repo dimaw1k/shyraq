@@ -3,6 +3,7 @@ import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -42,6 +43,12 @@ export async function POST(request: Request) {
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Active student access required" }, { status: 403 });
   }
+  const rateLimit = await consumeRateLimit("student:file-upload", user.id, 20, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Файлдар тым жиі жүктелді. Біраздан кейін қайта көріңіз.");
+  }
+
 
   const contentLength = request.headers.get("content-length");
   if (

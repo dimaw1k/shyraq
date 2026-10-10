@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request, context: { params: Promise<{ taskId: string }> }) {
   const supabase = await createServerSupabaseClient();
@@ -11,6 +12,11 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   const { data: profile } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (profile?.role !== "STUDENT" || profile.status !== "ACTIVE") {
     return NextResponse.json({ error: "Student access required" }, { status: 403 });
+  }
+  const rateLimit = await consumeRateLimit("student:task-submission", user.id, 30, 10 * 60, 10 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Тапсырма жауаптары тым жиі жаңартылды. Біраздан кейін қайталап көріңіз.");
   }
 
   const { taskId } = await context.params;
