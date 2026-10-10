@@ -6,3 +6,8 @@ drop table if exists public.mentor_student_messages;
 -- Support intake remains available, but staff replies/notes are no longer sent to students.
 alter table if exists public.support_tickets
   drop column if exists staff_note;
+
+-- Remove the unused student notification toggle and reminder schedule.
+alter table if exists public.student_settings
+  drop column if exists notifications_enabled,
+  drop column if exists reminders;
