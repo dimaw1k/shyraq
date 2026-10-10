@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
@@ -27,11 +28,21 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const { profile } = await getAuthenticatedStaff("LEADER");
-  const body = await request.json().catch(() => null);
-  const id = String(body?.id ?? "");
-  if (!id) return NextResponse.json({ error: "Ticket ID қажет." }, { status: 400 });
-  const status = body?.status;
-  if (!["NEW", "IN_PROGRESS", "RESOLVED"].includes(status)) return NextResponse.json({ error: "Жарамсыз status." }, { status: 400 });
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Support деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Support деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
+  const id = typeof body.id === "string" ? body.id.trim() : "";
+  if (!id || id.length > 80) return NextResponse.json({ error: "Ticket ID дұрыс емес." }, { status: 400 });
+  const status = body.status;
+  if (typeof status !== "string" || !["NEW", "IN_PROGRESS", "RESOLVED"].includes(status)) return NextResponse.json({ error: "Жарамсыз status." }, { status: 400 });
 
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin.from("support_tickets").update({
