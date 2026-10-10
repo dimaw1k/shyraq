@@ -72,15 +72,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Тапсырма сипаттамасы 1–5000 таңба болуы керек." }, { status: 400 });
   }
 
-  const instructions =
-    body.instructions === undefined || body.instructions === null
-      ? null
-      : typeof body.instructions === "string" && body.instructions.trim().length <= MAX_TASK_INSTRUCTIONS_LENGTH
-        ? body.instructions.trim() || null
-        : "__INVALID_INSTRUCTIONS__";
-  if (instructions === "__INVALID_INSTRUCTIONS__") {
+  if (body.instructions !== undefined && body.instructions !== null && (
+    typeof body.instructions !== "string" || body.instructions.trim().length > MAX_TASK_INSTRUCTIONS_LENGTH
+  )) {
     return NextResponse.json({ error: "Нұсқаулық 5000 таңбадан аспауы керек." }, { status: 400 });
   }
+  const instructions = typeof body.instructions === "string" ? body.instructions.trim() || null : null;
 
   const marathonDay =
     body.marathonDay === null || body.marathonDay === undefined || body.marathonDay === ""
