@@ -78,6 +78,16 @@ export async function POST(request: Request) {
         status: error.status,
         message: error.message,
       });
+
+      // Keep the message generic so the response does not reveal whether an
+      // email is registered, but don't claim a message was queued on a service error.
+      return NextResponse.json(
+        { error: "Қалпына келтіру хатын қазір жіберу мүмкін болмады. Кейінірек қайталап көріңіз." },
+        {
+          status: 503,
+          headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
+        },
+      );
     }
 
     return NextResponse.json(
@@ -86,6 +96,7 @@ export async function POST(request: Request) {
         status: 200,
         headers: {
           "Cache-Control": "no-store",
+          Pragma: "no-cache",
         },
       },
     );
