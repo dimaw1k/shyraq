@@ -74,6 +74,97 @@ export async function POST(request: Request) {
     );
   }
 
+  // "All active teams" means one Google Meet room shared by every selected
+  // team, not one new room for every team.
+  if (allTeams) {
+    try {
+      const accessToken = await getGoogleAccessToken(profile.id);
+      const sharedSpace = await createMeetSpace(accessToken);
+
+      if (!sharedSpace.name || !sharedSpace.meetingUri) {
+        return NextResponse.json(
+          { error: "Google Meet сілтемесін жасау мүмкін болмады." },
+          { status: 502 },
+        );
+      }
+
+      const studyLabel =
+        studyTime === "MORNING"
+          ? "Таңғы Meet"
+          : studyTime === "EVENING"
+            ? "Кешкі Meet"
+            : "Қосымша Meet";
+      const sharedDisplayName = displayName || "Барлық команда — " + studyLabel;
+      const now = new Date().toISOString();
+      const payloads = selectedTeams.map((team) => ({
+        team_id: team.id,
+        external_space_id: sharedSpace.name!,
+        meeting_url: sharedSpace.meetingUri!,
+        display_name: sharedDisplayName,
+        study_time: studyTime,
+        google_user_id: profile.id,
+        active: true,
+        updated_at: now,
+      }));
+
+      // One database statement updates/inserts each team's mapping to the same
+      // Google Meet space. The migration removes external_space_id uniqueness,
+      // while (team_id, study_time) remains unique.
+      const { data: savedSpaces, error: saveError } = await admin
+        .from("meet_spaces")
+        .upsert(payloads, { onConflict: "team_id,study_time" })
+        .select("*");
+
+      if (saveError || !savedSpaces || savedSpaces.length !== selectedTeams.length) {
+        console.error("[meet/space] shared Meet mappings could not be saved", {
+          code: saveError?.code ?? null,
+        });
+        return NextResponse.json(
+          { error: "Ортақ Meet сілтемесін барлық командаға сақтау сәтсіз аяқталды." },
+          { status: 500 },
+        );
+      }
+
+      await admin.from("audit_logs").insert(
+        savedSpaces.map((savedSpace) => ({
+          actor_id: profile.id,
+          actor_role: profile.role,
+          action: "GOOGLE_MEET_SPACE_CREATED",
+          entity_type: "MEET_SPACE",
+          entity_id: savedSpace.id,
+          metadata: {
+            teamId: savedSpace.team_id,
+            externalSpaceId: sharedSpace.name,
+            meetingUri: sharedSpace.meetingUri,
+            studyTime,
+            sharedAcrossTeams: true,
+            sharedTeamCount: savedSpaces.length,
+          },
+        })),
+      );
+
+      return NextResponse.json({
+        ok: true,
+        spaces: savedSpaces,
+        count: savedSpaces.length,
+        createdCount: 1,
+        reusedCount: 0,
+        sharedAcrossTeams: true,
+        meetingUrl: sharedSpace.meetingUri,
+      });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Ортақ Google Meet кеңістігін жасау сәтсіз аяқталды.",
+        },
+        { status: 500 },
+      );
+    }
+  }
+
   try {
     const accessToken = await getGoogleAccessToken(profile.id);
     const spaces = [];
