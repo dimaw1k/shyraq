@@ -12,6 +12,46 @@ import { createRecoveryGrant } from "@/lib/security/recovery-grant";
 
 const RECOVERY_COOKIE = "shyraq_recovery_grant";
 
+function isRecentRecoveryToken(accessToken: string) {
+  try {
+    const encodedClaims = accessToken.split(".")[1];
+    if (!encodedClaims) return false;
+
+    const claims = JSON.parse(
+      Buffer.from(encodedClaims, "base64url").toString("utf8"),
+    ) as {
+      amr?: unknown;
+      iat?: unknown;
+    };
+
+    const hasRecoveryMethod =
+      Array.isArray(claims.amr) &&
+      claims.amr.some((entry) => {
+        if (entry === "recovery") return true;
+        return (
+          typeof entry === "object" &&
+          entry !== null &&
+          "method" in entry &&
+          (entry as { method?: unknown }).method === "recovery"
+        );
+      });
+
+    const now = Math.floor(Date.now() / 1000);
+    const issuedAt = typeof claims.iat === "number" ? claims.iat : Number.NaN;
+
+    // Supabase validates the JWT signature in getUser(); this additionally
+    // rejects ordinary login tokens and stale recovery sessions.
+    return (
+      hasRecoveryMethod &&
+      Number.isFinite(issuedAt) &&
+      issuedAt <= now + 60 &&
+      issuedAt >= now - 15 * 60
+    );
+  } catch {
+    return false;
+  }
+}
+
 function response(
   body: Record<string, unknown>,
   status = 200,
@@ -88,6 +128,13 @@ export async function POST(request: Request) {
     if (error || !data.user?.id || !data.user.email) {
       return response(
         { error: "Қалпына келтіру сілтемесі жарамсыз немесе мерзімі өткен." },
+        401,
+      );
+    }
+
+    if (!isRecentRecoveryToken(accessToken)) {
+      return response(
+        { error: "Бұл сілтеме құпиясөзді қалпына келтіруге арналмаған немесе мерзімі өткен." },
         401,
       );
     }
