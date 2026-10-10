@@ -107,6 +107,7 @@ export async function POST(request: Request) {
     team_id: teamId,
     study_time: studyTime,
     external_space_id: canonical,
+    google_user_id: user.id,
     meeting_url: meetingUri,
     display_name: displayName || null,
     active: true,
