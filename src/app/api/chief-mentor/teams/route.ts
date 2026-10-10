@@ -11,8 +11,8 @@ export async function POST(request: Request) {
 
   const mentorId = typeof body.mentorId === "string" && body.mentorId ? body.mentorId : null;
   if (mentorId) {
-    const { data: mentor } = await supabase.from("profiles").select("id,role").eq("id", mentorId).maybeSingle();
-    if (!mentor || mentor.role !== "MENTOR") {
+    const { data: mentor } = await supabase.from("profiles").select("id,role,status").eq("id", mentorId).maybeSingle();
+    if (!mentor || mentor.role !== "MENTOR" || mentor.status !== "ACTIVE") {
       return NextResponse.json({ error: "Командаға тек менторды бекітуге болады." }, { status: 400 });
     }
   }

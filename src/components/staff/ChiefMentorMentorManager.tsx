@@ -322,7 +322,7 @@ export function ChiefMentorMentorManager({
                     <div className="mt-3 rounded-[11px] bg-[#EDF8F2] px-3 py-2.5 text-[10px] font-extrabold text-[#2E7E58]">
                       Бұл қолданушы қазірдің өзінде ментор.
                     </div>
-                  ) : (
+                  ) : lookup.role === "STUDENT" ? (
                     <button
                       type="button"
                       disabled={saving}
@@ -336,6 +336,10 @@ export function ChiefMentorMentorManager({
                       )}
                       Ментор ретінде қосу
                     </button>
+                  ) : (
+                    <div className="mt-3 rounded-[11px] bg-[#FFF1E2] px-3 py-2.5 text-[10px] font-extrabold text-[#8A4B1F]">
+                      Бұл рөлдегі аккаунтты ментор ретінде ауыстыруға болмайды.
+                    </div>
                   )}
                 </div>
               ) : null}
