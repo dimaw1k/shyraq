@@ -130,7 +130,9 @@ export default async function ChiefMentorMeetPage({
   const rows = matchingSpaces.map((space) => {
     const conference = latestConferenceBySpace.get(space.external_space_id);
     const conferenceRows = conference
-      ? attendanceByConference.get(conference.external_conference_id) ?? []
+      ? (attendanceByConference.get(conference.external_conference_id) ?? []).filter(
+          (row) => row.team_id === space.team_id,
+        )
       : [];
     const valid = conferenceRows.filter((row) => row.student_id);
     const attended = valid.filter(
