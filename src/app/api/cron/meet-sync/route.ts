@@ -16,17 +16,26 @@ export async function GET(request: Request) {
   }
 
   const admin = createAdminSupabaseClient();
-  const [{ data: teams }, { data: connections }] = await Promise.all([
+  const [{ data: teams, error: teamsError }, { data: spaces, error: spacesError }] = await Promise.all([
     admin
       .from("teams")
       .select("id,name,mentor_id")
-      .eq("status", "ACTIVE")
-      .not("mentor_id", "is", null),
-    admin.from("google_connections").select("user_id"),
+      .eq("status", "ACTIVE"),
+    admin
+      .from("meet_spaces")
+      .select("team_id")
+      .eq("active", true),
   ]);
 
-  const connected = new Set((connections ?? []).map((item) => item.user_id));
-  const eligibleTeams = (teams ?? []).filter((team) => team.mentor_id && connected.has(team.mentor_id));
+  if (teamsError || spacesError) {
+    return NextResponse.json({ error: "Meet синхрондауы үшін командалар мен кеңістіктерді жүктеу сәтсіз аяқталды." }, { status: 500 });
+  }
+
+  // Space ownership can belong to a Chief Mentor or the team's own mentor.
+  // The sync library resolves the account stored on each space, including
+  // legacy rows whose Google owner has not yet been confirmed.
+  const teamsWithActiveSpaces = new Set((spaces ?? []).map((space) => space.team_id));
+  const eligibleTeams = (teams ?? []).filter((team) => teamsWithActiveSpaces.has(team.id));
 
   const startTime = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
   const endTime = new Date().toISOString();
