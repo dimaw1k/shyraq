@@ -283,7 +283,7 @@ export default function ResetPasswordPage() {
                   />
                   <input
                     required
-                    minLength={8}
+                    minLength={12}
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     value={password}
@@ -311,7 +311,7 @@ export default function ResetPasswordPage() {
                   />
                   <input
                     required
-                    minLength={8}
+                    minLength={12}
                     type={showConfirm ? "text" : "password"}
                     autoComplete="new-password"
                     value={confirm}
