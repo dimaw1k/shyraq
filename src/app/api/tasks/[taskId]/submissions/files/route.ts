@@ -56,29 +56,76 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
   if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
   if (submission.status !== "DRAFT") return NextResponse.json({ error: "Файл тек draft кезінде қосылады." }, { status: 409 });
 
-  const { data: task } = await supabase.from("tasks").select("max_files").eq("id", taskId).maybeSingle();
-  const { count } = await supabase.from("submission_files").select("id", { count: "exact", head: true }).eq("submission_id", submissionId);
-  if ((count ?? 0) >= Number(task?.max_files ?? 5)) return NextResponse.json({ error: "Файл лимиті толды." }, { status: 409 });
+  const { data: task, error: taskError } = await supabase
+    .from("tasks")
+    .select("id,max_files,active,starts_at,team_id")
+    .eq("id", taskId)
+    .maybeSingle();
+  if (taskError) return NextResponse.json({ error: "Тапсырманы тексеру сәтсіз аяқталды." }, { status: 500 });
+  if (!task?.active) return NextResponse.json({ error: "Белсенді тапсырма табылмады." }, { status: 404 });
+  if (task.starts_at && Date.parse(task.starts_at) > Date.now()) {
+    return NextResponse.json({ error: "Тапсырма әлі ашылған жоқ." }, { status: 409 });
+  }
+  if (task.team_id) {
+    const { data: membership, error: membershipError } = await supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("student_id", user.id)
+      .eq("team_id", task.team_id)
+      .eq("status", "ACTIVE")
+      .maybeSingle();
+    if (membershipError) return NextResponse.json({ error: "Команданы тексеру сәтсіз аяқталды." }, { status: 500 });
+    if (!membership) return NextResponse.json({ error: "Бұл тапсырма сіздің командаңызға арналмаған." }, { status: 403 });
+  }
+
+  const { count, error: fileCountError } = await supabase
+    .from("submission_files")
+    .select("id", { count: "exact", head: true })
+    .eq("submission_id", submissionId);
+  if (fileCountError) return NextResponse.json({ error: "Файл санын тексеру сәтсіз аяқталды." }, { status: 500 });
+  if ((count ?? 0) >= Number(task.max_files ?? 5)) return NextResponse.json({ error: "Файл лимиті толды." }, { status: 409 });
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100);
   const storagePath = user.id + "/" + submissionId + "/" + crypto.randomUUID() + "-" + safeName;
+  const displayName = file.name.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 255) || "file";
   const admin = createAdminSupabaseClient();
   const buffer = Buffer.from(await file.arrayBuffer());
   const { error: uploadError } = await admin.storage.from("submissions").upload(storagePath, buffer, { contentType: file.type, upsert: false });
   if (uploadError) return NextResponse.json({ error: "File upload failed" }, { status: 400 });
 
-  const { data: record, error: recordError } = await supabase.from("submission_files").insert({
-    submission_id: submissionId,
-    storage_path: storagePath,
-    file_name: file.name,
-    mime_type: file.type,
-    size_bytes: file.size,
-  }).select("*").single();
+  const { data: savedFile, error: recordError } = await admin.rpc("attach_task_submission_file", {
+    p_task_id: taskId,
+    p_submission_id: submissionId,
+    p_student_id: user.id,
+    p_storage_path: storagePath,
+    p_file_name: displayName,
+    p_mime_type: file.type,
+    p_size_bytes: file.size,
+  });
 
   if (recordError) {
     await admin.storage.from("submissions").remove([storagePath]);
-    return NextResponse.json({ error: "File metadata save failed" }, { status: 400 });
+    if (recordError.code === "42501") {
+      return NextResponse.json({ error: "Бұл файл сіздің тапсырмаңызға рұқсат етілмеген." }, { status: 403 });
+    }
+    if (recordError.code === "P0002") {
+      return NextResponse.json({ error: "Тапсырма немесе файл жіберілімі табылмады." }, { status: 404 });
+    }
+    if (recordError.code === "23514" || recordError.code === "55000") {
+      return NextResponse.json({ error: "Файл тек ашық тапсырмаға, лимиттен аспай және жіберілмеген күйде қосылады." }, { status: 409 });
+    }
+    if (recordError.code === "22023") {
+      return NextResponse.json({ error: "Файл деректері дұрыс емес." }, { status: 400 });
+    }
+    console.error("[task-submission-files] metadata insert failed", { code: recordError.code });
+    return NextResponse.json({ error: "Файл деректерін сақтау сәтсіз аяқталды." }, { status: 500 });
   }
 
-  return NextResponse.json({ file: record });
+  const record = Array.isArray(savedFile) ? savedFile[0] : savedFile;
+  if (!record) {
+    await admin.storage.from("submissions").remove([storagePath]);
+    return NextResponse.json({ error: "Файл деректерін растау мүмкін болмады." }, { status: 500 });
+  }
+
+  return NextResponse.json({ file: record }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
