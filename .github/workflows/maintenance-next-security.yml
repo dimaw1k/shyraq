@@ -26,8 +26,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24
-      - name: Update Next.js and matching ESLint config
-        run: npm install --save-exact next@16.4.0 eslint-config-next@16.4.0
+      - name: Update Next.js and use a smaller, unbundled ESLint toolchain
+        run: |
+          npm install --save-exact next@16.4.0
+          npm uninstall eslint-config-next
+          npm install --save-dev --save-exact typescript-eslint@8.71.1 eslint-plugin-react-hooks@7.1.1
       - name: Verify a clean lockfile install
         run: npm ci
       - name: Report high-severity advisories
