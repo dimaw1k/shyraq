@@ -115,9 +115,11 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 
 ## Production deployment
 
-The GitHub repository is associated with the Shyraq Vercel project, but automatic Git deployments are currently disabled in `vercel.json` (`git.deploymentEnabled: false`). A merge to `main` therefore does not prove that the public site is running the latest audited code.
+The GitHub repository is associated with the Shyraq Vercel project. Automatic Git deployments remain disabled in `vercel.json` (`git.deploymentEnabled: false`), so production releases must be initiated deliberately.
 
-At the last Vercel inspection during the 2026-10-10 audit, the latest listed production deployment referenced older commit `ab5dfe9a82ebca9d355456e167b1d7137baebfef`, not the audited `main` head. No manual production frontend deployment was performed as part of this audit. Verify the active production alias and deploy the reviewed commit deliberately after the required authenticated smoke tests.
+On 2026-10-10, production deployment `dpl_2TAgfQFC9tmcfGxtBy4s9ft8eurC` reached `READY` from application commit `fc8c3fa331824085921ab6a815598d927e213654` (`main`, `fix(api): route staff writes through service client`). Vercel assigned the canonical alias `https://shyraq-nu.vercel.app` with no alias error. After deployment, `/api/health` returned HTTP 200 with `{"ok":true}`; the home page, registration page and password-reset page returned HTTP 200, while an unauthenticated `/dashboard` request redirected to `/login`.
+
+These checks confirm deployment health and basic public routing, not all authenticated workflows. Complete the authenticated role-by-role smoke tests and real Google Meet OAuth/attendance sync test before treating the platform as fully production-verified.
 
 The current responsive mobile-web implementation includes the shared mobile app shell, role-aware slide-out navigation, bottom navigation, safe-area handling, mobile spacing, table overflow handling, viewport metadata, and mobile-safe authentication/lesson screens.
 
@@ -147,4 +149,4 @@ For security, enable Supabase Auth leaked-password protection before the product
 
 The application is responsive for phone and tablet viewports without a separate native app. The shared app shell now provides a compact mobile header, slide-out role-aware navigation, five-item bottom navigation, safe-area support for iOS, mobile-friendly page spacing and horizontally scrollable dense tables. Authentication, lessons and lesson detail screens also use mobile-specific spacing and viewport metadata.
 
-<!-- Vercel production deployment sync: 2026-10-05 -->
+<!-- Vercel production deployment sync: 2026-10-10; deployment dpl_2TAgfQFC9tmcfGxtBy4s9ft8eurC from fc8c3fa331824085921ab6a815598d927e213654 -->
