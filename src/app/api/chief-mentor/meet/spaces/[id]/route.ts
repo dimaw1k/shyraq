@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
- const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");const {id}=await params;const body=await request.json().catch(()=>null);const admin=createAdminSupabaseClient();
+ const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");const {id}=await params; const parsedBody = await readLimitedJson(request, 16 * 1024);
+ if (!parsedBody.ok) {
+   return NextResponse.json(
+     { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Meet space деректері дұрыс емес." },
+     { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+   );
+ }
+ if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+   return NextResponse.json({ error: "Meet space деректері дұрыс емес." }, { status: 400 });
+ }
+ const body = parsedBody.value as Record<string, unknown>;const admin=createAdminSupabaseClient();
  const updates:{display_name?:string;meeting_url?:string;external_space_id?:string;active?:boolean}={};
  if(typeof body?.displayName==="string")updates.display_name=body.displayName.trim();
  if(typeof body?.meetingUrl==="string")updates.meeting_url=body.meetingUrl.trim();
