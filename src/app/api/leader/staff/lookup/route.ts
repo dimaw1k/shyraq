@@ -5,12 +5,6 @@ import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
-function educationLabel(value: string | null | undefined) {
-  if (value === "SCHOOL") return "Мектеп";
-  if (value === "COLLEGE") return "Колледж";
-  if (value === "UNIVERSITY") return "Университет";
-  return "Басқа";
-}
 
 export async function POST(request: Request) {
   const { profile: actor } = await getAuthenticatedStaff("LEADER");
@@ -42,7 +36,7 @@ export async function POST(request: Request) {
 
   const { data: profile, error } = await admin
     .from("profiles")
-    .select("id,full_name,email,phone,education_type,status,role,created_at")
+    .select("id,full_name,email,phone,status,role,created_at")
     .eq("phone", phone)
     .maybeSingle();
 
@@ -81,7 +75,6 @@ export async function POST(request: Request) {
     registered: true,
     profile: {
       ...profile,
-      education_label: educationLabel(profile.education_type),
       team_name: team?.name ?? null,
       mentor_name: mentorName,
     },
