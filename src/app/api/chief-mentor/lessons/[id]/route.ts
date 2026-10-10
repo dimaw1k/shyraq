@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:lesson-update", profile.id, 30, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Сабақ өзгерістері тым жиі жіберілді.");
+  }
   const { id } = await params;
   const parsedBody = await readLimitedJson(request, 64 * 1024);
   if (!parsedBody.ok) {
