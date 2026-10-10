@@ -13,12 +13,10 @@ type StaffRow = {
   phone: string;
   role: string;
   status: string;
-  education_type?: string | null;
 };
 
 type LookupProfile = StaffRow & {
   created_at: string;
-  education_label: string;
   team_name: string | null;
   mentor_name: string | null;
 };
@@ -45,12 +43,6 @@ function statusLabel(status: string) {
   return statusOptions.find((item) => item.value === status)?.label ?? status;
 }
 
-function educationLabel(value: string | null | undefined) {
-  if (value === "SCHOOL") return "Мектеп";
-  if (value === "COLLEGE") return "Колледж";
-  if (value === "UNIVERSITY") return "Университет";
-  return "Басқа";
-}
 
 function ChoiceMenu({
   label,
@@ -283,7 +275,6 @@ export function LeaderStaffManager({ initialStaff }: { initialStaff: StaffRow[] 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ["Телефон", displayKzPhone(lookup.phone)],
-                  ["Білім деңгейі", lookup.education_label ?? educationLabel(lookup.education_type)],
                   ["Қазіргі рөл", roleLabel(lookup.role)],
                   ["Команда", lookup.team_name ?? "Тағайындалмаған"],
                   ["Ментор", lookup.mentor_name ?? "Тағайындалмаған"],
