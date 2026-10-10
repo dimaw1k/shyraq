@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
   }
 
-  const body = await request.json().catch(() => null);
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) return NextResponse.json({ error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Mapping деректері дұрыс емес." }, { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } });
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) return NextResponse.json({ error: "Mapping деректері дұрыс емес." }, { status: 400 });
+  const body = parsedBody.value as Record<string, unknown>;
   const googleUserId = typeof body?.googleUserId === "string" ? body.googleUserId.trim() : "";
   const studentId = typeof body?.studentId === "string" ? body.studentId.trim() : "";
   if (!googleUserId || googleUserId.length > 320 || /[\u0000-\u001f\u007f]/.test(googleUserId) || !studentId) {
