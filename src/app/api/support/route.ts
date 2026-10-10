@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function GET() {
   const supabase = await createServerSupabaseClient();
@@ -22,6 +23,11 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rateLimit = await consumeRateLimit("student:support-ticket", user.id, 5, 60 * 60, 60 * 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Support өтініштері тым жиі жіберілді. Бір сағаттан кейін қайта көріңіз.");
+  }
 
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
