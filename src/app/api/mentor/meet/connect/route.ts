@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getGoogleAccessToken } from "@/lib/google-oauth";
 import { getMeetSpace } from "@/lib/google-meet";
@@ -11,7 +12,17 @@ export async function POST(request: Request) {
   const { data: me } = await supabase.from("profiles").select("role,status").eq("id", user.id).maybeSingle();
   if (me?.status !== "ACTIVE" || (me.role !== "MENTOR" && me.role !== "LEADER")) return NextResponse.json({ error: "Mentor access required" }, { status: 403 });
 
-  const body = await request.json().catch(() => null);
+  const parsedBody = await readLimitedJson(request, 16 * 1024);
+  if (!parsedBody.ok) {
+    return NextResponse.json(
+      { error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Meet қосылым деректері дұрыс емес." },
+      { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) {
+    return NextResponse.json({ error: "Meet қосылым деректері дұрыс емес." }, { status: 400 });
+  }
+  const body = parsedBody.value as Record<string, unknown>;
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
   const spaceInput = typeof body?.space === "string" ? body.space.trim() : "";
   if (!teamId || !spaceInput) return NextResponse.json({ error: "teamId and space are required" }, { status: 400 });
