@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const STATUSES = new Set(["ACTIVE", "INACTIVE"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,6 +14,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:team-update", profile.id, 20, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Команда өзгерістері тым жиі жіберілді.");
+  }
   const { id } = await params;
   if (!UUID_RE.test(id)) {
     return NextResponse.json({ error: "Команда идентификаторы дұрыс емес." }, { status: 400 });
