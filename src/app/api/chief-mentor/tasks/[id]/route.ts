@@ -126,7 +126,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
   }
 
-  if (nextTeamId) {
+  if (nextTeamId && body.teamId !== undefined) {
     const { data: team, error: teamError } = await admin
       .from("teams")
       .select("id,status")
