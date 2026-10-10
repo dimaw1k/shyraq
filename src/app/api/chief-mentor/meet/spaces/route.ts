@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { getGoogleAccessToken } from "@/lib/google-oauth";
+import { getMeetSpace } from "@/lib/google-meet";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -78,6 +80,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Meet түрі дұрыс емес." }, { status: 400 });
   }
 
+  const accessToken = await getGoogleAccessToken(profile.id);
+  let verifiedSpace: Record<string, unknown>;
+  try {
+    verifiedSpace = await getMeetSpace(accessToken, externalSpaceId);
+  } catch {
+    return NextResponse.json({ error: "Бұл Google Meet кеңістігі қосылған аккаунттан қолжетімсіз." }, { status: 400 });
+  }
+  const verifiedSpaceId = typeof verifiedSpace.name === "string" ? verifiedSpace.name : "";
+  const verifiedMeetingUrl = typeof verifiedSpace.meetingUri === "string" ? verifiedSpace.meetingUri : "";
+  if (verifiedSpaceId !== externalSpaceId || !isSafeMeetUrl(verifiedMeetingUrl) || meetingUrl !== verifiedMeetingUrl) {
+    return NextResponse.json({ error: "Meet ID және сілтеме Google тарапынан расталмады." }, { status: 400 });
+  }
+
   const admin = createAdminSupabaseClient();
   const { data: team, error: teamError } = await admin
     .from("teams")
@@ -94,8 +109,9 @@ export async function POST(request: Request) {
     .upsert({
       team_id: teamId,
       study_time: studyTime,
-      external_space_id: externalSpaceId,
-      meeting_url: meetingUrl,
+      external_space_id: verifiedSpaceId,
+      google_user_id: profile.id,
+      meeting_url: verifiedMeetingUrl,
       display_name: displayName,
       active: true,
       updated_at: new Date().toISOString(),
