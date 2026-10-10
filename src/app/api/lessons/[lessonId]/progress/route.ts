@@ -173,10 +173,40 @@ export async function POST(request: Request, context: { params: Promise<{ lesson
     if (rawRanges.length > 0) {
       return NextResponse.json({ error: "Progress session start cannot include watch ranges." }, { status: 400 });
     }
-    if (existing) return NextResponse.json({ progress: existing });
+    if (existing?.test_unlocked) return NextResponse.json({ progress: existing });
 
     const startedAt = new Date().toISOString();
     const admin = createAdminSupabaseClient();
+
+    if (existing) {
+      // Do not let time spent away from the lesson count as playback. Rebase
+      // the elapsed-time check whenever a student resumes unfinished progress.
+      const { data: progress, error } = await admin
+        .from("video_progress")
+        .update({
+          last_watched_at: startedAt,
+          updated_at: startedAt,
+        })
+        .eq("id", existing.id)
+        .eq("kinescope_video_id_snapshot", lesson.kinescope_video_id)
+        .eq("duration_seconds_snapshot", lesson.duration_seconds)
+        .eq("required_watch_percent_snapshot", lesson.required_watch_percent)
+        .select("*")
+        .maybeSingle();
+
+      if (error) {
+        console.error("[lesson-progress] session resume failed", { code: error.code });
+        return NextResponse.json({ error: "Progress session could not be resumed." }, { status: 500 });
+      }
+      if (!progress) {
+        return NextResponse.json(
+          { error: "The lesson changed. Reload before continuing playback." },
+          { status: 409, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+      return NextResponse.json({ progress });
+    }
+
     const { data: progress, error } = await admin
       .from("video_progress")
       .upsert({
