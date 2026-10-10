@@ -113,7 +113,7 @@ export const studentTranslations: Record<StudentLanguage, Record<string, string>
     profileLoadFailed: "Профиль жүктелмеді.",
     photoUpdated: "Профиль суреті жаңартылды.",
     photoUploadFailed: "Фото жүктелмеді.",
-    loginHeading: "Аккаунтқа кіріңіз.",
+    loginHeading: "Аккаунтыңызға кіріңіз.",
     noAccount: "Аккаунтыңыз жоқ па?",
     emailOrPhone: "Электрондық пошта немесе телефон",
     emailPlaceholder: "Email немесе +7 (700) 000 00 00",
