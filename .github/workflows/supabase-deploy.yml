@@ -21,17 +21,49 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Reconcile superseded historical migration
+      - name: Reconcile superseded historical migration only when proven safe
         shell: bash
         run: |
           set -euo pipefail
-          # 20261009173000 and 20261009173500 define the same two RPCs.
-          # The latter is the final version already present in production; the former
-          # is a superseded local file that Supabase otherwise rejects as out of order.
-          # Repair updates only the migration-history ledger; it does not execute SQL.
-          # Keep the normal dry-run immediately after this step to validate all real
-          # pending migrations before any schema change is deployed.
-          supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "::error::SUPABASE_DB_URL is not configured."
+            exit 1
+          fi
+
+          # These two migrations define the same RPCs; 173500 is the final version.
+          # Never mark 173000 as applied unless BOTH the local and remote ledgers show
+          # 173500 applied and the remote ledger is missing 173000. Repair changes
+          # migration history only, so the condition must prove schema equivalence first.
+          migration_list="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
+          printf '%s\n' "$migration_list"
+
+          read -r local_old local_final remote_old remote_final < <(
+            printf '%s\n' "$migration_list" | awk -F '|' '
+              function trim(value) {
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+                return value
+              }
+              {
+                local_version = trim($1)
+                remote_version = trim($2)
+                if (local_version == "20261009173000") local_old = 1
+                if (local_version == "20261009173500") local_final = 1
+                if (remote_version == "20261009173000") remote_old = 1
+                if (remote_version == "20261009173500") remote_final = 1
+              }
+              END {
+                printf "%d %d %d %d\n", local_old + 0, local_final + 0, remote_old + 0, remote_final + 0
+              }
+            '
+          )
+
+          if [[ "$local_old" == "1" && "$local_final" == "1" && "$remote_final" == "1" && "$remote_old" == "0" ]]; then
+            echo "Superseded migration 20261009173000 is missing remotely while final migration 20261009173500 is applied locally and remotely; reconciling ledger."
+            supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+          else
+            echo "No proven-safe historical migration repair condition; skipping ledger repair."
+          fi
       - name: Validate pending migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
       - name: Deploy migrations
