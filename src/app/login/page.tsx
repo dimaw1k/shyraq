@@ -114,7 +114,7 @@ export default function LoginPage() {
             </div>
 
             <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#FF8000]">{t("loginUpper")}</p>
-            <h1 className="mt-2 text-[29px] font-extrabold leading-none tracking-[-.05em] sm:text-[32px]">
+            <h1 className="mt-2 text-[26px] font-extrabold leading-none tracking-[-.05em] sm:text-[29px]">
               {t("loginHeading")}
             </h1>
           </div>
