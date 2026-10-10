@@ -120,7 +120,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -138,21 +138,41 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: accountProfile } = await supabase
-        .from("profiles")
-        .select("status")
-        .eq("id", user.id)
-        .maybeSingle();
+    // Authentication success alone is not enough: confirm the profile row exists
+    // before reporting a successful login. WAITING_FOR_TEAM remains a valid state
+    // so newly registered students can reach the team-assignment flow.
+    const user = signInData.user;
+    if (!user) {
+      await supabase.auth.signOut({ scope: "local" });
+      return NextResponse.json(
+        { error: "Тіркелгі деректерін растау мүмкін болмады. Қайта көріңіз." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
-      if (accountProfile?.status === "INACTIVE") {
-        await supabase.auth.signOut({ scope: "local" });
-        return NextResponse.json(
-          { error: "Бұл аккаунт белсенді емес. Әкімшіге хабарласыңыз." },
-          { status: 403, headers: { "Cache-Control": "no-store" } },
-        );
-      }
+    const { data: accountProfile, error: profileCheckError } = await supabase
+      .from("profiles")
+      .select("status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileCheckError || !accountProfile) {
+      console.error("[auth/login] profile status check failed", {
+        code: profileCheckError?.code ?? "PROFILE_MISSING",
+      });
+      await supabase.auth.signOut({ scope: "local" });
+      return NextResponse.json(
+        { error: "Тіркелгі мәртебесін тексеру мүмкін болмады. Қайта көріңіз." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    if (accountProfile.status === "INACTIVE") {
+      await supabase.auth.signOut({ scope: "local" });
+      return NextResponse.json(
+        { error: "Бұл аккаунт белсенді емес. Әкімшіге хабарласыңыз." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });
