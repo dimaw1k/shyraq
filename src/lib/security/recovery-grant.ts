@@ -80,6 +80,10 @@ export function verifyRecoveryGrant(
     return null;
   }
 
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+
   const now = Math.floor(Date.now() / 1000);
   if (
     payload.version !== 1 ||
