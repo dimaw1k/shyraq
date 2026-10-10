@@ -5,7 +5,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { encryptGoogleToken } from "@/lib/google-token";
 import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
 
-const allowedRoles = new Set(["CHIEF_MENTOR", "MENTOR"]);
+const allowedRoles = new Set(["CHIEF_MENTOR"]);
 
 type TokenResponse = {
   access_token: string;
