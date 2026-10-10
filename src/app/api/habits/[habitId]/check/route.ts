@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { shiftDate, todayInTimezone } from "@/lib/streak";
+import { readLimitedJson } from "@/lib/http/read-limited-json";
 
 function validDate(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -70,8 +71,11 @@ export async function POST(
   }
 
   const { habitId } = await context.params;
-  const body = await request.json().catch(() => null);
-  const dateKey = validDate(body?.dateKey) ? body.dateKey : todayInTimezone("Asia/Almaty");
+  const parsedBody = await readLimitedJson(request, 8 * 1024);
+  if (!parsedBody.ok) return NextResponse.json({ error: parsedBody.reason === "too-large" ? "Сұраныс тым үлкен." : "Күн деректері дұрыс емес." }, { status: parsedBody.reason === "too-large" ? 413 : 400, headers: { "Cache-Control": "no-store" } });
+  if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) return NextResponse.json({ error: "Күн деректері дұрыс емес." }, { status: 400 });
+  const body = parsedBody.value as Record<string, unknown>;
+  const dateKey = validDate(body.dateKey) ? body.dateKey : todayInTimezone("Asia/Almaty");
 
   const today = todayInTimezone("Asia/Almaty");
   const oldestAllowed = shiftDate(today, -90);
