@@ -91,7 +91,8 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error || !data.session?.access_token || !data.session.user?.id) {
-      await supabase.auth.signOut({ scope: "local" });
+      // A rejected/expired PKCE code does not authorize us to sign out a
+      // pre-existing, unrelated session in this browser.
       return redirectWithCookies(invalidUrl, writes);
     }
 
@@ -126,11 +127,8 @@ export async function GET(request: NextRequest) {
     console.error("[auth/recovery] PKCE recovery exchange failed", {
       message: error instanceof Error ? error.message : "unknown",
     });
-    try {
-      await supabase.auth.signOut({ scope: "local" });
-    } catch {
-      // Fail closed below. No recovery grant is issued on this path.
-    }
+    // No grant is issued on errors. Do not clear an existing unrelated session
+    // if the code exchange did not complete successfully.
     return redirectWithCookies(invalidUrl, writes);
   }
 }
