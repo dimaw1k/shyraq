@@ -5,6 +5,7 @@ import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const ALLOWED_STATUSES = new Set(["REVIEWED", "REJECTED", "DRAFT"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function PATCH(
   request: Request,
@@ -17,6 +18,9 @@ export async function PATCH(
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Тапсырма тексеру сұраныстары тым жиі жіберілді.");
   }
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Submission идентификаторы дұрыс емес." }, { status: 400 });
+  }
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
@@ -82,11 +86,14 @@ export async function PATCH(
       reviewed_by: null,
       review_comment: comment ?? submission.review_comment,
       resubmission_deadline: resubmissionDeadline ?? submission.resubmission_deadline,
-    }).eq("id", id).select(
+    }).eq("id", id).eq("status", "REJECTED").select(
       "id,task_id,student_id,status,submitted_at,reviewed_at,reviewed_by,review_comment,resubmission_deadline",
-    ).single();
+    ).maybeSingle();
 
-    if (error || !updated) return NextResponse.json({ error: "Тапсырманы қайта ашу сәтсіз аяқталды." }, { status: 500 });
+    if (error) return NextResponse.json({ error: "Тапсырманы қайта ашу сәтсіз аяқталды." }, { status: 500 });
+    if (!updated) {
+      return NextResponse.json({ error: "Submission күйі өзгеріп кетті. Бетті жаңартып көріңіз." }, { status: 409 });
+    }
 
     await admin.from("audit_logs").insert({
       actor_id: profile.id,
@@ -103,10 +110,10 @@ export async function PATCH(
   if (body.status === "REJECTED" && !comment) {
     return NextResponse.json({ error: "Қайтару кезінде комментарий міндетті." }, { status: 400 });
   }
-  if (submission.status === "REVIEWED" && body.status === "REJECTED") {
-    return NextResponse.json({ error: "Тексерілген submission-ды кейін қайтаруға болмайды." }, { status: 409 });
-  }
   if (submission.status === body.status) return NextResponse.json({ submission });
+  if (submission.status !== "SUBMITTED") {
+    return NextResponse.json({ error: "Submission-ды тек жіберілген күйде тексеруге болады. Оқушы алдымен жауапты қайта жіберуі керек." }, { status: 409 });
+  }
 
   const nextStatus = body.status as "REVIEWED" | "REJECTED";
   const { data: updated, error: updateError } = await admin.from("task_submissions").update({
@@ -115,12 +122,15 @@ export async function PATCH(
     reviewed_by: profile.id,
     review_comment: comment,
     resubmission_deadline: resubmissionDeadline,
-  }).eq("id", id).select(
+  }).eq("id", id).eq("status", submission.status).select(
     "id,task_id,student_id,status,submitted_at,reviewed_at,reviewed_by,review_comment,resubmission_deadline",
-  ).single();
+  ).maybeSingle();
 
-  if (updateError || !updated) {
+  if (updateError) {
     return NextResponse.json({ error: "Submission статусын өзгерту сәтсіз аяқталды." }, { status: 500 });
+  }
+  if (!updated) {
+    return NextResponse.json({ error: "Submission-ды басқа қызметкер өңдеп қойды. Бетті жаңартыңыз." }, { status: 409 });
   }
 
   let scoreAwarded = false;
