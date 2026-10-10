@@ -52,7 +52,8 @@ export type MentorMeetSpace = {
   meeting_url: string | null;
   display_name: string | null;
   active: boolean;
-} | null;
+  study_time: "MORNING" | "EVENING" | "EXTRA";
+};
 
 export type MentorReport = {
   id: string;
@@ -94,7 +95,7 @@ export async function getMentorWorkspaceData(
   const [
     { data: memberRows },
     { data: taskRows },
-    { data: meetSpace },
+    { data: meetSpaces },
   ] = await Promise.all([
     admin
       .from("team_members")
@@ -109,10 +110,10 @@ export async function getMentorWorkspaceData(
       .order("deadline", { ascending: true, nullsFirst: false }),
     admin
       .from("meet_spaces")
-      .select("id,meeting_url,display_name,active")
+      .select("id,meeting_url,display_name,active,study_time")
       .eq("team_id", team.id)
       .eq("active", true)
-      .maybeSingle(),
+      .order("study_time", { ascending: true }),
   ]);
 
   const memberIds = (memberRows ?? []).map((row) => row.student_id).filter(Boolean);
@@ -387,13 +388,12 @@ export async function getMentorWorkspaceData(
     reports: mentorReports,
     averageAttendance,
     pendingReviewCount: mentorSubmissions.filter((submission) => submission.status === "SUBMITTED").length,
-    meetSpace: meetSpace
-      ? {
-          id: meetSpace.id,
-          meeting_url: meetSpace.meeting_url,
-          display_name: meetSpace.display_name,
-          active: Boolean(meetSpace.active),
-        }
-      : null,
+    meetSpaces: (meetSpaces ?? []).map((space) => ({
+      id: space.id,
+      meeting_url: space.meeting_url,
+      display_name: space.display_name,
+      active: Boolean(space.active),
+      study_time: space.study_time as MentorMeetSpace["study_time"],
+    })),
   };
 }
