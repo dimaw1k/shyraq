@@ -12,6 +12,7 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { useStudentLanguage } from "@/lib/student-language";
 import { studentText } from "@/lib/student-translations";
 import { getPasswordValidationError } from "@/lib/security/password";
@@ -99,6 +100,21 @@ export default function ResetPasswordPage() {
 
       if (!response.ok) {
         setError(result.error ?? t("resetSendFailed"));
+        setLoading(false);
+        return;
+      }
+
+      // Start the PKCE reset flow in this browser. Its code verifier is stored
+      // in the SSR cookie storage and will be required by /auth/recovery.
+      const supabase = createBrowserSupabaseClient();
+      const redirectTo = new URL("/auth/recovery", window.location.origin).toString();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        { redirectTo },
+      );
+
+      if (resetError) {
+        setError(t("resetSendFailed"));
         setLoading(false);
         return;
       }
