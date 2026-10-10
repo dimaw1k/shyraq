@@ -16,7 +16,7 @@ export async function PATCH(
   if (!parsedBody.value || typeof parsedBody.value !== "object" || Array.isArray(parsedBody.value)) return NextResponse.json({ error: "Submission деректері дұрыс емес." }, { status: 400 });
   const body = parsedBody.value as Record<string, unknown>;
 
-  if (!body?.status || !ALLOWED_STATUSES.has(body.status)) {
+  if (typeof body.status !== "string" || !ALLOWED_STATUSES.has(body.status)) {
     return NextResponse.json({ error: "Жарамсыз submission статусы." }, { status: 400 });
   }
 
