@@ -4,6 +4,11 @@ import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_LESSON_DURATION_SECONDS = 24 * 60 * 60;
+const MAX_MATERIALS = 20;
+
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
   const rateLimit = await consumeRateLimit("chief-mentor:lesson-update", profile.id, 30, 600, 300);
@@ -12,6 +17,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Сабақ өзгерістері тым жиі жіберілді.");
   }
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Сабақ идентификаторы дұрыс емес." }, { status: 400 });
+  }
   const parsedBody = await readLimitedJson(request, 64 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(
@@ -76,19 +84,46 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.published !== undefined && typeof body.published !== "boolean") {
     return NextResponse.json({ error: "Сабақтың жариялану күйі дұрыс емес." }, { status: 400 });
   }
+  if (body.durationSeconds !== undefined && (
+    typeof body.durationSeconds !== "number" ||
+    !Number.isInteger(body.durationSeconds) ||
+    body.durationSeconds < 1 ||
+    body.durationSeconds > MAX_LESSON_DURATION_SECONDS
+  )) {
+    return NextResponse.json({ error: "Сабақ ұзақтығы 1–86400 секунд аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
+  if (body.marathonDay !== undefined && body.marathonDay !== null && body.marathonDay !== "" && (
+    typeof body.marathonDay !== "number" ||
+    !Number.isInteger(body.marathonDay) ||
+    body.marathonDay < 1 ||
+    body.marathonDay > 21
+  )) {
+    return NextResponse.json({ error: "Марафон күні 1–21 аралығындағы бүтін сан болуы керек." }, { status: 400 });
+  }
   if (body.sortOrder !== undefined && (typeof body.sortOrder !== "number" || !Number.isInteger(body.sortOrder) || body.sortOrder < 0 || body.sortOrder > 10000)) {
     return NextResponse.json({ error: "sortOrder 0–10000 аралығындағы бүтін сан болуы керек." }, { status: 400 });
   }
   if (body.lessonOrder !== undefined && (typeof body.lessonOrder !== "number" || !Number.isInteger(body.lessonOrder) || body.lessonOrder < 0 || body.lessonOrder > 10000)) {
     return NextResponse.json({ error: "lessonOrder 0–10000 аралығындағы бүтін сан болуы керек." }, { status: 400 });
   }
+  if (body.materials !== undefined && !Array.isArray(body.materials)) {
+    return NextResponse.json({ error: "Сабақ материалдарының тізімі дұрыс емес." }, { status: 400 });
+  }
+  if (Array.isArray(body.materials) && body.materials.length > MAX_MATERIALS) {
+    return NextResponse.json({ error: "Бір сабаққа ең көбі 20 материал қосуға болады." }, { status: 400 });
+  }
   if (Array.isArray(body.materials) && body.materials.some((item) =>
     !item || typeof item !== "object" || Array.isArray(item) ||
     typeof (item as { label?: unknown }).label !== "string" ||
+    !(item as { label: string }).label.trim() ||
+    (item as { label: string }).label.trim().length > 120 ||
     typeof (item as { url?: unknown }).url !== "string" ||
-    !isSafeMaterialUrl((item as { url: string }).url)
+    !isSafeMaterialUrl((item as { url: string }).url) ||
+    ((item as { type?: unknown }).type !== undefined &&
+      (typeof (item as { type?: unknown }).type !== "string" ||
+        (item as { type: string }).type.length > 30))
   )) {
-    return NextResponse.json({ error: "Материал сілтемесі HTTP/HTTPS немесе ішкі жол болуы керек." }, { status: 400 });
+    return NextResponse.json({ error: "Материал деректері немесе HTTP/HTTPS сілтемесі дұрыс емес." }, { status: 400 });
   }
   for (const field of ["startsAt", "deadlineAt"] as const) {
     const value = body[field];
@@ -108,19 +143,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         }))
     : current.materials;
 
+  if (body.teamId !== undefined && body.teamId !== null && body.teamId !== "" &&
+    (typeof body.teamId !== "string" || !UUID_RE.test(body.teamId))) {
+    return NextResponse.json({ error: "Команда идентификаторы дұрыс емес." }, { status: 400 });
+  }
   const nextTeamId =
-    body?.teamId === null || body?.teamId === ""
+    body.teamId === null || body.teamId === ""
       ? null
-      : typeof body?.teamId === "string"
+      : typeof body.teamId === "string"
         ? body.teamId
         : current.team_id;
 
-  if (nextTeamId) {
-    const { data: team } = await admin.from("teams").select("id").eq("id", nextTeamId).maybeSingle();
-    if (!team) return NextResponse.json({ error: "Команда табылмады." }, { status: 400 });
+  if (nextTeamId && body.teamId !== undefined && nextTeamId !== current.team_id) {
+    const { data: team, error: teamError } = await admin
+      .from("teams")
+      .select("id,status")
+      .eq("id", nextTeamId)
+      .maybeSingle();
+    if (teamError) return NextResponse.json({ error: "Команданы тексеру сәтсіз аяқталды." }, { status: 500 });
+    if (!team || team.status !== "ACTIVE") {
+      return NextResponse.json({ error: "Белсенді команда табылмады." }, { status: 400 });
+    }
   }
 
-  const nextDay = body?.marathonDay === null || body?.marathonDay === "" ? null : typeof body?.marathonDay === "number" ? Math.floor(body.marathonDay) : current.marathon_day;
+  const nextDay = body.marathonDay === null || body.marathonDay === "" ? null :
+    typeof body.marathonDay === "number" ? body.marathonDay :
+    body.marathonDay === undefined ? current.marathon_day : current.marathon_day;
   if (nextDay !== null && (nextDay < 1 || nextDay > 21)) {
     return NextResponse.json({ error: "Марафон күні 1–21 аралығында болуы керек." }, { status: 400 });
   }
@@ -130,11 +178,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Kinescope бейне сілтемесі дұрыс емес." }, { status: 400 });
   }
 
+  const nextStartsAt = body.startsAt === undefined
+    ? current.starts_at
+    : body.startsAt === null || body.startsAt === ""
+      ? null
+      : new Date(body.startsAt as string).toISOString();
+  const nextDeadlineAt = body.deadlineAt === undefined
+    ? current.deadline_at
+    : body.deadlineAt === null || body.deadlineAt === ""
+      ? null
+      : new Date(body.deadlineAt as string).toISOString();
+  if (nextStartsAt && nextDeadlineAt && Date.parse(nextStartsAt) > Date.parse(nextDeadlineAt)) {
+    return NextResponse.json({ error: "Сабақтың соңғы мерзімі басталу уақытынан бұрын болмауы керек." }, { status: 400 });
+  }
+
   const updatedData = {
     title: typeof body?.title === "string" && body.title.trim() ? body.title.trim() : current.title,
     description: body?.description === null ? null : typeof body?.description === "string" ? body.description.trim() || null : current.description,
     kinescope_video_id: nextVideo || current.kinescope_video_id,
-    duration_seconds: typeof body?.durationSeconds === "number" && Number.isFinite(body.durationSeconds) ? Math.max(1, Math.floor(body.durationSeconds)) : current.duration_seconds,
+    duration_seconds: typeof body.durationSeconds === "number" ? body.durationSeconds : current.duration_seconds,
     required_watch_percent: typeof body.requiredWatchPercent === "number" ? body.requiredWatchPercent : Math.min(100, Math.max(1, Number(current.required_watch_percent) || 85)),
     sort_order: typeof body?.sortOrder === "number" ? Math.floor(body.sortOrder) : current.sort_order,
     lesson_order: typeof body?.lessonOrder === "number" ? Math.floor(body.lessonOrder) : current.lesson_order,
@@ -142,8 +204,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     team_id: nextTeamId,
     materials: nextMaterials,
     published: typeof body?.published === "boolean" ? body.published : current.published,
-    starts_at: body?.startsAt === null || body?.startsAt === "" ? null : typeof body?.startsAt === "string" ? body.startsAt : current.starts_at,
-    deadline_at: body?.deadlineAt === null || body?.deadlineAt === "" ? null : typeof body?.deadlineAt === "string" ? body.deadlineAt : current.deadline_at,
+    starts_at: nextStartsAt,
+    deadline_at: nextDeadlineAt,
   };
 
   const { data: updated, error: updateError } = await admin
