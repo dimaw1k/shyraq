@@ -85,3 +85,19 @@ Using real accounts for each intended role, test registration, email/phone login
 ## Decision
 
 The code and database hardening has improved materially, but a final **GO** depends on: (1) confirming the intended code is running on the production alias, (2) successful authenticated staging/client smoke tests, and (3) a real Google Meet OAuth/sync test. Keep the dependency audit findings and leaked-password setting on the follow-up list until resolved.
+
+## Password recovery hardening — 2026-10-10
+
+The password recovery implementation was tightened after the targeted review:
+
+- Recovery emails use the configured app callback and an implicit token-fragment flow, so no server-side PKCE verifier is created without persistent storage.
+- The browser callback removes tokens from the visible URL before exchanging them with the server.
+- The exchange endpoint verifies the Supabase user, requires a recent `amr=recovery` authentication claim, revokes the temporary Supabase session, then issues a signed, HTTP-only recovery grant with a 10-minute lifetime.
+- The new grant is not an app login session. `src/proxy.ts` restricts requests while it is valid to the reset flow.
+- Password changes require the signed grant, run server-side password checks, and consume a hashed, rate-limited one-use grant bucket before changing the password through the Supabase Admin API.
+- Recovery requests, token exchange and password change have no-store responses and rate limits. Reset form minimum length matches server validation (12 characters).
+- Supabase reset-request errors return a generic service error rather than falsely claiming a message was queued or revealing whether an address exists.
+
+**Still required before calling this flow production-verified:** run a real mailbox test on the canonical domain, confirm the Supabase Auth Redirect URL allowlist contains the exact callback `https://shyraq-nu.vercel.app/auth/recovery` (and the local URL for localhost testing), then validate the complete flow with a test account. Verify email delivery, invalid/expired/reused link rejection, success with the new password, failure with the old password, and blocked access to other app/API routes during recovery. GitHub Actions proves build/type/lint health, not real email delivery or an end-to-end auth test.
+
+The Supabase Security Advisor warning for leaked-password protection remains open; the stricter application password validator does not replace that provider-level check.
