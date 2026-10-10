@@ -95,18 +95,21 @@ export async function getGoogleAccessTokenForMeetSpace(
     : { data: [] as Array<{ id: string; role: string; status: string }> };
 
   if (profilesError) throw new Error("Unable to validate Google account owners.");
-  const eligibleIds = new Set((profiles ?? []).map((profile) => profile.id));
+  const eligibleProfiles = profiles ?? [];
+  const eligibleIds = new Set(eligibleProfiles.map((profile) => profile.id));
 
   if (space.google_user_id) {
     if (!connectedIds.has(space.google_user_id) || !eligibleIds.has(space.google_user_id)) {
       throw new Error("The Google account assigned to this Meet space is not connected or active.");
     }
+
     const token = await getGoogleAccessToken(space.google_user_id);
     const resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
     const remoteSpace = await getMeetSpace(token, resource);
     if (typeof remoteSpace.name !== "string" || remoteSpace.name !== resource) {
       throw new Error("The assigned Google account cannot access this Meet space.");
     }
+
     if (resource !== space.external_space_id) {
       const { error: canonicalUpdateError } = await admin
         .from("meet_spaces")
@@ -118,44 +121,48 @@ export async function getGoogleAccessTokenForMeetSpace(
     return token;
   }
 
+  const rankedProfiles = eligibleProfiles.slice().sort((a, b) => {
+    const rank = (role: string) =>
+      role === "CHIEF_MENTOR" ? 0 : role === "MENTOR" ? 1 : 2;
+    return rank(a.role) - rank(b.role);
+  });
   const candidates = [...new Set([
     preferredUserId ?? "",
     fallbackMentorId ?? "",
-    ...(profiles ?? [])
-      .slice()
-      .sort((a, b) => {
-        const rank = (role: string) =>
-          role === "CHIEF_MENTOR" ? 0 : role === "MENTOR" ? 1 : 2;
-        return rank(a.role) - rank(b.role);
-      })
-      .map((profile) => profile.id),
+    ...rankedProfiles.map((profile) => profile.id),
   ].filter(Boolean))].filter((id) => connectedIds.has(id) && eligibleIds.has(id));
 
   for (const userId of candidates) {
+    let token: string;
+    let resource: string;
     try {
-      const token = await getGoogleAccessToken(userId);
-      const resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
+      token = await getGoogleAccessToken(userId);
+      resource = await resolveSpaceName(token, space.external_space_id, space.meeting_url);
       const remoteSpace = await getMeetSpace(token, resource);
       if (typeof remoteSpace.name !== "string" || remoteSpace.name !== resource) continue;
-
-      const { error: ownerUpdateError } = await admin
-        .from("meet_spaces")
-        .update({
-          google_user_id: userId,
-          external_space_id: resource,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", space.id)
-        .is("google_user_id", null);
-
-      if (ownerUpdateError) {
-        throw new Error("Meet space owner could not be saved.");
-      }
-      return token;
     } catch {
-      // Do not disclose another account's access errors; try the next eligible
-      // connected staff account. Only a verified Google API response is accepted.
+      // A candidate may have OAuth revoked or lack access to this particular
+      // space. Try the next connected, active staff account without exposing
+      // external provider details to the caller.
+      continue;
     }
+
+    // Keep persistence outside the provider-validation catch: a database error
+    // must fail the sync rather than being mistaken for an account-access miss.
+    const { error: ownerUpdateError } = await admin
+      .from("meet_spaces")
+      .update({
+        google_user_id: userId,
+        external_space_id: resource,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", space.id)
+      .is("google_user_id", null);
+
+    if (ownerUpdateError) throw new Error("Meet space owner could not be saved.");
+    space.google_user_id = userId;
+    space.external_space_id = resource;
+    return token;
   }
 
   throw new Error("No connected staff Google account can access this Meet space.");
