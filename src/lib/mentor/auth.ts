@@ -10,11 +10,11 @@ export async function getMentorPageData() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name,role")
+    .select("full_name,role,status")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "MENTOR") redirect("/dashboard");
+  if (profile?.role !== "MENTOR" || profile.status !== "ACTIVE") redirect("/dashboard");
 
   const workspace = await getMentorWorkspaceData(supabase, user.id);
 
