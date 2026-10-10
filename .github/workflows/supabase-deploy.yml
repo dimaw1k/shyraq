@@ -5,11 +5,14 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
-      - ".github/workflows/supabase-deploy.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: shyraq-production-supabase-migrations
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -21,17 +24,65 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Reconcile superseded historical migration
+      - name: Reconcile superseded historical migration only when proven safe
         shell: bash
         run: |
           set -euo pipefail
-          # 20261009173000 and 20261009173500 define the same two RPCs.
-          # The latter is the final version already present in production; the former
-          # is a superseded local file that Supabase otherwise rejects as out of order.
-          # Repair updates only the migration-history ledger; it does not execute SQL.
-          # Keep the normal dry-run immediately after this step to validate all real
-          # pending migrations before any schema change is deployed.
-          supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "::error::SUPABASE_DB_URL is not configured."
+            exit 1
+          fi
+
+          # These two migrations define the same RPCs; 173500 is the final version.
+          # Never mark 173000 as applied unless BOTH the local and remote ledgers show
+          # 173500 applied and the remote ledger is missing 173000. Repair changes
+          # migration history only, so the condition must prove schema equivalence first.
+          migration_list="$(supabase migration list --db-url "$SUPABASE_DB_URL")"
+          printf '%s\n' "$migration_list"
+
+          read -r local_old local_final remote_old remote_final < <(
+            python3 - "$migration_list" <<'PY'
+          import re
+          import sys
+
+          found = {
+              ("local", "20261009173000"): 0,
+              ("local", "20261009173500"): 0,
+              ("remote", "20261009173000"): 0,
+              ("remote", "20261009173500"): 0,
+          }
+
+          # Supabase CLI releases may print Unicode box drawing or ASCII pipes.
+          # Parse either table separator explicitly and fail closed.
+          for line in sys.argv[1].splitlines():
+              if "│" not in line and "|" not in line:
+                  continue
+              columns = [column.strip() for column in re.split(r"[│|]", line)]
+              if len(columns) < 3:
+                  continue
+              local_version, remote_version = columns[0], columns[1]
+              for version in ("20261009173000", "20261009173500"):
+                  if re.fullmatch(r"\d{14}", local_version) and local_version == version:
+                      found[("local", version)] = 1
+                  if re.fullmatch(r"\d{14}", remote_version) and remote_version == version:
+                      found[("remote", version)] = 1
+
+          print(
+              found[("local", "20261009173000")],
+              found[("local", "20261009173500")],
+              found[("remote", "20261009173000")],
+              found[("remote", "20261009173500")],
+          )
+          PY
+          )
+
+          if [[ "$local_old" == "1" && "$local_final" == "1" && "$remote_final" == "1" && "$remote_old" == "0" ]]; then
+            echo "Superseded migration 20261009173000 is missing remotely while final migration 20261009173500 is applied locally and remotely; reconciling ledger."
+            supabase migration repair 20261009173000 --status applied --db-url "$SUPABASE_DB_URL"
+          else
+            echo "No proven-safe historical migration repair condition; skipping ledger repair."
+          fi
       - name: Validate pending migrations
         run: supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
       - name: Deploy migrations
