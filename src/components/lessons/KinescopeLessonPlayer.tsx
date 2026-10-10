@@ -94,7 +94,7 @@ export function KinescopeLessonPlayer({
         method:"POST",
         keepalive:true,
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ranges:nextRanges}),
+        body:JSON.stringify({videoId,ranges:nextRanges}),
       });
       if(!response.ok)throw new Error("Ілгерілеуді сақтау сәтсіз аяқталды.");
     }finally{setSaving(false);}
