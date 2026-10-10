@@ -20,18 +20,6 @@ export async function POST(request: Request) {
   }
   const body = parsedBody.value as Record<string, unknown>;
   const allTeamsRequested = body.allTeams === true;
-  const rateLimit = await consumeRateLimit(
-    allTeamsRequested ? "chief-mentor:meet-space-all-teams" : "chief-mentor:meet-space-create",
-    profile.id,
-    allTeamsRequested ? 2 : 8,
-    allTeamsRequested ? 15 * 60 : 10 * 60,
-    allTeamsRequested ? 15 * 60 : 10 * 60,
-  );
-  if (!rateLimit.available) return rateLimitUnavailableResponse();
-  if (!rateLimit.allowed) {
-    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet кеңістіктерін құру тым жиі орындалды. Кейінірек қайта көріңіз.");
-  }
-
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
   const displayName =
     typeof body?.displayName === "string" && body.displayName.trim()
@@ -50,6 +38,18 @@ export async function POST(request: Request) {
       { error: "Команданы таңдаңыз." },
       { status: 400 },
     );
+  }
+
+  const rateLimit = await consumeRateLimit(
+    allTeamsRequested ? "chief-mentor:meet-space-all-teams" : "chief-mentor:meet-space-create",
+    profile.id,
+    allTeamsRequested ? 2 : 8,
+    allTeamsRequested ? 15 * 60 : 10 * 60,
+    allTeamsRequested ? 15 * 60 : 10 * 60,
+  );
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Meet кеңістіктерін құру тым жиі орындалды. Кейінірек қайта көріңіз.");
   }
 
   const admin = createAdminSupabaseClient();
