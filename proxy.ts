@@ -68,6 +68,29 @@ export async function proxy(request: NextRequest) {
   // Sending the policy only on the response is not enough for nonce propagation.
   requestHeaders.set("Content-Security-Policy", csp);
 
+  // API mutations are authenticated with browser session cookies. Reject cross-origin
+  // writes centrally, even if a future route accidentally omits its own Origin check.
+  // Same-origin browser requests naturally send the origin of the current host; cron
+  // sync is GET-only and is not affected by this guard.
+  const isApiMutation =
+    request.nextUrl.pathname.startsWith("/api/") &&
+    ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
+  if (isApiMutation) {
+    const origin = request.headers.get("origin");
+    const fetchSite = request.headers.get("sec-fetch-site");
+    const crossOrigin = origin !== null && origin !== request.nextUrl.origin;
+    const originlessCrossSite = origin === null && fetchSite === "cross-site";
+
+    if (crossOrigin || originlessCrossSite) {
+      const denied = NextResponse.json(
+        { error: "Cross-origin API mutation blocked." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+      denied.headers.set("Content-Security-Policy", csp);
+      return denied;
+    }
+  }
+
   // Public marketing/auth entry pages must still render if Supabase is temporarily
   // unavailable or the Preview environment has no Supabase credentials configured.
   // Protected workspaces and API routes continue through Supabase session refresh.
