@@ -48,12 +48,18 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       ))
     : [];
 
-  const { data: progress } = await supabase.from("video_progress")
-    .select("watched_ranges,watched_percent,test_unlocked")
+  const { data: storedProgress } = await supabase.from("video_progress")
+    .select("watched_ranges,watched_percent,test_unlocked,kinescope_video_id_snapshot,duration_seconds_snapshot,required_watch_percent_snapshot")
     .eq("lesson_id", lessonId)
     .eq("student_id", user.id)
     .maybeSingle();
 
+  const progress = storedProgress &&
+    storedProgress.kinescope_video_id_snapshot === lesson.kinescope_video_id &&
+    Number(storedProgress.duration_seconds_snapshot) === Number(lesson.duration_seconds) &&
+    Number(storedProgress.required_watch_percent_snapshot) === Number(lesson.required_watch_percent)
+      ? storedProgress
+      : null;
   const initialRanges = Array.isArray(progress?.watched_ranges) ? (progress.watched_ranges as { start: number; end: number }[]) : [];
 
   return (
