@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
+  const rateLimit = await consumeRateLimit("chief-mentor:student-team-assignment", profile.id, 20, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Оқушыларды командаға бекіту әрекеттері тым жиі орындалды.");
+  }
   const { id } = await params;
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {

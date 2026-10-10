@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 function getKinescopeId(value: string) {
   const raw = value.trim();
@@ -33,6 +34,11 @@ function parseIso(value: unknown) {
 
 export async function POST(request: Request) {
   const { supabase, profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:lesson-create", profile.id, 20, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Сабақ құру әрекеттері тым жиі орындалды.");
+  }
   const parsedBody = await readLimitedJson(request, 64 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(

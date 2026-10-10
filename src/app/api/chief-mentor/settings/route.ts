@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const MAX_SETTINGS_BODY_BYTES = 32 * 1024;
 const MAX_NAME_LENGTH = 120;
@@ -56,6 +57,11 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const { profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
+  const rateLimit = await consumeRateLimit("chief-mentor:settings-update", profile.id, 10, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Баптауларды өзгерту әрекеттері уақытша шектелді.");
+  }
 
   const contentLength = request.headers.get("content-length");
   if (

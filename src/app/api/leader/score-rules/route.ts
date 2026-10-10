@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const ALLOWED_CODES = ["TASKS", "TESTS", "VIDEO", "ATTENDANCE", "REPORTS", "STREAK"] as const;
 type ScoreCode = (typeof ALLOWED_CODES)[number];
@@ -27,6 +28,11 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const { profile } = await getAuthenticatedStaff("LEADER");
+  const rateLimit = await consumeRateLimit("leader:score-rules", profile.id, 10, 600, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Ұпай ережелерін өзгерту әрекеттері уақытша шектелді.");
+  }
   const parsedBody = await readLimitedJson(request, 16 * 1024);
   if (!parsedBody.ok) {
     return NextResponse.json(

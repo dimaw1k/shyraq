@@ -3,6 +3,7 @@ import { hasValidFileSignature } from "@/lib/security/file-validation";
 import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg","image/png","image/webp"]);
@@ -11,6 +12,11 @@ function safeName(name:string){return name.replace(/[^a-zA-Z0-9._-]/g,"_").slice
 
 export async function POST(request:Request){
   const {profile}=await getAuthenticatedStaff("LEADER");
+  const rateLimit = await consumeRateLimit("leader:banner-upload", profile.id, 10, 3600, 600);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Banner жүктеу әрекеттері тым жиі орындалды.");
+  }
   const contentLength = request.headers.get("content-length");
   if (
     contentLength !== null &&

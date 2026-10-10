@@ -3,6 +3,7 @@ import { readLimitedJson } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { calculateCurrentStreak, getReviewedReportDates, todayInTimezone } from "@/lib/streak";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const ALLOWED_STATUSES = new Set(["REVIEWED", "REJECTED"]);
 
@@ -11,6 +12,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { profile } = await getAuthenticatedStaff(["CHIEF_MENTOR", "LEADER"]);
+  const rateLimit = await consumeRateLimit("chief-mentor:report-review", profile.id, 120, 600, 60);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Есеп тексеру сұраныстары тым жиі жіберілді. Сәл кейінірек қайталаңыз.");
+  }
   const { id } = await params;
 
   const parsedBody = await readLimitedJson(request, 16 * 1024);

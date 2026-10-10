@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
+import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const ROLES = new Set(["MENTOR", "CHIEF_MENTOR", "LEADER"]);
 
@@ -10,6 +11,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { profile } = await getAuthenticatedStaff("LEADER");
+  const rateLimit = await consumeRateLimit("leader:staff-role-status-update", profile.id, 10, 900, 300);
+  if (!rateLimit.available) return rateLimitUnavailableResponse();
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds, "Қызметкерлердің рөлі мен мәртебесін өзгерту әрекеттері уақытша шектелді.");
+  }
   const { id } = await params;
 
   if (id === profile.id) {
