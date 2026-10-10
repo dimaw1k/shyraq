@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
 
 function safeNext(value: string | null, origin: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return new URL("/dashboard", origin);
-  }
-
-  return new URL(value, origin);
+  // Reuse the shared same-origin redirect validator. It rejects protocol-relative
+  // URLs, backslashes and control characters that a URL parser may normalize.
+  return new URL(sanitizeLocalReturnTo(value, "/dashboard"), origin);
 }
 
 function isResetPasswordTarget(next: URL) {
@@ -15,7 +14,9 @@ function isResetPasswordTarget(next: URL) {
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const { searchParams, origin } = requestUrl;
+  const { searchParams } = requestUrl;
+  // Never trust the incoming Host header to choose the origin for redirects.
+  const origin = getTrustedAppUrl().origin;
   const code = searchParams.get("code");
   const flowId = searchParams.get("sb_flow_id");
   const next = safeNext(searchParams.get("next"), origin);
