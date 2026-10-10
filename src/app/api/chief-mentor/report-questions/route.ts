@@ -22,7 +22,7 @@ export async function POST(request:Request){
  const fieldType=body?.fieldType;
  const marathonDay=body?.marathonDay===null||body?.marathonDay===""||body?.marathonDay===undefined?null:Number(body.marathonDay);
  if(!question||!fieldKey)return NextResponse.json({error:"Сұрақ пен key міндетті."},{status:400});
- if(!["SHORT_TEXT","LONG_TEXT","NUMBER"].includes(fieldType))return NextResponse.json({error:"Сұрақ түрі дұрыс емес."},{status:400});
+ if(typeof fieldType!=="string"||!["SHORT_TEXT","LONG_TEXT","NUMBER"].includes(fieldType))return NextResponse.json({error:"Сұрақ түрі дұрыс емес."},{status:400});
  if(marathonDay!==null&&(!Number.isInteger(marathonDay)||marathonDay<1||marathonDay>21))return NextResponse.json({error:"Күн 1–21 аралығында болуы керек."},{status:400});
  const admin=createAdminSupabaseClient();
  const {data,error}=await admin.from("daily_report_questions").insert({question,field_key:fieldKey,field_type:fieldType,marathon_day:marathonDay,required:Boolean(body?.required),sort_order:Number(body?.sortOrder??0)||0,active:body?.active!==false,created_by:profile.id}).select("*").single();
