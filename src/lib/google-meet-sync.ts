@@ -19,7 +19,7 @@ function meetingCodeFromUrl(meetingUrl?: string | null) {
   try {
     const url = new URL(meetingUrl);
     if (url.hostname !== "meet.google.com") return null;
-    const code = url.pathname.replace(/^\\//, "").split("/")[0];
+    const code = url.pathname.replace(/^\//, "").split("/")[0];
     return /^[a-z0-9-]{6,}$/i.test(code) ? code : null;
   } catch {
     return null;
