@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTrustedAppUrl, sanitizeLocalReturnTo } from "@/lib/app-url";
+import { getGoogleOAuthConfig } from "@/lib/google-oauth-config";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const scope = [
@@ -38,12 +39,11 @@ export async function GET(request: Request) {
     return rateLimitResponse(rateLimit.retryAfterSeconds, "Google аккаунтын қосу әрекеттері тым жиі орындалды.");
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
-
-  if (!clientId || !redirectUri) {
+  const oauth = getGoogleOAuthConfig();
+  if (!oauth) {
     return NextResponse.redirect(new URL("/dashboard?google=not_configured", appUrl));
   }
+  const { clientId, redirectUri } = oauth;
 
   const requestedReturnTo = new URL(request.url).searchParams.get("returnTo") ?? "/chief-mentor/meet";
   const returnTo = sanitizeLocalReturnTo(requestedReturnTo, "/chief-mentor/meet");
