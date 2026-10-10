@@ -406,7 +406,6 @@ export default async function ChiefMentorPage() {
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#FFF1E2] text-[10px] font-extrabold text-[#B95D00]">
                         {row.mentorAvatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={row.mentorAvatarUrl}
                             alt=""
