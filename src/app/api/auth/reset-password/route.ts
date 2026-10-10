@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getPasswordValidationError } from "@/lib/security/password";
+import { checkPwnedPassword } from "@/lib/security/pwned-password";
 import { readLimitedJson } from "@/lib/http/read-limited-json";
 import {
   consumeRateLimit,
@@ -81,6 +82,20 @@ export async function POST(request: Request) {
     ]);
     if (passwordError) {
       return response({ error: passwordError }, 400);
+    }
+
+    const breachedPassword = await checkPwnedPassword(password);
+    if (breachedPassword.status === "unavailable") {
+      return response(
+        { error: "Құпиясөздің қауіпсіздігін тексеру уақытша қолжетімсіз. Кейінірек қайта көріңіз." },
+        503,
+      );
+    }
+    if (breachedPassword.status === "pwned") {
+      return response(
+        { error: "Бұл құпиясөз бұрын деректер таралымдарында кездескен. Басқа құпиясөз таңдаңыз." },
+        400,
+      );
     }
 
     // Keep an account-level limit as well as a one-use limit bound to this grant.
