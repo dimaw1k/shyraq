@@ -2,7 +2,7 @@
 
 ## Release decision
 
-**Conditional go for staging; not yet a verified production hand-off.** The application-code commit `118e542eaf491390000a5baf522ea2dfd64b2a6b` passed GitHub Actions (`npm ci`, typecheck, lint and production build), and the Supabase migration workflow succeeded through `20261010110000_atomic_leader_student_promotion`. This audit document is being refreshed in a separate documentation-only change. A complete browser-based test with real student/staff sessions and Google OAuth is still required.
+**Production deployment completed; authenticated release verification is still outstanding.** Application commit `fc8c3fa331824085921ab6a815598d927e213654` passed GitHub Actions (`npm ci`, typecheck, lint and production build). The Supabase migration workflow succeeded through `20261010210000_revoke_direct_staff_writes`. On 2026-10-10, Vercel deployment `dpl_2TAgfQFC9tmcfGxtBy4s9ft8eurC` reached `READY` from that application commit and was assigned the production alias `https://shyraq-nu.vercel.app`. Public smoke tests passed, but a full browser-based test with real student/staff accounts and Google OAuth is still required before calling the hand-off fully verified.
 
 This is a targeted repository, database-configuration and CI audit. It is not a third-party penetration test or proof that no vulnerabilities remain.
 
@@ -24,7 +24,7 @@ Relevant source repository: https://github.com/dimaw1k/shyraq
 
 ### Application and CI
 
-The repository's GitHub Actions pipeline runs `npm ci`, `npm run typecheck`, `npm run lint` and `npm run build`. These checks passed on prior hardening commits, including the fail-closed login fix. The current extended API-validation changes must also pass the same checks and the associated Snyk/preview checks before merge.
+The repository's GitHub Actions pipeline runs `npm ci`, `npm run typecheck`, `npm run lint` and `npm run build`. These checks passed for the current application commit `fc8c3fa331824085921ab6a815598d927e213654`, including the server-side staff-write follow-up. CI confirms compilation and build health, not every authenticated workflow.
 
 CI checks confirm that source compiles, type-checks and builds. They do not prove all live data, permissions, OAuth or UI flows work end to end.
 
@@ -45,13 +45,15 @@ The connected database was inspected directly. The audited checks found:
 
 The CI `npm audit` report showed **5 high and 0 critical findings** in the development lint/build toolchain, involving `eslint-config-next`, `@next/eslint-plugin-next`, `fast-glob`, `micromatch` and `braces`. The suggested forced fix attempted to downgrade the Next.js ESLint configuration to a major version incompatible with this app. The report is visible in CI; do not run `npm audit fix --force` blindly. Recheck compatible patched versions during the next dependency update.
 
+## Production deployment verification
+
+- Deployment: `dpl_2TAgfQFC9tmcfGxtBy4s9ft8eurC`, state `READY`, target `production`, source commit `fc8c3fa331824085921ab6a815598d927e213654`.
+- Canonical alias: `https://shyraq-nu.vercel.app`; Vercel reported no alias error.
+- Post-deployment smoke tests on 2026-10-10: `/api/health` returned HTTP 200 with `{"ok":true}`; `/`, `/register` and `/reset-password` returned HTTP 200; an unauthenticated `/dashboard` request redirected to `/login`.
+- The recent Vercel runtime-error scan showed one `invalid_credentials` rejection on `/api/auth/login`. This is an expected failed-login response, not by itself evidence of a server crash. Vercel's current Hobby log-retention window limits broader runtime-log verification.
+- These smoke tests establish deployment and basic public routing only. They do not replace authenticated tests for every role or a real Google OAuth/Meet attendance synchronization run.
+
 ## Open release blockers and residual risks
-
-### P0 — live Vercel frontend is not confirmed up to date
-
-At the last Vercel inspection, `vercel.json` contained `"git": { "deploymentEnabled": false }`. The latest listed production deployment pointed to older commit `ab5dfe9a82ebca9d355456e167b1d7137baebfef`, not the audited GitHub `main` head. Merging source changes does **not** prove the public alias is serving them. No manual production frontend deployment was performed as part of this audit, consistent with the existing deployment-limit constraint.
-
-Before client hand-off, identify the active production deployment and deliberately deploy the reviewed commit, or restore Git deployment through a controlled configuration change. Then confirm the public alias and `/api/health`.
 
 ### P0 — Google Meet requires a real OAuth smoke test
 
