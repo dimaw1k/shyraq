@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   }
   const body = parsedBody.value as Record<string, unknown>;
   const allTeamsRequested = body.allTeams === true;
+
   const teamId = typeof body?.teamId === "string" ? body.teamId : "";
   const displayName =
     typeof body?.displayName === "string" && body.displayName.trim()
@@ -85,7 +86,6 @@ export async function POST(request: Request) {
         .select("*")
         .eq("team_id", team.id)
         .eq("study_time", studyTime)
-        .eq("active", true)
         .maybeSingle();
 
       if (existingError) {
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
         );
       }
 
-      if (existingSpace) {
+      if (existingSpace?.active) {
         if (displayName && displayName !== existingSpace.display_name) {
           const { data: updatedSpace } = await admin
             .from("meet_spaces")
@@ -144,26 +144,31 @@ export async function POST(request: Request) {
         );
       }
 
-      const { data, error } = await admin
-        .from("meet_spaces")
-        .insert({
-          team_id: team.id,
-          external_space_id: space.name,
-          meeting_url: space.meetingUri,
-          display_name:
-            displayName ||
-            team.name +
-              " — " +
-              (studyTime === "MORNING"
-                ? "Morning Study Time"
-                : studyTime === "EVENING"
-                  ? "Evening Study Time"
-                  : "Extra Meet"),
-          study_time: studyTime,
-          active: true,
-        })
-        .select("*")
-        .single();
+      const spacePayload = {
+        team_id: team.id,
+        external_space_id: space.name,
+        meeting_url: space.meetingUri,
+        display_name:
+          displayName ||
+          team.name +
+            " — " +
+            (studyTime === "MORNING"
+              ? "Morning Study Time"
+              : studyTime === "EVENING"
+                ? "Evening Study Time"
+                : "Extra Meet"),
+        study_time: studyTime,
+        active: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      // The unique key is (team_id, study_time), including inactive records.
+      // Reuse the existing row when replacing a disabled space instead of trying
+      // to INSERT a second row that can never satisfy that uniqueness constraint.
+      const saveQuery = existingSpace
+        ? admin.from("meet_spaces").update(spacePayload).eq("id", existingSpace.id)
+        : admin.from("meet_spaces").insert(spacePayload);
+      const { data, error } = await saveQuery.select("*").single();
 
       if (error || !data) {
         const { data: recoveredSpace } = await admin
