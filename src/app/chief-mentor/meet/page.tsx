@@ -130,7 +130,9 @@ export default async function ChiefMentorMeetPage({
   const rows = matchingSpaces.map((space) => {
     const conference = latestConferenceBySpace.get(space.external_space_id);
     const conferenceRows = conference
-      ? attendanceByConference.get(conference.external_conference_id) ?? []
+      ? (attendanceByConference.get(conference.external_conference_id) ?? []).filter(
+          (row) => row.team_id === space.team_id,
+        )
       : [];
     const valid = conferenceRows.filter((row) => row.student_id);
     const attended = valid.filter(
@@ -191,7 +193,9 @@ export default async function ChiefMentorMeetPage({
       };
     });
 
-  const totalMeetings = rows.filter((row) => row.has_conference).length;
+  const totalMeetings = new Set(
+    rows.map((row) => row.conference_id).filter((id): id is string => Boolean(id)),
+  ).size;
   const totalAttended = rows.reduce((sum, row) => sum + row.attended, 0);
   const avgAttendance = history.length
     ? history.reduce((sum, row) => sum + row.percent, 0) / history.length

@@ -9,7 +9,6 @@ type Ticket = {
   subject: string;
   message: string;
   status: string;
-  staff_note: string | null;
   created_at: string;
 };
 
@@ -86,7 +85,6 @@ export function SupportClient() {
             <div key={ticket.id} className="rounded-[16px] border border-[#E8E1DA] bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-extrabold text-[#172235]">{ticket.subject}</p><span className="rounded-full bg-[#FFF0E8] px-2.5 py-1 text-[9px] font-extrabold text-[#C85E2F]">{uiLabel(ticket.status)}</span></div>
               <p className="mt-2 text-xs leading-5 text-[#6F665E]">{ticket.message}</p>
-              {ticket.staff_note ? <div className="mt-3 rounded-[12px] bg-[#F6F2ED] p-3 text-[11px] leading-5 text-[#5C5149]"><span className="font-extrabold">Қолдау қызметі:</span> {ticket.staff_note}</div> : null}
               <p className="mt-3 text-[9px] font-semibold text-[#A19890]">{new Date(ticket.created_at).toLocaleString("kk-KZ")}</p>
             </div>
           ))}

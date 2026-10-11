@@ -104,7 +104,7 @@ export default function RegisterPage() {
       }
 
       const email = form.email.trim().toLowerCase();
-      router.push(`/login?registered=1&email=${encodeURIComponent(email)}`);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch {
       setErrors({ form: t("registerConnectionError") });
       setLoading(false);

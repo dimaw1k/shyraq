@@ -7,7 +7,7 @@ import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } fro
 export async function GET(){
  const {profile}=await getAuthenticatedStaff("CHIEF_MENTOR");
  const admin=createAdminSupabaseClient();
- const {data:tickets,error}=await admin.from("support_tickets").select("id,student_id,category,subject,message,status,staff_note,resolved_by,resolved_at,created_at,updated_at").order("updated_at",{ascending:false}).limit(100);
+ const {data:tickets,error}=await admin.from("support_tickets").select("id,student_id,category,subject,message,status,resolved_by,resolved_at,created_at,updated_at").order("updated_at",{ascending:false}).limit(100);
  if(error)return NextResponse.json({error:"Support өтініштерін жүктеу сәтсіз."},{status:500});
  const ids=[...new Set((tickets??[]).map(t=>t.student_id))];
  const {data:students}=ids.length?await admin.from("profiles").select("id,full_name,phone,email").in("id",ids):{data:[] as Array<{id:string;full_name:string;phone:string;email:string}>};
@@ -30,7 +30,6 @@ export async function PATCH(request:Request){
  const admin=createAdminSupabaseClient();
  const {data,error}=await admin.from("support_tickets").update({
   status,
-  staff_note:typeof body?.staffNote==="string"?body.staffNote.trim()||null:null,
   resolved_by:status==="RESOLVED"?profile.id:null,
   resolved_at:status==="RESOLVED"?new Date().toISOString():null,
  }).eq("id",id).select("*").single();

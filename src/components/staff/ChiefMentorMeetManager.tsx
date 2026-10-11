@@ -164,11 +164,21 @@ export function ChiefMentorMeetManager({
       syncInFlight.current = true;
 
       try {
-        const startTime = new Date(
+        const startDate = new Date(
           selectedDate + "T00:00:00+05:00",
-        ).toISOString();
-        const endTime = new Date(
+        );
+        const selectedDayEnd = new Date(
           selectedDate + "T23:59:59.999+05:00",
+        );
+        const now = new Date();
+
+        // Do not ask Google for a future date. For today's automatic sync,
+        // clamp the end of the requested interval to the current instant.
+        if (startDate.getTime() >= now.getTime()) return;
+
+        const startTime = startDate.toISOString();
+        const endTime = new Date(
+          Math.min(selectedDayEnd.getTime(), now.getTime()),
         ).toISOString();
 
         const response = await fetch("/api/chief-mentor/meet/sync", {

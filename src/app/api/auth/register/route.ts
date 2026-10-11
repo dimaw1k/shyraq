@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getTrustedAppUrl } from "@/lib/app-url";
 import { isValidKzPhone, normalizePhone } from "@/lib/phone";
 import { getPasswordValidationError } from "@/lib/security/password";
 import { checkPwnedPassword } from "@/lib/security/pwned-password";
@@ -158,13 +160,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await admin.auth.admin.createUser({
+    // Use Supabase's normal sign-up flow so email confirmation is required.
+    // The SSR client stores the PKCE verifier in cookies for /auth/callback.
+    const confirmationUrl = new URL("/auth/callback", getTrustedAppUrl());
+    confirmationUrl.searchParams.set("next", "/login?verified=1");
+
+    const supabase = await createServerSupabaseClient();
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
-      email_confirm: true,
-      user_metadata: {
-        phone: normalizedPhone,
-        full_name: [firstName, lastName].join(" "),
+      options: {
+        emailRedirectTo: confirmationUrl.toString(),
+        data: {
+          phone: normalizedPhone,
+          full_name: [firstName, lastName].join(" "),
+        },
       },
     });
 
@@ -174,39 +184,44 @@ export async function POST(request: Request) {
       if (message.includes("already registered") || message.includes("already been registered")) {
         return NextResponse.json(
           { field: "email", error: "Бұл email арқылы аккаунт бұрын тіркелген." },
-          { status: 409 },
+          { status: 409, headers: { "Cache-Control": "no-store" } },
         );
       }
 
       if (message.includes("phone") && (message.includes("duplicate") || message.includes("unique"))) {
         return NextResponse.json(
           { field: "phone", error: "Бұл телефон нөмірімен аккаунт бұрын тіркелген." },
-          { status: 409 },
+          { status: 409, headers: { "Cache-Control": "no-store" } },
         );
       }
 
-      if (message.includes("database error saving new user")) {
-        return NextResponse.json(
-          { field: "form", error: "Тіркелгіні сақтау кезінде қате болды. Деректерді тексеріп қайта көріңіз." },
-          { status: 400 },
-        );
-      }
-
-      console.error("[auth/register] createUser failed", {
+      console.error("[auth/register] signUp failed", {
         status: error.status,
-        code: error.code,
-        message: error.message,
+        code: error.code ?? null,
       });
 
+      const status = error.status === 429 ? 429 : error.status && error.status >= 500 ? 503 : 400;
       return NextResponse.json(
-        { field: "form", error: "Тіркелу кезінде қате болды. Қайта көріңіз." },
-        { status: 400 },
+        {
+          field: "form",
+          error: status === 503
+            ? "Растау хатын жіберу уақытша мүмкін емес. Email SMTP баптауларын тексеріңіз."
+            : "Тіркелу кезінде қате болды. Деректерді тексеріп, қайта көріңіз.",
+        },
+        { status, headers: { "Cache-Control": "no-store", Pragma: "no-cache" } },
+      );
+    }
+
+    if (!signUpData.user) {
+      return NextResponse.json(
+        { field: "form", error: "Тіркелуді аяқтау мүмкін болмады. Қайта көріңіз." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
       );
     }
 
     return NextResponse.json(
-      { userId: data.user?.id ?? null, email },
-      { status: 201 },
+      { ok: true, email },
+      { status: 201, headers: { "Cache-Control": "no-store", Pragma: "no-cache" } },
     );
   } catch {
     return NextResponse.json(

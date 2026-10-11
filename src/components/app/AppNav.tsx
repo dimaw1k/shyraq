@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   BarChart3,
-  Bell,
+  LifeBuoy,
   BookOpen,
   CalendarCheck2,
   ClipboardCheck,
@@ -17,7 +17,6 @@ import {
   FileClock,
   FileText,
   LayoutDashboard,
-  Mail,
   Menu,
   Settings,
   Trophy,
@@ -26,10 +25,14 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { NotificationBell } from "@/components/student/NotificationBell";
 import { useStudentLanguage } from "@/lib/student-language";
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
+type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  underDevelopment?: boolean;
+};
 
 const studentLinks: NavItem[] = [
   { label: "Басты бет", href: "/dashboard", icon: LayoutDashboard },
@@ -39,13 +42,13 @@ const studentLinks: NavItem[] = [
 ];
 
 const mentorLinks: NavItem[] = [
-  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
-  { label: "Команда", href: "/mentor/team", icon: UsersRound },
-  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck },
-  { label: "Есептер", href: "/mentor/reports", icon: FileText },
-  { label: "Кездесу", href: "/mentor/meet", icon: Activity },
-  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy },
-  { label: "Профиль", href: "/profile", icon: Users },
+  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard, underDevelopment: true },
+  { label: "Команда", href: "/mentor/team", icon: UsersRound, underDevelopment: true },
+  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck, underDevelopment: true },
+  { label: "Есептер", href: "/mentor/reports", icon: FileText, underDevelopment: true },
+  { label: "Кездесу", href: "/mentor/meet", icon: Activity, underDevelopment: true },
+  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy, underDevelopment: true },
+  { label: "Профиль", href: "/profile", icon: Users, underDevelopment: true },
 ];
 
 const chiefMentorLinks: NavItem[] = [
@@ -53,17 +56,16 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Менторлар", href: "/chief-mentor/mentors", icon: Users },
   { label: "Командалар", href: "/chief-mentor/teams", icon: UsersRound },
   { label: "Оқушылар", href: "/chief-mentor/students", icon: Users },
-  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen },
-  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList },
-  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck },
-  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText },
+  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen, underDevelopment: true },
+  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList, underDevelopment: true },
+  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck, underDevelopment: true },
+  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText, underDevelopment: true },
   { label: "Кездесулер", href: "/chief-mentor/meet", icon: CalendarCheck2 },
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
-  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
-  { label: "Хабарламалар", href: "/chief-mentor/messages", icon: Mail },
-  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
-  { label: "Қолдау", href: "/chief-mentor/support", icon: Bell },
-  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
+  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3, underDevelopment: true },
+  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock, underDevelopment: true },
+  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy, underDevelopment: true },
+  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings, underDevelopment: true },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 
@@ -77,7 +79,7 @@ const leaderLinks: NavItem[] = [
   { label: "Тапсырыстар", href: "/leader/submissions", icon: ClipboardCheck },
   { label: "Аналитика", href: "/leader/analytics", icon: BarChart3 },
   { label: "Журнал", href: "/leader/audit", icon: FileText },
-  { label: "Қолдау", href: "/leader/support", icon: Bell },
+  { label: "Қолдау", href: "/leader/support", icon: LifeBuoy },
   { label: "Баптаулар", href: "/leader/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
@@ -196,7 +198,12 @@ function NavLinks({
             ].join(" ")}
           >
             <Icon size={17} strokeWidth={active ? 2.25 : 1.9} />
-            <span className="truncate">{labelFor ? labelFor(item.href, item.label) : item.label}</span>
+            <span className="min-w-0 flex-1 truncate">{labelFor ? labelFor(item.href, item.label) : item.label}</span>
+            {item.underDevelopment ? (
+              <span className="ml-auto shrink-0 whitespace-nowrap pl-1 text-[9px] font-semibold text-red-600">
+                Өңделуде
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -238,7 +245,7 @@ function MobileBottomNav({
       className="shrq-mobile-nav fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E3DD] bg-white/[0.96] shadow-[0_-12px_32px_rgba(23,34,53,.08)] backdrop-blur-xl lg:hidden"
       aria-label={t("mobileNavigation")}
     >
-      <div className={["mx-auto grid max-w-[520px] px-1", links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
+      <div className={["mx-auto grid max-w-[520px] px-1", links.length === 1 ? "grid-cols-1" : links.length === 4 ? "grid-cols-4" : "grid-cols-5"].join(" ")}>
         {links.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
@@ -264,6 +271,11 @@ function MobileBottomNav({
               <span className="max-w-full truncate text-[9px] font-extrabold leading-none">
                 {label}
               </span>
+              {item.underDevelopment ? (
+                <span className="max-w-full truncate text-[7px] font-semibold leading-none text-red-600">
+                  Өңделуде
+                </span>
+              ) : null}
             </Link>
           );
         })}
@@ -329,7 +341,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
       <header
         className={[
           "fixed inset-x-0 top-0 z-40 h-[60px] border-b border-[#E8E3DD] bg-[#FAF9F7]/94 backdrop-blur-xl lg:h-[56px]",
-          role === "STUDENT" ? "lg:left-[248px]" : "lg:left-[236px]",
+          "lg:left-[236px]",
         ].join(" ")}
       >
         <div className="flex h-full items-center justify-between gap-3 px-3.5 sm:px-6 lg:px-8">
@@ -350,7 +362,6 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            {role === "STUDENT" ? <NotificationBell /> : null}
             <UserChip
               name={profileName || userName}
               role={role}
@@ -364,7 +375,7 @@ export function AppNav({ role, userName }: { role: string; userName?: string }) 
         id="shyraq-mobile-sidebar"
         className={[
           "fixed inset-y-0 left-0 z-50 border-r border-[#E8E3DD] bg-[#FAF9F7] px-3.5 py-4 shadow-[14px_0_40px_rgba(23,34,53,.08)] sm:px-4 sm:py-5",
-          role === "STUDENT" ? "w-[min(86vw,300px)] lg:w-[248px] lg:border-r-0" : "w-[min(86vw,300px)] lg:w-[236px]",
+          "w-[min(86vw,300px)] lg:w-[236px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "transition-transform duration-200 ease-out",
         ].join(" ")}
@@ -432,7 +443,7 @@ export function AppShell({
       <div
         className={[
           "min-w-0 pb-[calc(78px+env(safe-area-inset-bottom))] pt-[60px] lg:pb-0 lg:pt-[56px]",
-          role === "STUDENT" ? "lg:ml-[248px]" : "lg:ml-[236px]",
+          "lg:ml-[236px]",
         ].join(" ")}
       >
         {!hideHeader ? (
