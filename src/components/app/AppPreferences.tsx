@@ -21,6 +21,8 @@ export function AppPreferences() {
     };
 
     window.localStorage.removeItem("shyraq:theme");
+    window.localStorage.removeItem("shyraq:reminders");
+    window.localStorage.removeItem("shyraq:notifications-enabled");
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.style.colorScheme = "light";
 
@@ -45,15 +47,6 @@ export function AppPreferences() {
           // language change uses the same Secure/SameSite cookie policy.
           setStudentLanguage(settings.language);
         }
-
-        if (settings.reminders) {
-          window.localStorage.setItem("shyraq:reminders", JSON.stringify(settings.reminders));
-        }
-
-        window.localStorage.setItem(
-          "shyraq:notifications-enabled",
-          settings.notificationsEnabled ? "1" : "0",
-        );
       })
       .catch(() => undefined);
 
