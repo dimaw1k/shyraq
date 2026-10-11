@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
 import { AppPreferences } from "@/components/app/AppPreferences";
-import { ReminderRuntime } from "@/components/app/ReminderRuntime";
 
 // Per-request CSP nonces require dynamic rendering so Next.js can apply the
 // current request nonce to its generated script tags. Static HTML cannot safely
@@ -26,7 +25,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="kk">
       <body className="min-h-screen">
         <AppPreferences />
-        <ReminderRuntime />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
