@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 const SECRET_FIELDS = [
@@ -10,6 +11,10 @@ const SECRET_FIELDS = [
 
 type SecretField = (typeof SECRET_FIELDS)[number];
 type JsonRecord = Record<string, unknown>;
+
+// Temporary, non-persistent browser storage is only for viewing the native UI
+// in a desktop browser. Real iOS/Android sessions remain in SecureStore.
+const webPreviewStorage = new Map<string, string>();
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -29,6 +34,10 @@ function secureKey(storageKey: string, field: SecretField) {
  */
 export const nativeAuthStorage = {
   async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === "web") {
+      return webPreviewStorage.get(key) ?? null;
+    }
+
     const stored = await AsyncStorage.getItem(key);
     if (stored === null) return null;
 
@@ -70,6 +79,11 @@ export const nativeAuthStorage = {
   },
 
   async setItem(key: string, value: string): Promise<void> {
+    if (Platform.OS === "web") {
+      webPreviewStorage.set(key, value);
+      return;
+    }
+
     let parsed: unknown;
     try {
       parsed = JSON.parse(value);
@@ -116,6 +130,11 @@ export const nativeAuthStorage = {
   },
 
   async removeItem(key: string): Promise<void> {
+    if (Platform.OS === "web") {
+      webPreviewStorage.delete(key);
+      return;
+    }
+
     await AsyncStorage.removeItem(key);
     await Promise.all(
       SECRET_FIELDS.map((field) => SecureStore.deleteItemAsync(secureKey(key, field))),
