@@ -1,5 +1,16 @@
 # Shyraq API and Setup Notes
 
+## Native mobile auth status (in progress)
+
+These changes are currently on the `mobile/ios-starter` feature branch and companion draft PR #121. They are **not merged into main or deployed to production**.
+
+- `POST /api/auth/login` accepts the existing `identifier` and `password` fields. When the request also includes `client: "native"`, successful password authentication returns `session.access_token` and `session.refresh_token` after the server verifies that the profile exists and is not inactive. The default web response remains `{ "ok": true }`. Do not log either token.
+- `GET /api/student/overview` accepts a Supabase access token in `Authorization: Bearer <access_token>` in addition to existing browser cookie auth.
+- The Bearer-auth helper validates the token using Supabase Auth and uses a user-scoped client for the data queries so database RLS still evaluates the current user.
+- This is a proof of concept, not yet a global API contract. Other endpoints remain cookie-based until individually migrated and regression-tested.
+
+Follow-up: add cookie/Bearer regression tests, document all active routes against the actual code, and verify native login on a real iOS device before merging or deploying.
+
 ## Core API
 
 ### Student
