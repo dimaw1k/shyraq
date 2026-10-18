@@ -44,3 +44,5 @@ jobs:
         run: npm run typecheck
       - name: Expo project diagnostics
         run: npx expo-doctor
+      - name: Export browser preview
+        run: npx expo export --platform web
