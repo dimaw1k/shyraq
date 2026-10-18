@@ -20,14 +20,12 @@ function secureKey(storageKey: string, field: SecretField) {
 }
 
 /**
- * Supabase stores a complete session JSON document in its auth storage.
- * Keep bearer/refresh tokens in iOS Keychain / Android encrypted storage and
- * keep only non-token session metadata in AsyncStorage.
+ * Keep Supabase bearer/refresh tokens in iOS Keychain / Android encrypted
+ * storage while storing non-token session metadata in AsyncStorage.
  *
- * This also migrates any previously stored session JSON by moving token fields
- * into SecureStore before returning the migrated value to the auth client.
- * If SecureStore fails, the error is allowed to propagate; tokens are never
- * silently written back to AsyncStorage as a fallback.
+ * Legacy session JSON is migrated by persisting tokens securely before the
+ * plaintext copy is removed. SecureStore errors fail closed: tokens are never
+ * silently written to AsyncStorage as a fallback.
  */
 export const nativeAuthStorage = {
   async getItem(key: string): Promise<string | null> {
@@ -38,31 +36,37 @@ export const nativeAuthStorage = {
     try {
       parsed = JSON.parse(stored);
     } catch {
-      // Other Supabase storage values (for example the PKCE verifier) are
-      // opaque strings, not session JSON.
+      // Supabase also stores opaque PKCE verifier values using this adapter.
       return stored;
     }
 
     if (!isJsonRecord(parsed)) return stored;
 
-    let changed = false;
+    const hydrated: JsonRecord = { ...parsed };
+    const metadata: JsonRecord = { ...parsed };
+    let migrated = false;
+
     for (const field of SECRET_FIELDS) {
-      const current = parsed[field];
+      const current = metadata[field];
       if (typeof current === "string" && current.length > 0) {
+        // Keep the token in this in-memory response for the current auth read.
+        // Remove it from the copy persisted back to AsyncStorage.
         await SecureStore.setItemAsync(secureKey(key, field), current);
-        delete parsed[field];
-        changed = true;
+        hydrated[field] = current;
+        delete metadata[field];
+        migrated = true;
       } else {
         const secret = await SecureStore.getItemAsync(secureKey(key, field));
-        if (secret !== null) parsed[field] = secret;
+        if (secret !== null) hydrated[field] = secret;
+        else delete hydrated[field];
       }
     }
 
-    if (changed) {
-      await AsyncStorage.setItem(key, JSON.stringify(parsed));
+    if (migrated) {
+      await AsyncStorage.setItem(key, JSON.stringify(metadata));
     }
 
-    return JSON.stringify(parsed);
+    return JSON.stringify(hydrated);
   },
 
   async setItem(key: string, value: string): Promise<void> {
@@ -85,6 +89,14 @@ export const nativeAuthStorage = {
     );
 
     if (!containsSessionToken) {
+      // Clear stale secure token fields if Supabase is replacing the session
+      // with an empty auth-session object. Keep non-session values such as a
+      // PKCE verifier intact.
+      if (key.endsWith("-auth-token")) {
+        await Promise.all(
+          SECRET_FIELDS.map((field) => SecureStore.deleteItemAsync(secureKey(key, field))),
+        );
+      }
       await AsyncStorage.setItem(key, value);
       return;
     }
@@ -99,7 +111,7 @@ export const nativeAuthStorage = {
       delete metadata[field];
     }
 
-    // Store the metadata only after the sensitive fields were secured.
+    // Write metadata only after all sensitive token fields were secured.
     await AsyncStorage.setItem(key, JSON.stringify(metadata));
   },
 
