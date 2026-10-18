@@ -13,6 +13,7 @@ import {
 type LoginPayload = {
   identifier?: unknown;
   password?: unknown;
+  client?: unknown;
 };
 
 function text(value: unknown) {
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Кіру деректері дұрыс емес." }, { status: 400 });
     }
     const body = parsedBody.value as unknown as LoginPayload;
+    const nativeClient = body.client === "native";
     const rawIdentifier = text(body.identifier);
     const password = typeof body.password === "string" ? body.password : "";
 
@@ -175,7 +177,35 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    if (nativeClient) {
+      const session = signInData.session;
+      if (!session?.access_token || !session.refresh_token) {
+        await supabase.auth.signOut({ scope: "local" });
+        return NextResponse.json(
+          { error: "Мобильді сессияны жасау мүмкін болмады. Қайта көріңіз." },
+          { status: 503, headers: { "Cache-Control": "no-store", Pragma: "no-cache" } },
+        );
+      }
+
+      // Native clients need their own Supabase session storage rather than
+      // relying on browser cookies. Return tokens only after validating that
+      // the account profile exists and is not INACTIVE.
+      return NextResponse.json(
+        {
+          ok: true,
+          session: {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          },
+        },
+        { status: 200, headers: { "Cache-Control": "no-store", Pragma: "no-cache" } },
+      );
+    }
+
+    return NextResponse.json(
+      { ok: true },
+      { status: 200, headers: { "Cache-Control": "no-store", Pragma: "no-cache" } },
+    );
   } catch {
     return NextResponse.json(
       { error: "Кіру кезінде қате болды. Қайта көріңіз." },

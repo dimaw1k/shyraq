@@ -20,6 +20,7 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     "node_modules/**",
+    "mobile/**",
     "coverage/**",
     "supabase/.temp/**",
   ]),

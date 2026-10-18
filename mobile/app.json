@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Shyraq",
+    "slug": "shyraq-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "shyraq",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "kz.shyraq.mobile",
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

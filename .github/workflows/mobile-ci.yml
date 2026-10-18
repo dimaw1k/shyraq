@@ -1,0 +1,48 @@
+name: Shyraq Mobile CI
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
+      - "src/app/api/auth/login/route.ts"
+      - "src/lib/supabase/api-auth.ts"
+      - "src/app/api/student/overview/route.ts"
+  push:
+    branches: ["main", "mobile/ios-starter"]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
+      - "src/app/api/auth/login/route.ts"
+      - "src/lib/supabase/api-auth.ts"
+      - "src/app/api/student/overview/route.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shyraq-mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install mobile dependencies
+        run: npm install --no-audit --no-fund
+      - name: Check Expo SDK dependency alignment
+        run: npx expo install --check
+      - name: Typecheck mobile app
+        run: npm run typecheck
+      - name: Expo project diagnostics
+        run: npx expo-doctor
+      - name: Export browser preview
+        run: npx expo export --platform web
