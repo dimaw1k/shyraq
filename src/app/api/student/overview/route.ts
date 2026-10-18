@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getApiSupabaseContext } from "@/lib/supabase/api-auth";
 import { calculateCurrentStreak, calculateLongestStreak, getSubmittedReportDates, todayInTimezone } from "@/lib/streak";
 
-export async function GET() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(request: Request) {
+  const authContext = await getApiSupabaseContext(request);
+  if (!authContext) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { supabase, user } = authContext;
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
