@@ -24,7 +24,10 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-url-polyfill": "^2.0.0",
-    "expo-font": "~57.0.1"
+    "expo-font": "~57.0.1",
+    "react-dom": "19.2.3",
+    "react-native-web": "~0.21.0",
+    "@expo/metro-runtime": "~57.0.16"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
