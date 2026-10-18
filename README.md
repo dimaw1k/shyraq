@@ -23,8 +23,9 @@ Registration -> waiting for team -> mentor phone assignment -> tasks/reports -> 
 - Payment automation
 - OTP/SMS login
 - YouTube lesson hosting
-- Native mobile apps
 - AI features
+
+The native mobile app is being developed separately under `mobile/`; it is not part of the currently deployed web release.
 
 ## Implemented foundation
 
@@ -112,6 +113,8 @@ Uncertain participant identity is not silently assigned; a unique name match or 
 - `docs/DECISIONS.md` — important implementation decisions.
 - `docs/API.md` — API routes, environment and integration notes.
 - `docs/DEPLOYMENT.md` — production deployment variables and setup checks.
+- `mobile/README.md` — native app setup and current MVP scope.
+- [iOS mobile implementation tracker](https://github.com/dimaw1k/shyraq/issues/120) — phase checklist and release gates.
 
 ## Production deployment
 
@@ -150,3 +153,11 @@ Before a full production hand-off, enable Supabase Auth leaked-password protecti
 The application is responsive for phone and tablet viewports without a separate native app. The shared app shell now provides a compact mobile header, slide-out role-aware navigation, five-item bottom navigation, safe-area support for iOS, mobile-friendly page spacing and horizontally scrollable dense tables. Authentication, lessons and lesson detail screens also use mobile-specific spacing and viewport metadata.
 
 <!-- Vercel production deployment sync: 2026-10-10; deployment dpl_2TAgfQFC9tmcfGxtBy4s9ft8eurC from fc8c3fa331824085921ab6a815598d927e213654 -->
+
+## Native iOS app (in progress)
+
+The separate Expo + React Native + TypeScript app lives in `mobile/`. It is being developed on feature branch `mobile/ios-starter`; the web production deployment remains unchanged.
+
+The current scaffold includes the native login UI, SecureStore-backed token storage, a token-authenticated API client and the first student overview screen. The companion draft pull request adds a native session response to `POST /api/auth/login` and Bearer support to `GET /api/student/overview`. This backend change is not merged or deployed to production. Other API routes are not yet declared mobile-compatible.
+
+See `mobile/README.md` for setup and the [implementation tracker](https://github.com/dimaw1k/shyraq/issues/120) for phase status. Do not add server secret keys to any `EXPO_PUBLIC_*` variable.
