@@ -140,13 +140,14 @@ export default async function LessonsPage({
               <Link
                 key={week.week}
                 href={"/lessons?week=" + week.week}
+                aria-current={activeWeek.week === week.week ? "step" : undefined}
                 className="group min-w-0"
               >
                 <Card
                   className={[
-                    "relative h-[88px] px-4 py-3 transition duration-200",
+                    "relative min-h-[112px] px-4 py-4 transition duration-200",
                     activeWeek.week === week.week
-                      ? "border-[#F3C7B0] bg-[#FFFDFB]"
+                      ? "border-[#FF8000] bg-[#FFFAF5] shadow-[0_12px_28px_rgba(255,128,0,.08)]"
                       : "hover:-translate-y-0.5 hover:border-[#F3C7B0]",
                   ].join(" ")}
                 >
@@ -165,7 +166,7 @@ export default async function LessonsPage({
                     />
                   </div>
 
-                  <h2 className="absolute inset-0 flex items-center justify-center text-center text-[16px] font-extrabold tracking-[-.03em] text-[#172235]">
+                  <h2 className="mt-3 text-[15px] font-extrabold leading-snug tracking-[-.03em] text-[#172235] sm:text-[16px]">
                     {week.subtitle}
                   </h2>
                 </Card>
@@ -203,7 +204,7 @@ export default async function LessonsPage({
 
               <div className="min-w-0">
                 <div className="mb-2.5">
-                  <h2 className="mt-0.5 text-[21px] font-extrabold tracking-[-.045em] text-[#172235]">
+                  <h2 className="mt-0.5 text-[23px] font-extrabold tracking-[-.045em] text-[#172235]">
                     {activeDay}-{t("day")}
                   </h2>
                 </div>
@@ -211,10 +212,10 @@ export default async function LessonsPage({
                 <div className="shrq-lessons-day-columns">
                   <section className="min-w-0">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[.12em] text-[#172235] sm:text-[12px]">
                         {t("videoLessons").toUpperCase()}
                       </p>
-                      <span className="text-[8px] font-bold text-[#9A9189]">
+                      <span className="rounded-full bg-[#F4F1EC] px-2.5 py-1 text-[10px] font-bold text-[#7B746D]">
                         {dayLessons.length}
                       </span>
                     </div>
@@ -222,7 +223,7 @@ export default async function LessonsPage({
                     {!dayLessons.length ? (
                       <Card className="p-7 text-center">
                         <BookOpen size={18} className="mx-auto text-[#B5ABA2]" />
-                        <p className="mt-2 text-[11px] font-extrabold text-[#172235]">
+                        <p className="mt-2 text-[13px] font-extrabold text-[#172235]">
                           {t("noLessons")}
                         </p>
                       </Card>
@@ -241,22 +242,22 @@ export default async function LessonsPage({
                               <Link
                                 href={locked ? "#" : "/lessons/" + lesson.id}
                                 className={[
-                                  "flex min-h-[82px] items-start gap-3 px-3.5 py-3.5",
+                                  "flex min-h-[92px] items-start gap-3.5 px-4 py-4",
 
                                 ].join(" ")}
                               >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
+                                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#B95D00]">
                                   {locked ? <LockKeyhole size={15} /> : <BookOpen size={15} />}
                                 </span>
 
                                 <span className="min-w-0 flex-1 pt-0.5">
                                   <span className="flex h-4 items-center gap-2">
-                                    <span className="text-[7px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
+                                    <span className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                                       {String(index + 1).padStart(2, "0")}
                                     </span>
                                     <span
                                       className={[
-                                        "rounded-full px-2 py-0.5 text-[7px] font-extrabold",
+                                        "rounded-full px-2.5 py-1 text-[9px] font-extrabold",
                                         locked
                                           ? "bg-[#F4F1EC] text-[#857B72]"
                                           : "bg-[#EAF7F0] text-[#2E7E58]",
@@ -266,11 +267,11 @@ export default async function LessonsPage({
                                     </span>
                                   </span>
 
-                                  <span className="mt-1.5 block truncate text-[12px] font-extrabold leading-[1.25] tracking-[-.02em] text-[#172235]">
+                                  <span className="mt-1.5 line-clamp-2 block text-[13px] font-extrabold leading-snug tracking-[-.02em] text-[#172235] sm:text-[14px]">
                                     {lesson.title}
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[8px] font-medium leading-4 text-[#8B8179]">
+                                  <span className="mt-1.5 block text-[10px] font-medium leading-5 text-[#8B8179]">
                                     {Math.max(
                                       1,
                                       Math.ceil(Number(lesson.duration_seconds ?? 0) / 60),
@@ -282,9 +283,9 @@ export default async function LessonsPage({
                                 <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
                               </Link>
 
-                              <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
+                              <div className="flex min-h-9 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-4">
                                 <CheckCircle2 size={11} className="text-[#AAA198]" />
-                                <span className="text-[7px] font-semibold text-[#9A9189]">
+                                <span className="text-[9px] font-semibold text-[#9A9189]">
                                   {t("videoToTest")}
                                 </span>
                               </div>
@@ -297,7 +298,7 @@ export default async function LessonsPage({
 
                   <section className="min-w-0">
                     <div className="mb-2">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#172235]">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[.12em] text-[#172235] sm:text-[12px]">
                         {t("taskUpper")}
                       </p>
                     </div>
@@ -305,7 +306,7 @@ export default async function LessonsPage({
                     {!dayTasks.length ? (
                       <Card className="p-7 text-center">
                         <ClipboardList size={18} className="mx-auto text-[#B5ABA2]" />
-                        <p className="mt-2 text-[11px] font-extrabold text-[#172235]">
+                        <p className="mt-2 text-[13px] font-extrabold text-[#172235]">
                           {t("noTasks")}
                         </p>
                       </Card>
@@ -322,9 +323,9 @@ export default async function LessonsPage({
                             >
                               <Link
                                 href={"/tasks/" + task.id}
-                                className="flex min-h-[82px] items-start gap-3 px-3.5 py-3.5"
+                                className="flex min-h-[92px] items-start gap-3.5 px-4 py-4"
                               >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FFF1E2] text-[#B95D00] mt-0.5">
+                                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-[#FFF1E2] text-[#B95D00]">
                                   {done ? (
                                     <CheckCircle2 size={15} />
                                   ) : (
@@ -334,12 +335,12 @@ export default async function LessonsPage({
 
                                 <span className="min-w-0 flex-1 pt-0.5">
                                   <span className="flex h-4 items-center gap-2">
-                                    <span className="text-[7px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
+                                    <span className="text-[9px] font-extrabold uppercase tracking-[.12em] text-[#A19890]">
                                       {String(index + 1).padStart(2, "0")}
                                     </span>
                                     <span
                                       className={[
-                                        "rounded-full px-2 py-0.5 text-[7px] font-extrabold",
+                                        "rounded-full px-2.5 py-1 text-[9px] font-extrabold",
                                         done
                                           ? "bg-[#EAF7F0] text-[#2E7E58]"
                                           : "bg-[#FFF1E2] text-[#B95D00]",
@@ -349,11 +350,11 @@ export default async function LessonsPage({
                                     </span>
                                   </span>
 
-                                  <span className="mt-1.5 block truncate text-[12px] font-extrabold leading-[1.25] tracking-[-.02em] text-[#172235]">
+                                  <span className="mt-1.5 line-clamp-2 block text-[13px] font-extrabold leading-snug tracking-[-.02em] text-[#172235] sm:text-[14px]">
                                     {task.title}
                                   </span>
 
-                                  <span className="mt-1 block truncate text-[8px] font-medium leading-4 text-[#8B8179]">
+                                  <span className="mt-1.5 block text-[10px] font-medium leading-5 text-[#8B8179]">
                                     {task.points} {t("pointsShort")}
                                     {task.deadline
                                       ? " · " + new Date(task.deadline).toLocaleDateString("kk-KZ")
@@ -364,8 +365,8 @@ export default async function LessonsPage({
                                 <ArrowRight size={15} className="shrink-0 text-[#FF8000]" />
                               </Link>
 
-                              <div className="flex h-8 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-3.5">
-                                <span className="text-[7px] font-semibold text-[#9A9189]">
+                              <div className="flex min-h-9 items-center gap-2 border-t border-[#F0EBE6] bg-[#FFFCF9] px-4">
+                                <span className="text-[9px] font-semibold text-[#9A9189]">
                                   {done ? t("checked") : t("openTask")}
                                 </span>
                               </div>
