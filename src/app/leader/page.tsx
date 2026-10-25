@@ -19,9 +19,12 @@ import {
   StatusPill,
 } from "@/components/ui/ShyraqUI";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
+import { DashboardBanner } from "@/components/student/DashboardBanner";
+import { getActiveDashboardBanners } from "@/lib/banners/server";
 
 export default async function LeaderPage() {
   const { supabase, profile } = await getAuthenticatedStaff("LEADER");
+  const bannerItemsPromise = getActiveDashboardBanners();
 
   const [
     { count: studentCount },
@@ -46,6 +49,7 @@ export default async function LeaderPage() {
     supabase.from("tasks").select("*", { count: "exact", head: true }).eq("active", true),
     supabase.from("audit_logs").select("id,actor_role,action,entity_type,created_at").order("created_at", { ascending: false }).limit(6),
   ]);
+  const bannerItems = await bannerItemsPromise;
 
   const modules = [
     ["Қызметкерлер", "/leader/staff", "Менторлар мен бас менторларды басқару.", Users],
@@ -65,6 +69,7 @@ export default async function LeaderPage() {
     >
       <PageContainer>
         <div className="space-y-6">
+          <DashboardBanner banners={bannerItems} />
           <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <SectionHeader
               eyebrow="ЖЕТЕКШІ"
