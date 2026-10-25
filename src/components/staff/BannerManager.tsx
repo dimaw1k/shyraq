@@ -49,6 +49,11 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
       return;
     }
 
+    if (!endsAt.trim()) {
+      setMessage("Баннердің қашанға дейін көрсетілетінін таңдаңыз.");
+      return;
+    }
+
     const startsAtIso = parseKzDateTime(startsAt);
     const endsAtIso = parseKzDateTime(endsAt);
 
