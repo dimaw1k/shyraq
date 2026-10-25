@@ -269,31 +269,31 @@ export function KinescopeLessonPlayer({
 
   if(youtubeId){
     return (
-      <div className="space-y-3">
-        <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
+      <div className="space-y-4">
+        <div className="aspect-video overflow-hidden rounded-[20px] border border-[#E8E3DD] bg-[#172235] shadow-[0_12px_34px_rgba(23,34,53,.08)]">
           <div ref={youtubeContainerRef} className="h-full w-full" />
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft">
+        <div className="rounded-[20px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-gray-900">Бейне ілгерілеуі</p>
-              <p className="mt-0.5 text-[10px] text-gray-400">Көрілген бірегей уақыт есептеледі.</p>
+              <p className="text-[14px] font-extrabold text-[#172235]">Бейне ілгерілеуі</p>
+              <p className="mt-0.5 text-[12px] leading-5 text-[#7B746D]">Көрілген бірегей уақыт есептеледі.</p>
             </div>
-            <strong className="text-sm text-[#C25100]">{percent.toFixed(0)}%</strong>
+            <strong className="text-[16px] font-extrabold text-[#FF8000]">{percent.toFixed(0)}%</strong>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
-            <div className="h-full rounded-full bg-[#C25100] transition-all duration-300 ease-in-out" style={{width:Math.min(100,percent)+"%"}}/>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F0EBE6]">
+            <div className="h-full rounded-full bg-[#FF8000] transition-all duration-300 ease-in-out" style={{width:Math.min(100,percent)+"%"}}/>
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
-            <p className="text-[10px] text-gray-400">
+            <p className="text-[12px] leading-5 text-[#7B746D]">
               {unlocked ? "Тест ашылды." : "Тестті ашу үшін кемінде "+requiredWatchPercent+"% көру керек."}
             </p>
-            {saving?<span className="text-[10px] text-gray-400">Сақталуда...</span>:null}
+            {saving?<span className="text-[12px] leading-5 text-[#7B746D]">Сақталуда...</span>:null}
           </div>
           {unlocked && testHref ? (
             <Link
               href={testHref}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-[12px] bg-[#FF8000] px-4 py-3 text-[12px] font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#E56F00]"
             >
               Тестке өту
             </Link>
@@ -303,26 +303,26 @@ export function KinescopeLessonPlayer({
     );
   }
 
-  return <div className="space-y-3">
-    <div className="aspect-video overflow-hidden rounded-2xl bg-gray-950 shadow-soft">
+  return <div className="space-y-4">
+    <div className="aspect-video overflow-hidden rounded-[20px] border border-[#E8E3DD] bg-[#172235] shadow-[0_12px_34px_rgba(23,34,53,.08)]">
       <KinescopePlayer videoId={videoId} width="100%" height="100%" onTimeUpdate={handleTimeUpdate}/>
     </div>
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-soft">
+    <div className="rounded-[20px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-5">
       <div className="flex items-center justify-between">
-        <div><p className="text-xs font-semibold text-gray-900">Бейне ілгерілеуі</p><p className="mt-0.5 text-[10px] text-gray-400">Бірегей көрілген уақыт есептеледі.</p></div>
-        <strong className="text-sm text-[#C25100]">{percent.toFixed(0)}%</strong>
+        <div><p className="text-[14px] font-extrabold text-[#172235]">Бейне ілгерілеуі</p><p className="mt-0.5 text-[12px] leading-5 text-[#7B746D]">Бірегей көрілген уақыт есептеледі.</p></div>
+        <strong className="text-[16px] font-extrabold text-[#FF8000]">{percent.toFixed(0)}%</strong>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100">
-        <div className="h-full rounded-full bg-[#C25100] transition-all duration-300 ease-in-out" style={{width:Math.min(100,percent)+"%"}}/>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F0EBE6]">
+        <div className="h-full rounded-full bg-[#FF8000] transition-all duration-300 ease-in-out" style={{width:Math.min(100,percent)+"%"}}/>
       </div>
       <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="text-[10px] text-gray-400">{unlocked?"Тест ашылды.":"Тестті ашу үшін кемінде "+requiredWatchPercent+"% көру керек."}</p>
-        {saving?<span className="text-[10px] text-gray-400">Сақталуда...</span>:null}
+        <p className="text-[12px] leading-5 text-[#7B746D]">{unlocked?"Тест ашылды.":"Тестті ашу үшін кемінде "+requiredWatchPercent+"% көру керек."}</p>
+        {saving?<span className="text-[12px] leading-5 text-[#7B746D]">Сақталуда...</span>:null}
       </div>
       {unlocked && testHref ? (
         <Link
           href={testHref}
-          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#C25100] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:opacity-90"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-[12px] bg-[#FF8000] px-4 py-3 text-[12px] font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#E56F00]"
         >
           Тестке өту
         </Link>
