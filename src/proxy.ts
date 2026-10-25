@@ -1,43 +1,97 @@
-import { createServerClient } from "@supabase/ssr";
+import crypto from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseConfig } from "./lib/supabase/config";
+import { updateSession } from "@/lib/supabase/proxy";
 import { verifyRecoveryGrant } from "./lib/security/recovery-grant";
 
-// TEMPORARY EDITING LOCKS. Remove the matching paths from these lists when
-// the corresponding sections have been reviewed and are ready to reopen.
-const LOCKED_MENTOR_PATHS = ["/mentor", "/api/mentor"];
-const LOCKED_CHIEF_MENTOR_PATHS = [
-  "/chief-mentor/lessons",
-  "/chief-mentor/tasks",
-  "/chief-mentor/submissions",
-  "/chief-mentor/reports",
-  "/chief-mentor/analytics",
-  "/chief-mentor/audit",
-  "/chief-mentor/support",
-  "/chief-mentor/settings",
-  "/api/chief-mentor/lessons",
-  "/api/chief-mentor/tasks",
-  "/api/chief-mentor/submissions",
-  "/api/chief-mentor/reports",
-  "/api/chief-mentor/analytics",
-  "/api/chief-mentor/audit",
-  "/api/chief-mentor/support",
-  "/api/chief-mentor/settings",
+const PRIVATE_PATH_ROOTS = [
+  "/api",
+  "/dashboard",
+  "/habits",
+  "/lessons",
+  "/login",
+  "/marathon",
+  "/mentor",
+  "/chief-mentor",
+  "/leader",
+  "/profile",
+  "/rankings",
+  "/register",
+  "/reports",
+  "/reset-password",
+  "/settings",
+  "/tasks",
+  "/tests",
+  "/auth",
 ];
 
-function matchesLockedPath(pathname: string, roots: string[]) {
-  return roots.some((root) => pathname === root || pathname.startsWith(root + "/"));
+function requiresPrivateNoStore(pathname: string) {
+  return PRIVATE_PATH_ROOTS.some(
+    (root) => pathname === root || pathname.startsWith(`${root}/`),
+  );
 }
 
-export default async function proxy(request: NextRequest) {
-  // A recovery grant is intentionally not an application login session.
-  // Until it is consumed, allow only the recovery flow and block every other
-  // page/API route, even if a caller tries to navigate directly to an endpoint.
+function isPublicPath(pathname: string) {
+  return (
+    pathname === "/" ||
+    ["/login", "/register", "/reset-password", "/auth/recovery"].some(
+      (root) => pathname === root || pathname.startsWith(`${root}/`),
+    )
+  );
+}
+
+function createCsp(nonce: string) {
+  const isProduction = process.env.NODE_ENV === "production";
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self' https://accounts.google.com",
+    "script-src 'self' 'nonce-" + nonce + "' 'strict-dynamic' https://*.kinescope.io https://kinescope.io https://www.youtube.com https://youtube.com",
+    "style-src 'self' 'nonce-" + nonce + "'",
+    "style-src-attr 'unsafe-inline'",
+    "img-src 'self' data: blob: https://sqjjqnisnndulkzcqfwb.supabase.co https://*.kinescope.io https://kinescope.io",
+    "font-src 'self' data:",
+    "media-src 'self' blob: data: https://*.kinescope.io https://kinescope.io",
+    "connect-src 'self' https://sqjjqnisnndulkzcqfwb.supabase.co https://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://*.kinescope.io wss://*.supabase.co",
+    "frame-src 'self' https://*.kinescope.io https://kinescope.io https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
+    isProduction ? "upgrade-insecure-requests" : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
+function securePrivateResponse(
+  response: NextResponse,
+  csp: string,
+  pathname: string,
+) {
+  response.headers.set("Content-Security-Policy", csp);
+  if (requiresPrivateNoStore(pathname)) {
+    response.headers.set(
+      "Cache-Control",
+      "private, no-store, max-age=0, must-revalidate",
+    );
+  }
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
+  const nonce = crypto.randomBytes(16).toString("base64");
+  const csp = createCsp(nonce);
+  const pathname = request.nextUrl.pathname;
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  // Next.js reads the request CSP to apply this nonce to framework-generated scripts.
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  // A recovery grant is not an application login session. Until it is consumed,
+  // allow only the recovery flow and block every other page/API route.
   const recoveryGrant = verifyRecoveryGrant(
     request.cookies.get("shyraq_recovery_grant")?.value,
   );
   if (recoveryGrant) {
-    const pathname = request.nextUrl.pathname;
     const allowedRecoveryPaths = new Set([
       "/auth/recovery",
       "/reset-password",
@@ -47,69 +101,38 @@ export default async function proxy(request: NextRequest) {
 
     if (!allowedRecoveryPaths.has(pathname)) {
       if (pathname.startsWith("/api/")) {
-        return NextResponse.json(
-          { error: "Құпиясөзді қалпына келтіруді аяқтаңыз немесе жаңа сілтеме сұраңыз." },
-          {
-            status: 403,
-            headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
-          },
+        return securePrivateResponse(
+          NextResponse.json(
+            { error: "Құпиясөзді қалпына келтіруді аяқтаңыз немесе жаңа сілтеме сұраңыз." },
+            {
+              status: 403,
+              headers: { "Cache-Control": "no-store", Pragma: "no-cache" },
+            },
+          ),
+          csp,
+          pathname,
         );
       }
 
-      return NextResponse.redirect(
-        new URL("/reset-password?mode=update", request.url),
+      return securePrivateResponse(
+        NextResponse.redirect(new URL("/reset-password?mode=update", request.url)),
+        csp,
+        pathname,
       );
     }
   }
 
-  const requestedPath = request.nextUrl.pathname;
-  const isTemporarilyLocked =
-    matchesLockedPath(requestedPath, LOCKED_MENTOR_PATHS) ||
-    matchesLockedPath(requestedPath, LOCKED_CHIEF_MENTOR_PATHS);
+  // Mentor workspaces are intentionally available. Authorization remains enforced
+  // by each route's authenticated role checks and server-side data scoping.
+  const response = isPublicPath(pathname)
+    ? NextResponse.next({ request: { headers: requestHeaders } })
+    : await updateSession(request, requestHeaders);
 
-  if (isTemporarilyLocked) {
-    if (requestedPath.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Бұл бөлім уақытша жабық. Жаңарту жұмыстары жүріп жатыр." },
-        {
-          status: 503,
-          headers: {
-            "Cache-Control": "no-store",
-            Pragma: "no-cache",
-            "Retry-After": "3600",
-          },
-        },
-      );
-    }
-
-    const target = request.nextUrl.clone();
-    target.pathname = "/temporarily-closed";
-    target.search = "";
-    return NextResponse.rewrite(target, {
-      headers: {
-        "Cache-Control": "no-store",
-        "X-Robots-Tag": "noindex, nofollow",
-      },
-    });
-  }
-
-  let response = NextResponse.next({ request });
-  const { url, publishableKey } = getSupabaseConfig();
-  const supabase = createServerClient(
-    url,
-    publishableKey,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        },
-      },
-    },
-  );
-  await supabase.auth.getUser();
-  return response;
+  return securePrivateResponse(response, csp, pathname);
 }
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|api/health).*)"] };
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};
