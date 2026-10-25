@@ -18,7 +18,7 @@ function parseOptionalDate(value: FormDataEntryValue | null): string | null | un
 }
 
 export async function POST(request:Request){
-  const {profile}=await getAuthenticatedStaff("LEADER");
+  const {profile}=await getAuthenticatedStaff(["LEADER", "CHIEF_MENTOR"]);
   const rateLimit = await consumeRateLimit("leader:banner-upload", profile.id, 10, 3600, 600);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -63,6 +63,12 @@ export async function POST(request:Request){
   const endsAt = parseOptionalDate(form.get("endsAt"));
   if ((form.get("startsAt") && startsAt === undefined) || (form.get("endsAt") && endsAt === undefined)) {
     return NextResponse.json({ error: "Banner жариялану уақыты дұрыс емес." }, { status: 400 });
+  }
+  if (!endsAt) {
+    return NextResponse.json({ error: "Баннердің аяқталу мерзімін таңдаңыз." }, { status: 400 });
+  }
+  if (Date.parse(endsAt) <= Date.now()) {
+    return NextResponse.json({ error: "Баннердің аяқталу мерзімі болашақта болуы керек." }, { status: 400 });
   }
   if (startsAt && endsAt && Date.parse(startsAt) > Date.parse(endsAt)) {
     return NextResponse.json({ error: "Banner аяқталу уақыты басталу уақытынан бұрын болмауы керек." }, { status: 400 });
