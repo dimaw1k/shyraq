@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/ShyraqUI";
 import { formatKzDateTime, parseKzDateTime, StaffDateTimeField, StaffModal } from "@/components/staff/StaffUI";
+import { detectSupportedImageFormat } from "@/lib/security/file-validation";
 
 type Banner = {
   id: string;
@@ -18,6 +19,57 @@ type Banner = {
   ends_at: string | null;
   sort_order: number;
 };
+
+async function convertImageToWebP(file: File): Promise<File> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error("Браузер бұл файлды сурет ретінде аша алмады. JPG, PNG, WebP, GIF, AVIF немесе BMP суретін таңдаңыз.");
+  }
+
+  try {
+    const pixelCount = bitmap.width * bitmap.height;
+    if (!Number.isSafeInteger(pixelCount) || pixelCount > 24_000_000) {
+      throw new Error("Суреттің өлшемі тым үлкен. Өлшемін кішірейтіп, қайта жүктеңіз.");
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Суретті дайындау мүмкін болмады.");
+    context.drawImage(bitmap, 0, 0);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => result ? resolve(result) : reject(new Error("Суретті веб форматына ауыстыру мүмкін болмады.")),
+        "image/webp",
+        0.92,
+      );
+    });
+
+    if (blob.size <= 0) throw new Error("Суретті дайындау мүмкін болмады.");
+    if (blob.size > 4 * 1024 * 1024) {
+      throw new Error("Дайындалған сурет 4 МБ-тан асып кетті. Өлшемін кішірейтіңіз.");
+    }
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
+    return new File([blob], (baseName || "banner") + ".webp", {
+      type: "image/webp",
+      lastModified: Date.now(),
+    });
+  } finally {
+    bitmap.close();
+  }
+}
+
+async function prepareBannerFile(file: File): Promise<File> {
+  const detected = await detectSupportedImageFormat(file);
+  // Preserve common, browser-ready raster formats. For other browser-decodable
+  // image formats, normalize the image to WebP before sending it to the API.
+  return detected ? file : convertImageToWebP(file);
+}
 
 export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) {
   const [open, setOpen] = useState(false);
@@ -61,8 +113,16 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
     setMessage("");
 
     try {
+      let uploadFile: File;
+      try {
+        uploadFile = await prepareBannerFile(file);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Суретті дайындау сәтсіз аяқталды.");
+        return;
+      }
+
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", uploadFile);
       form.append("title", file.name.replace(/\.[^/.]+$/, "") || "Баннер");
       form.append("startsAt", startsAtIso ?? "");
       form.append("endsAt", endsAtIso ?? "");
