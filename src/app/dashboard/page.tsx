@@ -185,6 +185,8 @@ export default async function DashboardPage() {
     submittedTaskIds.has(task.id),
   ).length;
   const taskCount = todayTasks.length;
+  const taskCompletionPercent =
+    taskCount > 0 ? Math.round((completedToday / taskCount) * 100) : 0;
 
   const meeting = meetSpace as
     | { data: { meeting_url: string; display_name: string | null; active: boolean } | null }
@@ -196,6 +198,7 @@ export default async function DashboardPage() {
   const marathonDay = marathonStart
     ? marathonDayFromDate(today, marathonStart)
     : null;
+  const activeWeekNumber = marathonDay ? Math.ceil(marathonDay / 7) : null;
 
   const attendanceRows = attendance ?? [];
   const classifyAttendance = (row: {
@@ -250,10 +253,10 @@ export default async function DashboardPage() {
               <DashboardBanner banners={bannerItems} />
               <div className="mb-2.5 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
                     {t("marathon").toUpperCase()}
                   </p>
-                  <h1 className="mt-1 text-[20px] font-extrabold tracking-[-.045em] text-[#172235]">
+                  <h1 className="mt-1 text-[24px] font-extrabold tracking-[-.045em] text-[#172235] sm:text-[28px]">
                     {t("marathonTitle")}
                   </h1>
                 </div>
@@ -266,7 +269,12 @@ export default async function DashboardPage() {
                     href={"/lessons?week=" + week.week}
                     className="group min-w-0"
                   >
-                    <Card className="h-full p-4 transition duration-200 group-hover:-translate-y-0.5 group-hover:border-[#F3C7B0]">
+                    <Card className={[
+                      "h-full p-5 transition duration-200 group-hover:-translate-y-0.5 group-hover:border-[#F3C7B0]",
+                      activeWeekNumber === week.week
+                        ? "border-[#FFB66F] bg-[#FFFAF5] shadow-[0_12px_28px_rgba(255,128,0,.08)]"
+                        : "",
+                    ].join(" ")}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#FFF1E2] text-[9px] font-extrabold text-[#B95D00]">
                           {String(week.week).padStart(2, "0")}
@@ -276,13 +284,13 @@ export default async function DashboardPage() {
                           className="text-[#B6AEA6] transition group-hover:text-[#FF8000]"
                         />
                       </div>
-                      <p className="mt-3 text-[8px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
+                      <p className="mt-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-[#9A9189]">
                         {t("days21").toUpperCase()}
                       </p>
                       <h2 className="mt-1 text-[17px] font-extrabold tracking-[-.035em] text-[#172235]">
                         {week.subtitle}
                       </h2>
-                      <p className="mt-2 text-[9px] font-medium leading-4 text-[#8B8179]">
+                      <p className="mt-2 text-[11px] font-medium leading-5 text-[#8B8179]">
                         {t("lessonTestTask")}
                       </p>
                     </Card>
@@ -308,10 +316,10 @@ export default async function DashboardPage() {
               <Card className="p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
                       {t("progress").toUpperCase()}
                     </p>
-                    <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
+                    <p className="mt-1 text-[17px] font-extrabold tracking-[-.03em] text-[#172235]">
                       {t("result")}
                     </p>
                   </div>
@@ -342,10 +350,10 @@ export default async function DashboardPage() {
                 <Card className="p-4">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
                         {t("videoMeet").toUpperCase()}
                       </p>
-                      <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
+                      <p className="mt-1 text-[17px] font-extrabold tracking-[-.03em] text-[#172235]">
                         {meetingData.display_name || "Meet – STUDY STREAM"}
                       </p>
                     </div>
@@ -353,14 +361,14 @@ export default async function DashboardPage() {
                       <Video size={14} />
                     </span>
                   </div>
-                  <p className="mt-2 text-[9px] leading-4 text-[#8B8179]">
+                  <p className="mt-2 text-[11px] leading-5 text-[#8B8179]">
                     {t("onlineLesson")}
                   </p>
                   <a
                     href={meetingData.meeting_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-flex h-8 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
+                    className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-[#FF8000] px-3 text-[11px] font-bold text-white transition hover:bg-[#E56F00]"
                   >
                     {t("joinMeeting")}
                     <ArrowUpRight size={12} />
@@ -371,25 +379,47 @@ export default async function DashboardPage() {
               <Card className="p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#FF8000]">
                       {t("today").toUpperCase()}
                     </p>
-                    <p className="mt-1 text-[15px] font-extrabold tracking-[-.03em] text-[#172235]">
+                    <p className="mt-1 text-[17px] font-extrabold tracking-[-.03em] text-[#172235]">
                       {t("tasks")}
                     </p>
                   </div>
-                  <span className="text-[24px] font-extrabold tracking-[-.05em] text-[#172235]">
+                  <span className="text-[26px] font-extrabold tracking-[-.05em] text-[#172235]">
                     {taskCount}
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-between rounded-[11px] bg-[#FFFCF9] px-3 py-2.5">
-                  <span className="text-[9px] font-semibold text-[#8B8179]">
+                  <span className="text-[11px] font-semibold text-[#8B8179]">
                     {t("completed")}
                   </span>
-                  <span className="text-[10px] font-extrabold text-[#2E7E58]">
-                    {completedToday}
+                  <span className="text-[12px] font-extrabold text-[#2E7E58]">
+                    {completedToday + " / " + taskCount}
                   </span>
                 </div>
+                {taskCount > 0 ? (
+                  <div
+                    className="mt-3 h-2 overflow-hidden rounded-full bg-[#F0EBE6]"
+                    role="progressbar"
+                    aria-label={t("tasks")}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={taskCompletionPercent}
+                  >
+                    <div
+                      className="h-full rounded-full bg-[#FF8000] transition-[width] duration-300"
+                      style={{ width: taskCompletionPercent + "%" }}
+                    />
+                  </div>
+                ) : null}
+                <Link
+                  href="/lessons"
+                  className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#E8E3DD] bg-white px-3 py-2 text-[11px] font-bold text-[#172235] transition hover:border-[#FFB66F] hover:bg-[#FFFAF5]"
+                >
+                  {t("lessons")}
+                  <ArrowUpRight size={13} className="text-[#FF8000]" />
+                </Link>
               </Card>
             </aside>
           </section>
@@ -414,8 +444,8 @@ function MiniStat({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[8px] font-semibold text-[#9A9189]">{label}</p>
-        <p className="truncate text-[10px] font-extrabold text-[#172235]">{value}</p>
+        <p className="truncate text-[10px] font-semibold text-[#9A9189]">{label}</p>
+        <p className="truncate text-[12px] font-extrabold text-[#172235]">{value}</p>
       </div>
     </div>
   );

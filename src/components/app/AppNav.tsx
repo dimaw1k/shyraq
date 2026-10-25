@@ -42,13 +42,13 @@ const studentLinks: NavItem[] = [
 ];
 
 const mentorLinks: NavItem[] = [
-  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard, underDevelopment: true },
-  { label: "Команда", href: "/mentor/team", icon: UsersRound, underDevelopment: true },
-  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck, underDevelopment: true },
-  { label: "Есептер", href: "/mentor/reports", icon: FileText, underDevelopment: true },
-  { label: "Кездесу", href: "/mentor/meet", icon: Activity, underDevelopment: true },
-  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy, underDevelopment: true },
-  { label: "Профиль", href: "/profile", icon: Users, underDevelopment: true },
+  { label: "Басты бет", href: "/mentor", icon: LayoutDashboard },
+  { label: "Команда", href: "/mentor/team", icon: UsersRound },
+  { label: "Тапсырмалар", href: "/mentor/tasks", icon: ClipboardCheck },
+  { label: "Есептер", href: "/mentor/reports", icon: FileText },
+  { label: "Кездесу", href: "/mentor/meet", icon: Activity },
+  { label: "Рейтинг", href: "/mentor/rating", icon: Trophy },
+  { label: "Профиль", href: "/profile", icon: Users },
 ];
 
 const chiefMentorLinks: NavItem[] = [
@@ -56,16 +56,16 @@ const chiefMentorLinks: NavItem[] = [
   { label: "Менторлар", href: "/chief-mentor/mentors", icon: Users },
   { label: "Командалар", href: "/chief-mentor/teams", icon: UsersRound },
   { label: "Оқушылар", href: "/chief-mentor/students", icon: Users },
-  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen, underDevelopment: true },
-  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList, underDevelopment: true },
-  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck, underDevelopment: true },
-  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText, underDevelopment: true },
+  { label: "Сабақтар", href: "/chief-mentor/lessons", icon: BookOpen },
+  { label: "Тапсырмалар", href: "/chief-mentor/tasks", icon: ClipboardList },
+  { label: "Тапсырманы тексеру", href: "/chief-mentor/submissions", icon: ClipboardCheck },
+  { label: "Есептер", href: "/chief-mentor/reports", icon: FileText },
   { label: "Кездесулер", href: "/chief-mentor/meet", icon: CalendarCheck2 },
   { label: "Рейтинг", href: "/chief-mentor/rating", icon: Trophy },
-  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3, underDevelopment: true },
-  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock, underDevelopment: true },
-  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy, underDevelopment: true },
-  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings, underDevelopment: true },
+  { label: "Аналитика", href: "/chief-mentor/analytics", icon: BarChart3 },
+  { label: "Журнал", href: "/chief-mentor/audit", icon: FileClock },
+  { label: "Қолдау", href: "/chief-mentor/support", icon: LifeBuoy },
+  { label: "Баптаулар", href: "/chief-mentor/settings", icon: Settings },
   { label: "Профиль", href: "/profile", icon: Users },
 ];
 

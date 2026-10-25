@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { useStudentLanguage } from "@/lib/student-language";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImagePlus } from "lucide-react";
 
 export type DashboardBannerItem = {
   id: string;
@@ -28,7 +28,25 @@ export function DashboardBanner({ banners }: { banners: DashboardBannerItem[] })
     });
   };
 
-  if (!imageBanners.length) return null;
+  if (!imageBanners.length) {
+    return (
+      <section className="shrq-dashboard-banner" aria-label={t("banners")}>
+        <div className="grid min-h-[112px] w-full place-items-center rounded-[18px] border border-dashed border-[#E7E0D8] bg-gradient-to-r from-white via-[#FFFCF9] to-[#FFF1E2] px-4 py-5 text-center">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-white text-[#FF8000] shadow-sm">
+              <ImagePlus size={18} />
+            </span>
+            <span className="text-left">
+              <span className="block text-[12px] font-extrabold text-[#172235]">Ақпараттық баннер</span>
+              <span className="mt-1 block text-[10px] font-medium leading-5 text-[#8B8179]">
+                Жарияланған баннер болса, ол осы жерде көрсетіледі.
+              </span>
+            </span>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="shrq-dashboard-banner" aria-label={t("banners")}>

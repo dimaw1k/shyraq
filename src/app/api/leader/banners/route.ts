@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
-import { hasValidFileSignature } from "@/lib/security/file-validation";
+import { detectSupportedImageFormat } from "@/lib/security/file-validation";
 import { readLimitedFormData } from "@/lib/http/read-limited-json";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAuthenticatedStaff } from "@/lib/staff/server";
 import { consumeRateLimit, rateLimitResponse, rateLimitUnavailableResponse } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 4 * 1024 * 1024;
-const ALLOWED = new Set(["image/jpeg","image/png","image/webp"]);
-
-function safeName(name:string){return name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100);}
-
 function parseOptionalDate(value: FormDataEntryValue | null): string | null | undefined {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return null;
@@ -18,7 +14,7 @@ function parseOptionalDate(value: FormDataEntryValue | null): string | null | un
 }
 
 export async function POST(request:Request){
-  const {profile}=await getAuthenticatedStaff("LEADER");
+  const {profile}=await getAuthenticatedStaff(["LEADER", "CHIEF_MENTOR"]);
   const rateLimit = await consumeRateLimit("leader:banner-upload", profile.id, 10, 3600, 600);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -47,8 +43,13 @@ export async function POST(request:Request){
   const file=form.get("file");
   if(!(file instanceof File))return NextResponse.json({error:"Banner суреті қажет."},{status:400});
   if(file.size<=0||file.size>MAX_BYTES)return NextResponse.json({error:"Banner 4 MB-тан аспауы керек."},{status:400});
-  if(!ALLOWED.has(file.type))return NextResponse.json({error:"JPG, PNG немесе WebP ғана рұқсат."},{status:400});
-  if(!(await hasValidFileSignature(file,file.type)))return NextResponse.json({error:"Файл мазмұны мәлімделген форматқа сәйкес емес."},{status:400});
+  const imageFormat = await detectSupportedImageFormat(file);
+  if (!imageFormat) {
+    return NextResponse.json(
+      { error: "Сурет форматы анықталмады. JPG/JPEG, PNG, WebP, GIF, AVIF немесе BMP файлын жүктеңіз." },
+      { status: 400 },
+    );
+  }
 
   const submittedTitle = String(form.get("title") ?? "").trim();
   if (submittedTitle.length > 120) {
@@ -64,13 +65,19 @@ export async function POST(request:Request){
   if ((form.get("startsAt") && startsAt === undefined) || (form.get("endsAt") && endsAt === undefined)) {
     return NextResponse.json({ error: "Banner жариялану уақыты дұрыс емес." }, { status: 400 });
   }
+  if (!endsAt) {
+    return NextResponse.json({ error: "Баннердің аяқталу мерзімін таңдаңыз." }, { status: 400 });
+  }
+  if (Date.parse(endsAt) <= Date.now()) {
+    return NextResponse.json({ error: "Баннердің аяқталу мерзімі болашақта болуы керек." }, { status: 400 });
+  }
   if (startsAt && endsAt && Date.parse(startsAt) > Date.parse(endsAt)) {
     return NextResponse.json({ error: "Banner аяқталу уақыты басталу уақытынан бұрын болмауы керек." }, { status: 400 });
   }
 
   const admin=createAdminSupabaseClient();
-  const path=profile.id+"/"+crypto.randomUUID()+"-"+safeName(file.name);
-  const {error:uploadError}=await admin.storage.from("banners").upload(path,Buffer.from(await file.arrayBuffer()),{contentType:file.type,upsert:false});
+  const path = `${profile.id}/${crypto.randomUUID()}.${imageFormat.extension}`;
+  const {error:uploadError}=await admin.storage.from("banners").upload(path,Buffer.from(await file.arrayBuffer()),{contentType:imageFormat.mimeType,upsert:false});
   if(uploadError)return NextResponse.json({error:"Banner жүктелмеді."},{status:400});
   const {data,error}=await admin.from("marathon_banners").insert({
     title,

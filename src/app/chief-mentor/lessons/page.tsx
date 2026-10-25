@@ -8,6 +8,8 @@ import { StaffLessonEditForm } from "@/components/staff/StaffLessonEditForm";
 import { StaffTestEditor } from "@/components/staff/StaffTestEditor";
 import { getStaffTestData } from "@/lib/staff/test-data";
 import { MARATHON_WEEKS } from "@/lib/marathon";
+import { BannerManager } from "@/components/staff/BannerManager";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export default async function ChiefMentorLessonsPage({
   searchParams,
@@ -15,7 +17,8 @@ export default async function ChiefMentorLessonsPage({
   searchParams?: Promise<{ week?: string }>;
 }) {
   const { supabase, profile } = await getAuthenticatedStaff("CHIEF_MENTOR");
-  const [{ data: lessons }, { data: teams }] = await Promise.all([
+  const admin = createAdminSupabaseClient();
+  const [{ data: lessons }, { data: teams }, { data: banners }] = await Promise.all([
     supabase
       .from("lessons")
       .select(
@@ -25,7 +28,13 @@ export default async function ChiefMentorLessonsPage({
       .order("lesson_order")
       .limit(100),
     supabase.from("teams").select("id,name").order("name"),
+    admin.from("marathon_banners").select("id,title,description,image_path,href,published,starts_at,ends_at,sort_order").order("sort_order").limit(30),
   ]);
+
+  const bannerItems = (await Promise.all((banners ?? []).map(async (banner) => {
+    const { data: signedData, error: signedError } = await admin.storage.from("banners").createSignedUrl(banner.image_path, 60 * 60);
+    return signedError || !signedData?.signedUrl ? null : { ...banner, imageUrl: signedData.signedUrl };
+  }))).filter((banner): banner is NonNullable<typeof banner> => Boolean(banner));
 
   const testData = await getStaffTestData((lessons ?? []).map((lesson) => lesson.id));
   const teamOptions = (teams ?? []).map((team) => ({ id: team.id, name: team.name }));
@@ -54,6 +63,8 @@ export default async function ChiefMentorLessonsPage({
             />
             <StaffCreateLessonForm teams={teamOptions} />
           </section>
+
+          <BannerManager initialBanners={bannerItems} />
 
           <div className="rounded-[22px] border border-[#E8E1DA] bg-white p-2 shadow-[0_10px_30px_rgba(23,34,53,.035)]">
             <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">

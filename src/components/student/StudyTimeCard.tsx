@@ -149,7 +149,7 @@ export function StudyTimeCard({
               target="_blank"
               rel="noreferrer"
               aria-label={meetingName + " — " + t("morningMeet")}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[11px] font-bold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
               {t("morningMeetJoin")}
@@ -161,7 +161,7 @@ export function StudyTimeCard({
               target="_blank"
               rel="noreferrer"
               aria-label={meetingName + " — " + t("eveningMeet")}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[9px] font-semibold text-white transition hover:bg-[#E56F00]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[11px] bg-[#FF8000] px-3 text-[11px] font-bold text-white transition hover:bg-[#E56F00]"
             >
               <Camera size={14} />
               {t("eveningMeetJoin")}
@@ -170,10 +170,10 @@ export function StudyTimeCard({
           </>
         ) : (
           <>
-            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[11px] font-bold text-[#A19890]">
               {t("morningMeet")} — {t("meetingLinkMissing")}
             </div>
-            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[9px] font-extrabold text-[#A19890]">
+            <div className="flex h-10 items-center justify-center rounded-[11px] bg-[#F6F2ED] px-3 text-[11px] font-bold text-[#A19890]">
               {t("eveningMeet")} — {t("meetingLinkMissing")}
             </div>
           </>
@@ -224,10 +224,10 @@ function SessionRow({
   return (
     <div className="rounded-[14px] border border-[#EEE7E0] bg-[#FFFCF9] p-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[9px] font-extrabold text-[#172235]">{label}</p>
+        <p className="text-[12px] font-extrabold text-[#172235]">{label}</p>
         <span
           className={[
-            "rounded-full px-2 py-1 text-[7px] font-extrabold",
+            "rounded-full px-2 py-1 text-[9px] font-extrabold",
             submitted
               ? "bg-[#EAF7F0] text-[#2E7E58]"
               : "bg-[#FFF1E2] text-[#C15F00]",
@@ -241,7 +241,7 @@ function SessionRow({
           <p className="text-[18px] font-extrabold tracking-[-.04em] text-[#172235]">
             {formatMinutes(minutes, t)}
           </p>
-          <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
+          <p className="mt-0.5 text-[10px] font-semibold text-[#9A9189]">
             {t("meetAttendance")}
           </p>
         </div>
@@ -250,7 +250,7 @@ function SessionRow({
           onClick={onReport}
           disabled={!open}
           className={[
-            "inline-flex min-w-[92px] items-center justify-center gap-1.5 rounded-[10px] px-2.5 py-2 text-[8px] font-semibold shadow-[0_2px_10px_rgba(23,34,53,.05)] transition",
+            "inline-flex min-w-[104px] items-center justify-center gap-1.5 rounded-[10px] px-3 py-2.5 text-[10px] font-semibold shadow-[0_2px_10px_rgba(23,34,53,.05)] transition",
             open
               ? "bg-white text-[#FF8000] hover:bg-[#FFF8F2]"
               : "cursor-not-allowed bg-[#F4F0EB] text-[#AAA19A]",
@@ -526,7 +526,7 @@ function ReportModal({
                   <p className="text-[9px] font-extrabold text-[#172235]">
                     {t("photoReport")}
                   </p>
-                  <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
+                  <p className="mt-0.5 text-[10px] font-semibold text-[#9A9189]">
                     {t("photoHint")}
                   </p>
                 </div>
@@ -546,7 +546,7 @@ function ReportModal({
                   <p className="text-[9px] font-extrabold text-[#172235]">
                     {t("answerQuestions")}
                   </p>
-                  <p className="mt-0.5 text-[8px] font-semibold text-[#9A9189]">
+                  <p className="mt-0.5 text-[10px] font-semibold text-[#9A9189]">
                     {t("answerHintShort")}
                   </p>
                 </div>
