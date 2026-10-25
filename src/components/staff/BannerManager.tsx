@@ -44,11 +44,6 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
       setMessage("Banner 4 MB-тан аспауы керек.");
       return;
     }
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setMessage("JPG, PNG немесе WebP ғана рұқсат.");
-      return;
-    }
-
     if (!endsAt.trim()) {
       setMessage("Баннердің қашанға дейін көрсетілетінін таңдаңыз.");
       return;
@@ -154,11 +149,14 @@ export function BannerManager({ initialBanners }: { initialBanners: Banner[] }) 
             Сурет
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               className="mt-1.5 block w-full rounded-[14px] border border-dashed border-[#DCCFC5] bg-white px-3 py-3 text-[10px] font-semibold"
             />
             {file ? <span className="mt-1 block truncate text-[9px] text-[#8B8179]">{file.name}</span> : null}
+            <span className="mt-1 block text-[9px] font-medium text-[#8B8179]">
+              4 МБ дейін. JPG/JPEG, PNG, WebP, GIF, AVIF немесе BMP қолдайды; формат файл атауына сәйкес болмаса да автоматты анықталады.
+            </span>
           </label>
 
           <div className="grid gap-3 sm:grid-cols-2">
