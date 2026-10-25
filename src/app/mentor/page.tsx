@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Activity, ClipboardCheck, FileText, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app/AppNav";
 import { Card, MetricCard, PageContainer, SectionHeader, StatusPill } from "@/components/ui/ShyraqUI";
+import { DashboardBanner } from "@/components/student/DashboardBanner";
+import { getActiveDashboardBanners } from "@/lib/banners/server";
 import { getMentorPageData } from "@/lib/mentor/auth";
 
 function issueOf(student: {
@@ -17,15 +19,19 @@ function issueOf(student: {
 
 export default async function MentorPage() {
   const { profile, workspace } = await getMentorPageData();
+  const bannerItems = await getActiveDashboardBanners();
 
   if (!workspace) {
     return (
       <AppShell role="MENTOR" userName={profile.full_name} title="Басты бет">
         <PageContainer>
-          <Card className="p-8 text-center">
-            <p className="text-sm font-extrabold text-[#172235]">Команда бекітілмеген</p>
-            <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">Лидер сізге команда бекіткеннен кейін бұл бөлім толтырылады.</p>
-          </Card>
+          <div className="space-y-4">
+            <DashboardBanner banners={bannerItems} />
+            <Card className="p-8 text-center">
+              <p className="text-sm font-extrabold text-[#172235]">Команда бекітілмеген</p>
+              <p className="mt-1 text-[10px] font-semibold text-[#9A9189]">Лидер сізге команда бекіткеннен кейін бұл бөлім толтырылады.</p>
+            </Card>
+          </div>
         </PageContainer>
       </AppShell>
     );
@@ -41,6 +47,7 @@ export default async function MentorPage() {
     <AppShell role="MENTOR" userName={profile.full_name} title="Басқару">
       <PageContainer>
         <div className="space-y-5">
+          <DashboardBanner banners={bannerItems} />
           <SectionHeader
             eyebrow="МЕНТОР"
             title="Бүгінгі жағдай"
