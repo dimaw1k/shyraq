@@ -30,7 +30,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { profile } = await getAuthenticatedStaff("LEADER");
+  const { profile } = await getAuthenticatedStaff(["LEADER", "CHIEF_MENTOR"]);
   const rateLimit = await consumeRateLimit("leader:banner-mutate", profile.id, 30, 600, 120);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
@@ -138,7 +138,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { profile } = await getAuthenticatedStaff("LEADER");
+  const { profile } = await getAuthenticatedStaff(["LEADER", "CHIEF_MENTOR"]);
   const rateLimit = await consumeRateLimit("leader:banner-mutate", profile.id, 30, 600, 120);
   if (!rateLimit.available) return rateLimitUnavailableResponse();
   if (!rateLimit.allowed) {
