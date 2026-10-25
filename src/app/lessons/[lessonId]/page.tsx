@@ -27,12 +27,12 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   if (locked) {
     return (
       <AppShell role={role} userName={profile?.full_name ?? undefined} title="Сабақ жабық">
-        <main className="mx-auto w-full max-w-3xl px-3.5 py-5 sm:px-6 sm:py-8">
-          <div className="rounded-[24px] border border-[#E8E1DA] bg-white p-6 text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F6F2ED] text-[#8D837B]"><LockKeyhole size={22} /></span>
-            <h2 className="mt-4 text-xl font-extrabold text-[#172235]">{lesson.title}</h2>
-            <p className="mt-2 text-sm text-[#8B8179]">Сабақ әлі ашылған жоқ.</p>
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF0E8] px-4 py-2 text-xs font-extrabold text-[#C85E2F]"><Clock3 size={14} />{formatKzDateTime(lesson.starts_at!)}</p>
+        <main className="mx-auto w-full max-w-3xl px-3.5 py-6 sm:px-6 sm:py-10">
+          <div className="rounded-[24px] border border-[#E8E3DD] bg-white p-6 text-center shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-9">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F4F1EC] text-[#8D837B]"><LockKeyhole size={22} /></span>
+            <h2 className="mt-4 text-xl font-extrabold leading-snug text-[#172235] sm:text-2xl">{lesson.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-[#7B746D]">Сабақ әлі ашылған жоқ.</p>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF1E2] px-4 py-2.5 text-sm font-bold text-[#B95D00]"><Clock3 size={16} />{formatKzDateTime(lesson.starts_at!)}</p>
           </div>
         </main>
       </AppShell>
@@ -64,32 +64,44 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
   return (
     <AppShell role={role} userName={profile?.full_name ?? undefined} title={lesson.title} description={lesson.marathon_day ? lesson.marathon_day + "-күн · " + (hasTest ? "бейне → тест" : "бейне сабақ") : (hasTest ? "Бейне → тест" : "Бейне сабақ")}>
-      <main className="mx-auto w-full max-w-5xl px-3.5 py-4 sm:px-6 sm:py-7">
-        <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+      <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-8">
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
           <section className="min-w-0">
-            {lesson.description ? <p className="mb-4 text-sm leading-6 text-gray-500">{lesson.description}</p> : null}
+            {lesson.description ? (
+              <p className="mb-5 max-w-3xl text-[14px] leading-7 text-[#6F665E] sm:text-[15px]">
+                {lesson.description}
+              </p>
+            ) : null}
             <KinescopeLessonPlayer lessonId={lesson.id} videoId={lesson.kinescope_video_id} durationSeconds={lesson.duration_seconds} requiredWatchPercent={lesson.required_watch_percent} initialRanges={initialRanges} testHref={hasTest ? "/tests/lesson/" + lesson.id : undefined} initialTestUnlocked={Boolean(progress?.test_unlocked)} trackProgress={hasTest} />
           </section>
-          <aside className="h-fit min-w-0 rounded-2xl border border-gray-100 bg-[#FAFAFA] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C25100]">КЕЛЕСІ ҚАДАМ</p>
-            <h2 className="mt-1.5 text-sm font-semibold text-gray-900">Тест</h2>
-            <p className="mt-1 text-xs leading-5 text-gray-500">YouTube сабақтарында тестке видео блогының астындағы батырма арқылы өтесіз. Kinescope сабақтарында тест {lesson.required_watch_percent}% бірегей көруден кейін ашылады.</p>
-            <div className="mt-4 rounded-xl bg-white p-3 text-[11px] leading-5 text-gray-500 shadow-soft">Видео мен тест сабақтың completion логикасын құрайды.</div>
+          <aside className="h-fit min-w-0 rounded-[20px] border border-[#E8E3DD] bg-white p-4 shadow-[0_12px_34px_rgba(23,34,53,.045)] sm:p-5 lg:sticky lg:top-[72px]">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#FF8000]">КЕЛЕСІ ҚАДАМ</p>
+            <h2 className="mt-2 text-base font-extrabold text-[#172235]">{hasTest ? "Тестке өту" : "Сабақ материалы"}</h2>
+            <p className="mt-2 text-[13px] leading-6 text-[#6F665E]">
+              {hasTest
+                ? "Тест бейнесабақтың кемінде " + lesson.required_watch_percent + "% бірегей көру уақыты жиналғаннан кейін ашылады."
+                : "Бейнесабақты көріп, осы сабаққа тіркелген материалдармен танысыңыз."}
+            </p>
+            <div className="mt-4 rounded-[14px] border border-[#E8E3DD] bg-[#FFFCF9] p-3.5 text-[12px] leading-5 text-[#7B746D]">
+              {hasTest
+                ? "Бейне мен тест сабақтың оқу нәтижесін бірге қалыптастырады."
+                : "Сабақты аяқтау үшін бейнематериал мен берілген нұсқауларды орындаңыз."}
+            </div>
           {materials.length ? (
-            <div className="mt-4 rounded-xl bg-white p-3 shadow-soft">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#C25100]">МАТЕРИАЛДАР</p>
-              <div className="mt-2 space-y-2">
+            <div className="mt-4 rounded-[16px] border border-[#E8E3DD] bg-[#FAF9F7] p-3.5 sm:p-4">
+              <p className="text-[11px] font-extrabold uppercase tracking-[.13em] text-[#FF8000]">МАТЕРИАЛДАР</p>
+              <div className="mt-3 space-y-2">
                 {materials.map((material,index) => {
                   const label=material.label ?? material.title ?? "Материал";
                   return material.url ? (
-                    <a key={material.url+index} href={material.url} target="_blank" rel="noreferrer" className="block rounded-[10px] bg-[#FFFCF9] px-3 py-2.5 text-[10px] font-bold text-[#4B433C] hover:text-[#C25100]">
+                    <a key={material.url+index} href={material.url} target="_blank" rel="noreferrer" className="block rounded-[12px] border border-[#E8E3DD] bg-white px-3 py-3 text-[12px] font-bold text-[#3F3832] transition hover:border-[#FFB66F] hover:text-[#B95D00]">
                       <span>{label}</span>
-                      {material.description ? <span className="mt-1 block text-[10px] font-medium leading-4 text-[#8B8179]">{material.description}</span> : null}
+                      {material.description ? <span className="mt-1 block text-[11px] font-medium leading-5 text-[#7B746D]">{material.description}</span> : null}
                     </a>
                   ) : (
-                    <div key={label+index} className="rounded-[10px] bg-[#FFFCF9] px-3 py-2.5">
-                      <p className="text-[10px] font-bold text-[#4B433C]">{label}</p>
-                      {material.description ? <p className="mt-1 text-[10px] font-medium leading-4 text-[#8B8179]">{material.description}</p> : null}
+                    <div key={label+index} className="rounded-[12px] border border-[#E8E3DD] bg-white px-3 py-3">
+                      <p className="text-[12px] font-bold text-[#3F3832]">{label}</p>
+                      {material.description ? <p className="mt-1 text-[11px] font-medium leading-5 text-[#7B746D]">{material.description}</p> : null}
                     </div>
                   );
                 })}
