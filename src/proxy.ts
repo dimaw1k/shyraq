@@ -3,6 +3,31 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 import { verifyRecoveryGrant } from "./lib/security/recovery-grant";
 
+// The chief-mentor sections below remain intentionally locked while those screens are under review.
+// The mentor workspace itself is open; its routes still enforce authentication, role checks, and data scope.
+const LOCKED_CHIEF_MENTOR_PATHS = [
+  "/chief-mentor/lessons",
+  "/chief-mentor/tasks",
+  "/chief-mentor/submissions",
+  "/chief-mentor/reports",
+  "/chief-mentor/analytics",
+  "/chief-mentor/audit",
+  "/chief-mentor/support",
+  "/chief-mentor/settings",
+  "/api/chief-mentor/lessons",
+  "/api/chief-mentor/tasks",
+  "/api/chief-mentor/submissions",
+  "/api/chief-mentor/reports",
+  "/api/chief-mentor/analytics",
+  "/api/chief-mentor/audit",
+  "/api/chief-mentor/support",
+  "/api/chief-mentor/settings",
+];
+
+function matchesLockedPath(pathname: string, roots: string[]) {
+  return roots.some((root) => pathname === root || pathname.startsWith(root + "/"));
+}
+
 const PRIVATE_PATH_ROOTS = [
   "/api",
   "/dashboard",
@@ -120,6 +145,42 @@ export async function proxy(request: NextRequest) {
         pathname,
       );
     }
+  }
+
+  // Keep the existing chief-mentor locks scoped to that separate workspace.
+  // No /mentor or /api/mentor paths are blocked here.
+  if (matchesLockedPath(pathname, LOCKED_CHIEF_MENTOR_PATHS)) {
+    if (pathname.startsWith("/api/")) {
+      return securePrivateResponse(
+        NextResponse.json(
+          { error: "Бұл бөлім уақытша жабық. Жаңарту жұмыстары жүріп жатыр." },
+          {
+            status: 503,
+            headers: {
+              "Cache-Control": "no-store",
+              Pragma: "no-cache",
+              "Retry-After": "3600",
+            },
+          },
+        ),
+        csp,
+        pathname,
+      );
+    }
+
+    const target = request.nextUrl.clone();
+    target.pathname = "/temporarily-closed";
+    target.search = "";
+    return securePrivateResponse(
+      NextResponse.rewrite(target, {
+        headers: {
+          "Cache-Control": "no-store",
+          "X-Robots-Tag": "noindex, nofollow",
+        },
+      }),
+      csp,
+      pathname,
+    );
   }
 
   // Mentor workspaces are intentionally available. Authorization remains enforced
